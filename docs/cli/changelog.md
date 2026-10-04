@@ -2,7 +2,50 @@
 
 All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and the CLI adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v4.1.1] - 2026-10-02 (Latest)
+## [v4.2.0] - 2026-10-04 (Latest)
+
+### Added
+- **Threat Geography & GeoIP Intelligence Suite**:
+  - Global Attack Origins Map (`geomap` panel) rendering real-time geospatial attack concentrations and clusters across the globe mapped to ISO 3166-1 alpha-2 country codes.
+  - Top Attacking Countries (`bargauge` panel) ranking top nation-state sources of blocked probes and malicious traffic.
+  - Country Threat Share (`piechart` panel) showing percentage distribution of hostile requests by origin nation.
+  - Interactive `$country_code` template variable with multi-select support to filter events and metrics across the dashboard by origin country.
+- **Malicious User-Agent & Scanner Profiling**:
+  - Automated scanner detection (`bargauge` panel) identifying and profiling offensive security toolkits (Nuclei, Nikto, sqlmap, Gobuster, Nmap, Masscan, curl, python-requests, and Go-http-client).
+  - Attacked HTTP Methods & Verbs distribution (`piechart` panel) revealing threat actor request methods (`GET`, `POST`, `HEAD`, `CONNECT`, `OPTIONS`).
+- **Layer 4 & Layer 7 Multi-Protocol Convergence**:
+  - L4 vs L7 Threat Convergence Over Time (`timeseries` panel) correlating HTTP reverse proxy blocks (Traefik, Caddy, NGINX) with Layer 4 TCP connection bans and UDP packet drops.
+  - Protocol Breakdown (`piechart` panel) tracking traffic proportions across protected protocols (`http`, `ssh`, `dns`, `dht`, `tcp`, `udp`).
+  - Transport Split (`bargauge` panel) comparing connection-oriented TCP vs datagram UDP flows.
+  - Interactive `$protocol` and `$transport` template filter variables for fine-grained multi-protocol drilldowns.
+- **Pre-Configured Grafana Alerting & Automated Incident Notification Channels**:
+  - Out-of-the-box alerting rules provisioned in `grafana/provisioning/alerting/alerting.yaml`:
+    - `rw-ddos-attack-spike`: Hostile attack rate spike alert triggering when block rate exceeds 10 req/s over 5m.
+    - `rw-sensitive-path-probe`: Immediate critical alert on hostile access attempts to `.env`, `.git`, or cloud credential files.
+    - `rw-l4-brute-force`: Layer 4 brute-force surge alert when >15 connection drops or bans occur within 3m.
+    - `rw-scanner-nuclei-sqlmap`: High-urgency alert when active exploitation tool signatures are detected.
+  - Multi-channel notification receivers pre-configured for Slack (`${SLACK_WEBHOOK_URL}`), Discord (`${DISCORD_WEBHOOK_URL}`), PagerDuty (`${PAGERDUTY_KEY}`), and Generic Webhooks (`${ALERT_WEBHOOK_URL}`).
+- **Public & Shared Dashboards with Iframe Embedding**:
+  - Enabled Grafana `publicDashboards` feature toggle (`GF_FEATURE_TOGGLES_ENABLE=publicDashboards`) for zero-login public links to live threat telemetry.
+  - Enabled frame embedding (`GF_SECURITY_ALLOW_EMBEDDING=true`) for embedding threat widgets directly into SecOps intranets or customer portals.
+- **Interactive SOC Incident Triage Table & Threat Intelligence Drilldowns**:
+  - Dedicated SOC triage grid (`table` panel) displaying real-time forensic event records.
+  - Interactive one-click investigative drilldowns on attacker client IPs:
+    - **AbuseIPDB**: Instant IP reputation check, report counts, and abuse confidence score (`https://www.abuseipdb.com/check/${__data.fields.client_ip}`).
+    - **VirusTotal**: Cross-engine malware, scanner, and infrastructure scoring (`https://www.virustotal.com/gui/ip-address/${__data.fields.client_ip}`).
+    - **Shodan**: Open ports, running daemons, and banner reconnaissance (`https://www.shodan.io/host/${__data.fields.client_ip}`).
+    - **Loki Forensic Threat Hunter**: Instant pivot into Grafana Explore pre-filtered to the attacker's client IP.
+  - Direct top-bar navigation shortcuts for rapid threat hunting.
+
+### Fixed
+- **Dashboard Offender IP Data Links (Panel 8)**: Replaced `${__series.name}` with `${__field.labels.client_ip}` in "Top Offender IP Addresses & GeoIP", preventing country code suffixes (e.g. `[US]`) from leaking into external threat intelligence URLs (AbuseIPDB, VirusTotal, Shodan, and Loki Explore).
+- **Dashboard Template Variable Filter Wiring**: Enabled multi-select and dynamic regex filtering (`allValue: ".*"`, `multi: true`, `refresh: 1`) on `$gateway` and `$verdict`, and wired stream selector filters across dashboard panels so that toolbar dropdowns properly filter panels.
+- **Block Ratio Division by Zero Protection (Panel 4)**: Added `"noValue": "0%"` to the Block Ratio stat panel to gracefully display `0%` during fresh installations with zero logs instead of `NaN%`.
+- **Secret-Safe Alerting Configuration**: Replaced placeholder Slack/Discord/PagerDuty dummy keys with clean environment variable references, fully preventing GitHub Push Protection and Secret Scanner false-positive blocks.
+
+---
+
+## [v4.1.1] - 2026-10-02
 
 ### Fixed
 - **Alloy Multi-Label Relabel Matching (`config.alloy`)**:

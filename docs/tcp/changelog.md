@@ -11,7 +11,55 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
-## [v3.1.0] - 2026-10-02 (Latest)
+## [v3.2.0] - 2026-10-04 (Latest)
+
+### 🚀 Feature & Hardening Release: Comprehensive Concurrency, Persistence, and Security Fixes
+
+TCP Warden v3.2.0 brings comprehensive security hardening, concurrency stability, and memory optimizations across all core subsystems, resolving 24 edge-case vulnerabilities and operational defects identified across the UDP datagram engine, SQLite ban persistence, GeoIP resolver, API server, and Plugin SDK.
+
+#### 1. Core Proxy & Transport Hardening
+- **TCP Half-Close Preservation**: Fixed bidirectional stream proxying in `protocol.Proxy()` to invoke `CloseWrite()` on `*net.TCPConn` rather than closing the underlying socket prematurely. Connections requiring half-close handshakes (such as HTTP/1.1 pipelining, SMTP TLS upgrades, and custom RPCs) now transfer payloads completely without EOF truncation.
+- **`BufferedConn` Half-Close Delegation**: Added `CloseRead()` forwarding in `protocol.BufferedConn`, ensuring that wrapped or peeked connections propagate half-close read shutdowns cleanly without breaking ongoing writes.
+- **Active Connection Underflow Defense**: Replaced plain atomic decrement with a compare-and-swap (CAS) guard in `ServiceStats.ConnClosed()`, guaranteeing that `ActiveConnections` never underflows below zero during rapid client disconnects or aborted handshakes.
+- **Cancellation Context Propagation in Plugin Inspection**: Threaded active connection contexts (`context.Context`) through to `sdk.DefaultContext` in `core/pipeline.go`. Protocol inspectors listening on `ctx.Context().Done()` now receive immediate cancellation when connections terminate or the daemon initiates graceful shutdown.
+- **Pipeline Panic Recovery**: Protected inspector executions and pipeline evaluation stages with defensive panic recovery handlers. Malformed protocol payloads or panicking plugin inspectors are caught, logged, and isolated without crashing the daemon process.
+- **Platform-Agnostic Listener Accept Error Handling**: Added `use of closed network connection` string fallback in TCP listener accept error checks, ensuring uniform clean shutdown across all operating systems.
+- **Port Range Forwarding**: Added support for 1:1 and N:1 port mapping ranges with strict validation ensuring non-overlapping ranges and matching source/destination widths.
+
+#### 2. Network Protocol & IPv6 Integrity
+- **IPv6 Scope / Zone Identifier Stripping**: Added RFC 4007 zone ID stripping across `parseClientIP()`, `cleanIPString()`, `matchIP()`, `crowdsec.Client.Check()`, and the management API (`/api/ban`, `/api/unban`). Link-local addresses with interface suffixes (e.g., `[fe80::1%eth0]:1234`) are now cleanly resolved, preventing erroneous drops by `net.ParseIP`, properly classifying them as `LAN` (`IsPrivate: true`) in GeoIP lookups, and matching CrowdSec ban decisions.
+
+#### 3. Management API & Stream Hardening
+- **Constant-Time API Token Authentication**: Replaced standard string equality comparison in API `requireAuth` middleware with `crypto/subtle.ConstantTimeCompare`, neutralizing timing side-channel attacks against the daemon's bearer authentication token.
+- **API Health Endpoint Version Alignment**: Updated `/health` response payload to report the daemon's release version (`sdk.Version` / `3.2.0`) as `"version"` instead of the config schema version (`"1.0"`), while preserving `"config_version": "1.0"`.
+- **SSE Stream Broken Client Resource Leak Fix**: Handled write errors on Server-Sent Events (`/api/events`) immediately, allowing disconnected streaming clients to exit promptly and execute deferred `unsubscribe()` callbacks to avoid channel retention.
+- **Management API Route Parity (`/api/tcp/*`)**: Added `/api/tcp/*` route aliases (`/api/tcp/stats`, `/api/tcp/services`, `/api/tcp/banlist`, `/api/tcp/unban`, `/api/tcp/ban`, `/api/tcp/events`) matching `/api/guard/*` and `/api/*`, and implemented `http.Handler` on `APIServer.ServeHTTP`.
+
+#### 4. Layer 4 UDP Datagram Engine
+- **Session Table Race Condition Fix**: Eliminated a race condition in `UDPSessionTable.GetOrCreate` under concurrent UDP packet bursts using atomic synchronization, preventing duplicate upstream socket creation and spurious connection close logs.
+- **High-Precision Idle Session Reaper**: Added a periodic idle reaper to clean inactive NAT sessions according to `udp.session_timeout`, reclaiming memory and socket handles under high packet churn.
+- **Datagram Metrics Lifecycle**: Integrated UDP packet counters and datagram throughput metrics directly into `StatsRegistry` and the JSONL event logging stream.
+
+#### 5. SQLite Banlist Persistence & Hardening
+- **Thread-Safe SQLite Persistence (`bans.db`)**: Persists dynamic and permanent bans across daemon restarts using SQLite in WAL mode with connection serialization (`SetMaxOpenConns(1)`), eliminating database lock contention.
+- **SQL Injection Prevention**: Parameterized all queries across `Unban()` and `IsBanned()`, preventing malicious IP payloads from escaping SQL statements.
+- **Permanent Ban Expiry Sentinel**: Stored a far-future sentinel timestamp (`9999-12-31`) rather than zero-time timestamps, eliminating false expirations in SQL engines.
+- **TOCTOU Read Eviction Protection**: Upgrades locks cleanly when evicting expired bans on read without risking concurrent re-ban loss.
+- **Automated Legacy JSON Migration**: Automatically migrates pre-v3.0 `bans.json` files into SQLite on boot.
+
+#### 6. GeoIP Engine Memory Bounding & Hardening
+- **High-Cardinality Cache Bounding**: Capped in-memory GeoIP cache to `maxGeoCacheEntries = 50,000` entries with atomic threshold pruning, preventing memory exhaustion attacks from spoofed random IP scans.
+- **Extended Network Classification**: Added automatic classification for Carrier-Grade NAT (CGNAT `100.64.0.0/10`), Tailscale IPv6 ULA (`fd7a:115c:a1e0::/48`), RFC 5737 test nets, and benchmark ranges to `IsPrivateOrLocal()`.
+- **Corrupted MMDB Buffer Boundary Checks**: Added strict bounds checking in MMDB binary parsing, eliminating slice bounds out-of-range panics when reading truncated or malformed GeoLite2 databases.
+
+#### 7. Plugin SDK & Dynamic Registry
+- **Manifest Traversal Protection**: Validated plugin manifest names, versions, and protocol lists, forbidding path traversal (`../`) and illegal directory characters.
+- **Semantic Version Compatibility & Auto-Disable**: Verifies plugin manifest compatibility against the running host SDK version, automatically disabling incompatible or faulty plugins with clear warning logs instead of aborting startup.
+- **SDK Version Bump**: Synchronized Plugin SDK constant `Version = "3.2.0"` in `plugins/sdk/sdk.go`.
+
+---
+
+## [v3.1.0] - 2026-10-02
 
 ### 🚀 Minor Release: Leveled Security Events & RouteWarden Observability Integration
 
