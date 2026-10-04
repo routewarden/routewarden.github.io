@@ -14,7 +14,7 @@ RouteWarden uses `docs/version.json` as the **single source of truth** for versi
   "caddy": "v1.3.0",
   "nginx": "v1.3.0",
   "tcp": "v3.0.0",
-  "cli": "v4.1.1"
+  "cli": "v4.2.0"
 }
 ```
 

@@ -42,48 +42,55 @@ Two donut graphs illustrate your traffic breakdown:
 
 ---
 
-### 4. Top Attacked Targets (Target URIs)
+---
 
-A horizontal bar chart listing the most heavily probed paths and endpoints across all protected web applications:
-- `/.env`, `/.git/config`, `/.aws/credentials`
-- `/wp-login.php`, `/xmlrpc.php`, `/administrator`
-- `/actuator/health`, `/actuator/env`, `/metrics`
-- `/phpmyadmin/`, `/pma/`, `/admin.php`
+### 4. Threat Geography & GeoIP Intelligence
 
-This reveals automated reconnaissance tooling attempting to locate leaked credentials or misconfigured administrative interfaces.
+A comprehensive geographic intelligence suite providing real-time visibility into attacking nation states and geographic concentrations:
+- **Global Attack Origins Map (Geomap)**: Interactive world map plotting attack origins by ISO 3166-1 alpha-2 country codes. Marker sizes and colors scale dynamically with attack intensity.
+- **Top Attacking Countries**: Ranked bar gauge showing the top 10 nation-state origins of blocked probes and hostile requests.
+- **Country Threat Share**: Donut chart displaying the percentage breakdown of global threat traffic by origin country.
 
 ---
 
-### 5. Top Offender IPs & GeoIP
+### 5. Layer 4 & Layer 7 Multi-Protocol Convergence
 
-A ranked bar chart displaying the top client IP addresses responsible for blocked attacks:
-- Automatically resolved against GeoIP country database (e.g. `US`, `DE`, `CN`, `LAN`).
-- Displays country name and country flag emoji (e.g. 🇩🇪 Germany, 🇺🇸 United States, 🏠 Local Network).
-- Highlights repeat offenders to facilitate upstream firewall bans (e.g. via Cloudflare, AWS WAF, or CrowdSec).
-
----
-
-### 6. Top Triggered Signatures & Rules
-
-Identifies which defense rules are firing most frequently:
-- **Sensitive Files Rule**: Hits on hidden files, source control folders, and configuration backups.
-- **Path Traversal Rule**: Directory escape attempts (e.g. `../..`, `%252e%252e`).
-- **SQLi / Injection Patterns**: Attempts to pass malicious payloads into URI queries or paths.
-- **Protocol Violations**: Layer 4 triggers such as DNS query flood or SSH dictionary attacks.
+Provides unified visibility across application-layer HTTP gateways and network-layer TCP/UDP bastions:
+- **L4 vs L7 Threat Convergence Over Time**: Multi-series timeseries tracking HTTP reverse proxy blocks (Traefik, Caddy, NGINX) alongside Layer 4 TCP connection bans (SSH bastion) and UDP packet drops (DNS/DHT).
+- **Protocol Breakdown**: Donut chart illustrating distribution across protected protocols (`http`, `ssh`, `dns`, `dht`, `tcp`, `udp`).
+- **Transport Split (TCP vs UDP)**: Bar gauge comparing transport-layer traffic volume.
 
 ---
 
-### 7. Live Security Event Feed (Real-Time SIEM Log)
+### 6. Threat Analysis & Attack Vector Profiling
 
-A dedicated log viewer streaming security events with zero latency:
-- Automatically colored based on severity: **WARN/ERROR** for blocks, **INFO** for standard bypasses.
-- Expands to show full structured metadata for any event:
-  - Exact timestamp (nanosecond precision)
-  - Ingress Gateway (`traefik`, `caddy`, `nginx`, `tcp-warden`)
-  - Client IP & Country Code
-  - Request Path & HTTP Method
-  - Response Mode executed (e.g. `silentDrop`, `tarpit`, `gzipBomb`, `fakeSuccess`, `json`)
-  - Triggered Pattern or Reason
+Pinpoints targets, repeat offenders, and offensive toolkits:
+- **Top Attacked Targets**: Heavily probed endpoints (`/.env`, `/.git/config`, `/wp-login.php`, `/actuator/env`).
+- **Top Offender IPs & GeoIP**: Ranked client IP addresses annotated with resolved country codes (`[US]`, `[DE]`, `[LAN]`).
+- **Top Triggered Rules / Signatures**: Identifies which defense rules are firing most frequently (sensitive files, path traversal, SQLi, protocol anomalies).
+- **Malicious User-Agents & Security Scanners**: Automated scanner detection ranking offensive toolkits (`Nuclei`, `Nikto`, `sqlmap`, `Masscan`, `Go-http-client`, `python-requests`, `curl`, `ZGrab`).
+- **Attacked HTTP Methods & Verbs**: Donut chart illustrating HTTP verbs utilized in attacks (`GET`, `POST`, `HEAD`, `CONNECT`, `OPTIONS`).
+
+---
+
+---
+
+### 7. Interactive Incident Triage & Live Security Feed
+
+A dual-mode operational pane designed for Security Operations Center (SOC) analysts:
+
+- **🚨 Interactive Threat Incident Triage Table**:
+  - Structured forensic grid of blocked hostile events.
+  - **One-Click Threat Intelligence Drilldowns**: Clicking any IP in the table or offender gauge reveals instant investigative lookups:
+    - **AbuseIPDB**: Comprehensive IP reputation, report counts, and abuse history (`https://www.abuseipdb.com/check/<IP>`).
+    - **VirusTotal**: Cross-engine malware, scanner, and infrastructure scoring (`https://www.virustotal.com/gui/ip-address/<IP>`).
+    - **Shodan**: Open ports, running daemons, and banner reconnaissance (`https://www.shodan.io/host/<IP>`).
+    - **Loki Forensic Threat Hunter**: Drills directly into Grafana Explore pre-filtered to the attacker's client IP.
+  - **Color-Coded Verdict Badges**: High-contrast indicators for `BLOCK` (red), `ALLOW` (green), and `THROTTLED` (amber).
+
+- **📜 Real-Time Attack Log Stream**:
+  - Low-latency log viewer streaming security events with zero latency.
+  - Expands to show full structured JSON metadata for any event (nanosecond timestamps, headers, response modes, and rule IDs).
 
 ---
 
@@ -95,5 +102,67 @@ The dashboard includes top-bar interactive dropdowns that dynamically alter all 
 |:---|:---|:---|
 | **Gateway** | `All`, `traefik`, `caddy`, `nginx`, `tcp-warden` | Filter logs to a specific reverse proxy or Layer 4 daemon |
 | **Verdict** | `All`, `BLOCK`, `ALLOW`, `THROTTLED` | Focus exclusively on hostile attacks or audit permitted flows |
+| **Country** | `All`, `US`, `DE`, `CN`, `RU`, `LAN`, ... | Filter attacks, events, and metrics by geographic origin code |
+| **Protocol** | `All`, `http`, `ssh`, `dns`, `dht`, `tcp`, `udp` | Isolate specific application layer or network protocols |
+| **Transport** | `All`, `tcp`, `udp` | Toggle between connection-oriented and datagram traffic |
 | **Time Range** | Last 5m, 15m, 1h, 6h, 24h, 7d | Adjust time resolution for real-time triage or historical audits |
 | **Auto-Refresh** | Off, 5s, 10s, 30s, 1m | Real-time monitoring mode for Security Operations Centers (SOC) |
+
+---
+
+## Public & Shared Dashboards
+
+RouteWarden's observability stack is pre-configured for public status pages, executive dashboards, and secure iframe embedding:
+
+### 1. Zero-Login Anonymous Viewer Access
+The stack enables anonymous read-only access by default:
+- Users accessing `http://localhost:3000` or public proxy endpoints immediately view the RouteWarden Threat Intelligence dashboard without requiring login credentials.
+- Anonymous users receive the `Viewer` role, preventing unauthorized configuration edits.
+
+### 2. Public Dashboards Feature
+Grafana's `publicDashboards` feature toggle is enabled (`GF_FEATURE_TOGGLES_ENABLE=publicDashboards`):
+- Click **Share** $\rightarrow$ **Public dashboard** in the top navigation bar.
+- Generate a standalone, secure public link to share live threat telemetry with clients or leadership.
+
+### 3. Portal & Iframe Embedding
+Grafana frame-ancestors restrictions are relaxed (`GF_SECURITY_ALLOW_EMBEDDING=true`):
+- Embed the entire RouteWarden dashboard or individual attack panels directly into company intranets, SecOps portals, or status pages:
+  ```html
+  <iframe
+    src="http://grafana.example.com/d/routewarden-overview?kiosk"
+    width="100%"
+    height="800"
+    frameborder="0">
+  </iframe>
+  ```
+
+
+---
+
+## Automated Alerting & Incident Notification Channels
+
+RouteWarden ships with pre-configured Grafana Alerting rules provisioned in `grafana/provisioning/alerting/alerting.yaml`:
+
+### Out-of-the-Box Alert Rules
+
+1. **Hostile Attack Rate Spike (DDoS)**:
+   - Triggers when blocked attack traffic exceeds $10\,\text{req/s}$ over a 5-minute sliding window.
+   - Severity: `warning`
+2. **Critical Sensitive File Probing (`.env` / `.git` / `.aws`)**:
+   - Triggers immediately ($0\,\text{s}$ latency) when hostile attempts access environment files, Git repositories, or cloud credentials.
+   - Severity: `critical`
+3. **Layer 4 Brute-Force & SSH Bastion Attack Surge**:
+   - Triggers when $>15$ connection drops or IP bans occur within 3 minutes on Layer 4 TCP/UDP listeners.
+   - Severity: `high`
+4. **Active Exploitation Tool Detected (`sqlmap` / `Nuclei` / `Nikto`)**:
+   - Triggers immediately when automated penetration testing or vulnerability scanner signatures are detected.
+   - Severity: `high`
+
+### Pre-Configured Contact Points
+
+- **Webhook**: Posts structured JSON payloads to `${ALERT_WEBHOOK_URL}` for custom firewalls or automated SOAR runbooks.
+- **Slack**: Formatted alert messages sent to `#security-alerts` via `${SLACK_WEBHOOK_URL}`.
+- **Discord**: Real-time embed cards dispatched to `${DISCORD_WEBHOOK_URL}`.
+- **PagerDuty**: High-urgency incident escalation via `${PAGERDUTY_KEY}`.
+
+
