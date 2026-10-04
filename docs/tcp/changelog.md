@@ -11,7 +11,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
-## [v3.2.0] - 2026-10-04 (Latest)
+## [v3.2.1] - 2026-10-04 (Latest)
+
+### 🐛 Maintenance & Bug Fix Release: SemVer 2.0.0 Pre-Release Parsing & SDK Synchronization
+
+TCP Warden v3.2.1 resolves a version comparison defect in the dynamic plugin registry and synchronizes the Plugin SDK and host daemon release versions.
+
+#### 1. Plugin Registry & Semantic Versioning Pre-Release Ordering
+- **SemVer 2.0.0 Pre-Release Precedence**: Replaced dot-separated integer splitting in `plugins.CompareVersions()` with strict SemVer 2.0.0 compliance via `sdk.ParseSemVer()` and `sdk.CompareSemVer()`.
+- **Pre-Release Tag Sorting**: Pre-release versions (e.g. `1.2.0-rc.1`, `1.2.0-beta.1`) are now correctly evaluated as having lower precedence than their corresponding normal releases (`1.2.0`), and dot-separated pre-release identifiers are properly compared lexicographically and numerically in accordance with the SemVer 2.0.0 specification.
+- **Unit Test Coverage**: Added comprehensive test cases in `plugins/registry_test.go` covering pre-release tags, release candidates, and version equality checks.
+
+#### 2. Ecosystem Synchronization
+- **Plugin SDK v3.2.1 Alignment**: Synchronized the Plugin SDK version constant `sdk.Version = "3.2.1"` in `plugins/sdk/sdk.go` with the host daemon version.
+- **Version Metadata & Test Verification**: Synchronized `version.json`, `main.go`, `VERSIONING.md`, and automated test validation `TestVersionMatchesJSON` across the repository.
+
+---
+
+## [v3.2.0] - 2026-10-04
 
 ### 🚀 Feature & Hardening Release: Comprehensive Concurrency, Persistence, and Security Fixes
 
