@@ -267,6 +267,8 @@ Use a `docker-compose.override.yml` alongside the exported `docker-compose.yml` 
 | `GF_SMTP_ENABLED` | `false` | Enable email alerting |
 | `GF_AUTH_GITHUB_ENABLED` | `false` | GitHub OAuth SSO |
 | `GF_AUTH_GOOGLE_ENABLED` | `false` | Google OAuth SSO |
+| `GF_SECURITY_ALLOW_EMBEDDING` | `true` | Allow embedding dashboard panels via iframe in portals |
+| `GF_FEATURE_TOGGLES_ENABLE` | `publicDashboards` | Enable public dashboard links creation |
 | `GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH` | provisioned path | Dashboard shown on first load |
 
 > [!TIP]
