@@ -11,7 +11,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
-## [v3.2.1] - 2026-10-04 (Latest)
+## [v3.3.0] - 2026-10-05 (Latest)
+
+### 🚀 Hardening & Protocol Handover Release: BufferedConn Fallthrough, IPv6 Zone Normalization & Extended API Coverage
+
+TCP Warden v3.3.0 delivers critical protocol transport fixes, IPv6 zone normalization across CIDR filters, and comprehensive test suite additions.
+
+#### 1. Transport & Handover Reliability
+- **`BufferedConn.Read` Fallthrough**: Fixed an issue where peeking or draining headers during protocol inspection could stall downstream readers. `BufferedConn.Read()` now cleanly falls through to the underlying network connection when the initial buffer is exhausted or nil.
+- **Large Stream Transfer Resilience**: Added verification for high-throughput, multi-chunk stream forwarding in `protocol.Proxy()`.
+
+#### 2. IPv6 Scope & CIDR Integrity
+- **Zone Identifier Normalization in Config**: Updated `isValidIPOrCIDR()` to strip RFC 4007 zone identifiers (e.g., `fe80::1%eth0`), preventing false validation errors during configuration parsing.
+- **IPv6 CIDR Precedence & Evaluation**: Verified that IPv6 CIDR ranges (such as `2001:db8::/32`) evaluate correctly across global allowlists, service allowlists, and denylists.
+
+#### 3. Management API & Ban Administration
+- **Banlist Listing & Dynamic Unban**: Validated JSON serialization of active bans on `/api/banlist` and tested dynamic unbanning via `/api/unban`.
+- **Service Discovery**: Verified `/api/services` endpoint reporting configured proxy services and operational metadata.
+
+---
+
+## [v3.2.1] - 2026-10-04
 
 ### 🐛 Maintenance & Bug Fix Release: SemVer 2.0.0 Pre-Release Parsing & SDK Synchronization
 
