@@ -16,7 +16,7 @@ http:
           enabled: true # [!code ++]
           enableDefaultPatterns: true # [!code ++]
           # Intercept the administrative console
-          pathPatterns: # [!code ++]
+          blockPatterns: # [!code ++]
             - '(?i)^/admin(/.*)?$' # [!code ++]
           # Allow ONLY internal WireGuard & Tailscale VPN addresses
           allowedIps: # [!code ++]
@@ -47,7 +47,7 @@ http:
 [http.middlewares.vaultwarden-shield.plugin.routewarden] # [!code ++]
   enabled = true # [!code ++]
   enableDefaultPatterns = true # [!code ++]
-  pathPatterns = ["(?i)^/admin(/.*)?$"] # [!code ++]
+  blockPatterns = ["(?i)^/admin(/.*)?$"] # [!code ++]
   allowedIps = ["100.64.0.0/10", "10.8.0.0/24", "127.0.0.1"] # [!code ++]
 
 [http.middlewares.vaultwarden-shield.plugin.routewarden.response] # [!code ++]
@@ -59,7 +59,7 @@ http:
 - "traefik.http.routers.vault.rule=Host(\`vault.example.com\`)"
 - "traefik.http.routers.vault.middlewares=vaultwarden-shield" # [!code ++]
 - "traefik.http.middlewares.vaultwarden-shield.plugin.routewarden.enabled=true" # [!code ++]
-- "traefik.http.middlewares.vaultwarden-shield.plugin.routewarden.pathPatterns=(?i)^/admin(/.*)?$" # [!code ++]
+- "traefik.http.middlewares.vaultwarden-shield.plugin.routewarden.blockPatterns=(?i)^/admin(/.*)?$" # [!code ++]
 - "traefik.http.middlewares.vaultwarden-shield.plugin.routewarden.allowedIps=100.64.0.0/10,10.8.0.0/24,127.0.0.1" # [!code ++]
 - "traefik.http.middlewares.vaultwarden-shield.plugin.routewarden.response.mode=json" # [!code ++]
 - "traefik.http.middlewares.vaultwarden-shield.plugin.routewarden.response.statusCode=404" # [!code ++]` }),
@@ -72,7 +72,7 @@ http:
 vault.example.com {
     route_warden { # [!code ++]
         enable_default_patterns true # [!code ++]
-        path_patterns "(?i)^/admin(/.*)?$" # [!code ++]
+        block_patterns "(?i)^/admin(/.*)?$" # [!code ++]
         allowed_ips "100.64.0.0/10" "10.8.0.0/24" "127.0.0.1" # [!code ++]
         response { # [!code ++]
             mode json # [!code ++]
@@ -93,7 +93,7 @@ http {
 
         vault_warden = routewarden.new({ # [!code ++]
             enable_default_patterns = true, # [!code ++]
-            path_patterns = { # [!code ++]
+            block_patterns = { # [!code ++]
                 "(?i)^/admin(/.*)?$" # [!code ++]
             }, # [!code ++]
             allowed_ips = { # [!code ++]
@@ -193,39 +193,39 @@ A common security requirement is exposing **only the Bitwarden Send feature** to
 ### The Challenge with Password-Protected Sends
 When a recipient unlocks a password-protected Send, the client sends a `POST` request to `/identity/connect/token` with `grant_type=send_access`. A full vault login also targets `/identity/connect/token` with `grant_type=password`.
 
-### Solution with `check_body` and `body_patterns`
+### Solution with `check_body` and `check_body_patterns`
 Using RouteWarden's request body inspection across Caddy, Traefik, and NGINX:
 1. Allow public access to `/api/sends/*` and `/identity/connect/token`.
-2. Enable `check_body` (`checkBody`) with `body_patterns` (`checkBodyPatterns`) targeting `(?i)grant_type=password` to block vault logins while allowing `grant_type=send_access`.
+2. Enable `check_body` (`checkBody`) with `check_body_patterns` (`checkBodyPatterns`) targeting `(?i)grant_type=password` to block vault logins while allowing `grant_type=send_access`.
 3. Restrict administrative and vault sync APIs to your trusted VPN IPs (`allowed_ips` / `allowedIps`).
 
 #### 1. Caddy (`Caddyfile`)
 
 ```caddy
 {
-    order routewarden first
+    order route_warden before reverse_proxy
 }
 
 vault.example.com {
-    routewarden {
+    route_warden {
         enable_default_patterns true
 
         # Inspect both GET and POST requests
         methods GET POST
 
         # 1. Block admin, vault sync, accounts, ciphers, and non-send APIs
-        path_patterns "(?i)^/(admin|api/(accounts|ciphers|folders|sync|collections|organizations))"
+        block_patterns "(?i)^/(admin|api/(accounts|ciphers|folders|sync|collections|organizations))"
 
         # 2. Inspect POST body payloads on /identity/connect/token
-        check_body
-        body_patterns "(?i)grant_type=password"
+        check_body true
+        check_body_patterns "(?i)grant_type=password"
 
         # 3. Trusted VPN / WireGuard / Tailscale subnets bypass all restrictions
         allowed_ips "100.64.0.0/10" "10.8.0.0/24" "127.0.0.1"
 
         response {
             mode json
-            status 404
+            status_code 404
             body "{\"error\":\"Not Found\",\"message\":\"The requested resource was not found\"}"
         }
     }
@@ -247,7 +247,7 @@ http:
           methods:
             - GET
             - POST
-          pathPatterns:
+          blockPatterns:
             - '(?i)^/(admin|api/(accounts|ciphers|folders|sync|collections|organizations))'
           checkBody: true
           checkBodyPatterns:
@@ -284,7 +284,7 @@ services:
       - "traefik.http.routers.vault.middlewares=vaultwarden-shield@docker"
       - "traefik.http.middlewares.vaultwarden-shield.plugin.routewarden.enabled=true"
       - "traefik.http.middlewares.vaultwarden-shield.plugin.routewarden.methods=GET,POST"
-      - "traefik.http.middlewares.vaultwarden-shield.plugin.routewarden.pathPatterns=(?i)^/(admin|api/(accounts|ciphers|folders|sync|collections|organizations))"
+      - "traefik.http.middlewares.vaultwarden-shield.plugin.routewarden.blockPatterns=(?i)^/(admin|api/(accounts|ciphers|folders|sync|collections|organizations))"
       - "traefik.http.middlewares.vaultwarden-shield.plugin.routewarden.checkBody=true"
       - "traefik.http.middlewares.vaultwarden-shield.plugin.routewarden.checkBodyPatterns=(?i)grant_type=password"
       - "traefik.http.middlewares.vaultwarden-shield.plugin.routewarden.allowedIps=100.64.0.0/10,10.8.0.0/24,127.0.0.1"
@@ -304,11 +304,11 @@ http {
         vaultwarden_warden = routewarden.new({
             enabled = true,
             methods = { "GET", "POST" },
-            path_patterns = {
+            block_patterns = {
                 "(?i)^/(admin|api/(accounts|ciphers|folders|sync|collections|organizations))"
             },
             check_body = true,
-            body_patterns = {
+            check_check_body_patterns = {
                 "(?i)grant_type=password"
             },
             allowed_ips = {

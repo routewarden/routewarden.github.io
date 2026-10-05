@@ -124,7 +124,7 @@ const eval_graph_svg = `<div class="rw-graph-container">
     <rect x="80" y="358" width="500" height="60" rx="10" class="rw-g-node"/>
     <circle cx="106" cy="381" r="7" fill="#ef4444"/>
     <text x="124" y="378" class="rw-g-card-title">4. Blocklist Check</text>
-    <text x="124" y="396" class="rw-g-desc">Built-in sensitive dictionaries (.env, .git, dumps) &amp; custom pathPatterns</text>
+    <text x="124" y="396" class="rw-g-desc">Built-in sensitive dictionaries (.env, .git, dumps) &amp; custom blockPatterns</text>
 
     <!-- Branch: Clean -> Upstream -->
     <path d="M 580 388 C 640 388, 650 300, 690 300" stroke="#10b981" stroke-width="2" fill="none" marker-end="url(#eval-arr-green)"/>

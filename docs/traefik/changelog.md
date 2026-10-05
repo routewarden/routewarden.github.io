@@ -113,7 +113,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [v0.3.x Series] (Archived)
 
-- **HTTP Method Filtering (`methods`)**: Granular verb filtering in path rules (`pathPatterns[].methods: ["POST", "PUT"]`).
+- **HTTP Method Filtering (`methods`)**: Granular verb filtering in path rules (`blockPatterns[].methods: ["POST", "PUT"]`).
 - **CrowdSec SIEM Audit Logging (`securityLog: true`)**: Single-line JSON block events on stdout for CrowdSec auto-bans.
 - **Diagnostic Debug Logging (`debug: true`)**: Verbose stdout diagnostic traces of candidate path transformations.
 

@@ -11,7 +11,7 @@ const hcaptcha = {
   json: buildSnippet({ lang: 'json', code: `{
   "$schema": "https://raw.githubusercontent.com/routewarden/cli/main/config.schema.json",
   "enabled": true,
-  "pathPatterns": [
+  "blockPatterns": [
     "(?i)^/(admin|login)(/.*)?$"
   ],
   "response": {
@@ -31,7 +31,7 @@ http:
       plugin:
         routewarden:
           enabled: true
-          pathPatterns:
+          blockPatterns:
             - '(?i)^/(admin|login)(/.*)?$'
           response:
             mode: captcha
@@ -58,7 +58,7 @@ http:
 
 [http.middlewares.hcaptcha-barrier.plugin.routewarden]
   enabled = true
-  pathPatterns = ["(?i)^/(admin|login)(/.*)?$"]
+  blockPatterns = ["(?i)^/(admin|login)(/.*)?$"]
 
 [http.middlewares.hcaptcha-barrier.plugin.routewarden.response]
   mode = "captcha"
@@ -73,7 +73,7 @@ http:
 - "traefik.http.routers.app.rule=Host(\`app.example.com\`)"
 - "traefik.http.routers.app.middlewares=hcaptcha-barrier"
 - "traefik.http.middlewares.hcaptcha-barrier.plugin.routewarden.enabled=true"
-- "traefik.http.middlewares.hcaptcha-barrier.plugin.routewarden.pathPatterns=(?i)^/(admin|login)(/.*)?$"
+- "traefik.http.middlewares.hcaptcha-barrier.plugin.routewarden.blockPatterns=(?i)^/(admin|login)(/.*)?$"
 - "traefik.http.middlewares.hcaptcha-barrier.plugin.routewarden.response.mode=captcha"
 - "traefik.http.middlewares.hcaptcha-barrier.plugin.routewarden.response.statusCode=403"
 - "traefik.http.middlewares.hcaptcha-barrier.plugin.routewarden.response.captcha.provider=hcaptcha"
@@ -86,7 +86,7 @@ http:
 
 app.example.com {
     route_warden {
-        path_patterns "(?i)^/(admin|login)(/.*)?$"
+        block_patterns "(?i)^/(admin|login)(/.*)?$"
         response {
             mode captcha
             status_code 403
@@ -107,7 +107,7 @@ http {
         local routewarden = require("resty.routewarden")
 
         hcaptcha_warden = routewarden.new({
-            path_patterns = {
+            block_patterns = {
                 "(?i)^/(admin|login)(/.*)?$"
             },
             response = {
@@ -142,7 +142,7 @@ const turnstile = {
   json: buildSnippet({ lang: 'json', code: `{
   "$schema": "https://raw.githubusercontent.com/routewarden/cli/main/config.schema.json",
   "enabled": true,
-  "pathPatterns": [
+  "blockPatterns": [
     "(?i)^/login(/.*)?$",
     "(?i)^/reset-password(/.*)?$"
   ],
@@ -163,7 +163,7 @@ http:
       plugin:
         routewarden:
           enabled: true
-          pathPatterns:
+          blockPatterns:
             - '(?i)^/login(/.*)?$'
             - '(?i)^/reset-password(/.*)?$'
           response:
@@ -191,7 +191,7 @@ http:
 
 [http.middlewares.turnstile-barrier.plugin.routewarden]
   enabled = true
-  pathPatterns = ["(?i)^/login(/.*)?$", "(?i)^/reset-password(/.*)?$"]
+  blockPatterns = ["(?i)^/login(/.*)?$", "(?i)^/reset-password(/.*)?$"]
 
 [http.middlewares.turnstile-barrier.plugin.routewarden.response]
   mode = "captcha"
@@ -206,7 +206,7 @@ http:
 - "traefik.http.routers.login.rule=Host(\`login.example.com\`)"
 - "traefik.http.routers.login.middlewares=turnstile-barrier"
 - "traefik.http.middlewares.turnstile-barrier.plugin.routewarden.enabled=true"
-- "traefik.http.middlewares.turnstile-barrier.plugin.routewarden.pathPatterns=(?i)^/login(/.*)?$,(?i)^/reset-password(/.*)?$"
+- "traefik.http.middlewares.turnstile-barrier.plugin.routewarden.blockPatterns=(?i)^/login(/.*)?$,(?i)^/reset-password(/.*)?$"
 - "traefik.http.middlewares.turnstile-barrier.plugin.routewarden.response.mode=captcha"
 - "traefik.http.middlewares.turnstile-barrier.plugin.routewarden.response.statusCode=403"
 - "traefik.http.middlewares.turnstile-barrier.plugin.routewarden.response.captcha.provider=turnstile"
@@ -219,7 +219,7 @@ http:
 
 login.example.com {
     route_warden {
-        path_patterns "(?i)^/login(/.*)?$" "(?i)^/reset-password(/.*)?$"
+        block_patterns "(?i)^/login(/.*)?$" "(?i)^/reset-password(/.*)?$"
         response {
             mode captcha
             status_code 403
@@ -240,7 +240,7 @@ http {
         local routewarden = require("resty.routewarden")
 
         turnstile_warden = routewarden.new({
-            path_patterns = {
+            block_patterns = {
                 "(?i)^/login(/.*)?$",
                 "(?i)^/reset-password(/.*)?$"
             },
@@ -289,7 +289,7 @@ http {
       - "traefik.http.routers.app.rule=Host(\`app.localhost\`)"
       - "traefik.http.routers.app.middlewares=hcaptcha-barrier" # [!code ++]
       - "traefik.http.middlewares.hcaptcha-barrier.plugin.routewarden.enabled=true" # [!code ++]
-      - "traefik.http.middlewares.hcaptcha-barrier.plugin.routewarden.pathPatterns=(?i)^/(admin|login)(/.*)?$" # [!code ++]
+      - "traefik.http.middlewares.hcaptcha-barrier.plugin.routewarden.blockPatterns=(?i)^/(admin|login)(/.*)?$" # [!code ++]
       - "traefik.http.middlewares.hcaptcha-barrier.plugin.routewarden.response.mode=captcha" # [!code ++]
       - "traefik.http.middlewares.hcaptcha-barrier.plugin.routewarden.response.captcha.provider=hcaptcha" # [!code ++]
       - "traefik.http.middlewares.hcaptcha-barrier.plugin.routewarden.response.captcha.siteKey=10000000-ffff-ffff-ffff-000000000001" # [!code ++]` }),

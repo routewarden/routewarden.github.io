@@ -34,7 +34,7 @@ const isBlock = computed(() => props.theme === 'block')
           :class="isBlock ? 'rw-title-block' : 'rw-title-allow'"
         >
           {{ isBlock ? 'Block Patterns' : 'Allow Patterns' }}
-          (<code>{{ isBlock ? 'pathPatterns' : 'allowPatterns' }}</code>)
+          (<code>{{ isBlock ? 'blockPatterns' : 'allowPatterns' }}</code>)
         </span>
         <span
           v-if="patterns.length"

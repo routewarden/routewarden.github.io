@@ -432,7 +432,7 @@ test('playground engine & generator: comprehensive test matrix (100+ cases)', as
       { format: 'k8s_caddy', key: 'caddy-config', altKey: 'route_warden' },
       { format: 'k8s_nginx', key: 'networking.k8s.io/v1', altKey: 'nginx.ingress.kubernetes.io' },
       { format: 'cli_cmd', key: 'rwarden test', altKey: '--method' },
-      { format: 'cli_json', key: 'https://routewarden.github.io/schema.json', altKey: 'pathPatterns' }
+      { format: 'cli_json', key: 'https://routewarden.github.io/schema.json', altKey: 'blockPatterns' }
     ]
 
     for (const f of formats) {
