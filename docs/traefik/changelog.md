@@ -9,7 +9,21 @@ All notable changes to the **Traefik Warden** plugin (`github.com/routewarden/tr
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and Traefik Warden adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v1.3.1] - 2026-10-02 (Latest)
+## [v1.4.0] - 2026-10-05 (Latest)
+
+### Key Highlights
+
+- **Canonical Directive Standardization & Duplicate Alias Removal**:
+  - Standardized on `enableDefaultPatterns` and `enableDefaultAllowPatterns` as the canonical boolean opt-in flags for built-in rule sets.
+  - Standardized on single canonical `blockPatterns` (list of regex strings) replacing all legacy aliases (`pathPatterns`, `path_patterns`, `block_pattern`).
+  - Standardized on `mode` (replacing `action`), `statusCode` (replacing `status`), `checkBodyPatterns` (replacing `bodyPatterns`/`body_pattern`), and `checkBodyMaxBytes`.
+  - Removed duplicate config aliases across Go structures and documentation to eliminate configuration drift.
+- **Docker Label Parsing Parity**:
+  - Ensured compatibility with CLI label compilation, supporting indexed array notation (`blockPatterns[0]`, `allowedIps[0]`, etc.).
+
+---
+
+## [v1.3.1] - 2026-10-02
 
 ### Key Highlights
 

@@ -38,6 +38,8 @@ All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The 
   - Direct top-bar navigation shortcuts for rapid threat hunting.
 
 ### Fixed
+- **Docker Label Conversion for Indexed Array Notation (`labels.go`)**:
+  - Added support for array index syntax in Traefik Docker labels (e.g. `blockPatterns[0]`, `blockPatterns[1]`, `allowedIps[0]`), properly preserving order and converting indexed entries into formatted YAML list sequences.
 - **Dashboard Offender IP Data Links (Panel 8)**: Replaced `${__series.name}` with `${__field.labels.client_ip}` in "Top Offender IP Addresses & GeoIP", preventing country code suffixes (e.g. `[US]`) from leaking into external threat intelligence URLs (AbuseIPDB, VirusTotal, Shodan, and Loki Explore).
 - **Dashboard Template Variable Filter Wiring**: Enabled multi-select and dynamic regex filtering (`allValue: ".*"`, `multi: true`, `refresh: 1`) on `$gateway` and `$verdict`, and wired stream selector filters across dashboard panels so that toolbar dropdowns properly filter panels.
 - **Block Ratio Division by Zero Protection (Panel 4)**: Added `"noValue": "0%"` to the Block Ratio stat panel to gracefully display `0%` during fresh installations with zero logs instead of `NaN%`.
