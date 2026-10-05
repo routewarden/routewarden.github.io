@@ -2,7 +2,30 @@
 
 All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and the CLI adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v4.2.0] - 2026-10-04 (Latest)
+## [v4.3.0] - 2026-10-05 (Latest)
+
+### Added
+- **Request Body Security Inspection (`checkBody` & `checkBodyPatterns`)**:
+  - Integrated request body payload inspection into the CLI evaluation engine (`engine/config.go` & `engine/engine.go`), allowing offline simulation of body pattern matching across Traefik, Caddy, and NGINX.
+  - Added `-b`, `--body` and `--check-body` CLI flags to `rwarden test` for auditing HTTP `POST`, `PUT`, and `PATCH` payloads.
+  - Supported configurable body truncation (`checkBodyMaxBytes`, default: 65536 bytes) across simulation engines.
+- **Default Pattern Configuration Toggles & Gateway Generator Alignment**:
+  - Added support for `disableDefaultPatterns` and `disableDefaultAllowPatterns` configuration aliases alongside `enableDefaultPatterns` and `enableDefaultAllowPatterns`.
+  - Updated Caddy (`enable_default_patterns`), NGINX (`enable_default_patterns`), and Traefik generator templates to seamlessly output native pattern toggles.
+- **Comprehensive CLI Automation Test Suite**:
+  - Added automated test cases covering stdin config piping (`cat config.json | rwarden test -c - /path`), schema validation (`rwarden schema`), query testing flags (`-q`), and client IP allowlist verification (`--ip`).
+
+### Fixed
+- **IPv6 Scope Zone Identifier Normalization (`engine/ip.go`)**:
+  - Stripped RFC 4007 interface zone identifiers (`%eth0`) and normalized bracketed IPv6 remote addresses during IP allowlist evaluation, preventing valid link-local and scoped addresses from being rejected.
+- **Docker Compose Indexed Array Label Conversion**:
+  - Added support for array index notation in Docker labels (e.g. `blockPatterns[0]`, `blockPatterns[1]`, `allowedIps[0]`), ensuring ordered conversion into YAML list sequences for Traefik.
+- **Flag Canonicalization & Alias Cleanup**:
+  - Canonicalized CLI flag definitions across `test`, `validate`, `generate`, and `sandbox`, removing redundant aliases in favor of POSIX standard flags.
+
+---
+
+## [v4.2.0] - 2026-10-04
 
 ### Added
 - **Threat Geography & GeoIP Intelligence Suite**:

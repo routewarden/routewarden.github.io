@@ -75,13 +75,13 @@ const sourceSnippets = computed(() => ({
 const verify_cli = buildSnippet({
   lang: 'bash',
   code: `rwarden version
-# rwarden version 4.2.0`,
+# rwarden version 4.3.0`,
 })
 
 const verify_docker = buildSnippet({
   lang: 'bash',
   code: `docker run --rm ghcr.io/routewarden/cli:latest version
-# rwarden version 4.2.0`,
+# rwarden version 4.3.0`,
 })
 
 const verifySnippets = computed(() => ({
@@ -128,11 +128,11 @@ Download standalone, statically compiled binaries for **Linux**, **macOS**, and 
 
 | Platform | Architecture | Archive |
 |:---|:---|:---|
-| **macOS** | Apple Silicon (`arm64`) | [rwarden_4.2.0_darwin_arm64.tar.gz](https://github.com/routewarden/cli/releases/download/v4.2.0/rwarden_4.2.0_darwin_arm64.tar.gz) |
-| **macOS** | Intel (`amd64`) | [rwarden_4.2.0_darwin_amd64.tar.gz](https://github.com/routewarden/cli/releases/download/v4.2.0/rwarden_4.2.0_darwin_amd64.tar.gz) |
-| **Linux** | 64-bit (`amd64`) | [rwarden_4.2.0_linux_amd64.tar.gz](https://github.com/routewarden/cli/releases/download/v4.2.0/rwarden_4.2.0_linux_amd64.tar.gz) |
-| **Linux** | ARM64 (`arm64`) | [rwarden_4.2.0_linux_arm64.tar.gz](https://github.com/routewarden/cli/releases/download/v4.2.0/rwarden_4.2.0_linux_arm64.tar.gz) |
-| **Windows**| 64-bit (`amd64`) | [rwarden_4.2.0_windows_amd64.zip](https://github.com/routewarden/cli/releases/download/v4.2.0/rwarden_4.2.0_windows_amd64.zip) |
+| **macOS** | Apple Silicon (`arm64`) | [rwarden_4.3.0_darwin_arm64.tar.gz](https://github.com/routewarden/cli/releases/download/v4.3.0/rwarden_4.3.0_darwin_arm64.tar.gz) |
+| **macOS** | Intel (`amd64`) | [rwarden_4.3.0_darwin_amd64.tar.gz](https://github.com/routewarden/cli/releases/download/v4.3.0/rwarden_4.3.0_darwin_amd64.tar.gz) |
+| **Linux** | 64-bit (`amd64`) | [rwarden_4.3.0_linux_amd64.tar.gz](https://github.com/routewarden/cli/releases/download/v4.3.0/rwarden_4.3.0_linux_amd64.tar.gz) |
+| **Linux** | ARM64 (`arm64`) | [rwarden_4.3.0_linux_arm64.tar.gz](https://github.com/routewarden/cli/releases/download/v4.3.0/rwarden_4.3.0_linux_arm64.tar.gz) |
+| **Windows**| 64-bit (`amd64`) | [rwarden_4.3.0_windows_amd64.zip](https://github.com/routewarden/cli/releases/download/v4.3.0/rwarden_4.3.0_windows_amd64.zip) |
 
 ::: tip macOS Gatekeeper Notice
 If macOS displays *"Apple could not verify “rwarden” is free of malware..."* when running a downloaded binary, macOS Gatekeeper has placed it in quarantine. You can remove the quarantine flag using:
