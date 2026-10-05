@@ -183,3 +183,62 @@ However, the `/admin` portal (which allows creating/deleting accounts, viewing s
 ## Configuration (Traefik, Caddy & NGINX)
 
 <CodeViewer :snippets="snippets" />
+
+---
+
+## Advanced Architecture: Public Vaultwarden with "Send Only" Allowed
+
+A common security requirement is exposing **only the Bitwarden Send feature** to public recipients while keeping the rest of the vault (user login, vault sync, ciphers, and admin console) strictly private to your VPN.
+
+### The Challenge with Password-Protected Sends
+When a recipient unlocks a password-protected Send, the client sends a `POST` request to `/identity/connect/token` with `grant_type=send_access_token`. A full vault login also targets `/identity/connect/token` with `grant_type=password`.
+
+### Solution with `check_body` and `body_patterns`
+Using `caddy-warden`'s request body inspection:
+1. Allow `/api/sends/*` and `/identity/connect/token` through path filters.
+2. Enable `check_body` with `body_patterns "(?i)grant_type=password"` to block vault login attempts while allowing `grant_type=send_access_token`.
+3. Restrict administrative and vault sync APIs to your trusted VPN IPs (`allowed_ips`).
+
+```caddy
+{
+    order routewarden first
+}
+
+vault.example.com {
+    routewarden {
+        enable_default_patterns true
+
+        # Inspect both GET and POST requests
+        methods GET POST
+
+        # 1. Block admin, vault sync, accounts, ciphers, and non-send APIs
+        path_patterns "(?i)^/(admin|api/(accounts|ciphers|folders|sync|collections|organizations))"
+
+        # 2. Inspect POST body payloads on /identity/connect/token
+        check_body
+        body_patterns "(?i)grant_type=password"
+
+        # 3. Trusted VPN / WireGuard / Tailscale subnets bypass all restrictions
+        allowed_ips "100.64.0.0/10" "10.8.0.0/24" "127.0.0.1"
+
+        response {
+            mode json
+            status 404
+            body "{\"error\":\"Not Found\",\"message\":\"The requested resource was not found\"}"
+        }
+    }
+
+    reverse_proxy vaultwarden:80
+}
+```
+
+#### Verification Matrix
+
+| Action | Path & Method | Payload | Public Client | VPN Client (`allowed_ips`) |
+|:---|:---|:---|:---:|:---:|
+| **Public Send Access** | `GET /api/sends/{id}` | N/A | ✅ **Allowed** | ✅ **Allowed** |
+| **Password Send Unlock** | `POST /identity/connect/token` | `grant_type=send_access_token` | ✅ **Allowed** | ✅ **Allowed** |
+| **User Vault Login Attempt** | `POST /identity/connect/token` | `grant_type=password` | ❌ **Blocked (404)** | ✅ **Allowed** |
+| **Vault Sync / Cipher Theft** | `GET /api/sync` | N/A | ❌ **Blocked (404)** | ✅ **Allowed** |
+| **Admin Panel Access** | `GET /admin` | N/A | ❌ **Blocked (404)** | ✅ **Allowed** |
+
