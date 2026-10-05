@@ -18,8 +18,8 @@ All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The 
   - Protocol Breakdown (`piechart` panel) tracking traffic proportions across protected protocols (`http`, `ssh`, `dns`, `dht`, `tcp`, `udp`).
   - Transport Split (`bargauge` panel) comparing connection-oriented TCP vs datagram UDP flows.
   - Interactive `$protocol` and `$transport` template filter variables for fine-grained multi-protocol drilldowns.
-- **Pre-Configured Grafana Alerting & Automated Incident Notification Channels**:
-  - Out-of-the-box alerting rules provisioned in `grafana/provisioning/alerting/alerting.yaml`:
+- **Optional Grafana Threat Alerting & Automated Incident Notification Channels**:
+  - Pre-configured alerting rules provisioned in `grafana/provisioning/alerting/alerting.yaml`, optional and disabled by default (enabled via `rwarden dashboard up --enable-alerting` or `ALERTING_PROVISIONING_DIR=./grafana/provisioning/alerting`):
     - `rw-ddos-attack-spike`: Hostile attack rate spike alert triggering when block rate exceeds 10 req/s over 5m.
     - `rw-sensitive-path-probe`: Immediate critical alert on hostile access attempts to `.env`, `.git`, or cloud credential files.
     - `rw-l4-brute-force`: Layer 4 brute-force surge alert when >15 connection drops or bans occur within 3m.
