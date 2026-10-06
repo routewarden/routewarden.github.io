@@ -2,7 +2,43 @@
 
 All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and the CLI adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v4.2.0] - 2026-10-04 (Latest)
+## [v4.4.0] - 2026-10-06 (Latest)
+
+### Security
+
+- **CRLF Injection Prevention in Gateway Config Generators (`engine/engine.go`)**:
+  - Sanitized carriage-return (`\r`) and newline (`\n`) characters from user-supplied pattern strings before emitting gateway-specific configuration snippets (Traefik TOML, Traefik Docker labels, NGINX Lua).
+  - A crafted pattern value containing a CRLF sequence could previously inject arbitrary lines into the generated configuration output, potentially introducing unauthorized directives or breaking config parsers that load the generated snippets automatically.
+  - Characters `\r` and `\n` are now replaced with their literal `\r` and `\n` escape sequences in all generated outputs, preserving pattern intent while eliminating injection risk.
+  - **Affected generators**: Traefik TOML (`generate --target traefik-toml`), Traefik Docker Compose labels (`generate --target traefik-labels`), NGINX Lua (`generate --target nginx`).
+  - **Tests**: `TestGenerateCRLFSanitization` in `engine/engine_test.go` verifies that CRLF sequences in pattern values are escaped in all three affected output formats.
+
+---
+
+## [v4.3.0] - 2026-10-05
+
+### Added
+- **Request Body Security Inspection (`checkBody` & `checkBodyPatterns`)**:
+  - Integrated request body payload inspection into the CLI evaluation engine (`engine/config.go` & `engine/engine.go`), allowing offline simulation of body pattern matching across Traefik, Caddy, and NGINX.
+  - Added `-b`, `--body` and `--check-body` CLI flags to `rwarden test` for auditing HTTP `POST`, `PUT`, and `PATCH` payloads.
+  - Supported configurable body truncation (`checkBodyMaxBytes`, default: 65536 bytes) across simulation engines.
+- **Default Pattern Configuration Toggles & Gateway Generator Alignment**:
+  - Added support for `disableDefaultPatterns` and `disableDefaultAllowPatterns` configuration aliases alongside `enableDefaultPatterns` and `enableDefaultAllowPatterns`.
+  - Updated Caddy (`enable_default_patterns`), NGINX (`enable_default_patterns`), and Traefik generator templates to seamlessly output native pattern toggles.
+- **Comprehensive CLI Automation Test Suite**:
+  - Added automated test cases covering stdin config piping (`cat config.json | rwarden test -c - /path`), schema validation (`rwarden schema`), query testing flags (`-q`), and client IP allowlist verification (`--ip`).
+
+### Fixed
+- **IPv6 Scope Zone Identifier Normalization (`engine/ip.go`)**:
+  - Stripped RFC 4007 interface zone identifiers (`%eth0`) and normalized bracketed IPv6 remote addresses during IP allowlist evaluation, preventing valid link-local and scoped addresses from being rejected.
+- **Docker Compose Indexed Array Label Conversion**:
+  - Added support for array index notation in Docker labels (e.g. `blockPatterns[0]`, `blockPatterns[1]`, `allowedIps[0]`), ensuring ordered conversion into YAML list sequences for Traefik.
+- **Flag Canonicalization & Alias Cleanup**:
+  - Canonicalized CLI flag definitions across `test`, `validate`, `generate`, and `sandbox`, removing redundant aliases in favor of POSIX standard flags.
+
+---
+
+## [v4.2.0] - 2026-10-04
 
 ### Added
 - **Threat Geography & GeoIP Intelligence Suite**:
@@ -18,8 +54,8 @@ All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The 
   - Protocol Breakdown (`piechart` panel) tracking traffic proportions across protected protocols (`http`, `ssh`, `dns`, `dht`, `tcp`, `udp`).
   - Transport Split (`bargauge` panel) comparing connection-oriented TCP vs datagram UDP flows.
   - Interactive `$protocol` and `$transport` template filter variables for fine-grained multi-protocol drilldowns.
-- **Pre-Configured Grafana Alerting & Automated Incident Notification Channels**:
-  - Out-of-the-box alerting rules provisioned in `grafana/provisioning/alerting/alerting.yaml`:
+- **Optional Grafana Threat Alerting & Automated Incident Notification Channels**:
+  - Pre-configured alerting rules provisioned in `grafana/provisioning/alerting/alerting.yaml`, optional and disabled by default (enabled via `rwarden dashboard up --enable-alerting` or `ALERTING_PROVISIONING_DIR=./grafana/provisioning/alerting`):
     - `rw-ddos-attack-spike`: Hostile attack rate spike alert triggering when block rate exceeds 10 req/s over 5m.
     - `rw-sensitive-path-probe`: Immediate critical alert on hostile access attempts to `.env`, `.git`, or cloud credential files.
     - `rw-l4-brute-force`: Layer 4 brute-force surge alert when >15 connection drops or bans occur within 3m.
@@ -38,6 +74,8 @@ All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The 
   - Direct top-bar navigation shortcuts for rapid threat hunting.
 
 ### Fixed
+- **Docker Label Conversion for Indexed Array Notation (`labels.go`)**:
+  - Added support for array index syntax in Traefik Docker labels (e.g. `blockPatterns[0]`, `blockPatterns[1]`, `allowedIps[0]`), properly preserving order and converting indexed entries into formatted YAML list sequences.
 - **Dashboard Offender IP Data Links (Panel 8)**: Replaced `${__series.name}` with `${__field.labels.client_ip}` in "Top Offender IP Addresses & GeoIP", preventing country code suffixes (e.g. `[US]`) from leaking into external threat intelligence URLs (AbuseIPDB, VirusTotal, Shodan, and Loki Explore).
 - **Dashboard Template Variable Filter Wiring**: Enabled multi-select and dynamic regex filtering (`allValue: ".*"`, `multi: true`, `refresh: 1`) on `$gateway` and `$verdict`, and wired stream selector filters across dashboard panels so that toolbar dropdowns properly filter panels.
 - **Block Ratio Division by Zero Protection (Panel 4)**: Added `"noValue": "0%"` to the Block Ratio stat panel to gracefully display `0%` during fresh installations with zero logs instead of `NaN%`.

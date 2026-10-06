@@ -35,7 +35,7 @@ route_warden {
     check_query <true|false>                    # Default: false (inspect URI query strings)
 
     # Path Patterns to Block or Challenge (Go RE2 Regular Expressions)
-    path_patterns <regex...>
+    block_patterns <regex...>
 
     # Safe Whitelist Patterns (Overrides blocking)
     allow_patterns <regex...>
@@ -76,7 +76,7 @@ route_warden {
 | `enable_default_patterns` | `bool` | `true` | Blocks high-risk files (`.env`, `.git`, `.aws`, `.ssh`, `.sql`, `.bak`, etc.). |
 | `enable_default_allow_patterns` | `bool` | `true` | Whitelists standard files like `/robots.txt`, `/favicon.ico`, `/sitemap.xml`. |
 | `check_query` | `bool` | `false` | When enabled, also evaluates query parameters for sensitive file targets. |
-| `path_patterns` | `list` | `[]` | Additional regex patterns to intercept. |
+| `block_patterns` | `list` | `[]` | Additional regex patterns to intercept. |
 | `allow_patterns` | `list` | `[]` | Regex patterns that should always be allowed through. |
 | `allowed_ips` | `list` | `[]` | IPv4, IPv6, or CIDR blocks exempted from checks. |
 | `methods` | `list` | `["GET"]` | HTTP verbs to inspect (e.g. `methods GET POST`). Non-matching verbs bypass inspection. |
@@ -141,7 +141,7 @@ For zero-downtime environments configured via Caddy's dynamic API:
   "enable_default_patterns": true,
   "allowed_ips": ["10.0.0.0/8", "192.168.1.50"],
   "methods": ["GET", "POST"],
-  "path_patterns": ["(?i)^/admin(/.*)?$"],
+  "block_patterns": ["(?i)^/admin(/.*)?$"],
   "allow_patterns": ["(?i)^/admin/health$"],
   "response": {
     "mode": "json",

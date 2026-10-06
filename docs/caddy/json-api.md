@@ -28,7 +28,7 @@ const schema_json = buildSnippet({
   "enable_default_patterns": true,
   "enable_default_allow_patterns": true,
   "check_query": false,
-  "path_patterns": [
+  "block_patterns": [
     "(?i)^/admin(/.*)?$",
     "(?i)^/api/internal(/.*)?$"
   ],

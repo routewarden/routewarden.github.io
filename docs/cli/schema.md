@@ -75,6 +75,9 @@ checkQuery: true
 checkHeaders:
   - X-Forwarded-Uri
   - X-Rewrite-URL
+checkBody: true
+checkBodyPatterns:
+  - '(?i)grant_type=password'
 methods:
   - GET
   - POST

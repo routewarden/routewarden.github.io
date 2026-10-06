@@ -9,7 +9,22 @@ All notable changes to the **Caddy Warden** module (`github.com/routewarden/cadd
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and Caddy Warden adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v1.3.1] - 2026-10-02 (Latest)
+## [v1.4.0] - 2026-10-05 (Latest)
+
+### Key Highlights
+
+- **`route_warden` Directive & Module ID Registration**:
+  - Registered both `"route_warden"` and `"routewarden"` directives with Caddyfile parser (`httpcaddyfile.RegisterHandlerDirective`), enabling standard snake_case Caddyfile configuration blocks (`route_warden { ... }`) as documented.
+  - Registered Caddy module alias `http.handlers.route_warden` in addition to `http.handlers.routewarden`, allowing native Caddy JSON configuration blocks (`"handler": "route_warden"`) to resolve cleanly.
+- **Canonical Directive Standardization & Duplicate Alias Removal**:
+  - Standardized Caddyfile and JSON directives on `enable_default_patterns` and `enable_default_allow_patterns`.
+  - Standardized on single canonical `block_patterns` directive replacing legacy aliases (`path_patterns`, `block_pattern`).
+  - Standardized on `mode` (replacing `action`), `status_code` (replacing `status`), `check_body_patterns` (replacing `body_patterns`), and `check_body_max_bytes`.
+  - Removed deprecated duplicate aliases across structs and Caddyfile unmarshaler.
+
+---
+
+## [v1.3.1] - 2026-10-02
 
 ### Key Highlights
 

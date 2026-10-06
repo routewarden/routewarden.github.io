@@ -18,7 +18,7 @@ const r1_json = buildSnippet({
   "$schema": "https://raw.githubusercontent.com/routewarden/cli/main/config.schema.json",
   "enabled": true,
   "enableDefaultPatterns": true,
-  "pathPatterns": [
+  "blockPatterns": [
     "(?i)^/admin(/.*)?$",
     "(?i)^/metrics$"
   ],
@@ -50,7 +50,7 @@ const r1_caddy = buildSnippet({
 app.example.com {
     route_warden { # [!code ++]
         enable_default_patterns true # [!code ++]
-        path_patterns "(?i)^/admin(/.*)?$" "(?i)^/metrics$" # [!code ++]
+        block_patterns "(?i)^/admin(/.*)?$" "(?i)^/metrics$" # [!code ++]
         allow_patterns "(?i)^/admin/health$" # [!code ++]
         allowed_ips "10.0.0.0/8" "192.168.1.100" # [!code ++]
         methods GET POST # [!code ++]
@@ -80,7 +80,7 @@ const r2_json = buildSnippet({
   code: `{
   "$schema": "https://raw.githubusercontent.com/routewarden/cli/main/config.schema.json",
   "enabled": true,
-  "pathPatterns": [
+  "blockPatterns": [
     "(?i)^/portal/sensitive(/.*)?$"
   ],
   "response": {
@@ -102,7 +102,7 @@ const r2_caddy = buildSnippet({
 
 portal.example.com {
     route_warden { # [!code ++]
-        path_patterns "(?i)^/portal/sensitive(/.*)?$" # [!code ++]
+        block_patterns "(?i)^/portal/sensitive(/.*)?$" # [!code ++]
         response { # [!code ++]
             mode captcha # [!code ++]
             captcha { # [!code ++]
@@ -131,7 +131,7 @@ const r3_json = buildSnippet({
   code: `{
   "$schema": "https://raw.githubusercontent.com/routewarden/cli/main/config.schema.json",
   "enabled": true,
-  "pathPatterns": [
+  "blockPatterns": [
     "(?i)^/(wp-login\\\\.php|\\\\.env|\\\\.git.*|xmlrpc\\\\.php)$"
   ],
   "response": {
@@ -150,7 +150,7 @@ const r3_caddy = buildSnippet({
 
 honeypot.example.com {
     route_warden { # [!code ++]
-        path_patterns "(?i)^/(wp-login\\.php|\\.env|\\.git.*|xmlrpc\\.php)$" # [!code ++]
+        block_patterns "(?i)^/(wp-login\\.php|\\.env|\\.git.*|xmlrpc\\.php)$" # [!code ++]
         response { # [!code ++]
             mode gzip_bomb # [!code ++]
             status_code 200 # [!code ++]
@@ -178,7 +178,7 @@ const r4_json = buildSnippet({
   "$schema": "https://raw.githubusercontent.com/routewarden/cli/main/config.schema.json",
   "enabled": true,
   "enableDefaultPatterns": true,
-  "pathPatterns": [
+  "blockPatterns": [
     "(?i)^/api/auth/login.*$",
     "(?i)^/api/auth/admin-sign-up.*$",
     "(?i)^/api/users.*$",
@@ -202,7 +202,7 @@ const r4_caddy = buildSnippet({
 photos.example.com {
     route_warden { # [!code ++]
         enable_default_patterns true # [!code ++]
-        path_patterns "(?i)^/api/auth/login.*$" "(?i)^/api/auth/admin-sign-up.*$" "(?i)^/api/users.*$" "(?i)^/api/admin.*$" # [!code ++]
+        block_patterns "(?i)^/api/auth/login.*$" "(?i)^/api/auth/admin-sign-up.*$" "(?i)^/api/users.*$" "(?i)^/api/admin.*$" # [!code ++]
         response { # [!code ++]
             mode json # [!code ++]
             status_code 404 # [!code ++]
@@ -236,7 +236,7 @@ const r5_json = buildSnippet({
   "$schema": "https://raw.githubusercontent.com/routewarden/cli/main/config.schema.json",
   "enabled": true,
   "enableDefaultPatterns": true,
-  "pathPatterns": [
+  "blockPatterns": [
     "(?i)^/webhooks(/.*)?$"
   ],
   "allowPatterns": [
@@ -264,7 +264,7 @@ const r5_caddy = buildSnippet({
 api.example.com {
     route_warden { # [!code ++]
         enable_default_patterns true # [!code ++]
-        path_patterns "(?i)^/webhooks(/.*)?$" # [!code ++]
+        block_patterns "(?i)^/webhooks(/.*)?$" # [!code ++]
         allow_patterns "(?i)^/webhooks/stripe/v1$" # [!code ++]
         allowed_ips "3.18.12.63/32" "3.130.192.231/32" "13.235.14.237/32" "13.235.122.149/32" "35.154.171.200/32" # [!code ++]
         response { # [!code ++]
@@ -292,7 +292,7 @@ const r6_json = buildSnippet({
   "$schema": "https://raw.githubusercontent.com/routewarden/cli/main/config.schema.json",
   "enabled": true,
   "enableDefaultPatterns": true,
-  "pathPatterns": [
+  "blockPatterns": [
     "(?i)^/(metrics|server-metrics|telemetry)(/.*)?$",
     "(?i)^/actuator(/.*)?$"
   ],
@@ -318,7 +318,7 @@ const r6_caddy = buildSnippet({
 app.example.com {
     route_warden { # [!code ++]
         enable_default_patterns true # [!code ++]
-        path_patterns "(?i)^/(metrics|server-metrics|telemetry)(/.*)?$" "(?i)^/actuator(/.*)?$" # [!code ++]
+        block_patterns "(?i)^/(metrics|server-metrics|telemetry)(/.*)?$" "(?i)^/actuator(/.*)?$" # [!code ++]
         allowed_ips "10.0.0.50/32" "10.244.0.0/16" "127.0.0.1" # [!code ++]
         response { # [!code ++]
             mode json # [!code ++]

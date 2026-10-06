@@ -10,7 +10,7 @@ const s = {
   json: buildSnippet({ lang: 'json', code: `{
   "$schema": "https://raw.githubusercontent.com/routewarden/cli/main/config.schema.json",
   "enabled": true,
-  "pathPatterns": [
+  "blockPatterns": [
     "(?i)^/admin(/.*)?$",
     "(?i)^/metrics(/.*)?$"
   ],
@@ -32,7 +32,7 @@ http:
       plugin:
         routewarden:
           enabled: true
-          pathPatterns:
+          blockPatterns:
             - '(?i)^/admin(/.*)?$'
             - '(?i)^/metrics(/.*)?$'
           allowedIps:
@@ -61,7 +61,7 @@ http:
 
 [http.middlewares.admin-shield.plugin.routewarden]
   enabled = true
-  pathPatterns = ["(?i)^/admin(/.*)?$", "(?i)^/metrics(/.*)?$"]
+  blockPatterns = ["(?i)^/admin(/.*)?$", "(?i)^/metrics(/.*)?$"]
   allowedIps = ["10.0.0.0/8", "192.168.1.100"]
 
 [http.middlewares.admin-shield.plugin.routewarden.response]
@@ -75,7 +75,7 @@ http:
 - "traefik.http.routers.admin.entrypoints=web"
 - "traefik.http.routers.admin.middlewares=admin-shield"
 - "traefik.http.middlewares.admin-shield.plugin.routewarden.enabled=true"
-- "traefik.http.middlewares.admin-shield.plugin.routewarden.pathPatterns=(?i)^/admin(/.*)?$,(?i)^/metrics(/.*)?$"
+- "traefik.http.middlewares.admin-shield.plugin.routewarden.blockPatterns=(?i)^/admin(/.*)?$,(?i)^/metrics(/.*)?$"
 - "traefik.http.middlewares.admin-shield.plugin.routewarden.allowedIps=10.0.0.0/8,192.168.1.100"
 - "traefik.http.middlewares.admin-shield.plugin.routewarden.response.mode=json"
 - "traefik.http.middlewares.admin-shield.plugin.routewarden.response.statusCode=403"
@@ -88,7 +88,7 @@ http:
 
 admin.localhost {
     route_warden {
-        path_patterns "(?i)^/admin(/.*)?$" "(?i)^/metrics(/.*)?$"
+        block_patterns "(?i)^/admin(/.*)?$" "(?i)^/metrics(/.*)?$"
         allowed_ips "10.0.0.0/8" "192.168.1.100"
         response {
             mode json
@@ -108,7 +108,7 @@ http {
         local routewarden = require("resty.routewarden")
 
         admin_warden = routewarden.new({
-            path_patterns = {
+            block_patterns = {
                 "(?i)^/admin(/.*)?$",
                 "(?i)^/metrics(/.*)?$"
             },
@@ -160,7 +160,7 @@ http {
       - "traefik.http.routers.admin.middlewares=admin-shield" # [!code ++]
       # RouteWarden Configuration with IP Whitelist
       - "traefik.http.middlewares.admin-shield.plugin.routewarden.enabled=true" # [!code ++]
-      - "traefik.http.middlewares.admin-shield.plugin.routewarden.pathPatterns=(?i)^/admin(/.*)?$,(?i)^/metrics(/.*)?$" # [!code ++]
+      - "traefik.http.middlewares.admin-shield.plugin.routewarden.blockPatterns=(?i)^/admin(/.*)?$,(?i)^/metrics(/.*)?$" # [!code ++]
       - "traefik.http.middlewares.admin-shield.plugin.routewarden.allowedIps=10.0.0.0/8,192.168.1.100" # [!code ++]
       - "traefik.http.middlewares.admin-shield.plugin.routewarden.response.mode=json" # [!code ++]
       - "traefik.http.middlewares.admin-shield.plugin.routewarden.response.statusCode=403" # [!code ++]` }),

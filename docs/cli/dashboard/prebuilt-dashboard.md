@@ -139,9 +139,16 @@ Grafana frame-ancestors restrictions are relaxed (`GF_SECURITY_ALLOW_EMBEDDING=t
 
 ---
 
-## Automated Alerting & Incident Notification Channels
+## Optional Automated Alerting & Incident Notification Channels
 
-RouteWarden ships with pre-configured Grafana Alerting rules provisioned in `grafana/provisioning/alerting/alerting.yaml`:
+RouteWarden ships with pre-configured Grafana Alerting rules provisioned in `grafana/provisioning/alerting/alerting.yaml`. **Alerting is optional and disabled by default** to ensure instant, zero-configuration dashboard startup without requiring external webhook destinations or credentials.
+
+### Enabling Threat Alerting
+- **With RouteWarden CLI**: Run `rwarden dashboard up --enable-alerting` (or `rwarden dashboard up --alerting`).
+- **With Docker Compose**: 
+  - Using `routewarden.env`: Uncomment `ALERTING_PROVISIONING_DIR=./grafana/provisioning/alerting` in `routewarden.env` and run `docker compose --env-file routewarden.env up -d`.
+  - Or via inline environment variable: `ALERTING_PROVISIONING_DIR=./grafana/provisioning/alerting docker compose up -d`.
+- **Custom Webhook Destination**: Set `ALERT_WEBHOOK_URL="https://your-soc-webhook.example.com/alerts"` (defaults to `http://host.docker.internal:8080/alerts`).
 
 ### Out-of-the-Box Alert Rules
 

@@ -19,7 +19,7 @@ const quick_nginx = buildSnippet({
         warden = routewarden.new({
             enabled = true,
             enable_default_patterns = true,
-            path_patterns = {
+            block_patterns = {
                 "(?i)^/admin(/.*)?$",
                 "(?i)^/api/internal(/.*)?$"
             },

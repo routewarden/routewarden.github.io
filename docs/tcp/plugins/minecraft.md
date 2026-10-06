@@ -134,6 +134,8 @@ The **Minecraft Game Guard** plugin inspects Minecraft Java Edition protocol han
 | **Server List Ping (SLP) Floods** | Inspects SLP request intent (status vs login) | Excess status pings throttled per client IP |
 | **Malformed Handshake Exploits** | Validates VarInt framing and packet boundaries | Malformed packets dropped at the proxy layer |
 | **Connection Table Exhaustion** | Enforces rate limits per minute and burst caps | Spammed connections dropped before reaching Paper/Spigot |
+| **TCP Fragmentation Bypass** | Stream accumulation loop ensures complete handshake is buffered before inspection (since v3.4.0) | Fragmented multi-segment handshakes are fully reassembled before `blocked_protocol_versions` is evaluated |
+| **Non-Handshake Packet Spoofing** | Packet ID `!= 0` detected and rejected immediately (since v3.4.0) | Non-handshake packets dropped before upstream forwarding |
 
 ---
 
@@ -159,6 +161,7 @@ Add a Minecraft guard service to `tcp-warden.yaml`:
 | `upstream` | `string` | `"127.0.0.1:255650"` | Target Minecraft game server address and port. |
 | `protocol` | `string` | `"minecraft"` | Must be set to `"minecraft"` or `"mc"`. |
 | `plugin_config.max_connections_per_sec` | `int` | `10` | Maximum new connections per second permitted per client IP. |
+| `plugin_config.blocked_protocol_versions` | `[]int` | `[]` | List of Minecraft Java Edition protocol version integers to block (e.g. `[47]` for 1.8, `[340]` for 1.12.2, `[760]` for 1.19.2). Connections from clients advertising a blocked version are rejected at the handshake layer. Version inspection is robust against TCP segment fragmentation (since v3.4.0). |
 
 ---
 

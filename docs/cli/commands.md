@@ -32,6 +32,9 @@ rwarden test -c routewarden.json /admin/dashboard
 # Test client IP whitelisting
 rwarden test -c routewarden.json --ip "10.0.0.1" /admin
 
+# Test request body payload inspection (-b or --body)
+rwarden test -X POST -b "grant_type=password&user=admin" --check-body /identity/token
+
 # Pipe configuration via stdin
 cat routewarden.json | rwarden test -c - /admin`,
 })
@@ -288,10 +291,12 @@ Simulate candidate path extraction, normalization, and pattern matching on an ar
 | `[path]`, `--path` | string | `""` | Request path to evaluate (e.g. `/.env` or `/api/v1`) |
 | `-c`, `--config` | string | `""` | Path to `routewarden.json` (or `-` for stdin) |
 | `-q`, `--query` | string | `""` | Query string to evaluate for path evasion payloads |
+| `-b`, `--body` | string | `""` | Request body payload to evaluate for hostile content |
 | `-X`, `-m`, `--method` | string | `"GET"` | HTTP method (e.g. `GET`, `POST`, `HEAD`) |
 | `-H`, `--header` | string | `""` | Optional header in `Key:Value` format (repeatable) |
 | `--ip` | string | `""` | Client IP address to evaluate against `allowedIps` |
 | `--check-query` | bool | `true` | Enable or disable query string inspection |
+| `--check-body` | bool | `false` | Enable or disable request body payload inspection |
 
 ### Example Output
 

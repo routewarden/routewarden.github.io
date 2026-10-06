@@ -185,7 +185,7 @@ http:
         routewarden: # [!code ++]
           enabled: true # [!code ++]
           # Block everything by default
-          pathPatterns: # [!code ++]
+          blockPatterns: # [!code ++]
             - '^/.*$' # [!code ++]
           # Disable standard public exemptions (robots.txt, sitemap.xml)
           enableDefaultAllowPatterns: false # [!code ++]
@@ -202,7 +202,7 @@ http:
 [http.middlewares.staging-guard.plugin.routewarden] # [!code ++]
   enabled = true # [!code ++]
   enableDefaultAllowPatterns = false # [!code ++]
-  pathPatterns = ["^/.*$"] # [!code ++]
+  blockPatterns = ["^/.*$"] # [!code ++]
   allowedIps = ["10.0.0.0/8", "100.64.0.0/10", "203.0.113.50/32"] # [!code ++]
  # [!code ++]
 [http.middlewares.staging-guard.plugin.routewarden.response] # [!code ++]
@@ -212,7 +212,7 @@ http:
   traefik_labels: buildSnippet({ lang: 'docker', code: `# Docker Compose Labels
 - "traefik.http.middlewares.staging-guard.plugin.routewarden.enabled=true" # [!code ++]
 - "traefik.http.middlewares.staging-guard.plugin.routewarden.enableDefaultAllowPatterns=false" # [!code ++]
-- "traefik.http.middlewares.staging-guard.plugin.routewarden.pathPatterns=^/.*$" # [!code ++]
+- "traefik.http.middlewares.staging-guard.plugin.routewarden.blockPatterns=^/.*$" # [!code ++]
 - "traefik.http.middlewares.staging-guard.plugin.routewarden.allowedIps=10.0.0.0/8,100.64.0.0/10,203.0.113.50/32" # [!code ++]
 - "traefik.http.middlewares.staging-guard.plugin.routewarden.response.mode=json" # [!code ++]
 - "traefik.http.middlewares.staging-guard.plugin.routewarden.response.statusCode=404" # [!code ++]
@@ -221,7 +221,7 @@ http:
 pr-142.staging.example.com {
     route_warden { # [!code ++]
         enable_default_allow_patterns false # [!code ++]
-        path_patterns "^/.*$" # [!code ++]
+        block_patterns "^/.*$" # [!code ++]
         allowed_ips "10.0.0.0/8" "100.64.0.0/10" "203.0.113.50/32" # [!code ++]
         response { # [!code ++]
             mode json # [!code ++]
@@ -240,7 +240,7 @@ http {
 
         staging_warden = routewarden.new({ # [!code ++]
             enable_default_allow_patterns = false, # [!code ++]
-            path_patterns = { # [!code ++]
+            block_patterns = { # [!code ++]
                 "^/.*$" # [!code ++]
             }, # [!code ++]
             allowed_ips = { # [!code ++]
@@ -274,7 +274,7 @@ http {
   "$schema": "https://raw.githubusercontent.com/routewarden/cli/main/config.schema.json",
   "enabled": true,
   "enableDefaultAllowPatterns": false,
-  "pathPatterns": [
+  "blockPatterns": [
     "^/.*$"
   ],
   "allowedIps": [
@@ -299,7 +299,7 @@ http:
       plugin: # [!code ++]
         routewarden: # [!code ++]
           enabled: true # [!code ++]
-          pathPatterns: # [!code ++]
+          blockPatterns: # [!code ++]
             # Lure crawlers scanning for high-value targets
             - '(?i)(^|/)(\\.env.*|\\.git.*|wp-login\\.php|phpmyadmin.*)$' # [!code ++]
           response: # [!code ++]
@@ -309,7 +309,7 @@ http:
   traefik_toml: buildSnippet({ lang: 'toml', code: `# dynamic_conf.toml
 [http.middlewares.honeypot-bomber.plugin.routewarden] # [!code ++]
   enabled = true # [!code ++]
-  pathPatterns = ["(?i)(^|/)(\\\\.env.*|\\\\.git.*|wp-login\\\\.php|phpmyadmin.*)$"] # [!code ++]
+  blockPatterns = ["(?i)(^|/)(\\\\.env.*|\\\\.git.*|wp-login\\\\.php|phpmyadmin.*)$"] # [!code ++]
  # [!code ++]
 [http.middlewares.honeypot-bomber.plugin.routewarden.response] # [!code ++]
   mode = "gzipBomb" # [!code ++]
@@ -317,14 +317,14 @@ http:
   gzipBombMB = 10 # [!code ++]` }),
   traefik_labels: buildSnippet({ lang: 'docker', code: `# Docker Compose Labels
 - "traefik.http.middlewares.honeypot-bomber.plugin.routewarden.enabled=true" # [!code ++]
-- "traefik.http.middlewares.honeypot-bomber.plugin.routewarden.pathPatterns=(?i)(^|/)(\\\\.env.*|\\\\.git.*|wp-login\\\\.php|phpmyadmin.*)$" # [!code ++]
+- "traefik.http.middlewares.honeypot-bomber.plugin.routewarden.blockPatterns=(?i)(^|/)(\\\\.env.*|\\\\.git.*|wp-login\\\\.php|phpmyadmin.*)$" # [!code ++]
 - "traefik.http.middlewares.honeypot-bomber.plugin.routewarden.response.mode=gzipBomb" # [!code ++]
 - "traefik.http.middlewares.honeypot-bomber.plugin.routewarden.response.statusCode=200" # [!code ++]
 - "traefik.http.middlewares.honeypot-bomber.plugin.routewarden.response.gzipBombMB=10" # [!code ++]` }),
   caddy: buildSnippet({ lang: 'caddy', code: `# Caddyfile
 honeypot.example.com {
     route_warden { # [!code ++]
-        path_patterns "(?i)(^|/)(\\.env.*|\\.git.*|wp-login\\.php|phpmyadmin.*)$" # [!code ++]
+        block_patterns "(?i)(^|/)(\\.env.*|\\.git.*|wp-login\\.php|phpmyadmin.*)$" # [!code ++]
         response { # [!code ++]
             mode gzip_bomb # [!code ++]
             status_code 200 # [!code ++]
@@ -341,7 +341,7 @@ http {
         local routewarden = require("resty.routewarden") # [!code ++]
 
         bomb_warden = routewarden.new({ # [!code ++]
-            path_patterns = { # [!code ++]
+            block_patterns = { # [!code ++]
                 "(?i)(^|/)(\\\\.env.*|\\\\.git.*|wp-login\\\\.php|phpmyadmin.*)$" # [!code ++]
             }, # [!code ++]
             response = { # [!code ++]
@@ -369,7 +369,7 @@ http {
 {
   "$schema": "https://raw.githubusercontent.com/routewarden/cli/main/config.schema.json",
   "enabled": true,
-  "pathPatterns": [
+  "blockPatterns": [
     "(?i)(^|/)(\\\\.env.*|\\\\.git.*|wp-login\\\\.php|phpmyadmin.*)$"
   ],
   "response": {
@@ -388,7 +388,7 @@ const tarpit = {
       plugin: # [!code ++]
         routewarden: # [!code ++]
           enabled: true # [!code ++]
-          pathPatterns: # [!code ++]
+          blockPatterns: # [!code ++]
             - '(?i)^/(phpmyadmin|pma|wp-login\\.php|\\.env|\\.git.*)$' # [!code ++]
           response: # [!code ++]
             mode: tarpit # [!code ++]
@@ -398,7 +398,7 @@ const tarpit = {
   traefik_toml: buildSnippet({ lang: 'toml', code: `# dynamic_conf.toml
 [http.middlewares.tarpit-sink.plugin.routewarden] # [!code ++]
   enabled = true # [!code ++]
-  pathPatterns = ["(?i)^/(phpmyadmin|pma|wp-login\\\\.php|\\\\.env|\\\\.git.*)$"] # [!code ++]
+  blockPatterns = ["(?i)^/(phpmyadmin|pma|wp-login\\\\.php|\\\\.env|\\\\.git.*)$"] # [!code ++]
  # [!code ++]
 [http.middlewares.tarpit-sink.plugin.routewarden.response] # [!code ++]
   mode = "tarpit" # [!code ++]
@@ -407,14 +407,14 @@ const tarpit = {
   tarpitMaxDurationSeconds = 120 # [!code ++]` }),
   traefik_labels: buildSnippet({ lang: 'docker', code: `# Docker Compose Labels
 - "traefik.http.middlewares.tarpit-sink.plugin.routewarden.enabled=true" # [!code ++]
-- "traefik.http.middlewares.tarpit-sink.plugin.routewarden.pathPatterns=(?i)^/(phpmyadmin|pma|wp-login\\\\.php|\\\\.env|\\\\.git.*)$" # [!code ++]
+- "traefik.http.middlewares.tarpit-sink.plugin.routewarden.blockPatterns=(?i)^/(phpmyadmin|pma|wp-login\\\\.php|\\\\.env|\\\\.git.*)$" # [!code ++]
 - "traefik.http.middlewares.tarpit-sink.plugin.routewarden.response.mode=tarpit" # [!code ++]
 - "traefik.http.middlewares.tarpit-sink.plugin.routewarden.response.statusCode=200" # [!code ++]
 - "traefik.http.middlewares.tarpit-sink.plugin.routewarden.response.tarpitDelayMs=1000" # [!code ++]
 - "traefik.http.middlewares.tarpit-sink.plugin.routewarden.response.tarpitMaxDurationSeconds=120" # [!code ++]` }),
   caddy: buildSnippet({ lang: 'caddy', code: `honeypot.example.com {
     route_warden { # [!code ++]
-        path_patterns "(?i)^/(phpmyadmin|pma|wp-login\\.php|\\.env|\\.git.*)$" # [!code ++]
+        block_patterns "(?i)^/(phpmyadmin|pma|wp-login\\.php|\\.env|\\.git.*)$" # [!code ++]
         response { # [!code ++]
             mode tarpit # [!code ++]
             status_code 200 # [!code ++]
@@ -432,7 +432,7 @@ http {
         local routewarden = require("resty.routewarden") # [!code ++]
 
         tarpit_warden = routewarden.new({ # [!code ++]
-            path_patterns = { # [!code ++]
+            block_patterns = { # [!code ++]
                 "(?i)^/(phpmyadmin|pma|wp-login\\\\.php|\\\\.env|\\\\.git.*)$" # [!code ++]
             }, # [!code ++]
             response = { # [!code ++]
@@ -456,7 +456,7 @@ http {
   cli: buildSnippet({ lang: 'json', code: `{
   "$schema": "https://raw.githubusercontent.com/routewarden/cli/main/config.schema.json",
   "enabled": true,
-  "pathPatterns": [
+  "blockPatterns": [
     "(?i)^/(phpmyadmin|pma|wp-login\\\\.php|\\\\.env|\\\\.git.*)$"
   ],
   "response": {

@@ -15,7 +15,7 @@ http:
         routewarden: # [!code ++]
           enabled: true # [!code ++]
           enableDefaultPatterns: true # Blocks wp-config.php.bak, .sql, .env # [!code ++]
-          pathPatterns: # [!code ++]
+          blockPatterns: # [!code ++]
             - '(?i)^/(wp-login\\.php|xmlrpc\\.php)$' # [!code ++]
             - '(?i)^/wp-admin(/.*)?$' # [!code ++]
           # Office IP bypasses captcha challenge automatically
@@ -50,7 +50,7 @@ http:
 [http.middlewares.wordpress-shield.plugin.routewarden] # [!code ++]
   enabled = true # [!code ++]
   enableDefaultPatterns = true # [!code ++]
-  pathPatterns = [ # [!code ++]
+  blockPatterns = [ # [!code ++]
     "(?i)^/(wp-login\\\\.php|xmlrpc\\\\.php)$", # [!code ++]
     "(?i)^/wp-admin(/.*)?$" # [!code ++]
   ] # [!code ++]
@@ -69,7 +69,7 @@ http:
 - "traefik.http.routers.blog.rule=Host(\`blog.example.com\`)"
 - "traefik.http.routers.blog.middlewares=wordpress-shield" # [!code ++]
 - "traefik.http.middlewares.wordpress-shield.plugin.routewarden.enabled=true" # [!code ++]
-- "traefik.http.middlewares.wordpress-shield.plugin.routewarden.pathPatterns=(?i)^/(wp-login\\\\.php|xmlrpc\\\\.php)$,(?i)^/wp-admin(/.*)?$" # [!code ++]
+- "traefik.http.middlewares.wordpress-shield.plugin.routewarden.blockPatterns=(?i)^/(wp-login\\\\.php|xmlrpc\\\\.php)$,(?i)^/wp-admin(/.*)?$" # [!code ++]
 - "traefik.http.middlewares.wordpress-shield.plugin.routewarden.allowedIps=192.168.1.0/24,10.0.0.0/8" # [!code ++]
 - "traefik.http.middlewares.wordpress-shield.plugin.routewarden.response.mode=captcha" # [!code ++]
 - "traefik.http.middlewares.wordpress-shield.plugin.routewarden.response.captcha.provider=turnstile" # [!code ++]
@@ -83,7 +83,7 @@ http:
 blog.example.com {
     route_warden { # [!code ++]
         enable_default_patterns true # [!code ++]
-        path_patterns "(?i)^/(wp-login\\.php|xmlrpc\\.php)$" "(?i)^/wp-admin(/.*)?$" # [!code ++]
+        block_patterns "(?i)^/(wp-login\\.php|xmlrpc\\.php)$" "(?i)^/wp-admin(/.*)?$" # [!code ++]
         allowed_ips "192.168.1.0/24" "10.0.0.0/8" # [!code ++]
         response { # [!code ++]
             mode captcha # [!code ++]
@@ -107,7 +107,7 @@ http {
 
         wp_warden = routewarden.new({ # [!code ++]
             enable_default_patterns = true, # [!code ++]
-            path_patterns = { # [!code ++]
+            block_patterns = { # [!code ++]
                 "(?i)^/(wp-login\\\\.php|xmlrpc\\\\.php)$", # [!code ++]
                 "(?i)^/wp-admin(/.*)?$" # [!code ++]
             }, # [!code ++]

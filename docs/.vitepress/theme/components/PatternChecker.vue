@@ -369,7 +369,7 @@ function evaluateForVerb(methodName: string): VerbEvalResult {
         return {
           method: m,
           verdict: 'BLOCK',
-          statusTitle: 'Blocked by pathPatterns',
+          statusTitle: 'Blocked by blockPatterns',
           badgeClass: 'verdict-block',
           statusCode: finalCode,
           statusText: finalStatusText,
@@ -794,7 +794,7 @@ onMounted(() => {
     const pForwarded = params.get('forwardedFor') || params.get('xff')
     if (pForwarded) testForwardedFor.value = pForwarded
 
-    const pBlock = params.get('block') || params.get('pathPatterns')
+    const pBlock = params.get('block') || params.get('blockPatterns') || params.get('pathPatterns')
     if (pBlock) pathPatternsInput.value = pBlock
 
     const pAllow = params.get('allow') || params.get('allowPatterns')

@@ -21,7 +21,7 @@ const arch_mermaid_raw = `flowchart TD
 
     EVASION --> ALLOW{"<b>3. Allowlist Check</b><br/>Matches allowPatterns?"}:::decisionNode
     ALLOW -- Yes (Safe Override) --> UPSTREAM
-    ALLOW -- No --> SENSITIVE{"<b>4. Sensitive Matcher</b><br/>Built-in or custom pathPatterns?"}:::decisionNode
+    ALLOW -- No --> SENSITIVE{"<b>4. Sensitive Matcher</b><br/>Built-in or custom blockPatterns?"}:::decisionNode
 
     SENSITIVE -- No Match (Clean) --> UPSTREAM
     SENSITIVE -- Matches Forbidden --> RESP["<b>5. Response Handler</b><br/>JSON / HTML / Captcha / Redirect / Tarpit / Drop"]:::blockNode
@@ -125,7 +125,7 @@ const arch_graph_svg = `<div class="rw-graph-container">
     <rect x="60" y="370" width="500" height="62" rx="10" class="rw-g-node"/>
     <circle cx="86" cy="393" r="7" fill="#ef4444"/>
     <text x="104" y="390" class="rw-g-card-title">4. Sensitive Path Matcher</text>
-    <text x="104" y="408" class="rw-g-desc">Checks built-in dictionary (.env, .git, dumps, configs) &amp; custom pathPatterns</text>
+    <text x="104" y="408" class="rw-g-desc">Checks built-in dictionary (.env, .git, dumps, configs) &amp; custom blockPatterns</text>
 
     <!-- Branch: No Sensitive Match -> Upstream -->
     <path d="M 560 401 C 630 401, 650 320, 710 320" stroke="#10b981" stroke-width="2" fill="none" marker-end="url(#arr-green)"/>
