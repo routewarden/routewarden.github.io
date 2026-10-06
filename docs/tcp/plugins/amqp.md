@@ -147,7 +147,8 @@ The **AMQP Guard** plugin inspects Advanced Message Queuing Protocol (AMQP 0-9-1
 | Threat / Attack Vector | Defense Mechanism | Action Taken |
 | :--- | :--- | :--- |
 | **Credential Stuffing & Unauthorized Access** | Detects broker `Connection.Close` with code `403` | IP banned after `max_auth_failures` threshold |
-| **Unauthorized Virtual Host Scanning** | Filters `vhost` in `Connection.Open` frames | Connection dropped before broker processes request |
+| **Unauthorized Virtual Host Scanning** | Filters `vhost` in `Connection.Open` frames; zero-length vhost normalized to `"/"` before allowlist check (since v3.4.0) | Connection dropped before broker processes request |
+| **Zero-Length VHost Allowlist Bypass** | `extractVHost` treats an empty `vhost` field as the default `"/"` vhost (since v3.4.0) | Prevents evasion when the AMQP default vhost is included in an allowlist |
 | **Broker Connection Exhaustion** | Enforces rate limits per minute and burst caps | Connection throttled at the proxy layer |
 
 ---
@@ -175,7 +176,7 @@ Add an AMQP guard service to `tcp-warden.yaml`:
 | `protocol` | `string` | `"amqp"` | Must be set to `"amqp"` or `"rabbitmq"`. |
 | `max_auth_failures` | `int` | `3` | Failed login attempts before banning. |
 | `ban_duration` | `string` | `"2h"` | Duration of the automated IP ban (`"30m"`, `"2h"`, `"24h"`). |
-| `plugin_config.blocked_vhosts` | `[]string` | `[]` | List of virtual host names prohibited through this proxy interface. |
+| `plugin_config.blocked_vhosts` | `[]string` | `[]` | List of virtual host names prohibited through this proxy interface. A zero-length vhost in the AMQP `Connection.Open` frame is normalized to `"/"` (the AMQP default vhost) before evaluation (since v3.4.0). |
 
 ---
 

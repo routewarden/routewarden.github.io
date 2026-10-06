@@ -190,7 +190,7 @@ The **SMTP Mail Guard** plugin inspects SMTP and ESMTP mail transfer streams (RF
 
 | Threat / Attack Vector | Defense Mechanism | Action Taken |
 | :--- | :--- | :--- |
-| **Credential Brute-Force & Stuffing** | Tracks `535 Authentication failed` response codes | Abusive IP banned after `max_auth_failures` threshold |
+| **Credential Brute-Force & Stuffing** | Tracks `535 Authentication failed` response codes; enforces connection close with `535 Too many failures` on excess attempts (since v3.4.0) | Abusive IP banned after `max_auth_failures` threshold; connection terminated immediately |
 | **Recipient Flooding / Directory Harvest** | Counts `RCPT TO` commands per session | Rejects excess recipients with `452 Too many recipients` |
 | **Spam & Disposable Senders** | Checks `MAIL FROM` domain against `blocked_sender_domains` | Rejects sender with `554 Sender domain rejected` |
 | **STARTTLS Handover** | Detects successful `220 Ready to start TLS` | Transparently transitions to bidirectional TLS pipe |
@@ -218,7 +218,7 @@ Add an SMTP guard service to `tcp-warden.yaml`:
 | `listen` | `string` | `":2525"` | Local proxy listen address and port. |
 | `upstream` | `string` | `"127.0.0.1:25"` | Target MTA (Postfix, Exim, Haraka) address and port. |
 | `protocol` | `string` | `"smtp"` | Must be set to `"smtp"` or `"mail"`. |
-| `max_auth_failures` | `int` | `3` | Failed `AUTH` exchanges before the client IP is banned. |
+| `max_auth_failures` | `int` | `3` | Failed `AUTH` exchanges before the client IP is banned. Since v3.4.0 the connection is actively closed with a `535 Too many failures` response when the cap is reached, preventing clients from retrying indefinitely. |
 | `ban_duration` | `string` | `"2h"` | Duration of the automated IP ban (`"30m"`, `"2h"`, `"24h"`). |
 | `plugin_config.banner` | `string` | `""` | Optional synthetic greeting banner returned to clients. |
 | `plugin_config.max_recipients` | `int` | `10` | Max `RCPT TO` addresses allowed per single SMTP transaction. |

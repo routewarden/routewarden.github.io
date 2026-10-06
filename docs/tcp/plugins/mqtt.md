@@ -140,7 +140,7 @@ The **MQTT Broker Guard** plugin inspects Message Queuing Telemetry Transport pr
 | Threat / Attack Vector | Defense Mechanism | Action Taken |
 | :--- | :--- | :--- |
 | **IoT Scanner & Botnet Probing** | Filters Client Identifier against `blocked_client_id_prefixes` | Connection terminated immediately with CONNACK refusal |
-| **Malformed Client ID Exploits** | Enforces `max_client_id_len` length caps | Client disconnected before broker processing |
+| **Malformed Client ID Exploits** | Enforces `max_client_id_len` length caps; sends MQTT `CONNACK 0x02` (Identifier Rejected) before closing connection (since v3.4.0) | Client receives spec-compliant rejection; compliant clients will not retry indefinitely |
 | **Broker Connection Exhaustion** | Enforces connection velocity limits and burst caps | Connection throttled at the proxy layer |
 
 ---
@@ -167,7 +167,7 @@ Add an MQTT guard service to `tcp-warden.yaml`:
 | `upstream` | `string` | `"127.0.0.1:18830"` | Target MQTT broker (Mosquitto, EMQX, HiveMQ) address. |
 | `protocol` | `string` | `"mqtt"` | Must be set to `"mqtt"`. |
 | `plugin_config.blocked_client_id_prefixes` | `[]string` | `[...]` | List of client ID prefixes blocked on connection attempt. |
-| `plugin_config.max_client_id_len` | `int` | `64` | Maximum allowable length for the MQTT Client Identifier. |
+| `plugin_config.max_client_id_len` | `int` | `64` | Maximum allowable length for the MQTT Client Identifier. When exceeded, a well-formed MQTT `CONNACK` response with return code `0x02` (Identifier Rejected) is sent before the connection is closed, per MQTT 3.1.1 specification (since v3.4.0). |
 
 ---
 

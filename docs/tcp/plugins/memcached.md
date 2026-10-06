@@ -151,6 +151,7 @@ The **Memcached Cache Guard** plugin inspects both ASCII text and binary protoco
 | **Complete Cache Purge (`flush_all`)** | Filters commands against `blocked_commands` | Command dropped with synthetic `CLIENT_ERROR` |
 | **Server Crash & Probe Exploits** | Blocks `shutdown`, `version`, `quit` tampering | Command intercepted at the proxy layer |
 | **Connection Starvation Attacks** | Enforces connection rate limits and burst caps | Connection throttled before reaching Memcached |
+| **Heap Exhaustion via Oversized Objects** | Validates `bytes` field on `set`/`add`/`replace`/`append`/`prepend` against `max_value_size` (since v3.4.0) | Storage commands with negative or oversized byte declarations rejected with `CLIENT_ERROR value too large` |
 
 ---
 
@@ -176,6 +177,7 @@ Add a Memcached guard service to `tcp-warden.yaml`:
 | `upstream` | `string` | `"127.0.0.1:112110"` | Target Memcached server address and port. |
 | `protocol` | `string` | `"memcached"` | Must be set to `"memcached"`. |
 | `plugin_config.blocked_commands` | `[]string` | `["flush_all"]` | List of commands blocked by RouteWarden. |
+| `plugin_config.max_value_size` | `int` | `1048576` | Maximum permitted `bytes` field value (in bytes) for storage commands (`set`, `add`, `replace`, `append`, `prepend`). Commands declaring a larger or negative size are rejected immediately with `CLIENT_ERROR value too large` to prevent heap exhaustion (since v3.4.0). |
 
 ---
 

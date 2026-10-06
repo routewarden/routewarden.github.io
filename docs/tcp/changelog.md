@@ -11,7 +11,56 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
-## [v3.3.0] - 2026-10-05 (Latest)
+## [v3.4.0] - 2026-10-06 (Latest)
+
+### 🔒 Security Hardening Release: Protocol Plugin Boundary Fixes, UDP Ban Fast-Path & Installer Path Traversal Protection
+
+TCP Warden v3.4.0 is a comprehensive security hardening release, closing a set of boundary-condition vulnerabilities identified during an internal audit of the plugin ecosystem and the core daemon's UDP engine and plugin installer subsystems. All 21 official protocol plugins were audited; seven received targeted fixes.
+
+#### 1. UDP Engine — Synchronous Ban Fast-Path
+
+- **Synchronous Pre-Goroutine Drop**: The UDP datagram engine (`core/udp_engine.go`) now checks the active ban list and CrowdSec block list **before** allocating a session goroutine or NAT socket for incoming datagrams.
+- **Zero-Goroutine-Leak DoS Mitigation**: Previously, a banned sender triggering high-frequency UDP floods could saturate the goroutine pool before per-session ban checks executed. Bans from permanently blacklisted IPs are now dropped inline on the receive loop without scheduling any goroutine.
+- **Tests**: `TestUDPEngine_BannedIP_Dropped` verifies the fast-path verdict for active bans.
+
+#### 2. Plugin Installer — Path Traversal & Symlink Safety
+
+- **Plugin Name Allowlist**: Plugin names passed to `tcp-warden plugins install` are now validated against a strict allowlist (`[a-zA-Z0-9_-]+`). Names containing path separators, dot-dot sequences (`../`), or shell metacharacters are rejected before any filesystem or network operation.
+- **Git Subpath Escape Prevention**: Resolved a vulnerability where a crafted Git repository could use `.git` hooks or nested submodule paths to write files outside the plugin staging directory during `go build`.
+- **Symlink Dereferencing Block**: The installer now verifies that the resolved real path of every file in a cloned plugin directory remains inside the staging root, blocking symlink escape attacks.
+- **Tests**: `TestPluginInstaller_SecurityBoundaries` covers traversal names, symlink attempts, and allowlist enforcement.
+
+#### 3. Protocol Plugin Hardening (All 21 Plugins Audited)
+
+##### MQTT (`plugins/mqtt`)
+- **CONNACK 0x02 Emission on Oversized ClientID**: When `max_client_id_len` is configured and a connecting client exceeds the limit, the inspector now sends a well-formed MQTT `CONNACK` response with return code `0x02` (Identifier Rejected) before closing the connection, as required by the MQTT 3.1.1 specification.
+- Previously the connection was silently closed mid-handshake, causing compliant client libraries to retry indefinitely.
+- **Security event**: `blocked_mqtt_client_id_too_long` emitted via `ctx.OnSecurityEvent`.
+
+##### AMQP 0-9-1 (`plugins/amqp`)
+- **Empty VHost Normalization**: `extractVHost` now treats a zero-length vhost field in `Connection.Open` as the AMQP default vhost (`/`), preventing an attacker from bypassing `allowed_vhosts` enforcement by sending a zero-length vhost byte when the server default is included in the allowlist.
+- **Tests**: `TestAMQP_ExtractVHost` — boundary matrix covering truncated payload, zero-length vhost, out-of-bounds length, and valid vhosts.
+
+##### BitTorrent DHT (`plugins/bittorrent`)
+- **Allowlist Enforcement on Unparseable DHT Methods**: When `allowed_dht_methods` is configured and a DHT query arrives with a missing or undecodable method name (e.g., malformed bencode length prefix), the packet is now **dropped** (`bt_dht_query_missing_method`) rather than silently allowed through the allowlist.
+- **Bounded Bencode Length Scanning**: The `extractDHTMessageType` parser caps its length-prefix digit scan to 4 digits (`colonOffset <= 4`), preventing CPU amplification from arbitrarily long synthetic length fields in crafted DHT packets.
+- **Tests**: `TestBTUDPInspector_DHTAllowlist_RejectsMissingMethod` verifies the allowlist drop on unparseable query methods.
+
+##### Minecraft Java Edition (`plugins/minecraft`)
+- **TCP Fragmentation Bypass Fix**: The Minecraft inspector previously read the handshake with a single non-blocking `client.Read()`. A client fragmenting the handshake across multiple TCP segments could cause `readVarInt` to receive insufficient bytes for multi-byte protocol version VarInts (e.g., version 760 / 1.19.2 encoded as `0xF8 0x05`), resulting in the version check being skipped entirely and an uninspected connection being forwarded to the upstream server.
+- The inspector now accumulates the full packet body (up to 512 bytes) across TCP segment boundaries before evaluating `blocked_protocol_versions`.
+- **Strict Packet ID Enforcement**: When protocol version blocking is configured, a non-zero Packet ID (not a handshake packet) is now rejected immediately (`invalid minecraft handshake packet id`) rather than silently forwarded.
+- **Tests**: `TestMinecraft_Run_BlockedProtocolVersion_Fragmented` and `TestMinecraft_Run_MalformedHandshake_Rejected`.
+
+##### SMTP, LDAP, FTP, IMAP, POP3, Memcached (`plugins/*`)
+- **Unbounded Line Read Protection**: `bufio.Scanner` replaced raw `bufio.ReadLine` calls with enforced per-line limits (`MaxScanTokenSize`) across SMTP, FTP, IMAP, and POP3, preventing a connected client from sending an infinitely long line to exhaust inspector heap memory.
+- **Authentication Failure Cap (`max_auth_failures`)**: All authentication-inspecting plugins (SMTP, LDAP, IMAP, POP3, FTP) now enforce `MaxAuthFailures` by sending a protocol-appropriate rejection and closing the connection once the cap is reached, with `ctx.OnAuthFailure()` and `ctx.OnSecurityEvent` emitted on every excess attempt.
+- **LDAP DN Suffix Spoofing Prevention**: The LDAP inspector validates that the `BindDN` in a Bind Request matches only literal suffixes from the `allowed_bind_dn_suffixes` list (case-folded), preventing evasion via Unicode homoglyphs or LDAP attribute reordering.
+- **Memcached Storage Length Validation**: The Memcached inspector rejects `set`/`add`/`replace`/`append`/`prepend` commands with a declared `bytes` field that is negative or exceeds 1 MB (configurable), preventing heap exhaustion via synthetic large-object commands.
+
+---
+
+## [v3.3.0] - 2026-10-05
 
 ### 🚀 Hardening & Protocol Handover Release: BufferedConn Fallthrough, IPv6 Zone Normalization & Extended API Coverage
 

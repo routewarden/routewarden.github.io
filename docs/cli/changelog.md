@@ -2,7 +2,20 @@
 
 All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and the CLI adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v4.3.0] - 2026-10-05 (Latest)
+## [v4.4.0] - 2026-10-06 (Latest)
+
+### Security
+
+- **CRLF Injection Prevention in Gateway Config Generators (`engine/engine.go`)**:
+  - Sanitized carriage-return (`\r`) and newline (`\n`) characters from user-supplied pattern strings before emitting gateway-specific configuration snippets (Traefik TOML, Traefik Docker labels, NGINX Lua).
+  - A crafted pattern value containing a CRLF sequence could previously inject arbitrary lines into the generated configuration output, potentially introducing unauthorized directives or breaking config parsers that load the generated snippets automatically.
+  - Characters `\r` and `\n` are now replaced with their literal `\r` and `\n` escape sequences in all generated outputs, preserving pattern intent while eliminating injection risk.
+  - **Affected generators**: Traefik TOML (`generate --target traefik-toml`), Traefik Docker Compose labels (`generate --target traefik-labels`), NGINX Lua (`generate --target nginx`).
+  - **Tests**: `TestGenerateCRLFSanitization` in `engine/engine_test.go` verifies that CRLF sequences in pattern values are escaped in all three affected output formats.
+
+---
+
+## [v4.3.0] - 2026-10-05
 
 ### Added
 - **Request Body Security Inspection (`checkBody` & `checkBodyPatterns`)**:
