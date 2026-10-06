@@ -220,7 +220,7 @@ Configure a multi-transport BitTorrent guard in `tcp-warden.yaml`:
 | `plugin_config.block_dht` | `bool` | `false` | When true, drops all UDP DHT queries and responses. |
 | `plugin_config.block_utp` | `bool` | `false` | When true, drops all UDP uTP packets (forcing TCP transport). |
 | `plugin_config.blocked_dht_methods` | `[]string` | `[]` | DHT query methods to block (e.g., `["announce_peer", "get_peers"]`). |
-| `plugin_config.allowed_dht_methods` | `[]string` | `[]` | If non-empty, only these DHT methods are accepted. |
+| `plugin_config.allowed_dht_methods` | `[]string` | `[]` | If non-empty, only these DHT methods are accepted. Queries whose method name cannot be parsed from the bencode payload are **dropped** when an allowlist is active (since v3.4.0). |
 | `plugin_config.max_dht_packet_size` | `int` | `1500` | Maximum allowed UDP DHT packet size in bytes to prevent amplification. |
 
 ---

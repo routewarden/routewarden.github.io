@@ -174,7 +174,7 @@ The **POP3 Mail Guard** plugin monitors Post Office Protocol 3 (RFC 1939) client
 
 | Threat / Attack Vector | Defense Mechanism | Action Taken |
 | :--- | :--- | :--- |
-| **Mailbox Password Spraying** | Tracks `-ERR [AUTH]` responses on `PASS` commands | Client IP banned after `max_auth_failures` |
+| **Mailbox Password Spraying** | Tracks `-ERR [AUTH]` responses on `PASS` commands; enforces connection close with `-ERR Too many auth failures` when cap is reached (since v3.4.0) | Client IP banned after `max_auth_failures`; connection terminated immediately |
 | **Session Flooding** | Enforces connection rate limits and burst caps | New connections throttled at the proxy layer |
 | **STLS TLS Handover** | Detects successful `+OK Begin TLS negotiation` | Transparently transitions to encrypted bidirectional pipe |
 
@@ -201,7 +201,7 @@ Add a POP3 guard service to `tcp-warden.yaml`:
 | `listen` | `string` | `":1110"` | Local proxy listen address and port. |
 | `upstream` | `string` | `"127.0.0.1:110"` | Target POP3 server (e.g. Dovecot) address and port. |
 | `protocol` | `string` | `"pop3"` | Must be set to `"pop3"`. |
-| `max_auth_failures` | `int` | `3` | Failed login attempts before banning. |
+| `max_auth_failures` | `int` | `3` | Failed login attempts before banning. Since v3.4.0 the connection is actively closed with `-ERR Too many auth failures` when the cap is reached, preventing brute-force tools from retrying indefinitely. |
 | `ban_duration` | `string` | `"1h"` | Duration of the automated IP ban (`"30m"`, `"1h"`, `"24h"`). |
 | `plugin_config.banner` | `string` | `""` | Optional synthetic greeting banner returned to clients. |
 

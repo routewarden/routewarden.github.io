@@ -168,9 +168,10 @@ The **LDAP Guard** plugin inspects Lightweight Directory Access Protocol version
 
 | Threat / Attack Vector | Defense Mechanism | Action Taken |
 | :--- | :--- | :--- |
-| **Credential Stuffing & Password Spraying** | Intercepts `BindResponse` with `resultCode: 49` | IP banned after `max_auth_failures` threshold |
+| **Credential Stuffing & Password Spraying** | Intercepts `BindResponse` with `resultCode: 49`; enforces connection close when cap is reached (since v3.4.0) | IP banned after `max_auth_failures` threshold; connection terminated immediately |
 | **Directory Enumeration** | Enforces rate limits per minute and burst caps | Connection throttled before overloading directory |
 | **Protected DN Probing** | Filters Bind DN against `blocked_bind_dn_prefixes` | Blocked at the proxy layer |
+| **DN Suffix Spoofing** | Validates `BindDN` against `allowed_bind_dn_suffixes` using case-folded literal suffix matching (since v3.4.0) | Prevents Unicode homoglyph and attribute-reordering evasion attacks |
 
 ---
 
@@ -195,9 +196,10 @@ Add an LDAP guard service to `tcp-warden.yaml`:
 | `listen` | `string` | `":1390"` | Local proxy listen address and port. |
 | `upstream` | `string` | `"127.0.0.1:389"` | Target LDAP directory server address and port. |
 | `protocol` | `string` | `"ldap"` | Must be set to `"ldap"`. |
-| `max_auth_failures` | `int` | `3` | Failed bind attempts before banning. |
+| `max_auth_failures` | `int` | `3` | Failed bind attempts before banning. Since v3.4.0 the connection is actively closed with an LDAP `BindResponse` `resultCode: 52` (Unavailable) when the cap is reached. |
 | `ban_duration` | `string` | `"2h"` | Duration of the automated IP ban (`"30m"`, `"2h"`, `"24h"`). |
 | `plugin_config.blocked_bind_dn_prefixes` | `[]string` | `[]` | List of sensitive DN prefixes forbidden from authenticating via this proxy. |
+| `plugin_config.allowed_bind_dn_suffixes` | `[]string` | `[]` | If non-empty, only `BindDN` values ending with one of these suffixes are accepted. Matching is case-folded and uses literal suffix comparison to prevent Unicode homoglyph evasion (since v3.4.0). |
 
 ---
 

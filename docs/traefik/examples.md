@@ -62,7 +62,7 @@ const r2_json = buildSnippet({
   code: `{
   "$schema": "https://raw.githubusercontent.com/routewarden/cli/main/config.schema.json",
   "enabled": true,
-  "pathPatterns": [
+  "blockPatterns": [
     "(?i)^/admin(/.*)?$",
     "(?i)^/metrics$"
   ],
@@ -86,7 +86,7 @@ const r2_compose = buildSnippet({
       - "traefik.http.routers.webapp.rule=Host(\`app.example.com\`)"
       - "traefik.http.routers.webapp.middlewares=app-warden" # [!code ++]
       - "traefik.http.middlewares.app-warden.plugin.routewarden.enabled=true" # [!code ++]
-      - "traefik.http.middlewares.app-warden.plugin.routewarden.pathPatterns=(?i)^/admin(/.*)?$,(?i)^/metrics$" # [!code ++]
+      - "traefik.http.middlewares.app-warden.plugin.routewarden.blockPatterns=(?i)^/admin(/.*)?$,(?i)^/metrics$" # [!code ++]
       - "traefik.http.middlewares.app-warden.plugin.routewarden.allowPatterns=(?i)^/admin/health$" # [!code ++]
       - "traefik.http.middlewares.app-warden.plugin.routewarden.allowedIps=10.0.0.0/8,192.168.1.100" # [!code ++]`,
 })
@@ -107,7 +107,7 @@ const r3_json = buildSnippet({
   "$schema": "https://raw.githubusercontent.com/routewarden/cli/main/config.schema.json",
   "enabled": true,
   "enableDefaultPatterns": true,
-  "pathPatterns": [
+  "blockPatterns": [
     "(?i)^/admin(/.*)?$"
   ],
   "allowedIps": [
@@ -133,7 +133,7 @@ spec: # [!code ++]
     routewarden: # [!code ++]
       enabled: true # [!code ++]
       enableDefaultPatterns: true # [!code ++]
-      pathPatterns: # [!code ++]
+      blockPatterns: # [!code ++]
         - '(?i)^/admin(/.*)?$' # [!code ++]
       allowedIps: # [!code ++]
         - "10.0.0.0/8" # [!code ++]
@@ -176,7 +176,7 @@ const r4_json = buildSnippet({
   "$schema": "https://raw.githubusercontent.com/routewarden/cli/main/config.schema.json",
   "enabled": true,
   "enableDefaultPatterns": true,
-  "pathPatterns": [
+  "blockPatterns": [
     "(?i)^/api/auth/login.*$",
     "(?i)^/api/auth/admin-sign-up.*$",
     "(?i)^/api/users.*$",
@@ -199,7 +199,7 @@ const r4_dynamic = buildSnippet({
         routewarden: # [!code ++]
           enabled: true # [!code ++]
           enableDefaultPatterns: true # [!code ++]
-          pathPatterns: # [!code ++]
+          blockPatterns: # [!code ++]
             - '(?i)^/api/auth/login.*$' # [!code ++]
             - '(?i)^/api/auth/admin-sign-up.*$' # [!code ++]
             - '(?i)^/api/users.*$' # [!code ++]
@@ -240,7 +240,7 @@ const r5_json = buildSnippet({
   "$schema": "https://raw.githubusercontent.com/routewarden/cli/main/config.schema.json",
   "enabled": true,
   "enableDefaultPatterns": true,
-  "pathPatterns": [
+  "blockPatterns": [
     "(?i)^/(wp-login\\\\.php|xmlrpc\\\\.php)$",
     "(?i)^/wp-admin(/.*)?$"
   ],
@@ -268,7 +268,7 @@ const r5_dynamic = buildSnippet({
         routewarden: # [!code ++]
           enabled: true # [!code ++]
           enableDefaultPatterns: true # [!code ++]
-          pathPatterns: # [!code ++]
+          blockPatterns: # [!code ++]
             - '(?i)^/(wp-login\\.php|xmlrpc\\.php)$' # [!code ++]
             - '(?i)^/wp-admin(/.*)?$' # [!code ++]
           allowedIps: # [!code ++]
@@ -297,7 +297,7 @@ const r6_json = buildSnippet({
   code: `{
   "$schema": "https://raw.githubusercontent.com/routewarden/cli/main/config.schema.json",
   "enabled": true,
-  "pathPatterns": [
+  "blockPatterns": [
     "(?i)(^|/)(\\\\.env.*|\\\\.git.*|wp-login\\\\.php|phpmyadmin.*)$"
   ],
   "response": {
@@ -316,7 +316,7 @@ const r6_dynamic = buildSnippet({
       plugin: # [!code ++]
         routewarden: # [!code ++]
           enabled: true # [!code ++]
-          pathPatterns: # [!code ++]
+          blockPatterns: # [!code ++]
             - '(?i)(^|/)(\\.env.*|\\.git.*|wp-login\\.php|phpmyadmin.*)$' # [!code ++]
           response: # [!code ++]
             mode: gzipBomb # [!code ++]

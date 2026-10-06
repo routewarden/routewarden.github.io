@@ -16,7 +16,7 @@ const s = {
   "enabled": true,
   "enableDefaultPatterns": true,
   "checkQuery": true,
-  "pathPatterns": [
+  "blockPatterns": [
     "(?i)^/admin(/.*)?$",
     "(?i)^/api/internal(/.*)?$"
   ],
@@ -47,7 +47,7 @@ http:
           enabled: true
           enableDefaultPatterns: true
           checkQuery: true
-          pathPatterns:
+          blockPatterns:
             - '(?i)^/admin(/.*)?$'
             - '(?i)^/api/internal(/.*)?$'
           allowPatterns:
@@ -83,7 +83,7 @@ http:
   enabled = true
   enableDefaultPatterns = true
   checkQuery = true
-  pathPatterns = ["(?i)^/admin(/.*)?$", "(?i)^/api/internal(/.*)?$"]
+  blockPatterns = ["(?i)^/admin(/.*)?$", "(?i)^/api/internal(/.*)?$"]
   allowPatterns = ["(?i)^/robots\\\\.txt$", "(?i)^/\\\\.well-known(/.*)?$"]
   allowedIps = ["192.168.1.0/24", "10.10.0.0/16"]
 
@@ -103,7 +103,7 @@ http:
 - "traefik.http.middlewares.service-warden.plugin.routewarden.enabled=true"
 - "traefik.http.middlewares.service-warden.plugin.routewarden.enableDefaultPatterns=true"
 - "traefik.http.middlewares.service-warden.plugin.routewarden.checkQuery=true"
-- "traefik.http.middlewares.service-warden.plugin.routewarden.pathPatterns=(?i)^/admin(/.*)?$,(?i)^/api/internal(/.*)?$"
+- "traefik.http.middlewares.service-warden.plugin.routewarden.blockPatterns=(?i)^/admin(/.*)?$,(?i)^/api/internal(/.*)?$"
 - "traefik.http.middlewares.service-warden.plugin.routewarden.allowPatterns=(?i)^/robots\\\\.txt$,(?i)^/\\\\.well-known(/.*)?$"
 - "traefik.http.middlewares.service-warden.plugin.routewarden.allowedIps=192.168.1.0/24,10.10.0.0/16"
 - "traefik.http.middlewares.service-warden.plugin.routewarden.response.mode=json"
@@ -120,7 +120,7 @@ example.com {
     route_warden {
         enable_default_patterns true
         check_query true
-        path_patterns "(?i)^/admin(/.*)?$" "(?i)^/api/internal(/.*)?$"
+        block_patterns "(?i)^/admin(/.*)?$" "(?i)^/api/internal(/.*)?$"
         allow_patterns "(?i)^/robots\\.txt$" "(?i)^/\\.well-known(/.*)?$"
         allowed_ips "192.168.1.0/24" "10.10.0.0/16"
         response {
@@ -143,7 +143,7 @@ http {
         service_warden = routewarden.new({
             enable_default_patterns = true,
             check_query = true,
-            path_patterns = {
+            block_patterns = {
                 "(?i)^/admin(/.*)?$",
                 "(?i)^/api/internal(/.*)?$"
             },
@@ -189,7 +189,7 @@ http {
       - "traefik.http.middlewares.service-warden.plugin.routewarden.enabled=true" # [!code ++]
       - "traefik.http.middlewares.service-warden.plugin.routewarden.enableDefaultPatterns=true" # [!code ++]
       - "traefik.http.middlewares.service-warden.plugin.routewarden.checkQuery=true" # [!code ++]
-      - "traefik.http.middlewares.service-warden.plugin.routewarden.pathPatterns=(?i)^/admin(/.*)?$,(?i)^/api/internal(/.*)?$" # [!code ++]
+      - "traefik.http.middlewares.service-warden.plugin.routewarden.blockPatterns=(?i)^/admin(/.*)?$,(?i)^/api/internal(/.*)?$" # [!code ++]
       - "traefik.http.middlewares.service-warden.plugin.routewarden.allowPatterns=(?i)^/robots\\\\.txt$,(?i)^/\\\\.well-known(/.*)?$" # [!code ++]
       - "traefik.http.middlewares.service-warden.plugin.routewarden.allowedIps=192.168.1.0/24,10.10.0.0/16" # [!code ++]
       - "traefik.http.middlewares.service-warden.plugin.routewarden.response.mode=json" # [!code ++]

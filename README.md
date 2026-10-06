@@ -77,7 +77,7 @@ experimental:
   plugins:
     routewarden:
       moduleName: github.com/routewarden/traefik-warden
-      version: v1.3.1
+      version: v1.4.0
 ```
 
 ```yaml

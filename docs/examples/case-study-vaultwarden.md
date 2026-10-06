@@ -16,7 +16,7 @@ http:
           enabled: true # [!code ++]
           enableDefaultPatterns: true # [!code ++]
           # Intercept the administrative console
-          pathPatterns: # [!code ++]
+          blockPatterns: # [!code ++]
             - '(?i)^/admin(/.*)?$' # [!code ++]
           # Allow ONLY internal WireGuard & Tailscale VPN addresses
           allowedIps: # [!code ++]
@@ -47,7 +47,7 @@ http:
 [http.middlewares.vaultwarden-shield.plugin.routewarden] # [!code ++]
   enabled = true # [!code ++]
   enableDefaultPatterns = true # [!code ++]
-  pathPatterns = ["(?i)^/admin(/.*)?$"] # [!code ++]
+  blockPatterns = ["(?i)^/admin(/.*)?$"] # [!code ++]
   allowedIps = ["100.64.0.0/10", "10.8.0.0/24", "127.0.0.1"] # [!code ++]
 
 [http.middlewares.vaultwarden-shield.plugin.routewarden.response] # [!code ++]
@@ -59,7 +59,7 @@ http:
 - "traefik.http.routers.vault.rule=Host(\`vault.example.com\`)"
 - "traefik.http.routers.vault.middlewares=vaultwarden-shield" # [!code ++]
 - "traefik.http.middlewares.vaultwarden-shield.plugin.routewarden.enabled=true" # [!code ++]
-- "traefik.http.middlewares.vaultwarden-shield.plugin.routewarden.pathPatterns=(?i)^/admin(/.*)?$" # [!code ++]
+- "traefik.http.middlewares.vaultwarden-shield.plugin.routewarden.blockPatterns=(?i)^/admin(/.*)?$" # [!code ++]
 - "traefik.http.middlewares.vaultwarden-shield.plugin.routewarden.allowedIps=100.64.0.0/10,10.8.0.0/24,127.0.0.1" # [!code ++]
 - "traefik.http.middlewares.vaultwarden-shield.plugin.routewarden.response.mode=json" # [!code ++]
 - "traefik.http.middlewares.vaultwarden-shield.plugin.routewarden.response.statusCode=404" # [!code ++]` }),
@@ -72,7 +72,7 @@ http:
 vault.example.com {
     route_warden { # [!code ++]
         enable_default_patterns true # [!code ++]
-        path_patterns "(?i)^/admin(/.*)?$" # [!code ++]
+        block_patterns "(?i)^/admin(/.*)?$" # [!code ++]
         allowed_ips "100.64.0.0/10" "10.8.0.0/24" "127.0.0.1" # [!code ++]
         response { # [!code ++]
             mode json # [!code ++]
@@ -93,7 +93,7 @@ http {
 
         vault_warden = routewarden.new({ # [!code ++]
             enable_default_patterns = true, # [!code ++]
-            path_patterns = { # [!code ++]
+            block_patterns = { # [!code ++]
                 "(?i)^/admin(/.*)?$" # [!code ++]
             }, # [!code ++]
             allowed_ips = { # [!code ++]
@@ -183,3 +183,188 @@ However, the `/admin` portal (which allows creating/deleting accounts, viewing s
 ## Configuration (Traefik, Caddy & NGINX)
 
 <CodeViewer :snippets="snippets" />
+
+---
+
+## Advanced Architecture: Public Vaultwarden with "Send Only" Allowed
+
+A common security requirement is exposing **only the Bitwarden Send feature** to public recipients while keeping the rest of the vault (user login, vault sync, ciphers, and admin console) strictly private to your VPN.
+
+### The Challenge with Password-Protected Sends
+When a recipient unlocks a password-protected Send, the client sends a `POST` request to `/identity/connect/token` with `grant_type=send_access`. A full vault login also targets `/identity/connect/token` with `grant_type=password`.
+
+### Solution with `check_body` and `check_body_patterns`
+Using RouteWarden's request body inspection across Caddy, Traefik, and NGINX:
+1. Allow public access to `/api/sends/*` and `/identity/connect/token`.
+2. Enable `check_body` (`checkBody`) with `check_body_patterns` (`checkBodyPatterns`) targeting `(?i)grant_type=password` to block vault logins while allowing `grant_type=send_access`.
+3. Restrict administrative and vault sync APIs to your trusted VPN IPs (`allowed_ips` / `allowedIps`).
+
+#### 1. Caddy (`Caddyfile`)
+
+```caddy
+{
+    order route_warden before reverse_proxy
+}
+
+vault.example.com {
+    route_warden {
+        enable_default_patterns true
+
+        # Inspect both GET and POST requests
+        methods GET POST
+
+        # 1. Block admin, vault sync, accounts, ciphers, and non-send APIs
+        block_patterns "(?i)^/(admin|api/(accounts|ciphers|folders|sync|collections|organizations))"
+
+        # 2. Inspect POST body payloads on /identity/connect/token
+        check_body true
+        check_body_patterns "(?i)grant_type=password"
+
+        # 3. Trusted VPN / WireGuard / Tailscale subnets bypass all restrictions
+        allowed_ips "100.64.0.0/10" "10.8.0.0/24" "127.0.0.1"
+
+        response {
+            mode json
+            status_code 404
+            body "{\"error\":\"Not Found\",\"message\":\"The requested resource was not found\"}"
+        }
+    }
+
+    reverse_proxy vaultwarden:80
+}
+```
+
+#### 2. Traefik (`dynamic.yml`)
+
+```yaml
+http:
+  middlewares:
+    vaultwarden-send-only:
+      plugin:
+        routewarden:
+          enabled: true
+          enableDefaultPatterns: true
+          methods:
+            - GET
+            - POST
+          blockPatterns:
+            - '(?i)^/(admin|api/(accounts|ciphers|folders|sync|collections|organizations))'
+          checkBody: true
+          checkBodyPatterns:
+            - '(?i)grant_type=password'
+          allowedIps:
+            - "100.64.0.0/10"
+            - "10.8.0.0/24"
+            - "127.0.0.1"
+          response:
+            mode: json
+            statusCode: 404
+            body: '{"error":"Not Found","message":"The requested resource was not found"}'
+
+  routers:
+    vault-router:
+      rule: "Host(`vault.example.com`)"
+      entryPoints:
+        - websecure
+      middlewares:
+        - vaultwarden-send-only
+      service: vaultwarden-service
+```
+
+#### 3. Docker Compose Labels (Traefik)
+
+```yaml
+services:
+  vaultwarden:
+    image: vaultwarden/server:latest
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.vault.rule=Host(`vault.example.com`)"
+      - "traefik.http.routers.vault.entrypoints=websecure"
+      - "traefik.http.routers.vault.middlewares=vaultwarden-shield@docker"
+      - "traefik.http.middlewares.vaultwarden-shield.plugin.routewarden.enabled=true"
+      - "traefik.http.middlewares.vaultwarden-shield.plugin.routewarden.methods=GET,POST"
+      - "traefik.http.middlewares.vaultwarden-shield.plugin.routewarden.blockPatterns=(?i)^/(admin|api/(accounts|ciphers|folders|sync|collections|organizations))"
+      - "traefik.http.middlewares.vaultwarden-shield.plugin.routewarden.checkBody=true"
+      - "traefik.http.middlewares.vaultwarden-shield.plugin.routewarden.checkBodyPatterns=(?i)grant_type=password"
+      - "traefik.http.middlewares.vaultwarden-shield.plugin.routewarden.allowedIps=100.64.0.0/10,10.8.0.0/24,127.0.0.1"
+      - "traefik.http.middlewares.vaultwarden-shield.plugin.routewarden.response.mode=json"
+      - "traefik.http.middlewares.vaultwarden-shield.plugin.routewarden.response.statusCode=404"
+      - "traefik.http.middlewares.vaultwarden-shield.plugin.routewarden.response.body={\"error\":\"Not Found\",\"message\":\"The requested resource was not found\"}"
+```
+
+#### 4. NGINX / OpenResty (`nginx.conf`)
+
+```nginx
+http {
+    lua_package_path "/usr/local/openresty/site/lualib/?.lua;;";
+
+    init_by_lua_block {
+        local routewarden = require("resty.routewarden")
+        vaultwarden_warden = routewarden.new({
+            enabled = true,
+            methods = { "GET", "POST" },
+            block_patterns = {
+                "(?i)^/(admin|api/(accounts|ciphers|folders|sync|collections|organizations))"
+            },
+            check_body = true,
+            check_check_body_patterns = {
+                "(?i)grant_type=password"
+            },
+            allowed_ips = {
+                "100.64.0.0/10",
+                "10.8.0.0/24",
+                "127.0.0.1"
+            },
+            response = {
+                mode = "json",
+                status_code = 404,
+                body = '{"error":"Not Found","message":"The requested resource was not found"}'
+            }
+        })
+    }
+
+    server {
+        listen 443 ssl;
+        server_name vault.example.com;
+
+        access_by_lua_block {
+            vaultwarden_warden:check()
+        }
+
+        location / {
+            proxy_pass http://vaultwarden:80;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        }
+    }
+}
+```
+
+#### 5. Testing with RouteWarden CLI (`rwarden`)
+
+Validate rules offline before deploying:
+
+```bash
+# 1. Test public password-protected Send unlock (Allowed)
+rwarden test -c routewarden.json -X POST /identity/connect/token -b "grant_type=send_access"
+
+# 2. Test public vault login attempt (Blocked)
+rwarden test -c routewarden.json -X POST /identity/connect/token -b "grant_type=password&username=admin"
+
+# 3. Test VPN client bypassing restriction (Allowed)
+rwarden test -c routewarden.json -X POST /identity/connect/token -b "grant_type=password&username=admin" --ip 100.64.1.20
+```
+
+#### Verification Matrix
+
+| Action | Path & Method | Payload | Public Client | VPN Client (`allowed_ips`) |
+|:---|:---|:---|:---:|:---:|
+| **Public Send Access** | `GET /api/sends/{id}` | N/A | ✅ **Allowed** | ✅ **Allowed** |
+| **Password Send Unlock** | `POST /identity/connect/token` | `grant_type=send_access` | ✅ **Allowed** | ✅ **Allowed** |
+| **User Vault Login Attempt** | `POST /identity/connect/token` | `grant_type=password` | ❌ **Blocked (404)** | ✅ **Allowed** |
+| **Vault Sync / Cipher Theft** | `GET /api/sync` | N/A | ❌ **Blocked (404)** | ✅ **Allowed** |
+| **Admin Panel Access** | `GET /admin` | N/A | ❌ **Blocked (404)** | ✅ **Allowed** |
+
+

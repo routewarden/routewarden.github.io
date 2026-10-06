@@ -16,7 +16,7 @@ http:
           enabled: true # [!code ++]
           enableDefaultPatterns: true # [!code ++]
           # Block everything under /webhooks by default
-          pathPatterns: # [!code ++]
+          blockPatterns: # [!code ++]
             - '(?i)^/webhooks(/.*)?$' # [!code ++]
           # Allow ONLY the verified production webhook handler
           allowPatterns: # [!code ++]
@@ -50,7 +50,7 @@ http:
 [http.middlewares.webhook-shield.plugin.routewarden] # [!code ++]
   enabled = true # [!code ++]
   enableDefaultPatterns = true # [!code ++]
-  pathPatterns = ["(?i)^/webhooks(/.*)?$"] # [!code ++]
+  blockPatterns = ["(?i)^/webhooks(/.*)?$"] # [!code ++]
   allowPatterns = ["(?i)^/webhooks/stripe/v1$"] # [!code ++]
   allowedIps = [ # [!code ++]
     "3.18.12.63/32", # [!code ++]
@@ -67,7 +67,7 @@ http:
 - "traefik.http.routers.webhook.rule=Host(\`api.example.com\`) && PathPrefix(\`/webhooks\`)"
 - "traefik.http.routers.webhook.middlewares=webhook-shield" # [!code ++]
 - "traefik.http.middlewares.webhook-shield.plugin.routewarden.enabled=true" # [!code ++]
-- "traefik.http.middlewares.webhook-shield.plugin.routewarden.pathPatterns=(?i)^/webhooks(/.*)?$" # [!code ++]
+- "traefik.http.middlewares.webhook-shield.plugin.routewarden.blockPatterns=(?i)^/webhooks(/.*)?$" # [!code ++]
 - "traefik.http.middlewares.webhook-shield.plugin.routewarden.allowPatterns=(?i)^/webhooks/stripe/v1$" # [!code ++]
 - "traefik.http.middlewares.webhook-shield.plugin.routewarden.allowedIps=3.18.12.63/32,3.130.192.231/32,13.235.14.237/32" # [!code ++]
 - "traefik.http.middlewares.webhook-shield.plugin.routewarden.response.mode=silentDrop" # [!code ++]` }),
@@ -80,7 +80,7 @@ http:
 api.example.com {
     route_warden { # [!code ++]
         enable_default_patterns true # [!code ++]
-        path_patterns "(?i)^/webhooks(/.*)?$" # [!code ++]
+        block_patterns "(?i)^/webhooks(/.*)?$" # [!code ++]
         allow_patterns "(?i)^/webhooks/stripe/v1$" # [!code ++]
         allowed_ips "3.18.12.63/32" "3.130.192.231/32" "13.235.14.237/32" "13.235.122.149/32" "35.154.171.200/32" # [!code ++]
         response { # [!code ++]
@@ -100,7 +100,7 @@ http {
 
         webhook_warden = routewarden.new({ # [!code ++]
             enable_default_patterns = true, # [!code ++]
-            path_patterns = { # [!code ++]
+            block_patterns = { # [!code ++]
                 "(?i)^/webhooks(/.*)?$" # [!code ++]
             }, # [!code ++]
             allow_patterns = { # [!code ++]

@@ -8,7 +8,7 @@ import { buildSnippet } from '../.vitepress/theme/composables/useCodeSnippet'
 // ─── 3. Common Recipe Cookbooks ───────────────────────────────────────────────
 const r1_code = buildSnippet({
   lang: 'yaml',
-  code: `pathPatterns:
+  code: `blockPatterns:
   - '(?i)(^|/)(\\.env.*|\\.git.*|\\.aws.*)$'
   - '(?i).*\\.(sql|bak|backup|conf|ini|yaml|yml|log)$'
   - '(?i)(^|/)(next\\.config\\.js|tsconfig\\.json|package\\.json|package-lock\\.json)$'`,
@@ -21,7 +21,7 @@ const r1Snippets = computed(() => ({
 
 const r2_code = buildSnippet({
   lang: 'yaml',
-  code: `pathPatterns:
+  code: `blockPatterns:
   - '(?i)(^|/)(__pycache__|\\.pytest_cache|\\.venv|venv)(/.*)?$'
   - '(?i).*\\.(pyc|pyd|sqlite3?|db|log)$'
   - '(?i)(^|/)(requirements\\.txt|Pipfile.*|poetry\\.lock)$'`,
@@ -34,7 +34,7 @@ const r2Snippets = computed(() => ({
 
 const r3_code = buildSnippet({
   lang: 'yaml',
-  code: `pathPatterns:
+  code: `blockPatterns:
   - '(?i)(^|/)(wp-login\\.php|wp-admin|xmlrpc\\.php|wp-config\\.php)$'
   - '(?i)(^|/)(phpmyadmin|pma|adminer\\.php|info\\.php|phpinfo\\.php)$'
   - '(?i).*\\.(php|phtml|php3|php4|php5|phps|cgi)$'`,
@@ -47,7 +47,7 @@ const r3Snippets = computed(() => ({
 
 const r4_code = buildSnippet({
   lang: 'yaml',
-  code: `pathPatterns:
+  code: `blockPatterns:
   - '(?i)^/(actuator|metrics|heapdump|trace|env|prometheus)(/.*)?$'
   - '(?i)^/(h2-console|swagger-ui.*|v[23]/api-docs)(/.*)?$'`,
 })
@@ -59,7 +59,7 @@ const r4Snippets = computed(() => ({
 
 const r5_code = buildSnippet({
   lang: 'yaml',
-  code: `pathPatterns:
+  code: `blockPatterns:
   - '(?i)^/api/(internal|admin|management|debug)(/.*)?$'`,
 })
 const r5Snippets = computed(() => ({
@@ -77,7 +77,7 @@ const bpA_json = buildSnippet({
   "$schema": "https://raw.githubusercontent.com/routewarden/cli/main/config.schema.json",
   "enabled": true,
   "enableDefaultPatterns": true,
-  "pathPatterns": [
+  "blockPatterns": [
     "(?i)(^|/)(xmlrpc\\\\.php|wp-config\\\\.php|install\\\\.php|license\\\\.txt|readme\\\\.html)$"
   ],
   "allowPatterns": [
@@ -104,7 +104,7 @@ http:
         routewarden: # [!code ++]
           enabled: true # [!code ++]
           enableDefaultPatterns: true # [!code ++]
-          pathPatterns: # [!code ++]
+          blockPatterns: # [!code ++]
             - '(?i)(^|/)(xmlrpc\\.php|wp-config\\.php|install\\.php|license\\.txt|readme\\.html)$' # [!code ++]
           allowPatterns: # [!code ++]
             - '(?i)^/wp-content/uploads/.*' # [!code ++]
@@ -135,7 +135,7 @@ const bpA_caddy = buildSnippet({
 shop.example.com {
     route_warden { # [!code ++]
         enable_default_patterns true # [!code ++]
-        path_patterns "(?i)(^|/)(xmlrpc\\.php|wp-config\\.php|install\\.php|license\\.txt|readme\\.html)$" # [!code ++]
+        block_patterns "(?i)(^|/)(xmlrpc\\.php|wp-config\\.php|install\\.php|license\\.txt|readme\\.html)$" # [!code ++]
         allow_patterns "(?i)^/wp-content/uploads/.*" "(?i)^/robots\\.txt$" # [!code ++]
         allowed_ips "203.0.113.50" # [!code ++]
         response { # [!code ++]
@@ -158,7 +158,7 @@ const bpA_compose = buildSnippet({
       - "traefik.http.routers.wp.middlewares=wp-warden" # [!code ++]
       - "traefik.http.middlewares.wp-warden.plugin.routewarden.enabled=true" # [!code ++]
       - "traefik.http.middlewares.wp-warden.plugin.routewarden.enableDefaultPatterns=true" # [!code ++]
-      - "traefik.http.middlewares.wp-warden.plugin.routewarden.pathPatterns=(?i)(^|/)(xmlrpc\\\\.php|wp-config\\\\.php|install\\\\.php|license\\\\.txt|readme\\\\.html)$" # [!code ++]
+      - "traefik.http.middlewares.wp-warden.plugin.routewarden.blockPatterns=(?i)(^|/)(xmlrpc\\\\.php|wp-config\\\\.php|install\\\\.php|license\\\\.txt|readme\\\\.html)$" # [!code ++]
       - "traefik.http.middlewares.wp-warden.plugin.routewarden.allowPatterns=(?i)^/wp-content/uploads/.*,(?i)^/robots\\\\.txt$" # [!code ++]
       - "traefik.http.middlewares.wp-warden.plugin.routewarden.allowedIps=203.0.113.50" # [!code ++]
       - "traefik.http.middlewares.wp-warden.plugin.routewarden.response.mode=text" # [!code ++]
@@ -177,7 +177,7 @@ const bpA_toml = buildSnippet({
 [http.middlewares.wp-warden.plugin.routewarden] # [!code ++]
   enabled = true # [!code ++]
   enableDefaultPatterns = true # [!code ++]
-  pathPatterns = ["(?i)(^|/)(xmlrpc\\\\.php|wp-config\\\\.php|install\\\\.php|license\\\\.txt|readme\\\\.html)$"] # [!code ++]
+  blockPatterns = ["(?i)(^|/)(xmlrpc\\\\.php|wp-config\\\\.php|install\\\\.php|license\\\\.txt|readme\\\\.html)$"] # [!code ++]
   allowPatterns = ["(?i)^/wp-content/uploads/.*", "(?i)^/robots\\\\.txt$"] # [!code ++]
   allowedIps = ["203.0.113.50"] # [!code ++]
 
@@ -193,7 +193,7 @@ const bpA_nginx = buildSnippet({
         warden = require("resty.routewarden").new({ # [!code ++]
             enabled = true, # [!code ++]
             enable_default_patterns = true, # [!code ++]
-            path_patterns = { # [!code ++]
+            block_patterns = { # [!code ++]
                 "(?i)(^|/)(xmlrpc\\.php|wp-config\\.php|install\\.php|license\\.txt|readme\\.html)$" # [!code ++]
             }, # [!code ++]
             allow_patterns = { # [!code ++]
@@ -237,7 +237,7 @@ const bpB_json = buildSnippet({
   "$schema": "https://raw.githubusercontent.com/routewarden/cli/main/config.schema.json",
   "enabled": true,
   "enableDefaultPatterns": true,
-  "pathPatterns": [
+  "blockPatterns": [
     "(?i)(^|/)(next\\\\.config\\\\.js|tsconfig\\\\.json|package\\\\.json|package-lock\\\\.json|yarn\\\\.lock)$"
   ],
   "allowPatterns": [
@@ -264,7 +264,7 @@ const bpB_compose = buildSnippet({
       - "traefik.http.middlewares.nextjs-warden.plugin.routewarden.enabled=true" # [!code ++]
       - "traefik.http.middlewares.nextjs-warden.plugin.routewarden.enableDefaultPatterns=true" # [!code ++]
       # Block build configs, package locks, and server logs
-      - "traefik.http.middlewares.nextjs-warden.plugin.routewarden.pathPatterns=(?i)(^|/)(next\\\\.config\\\\.js|tsconfig\\\\.json|package\\\\.json|package-lock\\\\.json|yarn\\\\.lock)$" # [!code ++]
+      - "traefik.http.middlewares.nextjs-warden.plugin.routewarden.blockPatterns=(?i)(^|/)(next\\\\.config\\\\.js|tsconfig\\\\.json|package\\\\.json|package-lock\\\\.json|yarn\\\\.lock)$" # [!code ++]
       # Allow static chunks and images
       - "traefik.http.middlewares.nextjs-warden.plugin.routewarden.allowPatterns=(?i)^/_next/static/.*,(?i)^/favicon\\\\.ico$" # [!code ++]
       - "traefik.http.middlewares.nextjs-warden.plugin.routewarden.response.mode=json" # [!code ++]
@@ -276,7 +276,7 @@ const bpB_caddy = buildSnippet({
   code: `app.example.com {
     route_warden { # [!code ++]
         enable_default_patterns true # [!code ++]
-        path_patterns "(?i)(^|/)(next\\.config\\.js|tsconfig\\.json|package\\.json|package-lock\\.json|yarn\\.lock)$" # [!code ++]
+        block_patterns "(?i)(^|/)(next\\.config\\.js|tsconfig\\.json|package\\.json|package-lock\\.json|yarn\\.lock)$" # [!code ++]
         allow_patterns "(?i)^/_next/static/.*" "(?i)^/favicon\\.ico$" # [!code ++]
         response { # [!code ++]
             mode json # [!code ++]
@@ -295,7 +295,7 @@ const bpB_nginx = buildSnippet({
         warden = require("resty.routewarden").new({ # [!code ++]
             enabled = true, # [!code ++]
             enable_default_patterns = true, # [!code ++]
-            path_patterns = { # [!code ++]
+            block_patterns = { # [!code ++]
                 "(?i)(^|/)(next\\.config\\.js|tsconfig\\.json|package\\.json|package-lock\\.json|yarn\\.lock)$" # [!code ++]
             }, # [!code ++]
             allow_patterns = { # [!code ++]
@@ -336,7 +336,7 @@ const bpC_json = buildSnippet({
   "$schema": "https://raw.githubusercontent.com/routewarden/cli/main/config.schema.json",
   "enabled": true,
   "enableDefaultPatterns": true,
-  "pathPatterns": [
+  "blockPatterns": [
     "(?i)(^|/)(__pycache__|\\\\.venv|venv|local_settings\\\\.py|manage\\\\.py)$"
   ],
   "allowPatterns": [
@@ -365,7 +365,7 @@ const bpC_compose = buildSnippet({
       - "traefik.http.middlewares.django-warden.plugin.routewarden.enabled=true" # [!code ++]
       - "traefik.http.middlewares.django-warden.plugin.routewarden.enableDefaultPatterns=true" # [!code ++]
       # Block Python byte-code, virtualenvs, SQLite dumps, and settings files
-      - "traefik.http.middlewares.django-warden.plugin.routewarden.pathPatterns=(?i)(^|/)(__pycache__|\\\\.venv|venv|local_settings\\\\.py|manage\\\\.py)$" # [!code ++]
+      - "traefik.http.middlewares.django-warden.plugin.routewarden.blockPatterns=(?i)(^|/)(__pycache__|\\\\.venv|venv|local_settings\\\\.py|manage\\\\.py)$" # [!code ++]
       # Exempt public static files & media
       - "traefik.http.middlewares.django-warden.plugin.routewarden.allowPatterns=(?i)^/static/.*,(?i)^/media/.*" # [!code ++]
       # Office VPN bypass
@@ -378,7 +378,7 @@ const bpC_caddy = buildSnippet({
   code: `api.example.com {
     route_warden { # [!code ++]
         enable_default_patterns true # [!code ++]
-        path_patterns "(?i)(^|/)(__pycache__|\\.venv|venv|local_settings\\.py|manage\\.py)$" # [!code ++]
+        block_patterns "(?i)(^|/)(__pycache__|\\.venv|venv|local_settings\\.py|manage\\.py)$" # [!code ++]
         allow_patterns "(?i)^/static/.*" "(?i)^/media/.*" # [!code ++]
         allowed_ips "10.0.0.0/8" # [!code ++]
         response { # [!code ++]
@@ -397,7 +397,7 @@ const bpC_nginx = buildSnippet({
         warden = require("resty.routewarden").new({ # [!code ++]
             enabled = true, # [!code ++]
             enable_default_patterns = true, # [!code ++]
-            path_patterns = { # [!code ++]
+            block_patterns = { # [!code ++]
                 "(?i)(^|/)(__pycache__|\\.venv|venv|local_settings\\.py|manage\\.py)$" # [!code ++]
             }, # [!code ++]
             allow_patterns = { # [!code ++]
@@ -439,7 +439,7 @@ const bpD_json = buildSnippet({
   "$schema": "https://raw.githubusercontent.com/routewarden/cli/main/config.schema.json",
   "enabled": true,
   "enableDefaultPatterns": true,
-  "pathPatterns": [
+  "blockPatterns": [
     "(?i)^/(actuator|metrics|heapdump|trace|env|h2-console)(/.*)?$"
   ],
   "allowPatterns": [
@@ -465,7 +465,7 @@ const bpD_compose = buildSnippet({
       - "traefik.http.middlewares.spring-warden.plugin.routewarden.enabled=true" # [!code ++]
       - "traefik.http.middlewares.spring-warden.plugin.routewarden.enableDefaultPatterns=true" # [!code ++]
       # Block Spring debug consoles, heapdumps, and environment variables
-      - "traefik.http.middlewares.spring-warden.plugin.routewarden.pathPatterns=(?i)^/(actuator|metrics|heapdump|trace|env|h2-console)(/.*)?$" # [!code ++]
+      - "traefik.http.middlewares.spring-warden.plugin.routewarden.blockPatterns=(?i)^/(actuator|metrics|heapdump|trace|env|h2-console)(/.*)?$" # [!code ++]
       # Exempt only the public liveness health check
       - "traefik.http.middlewares.spring-warden.plugin.routewarden.allowPatterns=(?i)^/actuator/health$" # [!code ++]
       # Response
@@ -478,7 +478,7 @@ const bpD_caddy = buildSnippet({
   code: `service.internal.example.com {
     route_warden { # [!code ++]
         enable_default_patterns true # [!code ++]
-        path_patterns "(?i)^/(actuator|metrics|heapdump|trace|env|h2-console)(/.*)?$" # [!code ++]
+        block_patterns "(?i)^/(actuator|metrics|heapdump|trace|env|h2-console)(/.*)?$" # [!code ++]
         allow_patterns "(?i)^/actuator/health$" # [!code ++]
         response { # [!code ++]
             mode json # [!code ++]
@@ -497,7 +497,7 @@ const bpD_nginx = buildSnippet({
         warden = require("resty.routewarden").new({ # [!code ++]
             enabled = true, # [!code ++]
             enable_default_patterns = true, # [!code ++]
-            path_patterns = { # [!code ++]
+            block_patterns = { # [!code ++]
                 "(?i)^/(actuator|metrics|heapdump|trace|env|h2-console)(/.*)?$" # [!code ++]
             }, # [!code ++]
             allow_patterns = { "(?i)^/actuator/health$" }, # [!code ++]
@@ -539,7 +539,7 @@ const bpE_json = buildSnippet({
   "$schema": "https://raw.githubusercontent.com/routewarden/cli/main/config.schema.json",
   "enabled": true,
   "enableDefaultPatterns": true,
-  "pathPatterns": [
+  "blockPatterns": [
     "(?i)(^|/)(artisan|composer\\\\.json|composer\\\\.lock|package\\\\.json|\\\\.env.*)$"
   ],
   "allowPatterns": [
@@ -565,7 +565,7 @@ const bpE_compose = buildSnippet({
       - "traefik.http.middlewares.laravel-warden.plugin.routewarden.enabled=true" # [!code ++]
       - "traefik.http.middlewares.laravel-warden.plugin.routewarden.enableDefaultPatterns=true" # [!code ++]
       # Block artisan, composer files, and storage logs
-      - "traefik.http.middlewares.laravel-warden.plugin.routewarden.pathPatterns=(?i)(^|/)(artisan|composer\\\\.json|composer\\\\.lock|package\\\\.json|\\\\.env.*)$" # [!code ++]
+      - "traefik.http.middlewares.laravel-warden.plugin.routewarden.blockPatterns=(?i)(^|/)(artisan|composer\\\\.json|composer\\\\.lock|package\\\\.json|\\\\.env.*)$" # [!code ++]
       # Allow public compiled assets
       - "traefik.http.middlewares.laravel-warden.plugin.routewarden.allowPatterns=(?i)^/(css|js|images|storage)/.*" # [!code ++]
       - "traefik.http.middlewares.laravel-warden.plugin.routewarden.response.mode=text" # [!code ++]
@@ -577,7 +577,7 @@ const bpE_caddy = buildSnippet({
   code: `laravel.example.com {
     route_warden { # [!code ++]
         enable_default_patterns true # [!code ++]
-        path_patterns "(?i)(^|/)(artisan|composer\\.json|composer\\.lock|package\\.json|\\.env.*)$" # [!code ++]
+        block_patterns "(?i)(^|/)(artisan|composer\\.json|composer\\.lock|package\\.json|\\.env.*)$" # [!code ++]
         allow_patterns "(?i)^/(css|js|images|storage)/.*" # [!code ++]
         response { # [!code ++]
             mode text # [!code ++]
@@ -596,7 +596,7 @@ const bpE_nginx = buildSnippet({
         warden = require("resty.routewarden").new({ # [!code ++]
             enabled = true, # [!code ++]
             enable_default_patterns = true, # [!code ++]
-            path_patterns = { # [!code ++]
+            block_patterns = { # [!code ++]
                 "(?i)(^|/)(artisan|composer\\.json|composer\\.lock|package\\.json|\\.env.*)$" # [!code ++]
             }, # [!code ++]
             allow_patterns = { "(?i)^/(css|js|images|storage)/.*" }, # [!code ++]
@@ -630,7 +630,7 @@ const bpESnippets = computed(() => ({
 // ─── 5. Custom Exceptions (allowPatterns) ─────────────────────────────────────
 const allow_yaml = buildSnippet({
   lang: 'yaml',
-  code: `pathPatterns:
+  code: `blockPatterns:
   - '(?i).*\.ya?ml$'
   - '(?i)^/api/(internal|admin).*'
 
@@ -643,19 +643,19 @@ allowPatterns:
 const allow_toml = buildSnippet({
   lang: 'toml',
   code: `[http.middlewares.my-warden.plugin.routewarden]
-  pathPatterns = ["(?i).*\\.ya?ml$", "(?i)^/api/(internal|admin).*"]
+  blockPatterns = ["(?i).*\\.ya?ml$", "(?i)^/api/(internal|admin).*"]
   allowPatterns = ["(?i)^/api/v1/openapi\\.ya?ml$", "(?i)^/api/internal/health$"]`,
 })
 const allow_labels = buildSnippet({
   lang: 'docker',
-  code: `- "traefik.http.middlewares.my-warden.plugin.routewarden.pathPatterns=(?i).*\\.ya?ml$,(?i)^/api/(internal|admin).*"
+  code: `- "traefik.http.middlewares.my-warden.plugin.routewarden.blockPatterns=(?i).*\\.ya?ml$,(?i)^/api/(internal|admin).*"
 - "traefik.http.middlewares.my-warden.plugin.routewarden.allowPatterns=(?i)^/api/v1/openapi\\.ya?ml$,(?i)^/api/internal/health$"`,
 })
 const allow_caddy = buildSnippet({
   lang: 'caddy',
   code: `example.com {
     route_warden {
-        path_patterns "(?i).*\\.ya?ml$" "(?i)^/api/(internal|admin).*"
+        block_patterns "(?i).*\\.ya?ml$" "(?i)^/api/(internal|admin).*"
         allow_patterns "(?i)^/api/v1/openapi\\.ya?ml$" "(?i)^/api/internal/health$"
     }
     reverse_proxy localhost:8080
@@ -665,7 +665,7 @@ const allow_nginx = buildSnippet({
   lang: 'nginx',
   code: `init_by_lua_block {
     warden = require("resty.routewarden").new({
-        path_patterns = {
+        block_patterns = {
             "(?i).*\\.ya?ml$",
             "(?i)^/api/(internal|admin).*"
         },
@@ -679,7 +679,7 @@ const allow_nginx = buildSnippet({
 const allow_json = buildSnippet({
   lang: 'json',
   code: `{
-  "pathPatterns": [
+  "blockPatterns": [
     "(?i).*\\.ya?ml$",
     "(?i)^/api/(internal|admin).*"
   ],
@@ -710,26 +710,26 @@ const allowSnippets = computed(() => ({
 const query_yaml = buildSnippet({
   lang: 'yaml',
   code: `checkQuery: true
-pathPatterns:
+blockPatterns:
   - '(?i)(\\.env|phpinfo|backup\\.sql)'`,
 })
 const query_toml = buildSnippet({
   lang: 'toml',
   code: `[http.middlewares.my-warden.plugin.routewarden]
   checkQuery = true
-  pathPatterns = ["(?i)(\\\\.env|phpinfo|backup\\\\.sql)"]`,
+  blockPatterns = ["(?i)(\\\\.env|phpinfo|backup\\\\.sql)"]`,
 })
 const query_labels = buildSnippet({
   lang: 'docker',
   code: `- "traefik.http.middlewares.my-warden.plugin.routewarden.checkQuery=true"
-- "traefik.http.middlewares.my-warden.plugin.routewarden.pathPatterns=(?i)(\\.env|phpinfo|backup\\.sql)"`,
+- "traefik.http.middlewares.my-warden.plugin.routewarden.blockPatterns=(?i)(\\.env|phpinfo|backup\\.sql)"`,
 })
 const query_caddy = buildSnippet({
   lang: 'caddy',
   code: `example.com {
     route_warden {
         check_query true
-        path_patterns "(?i)(\\.env|phpinfo|backup\\.sql)"
+        block_patterns "(?i)(\\.env|phpinfo|backup\\.sql)"
     }
     reverse_proxy localhost:8080
 }`,
@@ -739,7 +739,7 @@ const query_nginx = buildSnippet({
   code: `init_by_lua_block {
     warden = require("resty.routewarden").new({
         check_query = true,
-        path_patterns = { "(?i)(\\.env|phpinfo|backup\\.sql)" }
+        block_patterns = { "(?i)(\\.env|phpinfo|backup\\.sql)" }
     })
 }`,
 })
@@ -747,7 +747,7 @@ const query_json = buildSnippet({
   lang: 'json',
   code: `{
   "checkQuery": true,
-  "pathPatterns": [
+  "blockPatterns": [
     "(?i)(\\.env|phpinfo|backup\\.sql)"
   ]
 }`,
@@ -777,7 +777,7 @@ const multi_json = buildSnippet({
   "$schema": "https://raw.githubusercontent.com/routewarden/cli/main/config.schema.json",
   "enabled": true, // [!code ++]
   "enableDefaultPatterns": true, // [!code ++]
-  "pathPatterns": [ // [!code ++]
+  "blockPatterns": [ // [!code ++]
     "(?i)^/api/(internal|admin)(/.*)?$", // [!code ++]
     "(?i).*\\\\.(sql|dump)$" // [!code ++]
   ], // [!code ++]
@@ -801,7 +801,7 @@ http:
         routewarden: # [!code ++]
           enabled: true # [!code ++]
           enableDefaultPatterns: true # [!code ++]
-          pathPatterns: # [!code ++]
+          blockPatterns: # [!code ++]
             - '(?i)^/api/(internal|admin)(/.*)?$' # [!code ++]
             - '(?i).*\\.(sql|dump)$' # [!code ++]
           allowPatterns: # [!code ++]
@@ -836,7 +836,7 @@ const multi_toml = buildSnippet({
 [http.middlewares.custom-shield.plugin.routewarden] # [!code ++]
   enabled = true # [!code ++]
   enableDefaultPatterns = true # [!code ++]
-  pathPatterns = ["(?i)^/api/(internal|admin)(/.*)?$", "(?i).*\\\\.(sql|dump)$"] # [!code ++]
+  blockPatterns = ["(?i)^/api/(internal|admin)(/.*)?$", "(?i).*\\\\.(sql|dump)$"] # [!code ++]
   allowPatterns = ["(?i)^/api/internal/health$"] # [!code ++]
 
 [http.middlewares.custom-shield.plugin.routewarden.response] # [!code ++]
@@ -862,7 +862,7 @@ const multi_compose = buildSnippet({
       - "traefik.http.middlewares.custom-shield.plugin.routewarden.enabled=true" # [!code ++]
       - "traefik.http.middlewares.custom-shield.plugin.routewarden.enableDefaultPatterns=true" # [!code ++]
       # Block custom internal endpoints
-      - "traefik.http.middlewares.custom-shield.plugin.routewarden.pathPatterns=(?i)^/api/(internal|admin)(/.*)?$,(?i).*\\.(sql|dump)$" # [!code ++]
+      - "traefik.http.middlewares.custom-shield.plugin.routewarden.blockPatterns=(?i)^/api/(internal|admin)(/.*)?$,(?i).*\\.(sql|dump)$" # [!code ++]
       # Exempt public health check
       - "traefik.http.middlewares.custom-shield.plugin.routewarden.allowPatterns=(?i)^/api/internal/health$" # [!code ++]
       # Response
@@ -880,7 +880,7 @@ app.example.com {
     route_warden { # [!code ++]
         enabled true # [!code ++]
         enable_default_patterns true # [!code ++]
-        path_patterns "(?i)^/api/(internal|admin)(/.*)?$" "(?i).*\\.(sql|dump)$" # [!code ++]
+        block_patterns "(?i)^/api/(internal|admin)(/.*)?$" "(?i).*\\.(sql|dump)$" # [!code ++]
         allow_patterns "(?i)^/api/internal/health$" # [!code ++]
         response { # [!code ++]
             mode json # [!code ++]
@@ -901,7 +901,7 @@ const multi_nginx = buildSnippet({
         warden = require("resty.routewarden").new({ # [!code ++]
             enabled = true, # [!code ++]
             enable_default_patterns = true, # [!code ++]
-            path_patterns = { # [!code ++]
+            block_patterns = { # [!code ++]
                 "(?i)^/api/(internal|admin)(/.*)?$", # [!code ++]
                 "(?i).*\\.(sql|dump)$" # [!code ++]
             }, # [!code ++]
@@ -947,7 +947,7 @@ const multiSnippets = computed(() => ({
 
 # Custom Path Configuration & Regex Guide
 
-RouteWarden provides a flexible regular expression matching engine allowing you to define custom blocking rules (`pathPatterns` / `blockPatterns`) and safe overrides (`allowPatterns`).
+RouteWarden provides a flexible regular expression matching engine allowing you to define custom blocking rules (`blockPatterns` / `block_patterns`) and safe overrides (`allowPatterns`).
 
 > **Test Your Rules Interactively**: Use the [Pattern & Anti-Evasion Playground](/?playground=open) to test obfuscated URLs, custom regex patterns, and allowlist rules against RouteWarden's live simulation engine.
 
@@ -983,9 +983,9 @@ When `enableDefaultPatterns: true` (Traefik) or `enable_default_patterns true` (
 
 ---
 
-## 3. Defining Custom Block Patterns (`pathPatterns` / `blockPatterns`)
+## 3. Defining Custom Block Patterns (`blockPatterns` / `block_patterns`)
 
-You can supply one or more custom regular expressions to block. `pathPatterns` and `blockPatterns` are interchangeable aliases.
+You can supply one or more custom regular expressions to block using the canonical `blockPatterns` (Traefik/CLI) or `block_patterns` (Caddy/NGINX) directive.
 
 ### Syntax & Flags
 RouteWarden uses Go's standard `regexp` syntax (RE2).
@@ -1074,7 +1074,7 @@ Protects `.env`, Artisan CLI files, storage logs, and debug toolbars:
 
 ## 5. Built-in Default Allow Patterns (`allowPatterns`)
 
-The `allowPatterns` list takes precedence over both built-in default patterns and your custom `pathPatterns`. If a path matches **any** regex in `allowPatterns`, RouteWarden immediately permits the request to pass downstream without blocking or challenging.
+The `allowPatterns` list takes precedence over both built-in default patterns and your custom `blockPatterns`. If a path matches **any** regex in `allowPatterns`, RouteWarden immediately permits the request to pass downstream without blocking or challenging.
 
 ### Default Built-in Allow Rules (`enableDefaultAllowPatterns`)
 When `enableDefaultAllowPatterns: true` (or `enable_default_allow_patterns true` in Caddy), RouteWarden automatically permits:

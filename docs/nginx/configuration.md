@@ -73,7 +73,7 @@ const full_config = buildSnippet({
     },
 
     -- Custom regular expressions (PCRE-compatible)
-    path_patterns = {
+    block_patterns = {
         "(?i)^/admin(/.*)?$",
         "(?i)^/api/internal(/.*)?$"
     },
@@ -164,7 +164,7 @@ Initialize RouteWarden using `routewarden.new(config)` within NGINX's `init_by_l
 | `check_query` | `boolean` | `false` | Inspects raw and URL-decoded query string parameters for sensitive targets. |
 | `methods` | `table` | `{"GET"}` | Array of HTTP verbs to inspect. Verbs outside this list bypass inspection. |
 | `allowed_ips` | `table` | `{}` | Array of IPv4/IPv6 addresses or CIDR subnets allowed to bypass path inspection. |
-| `path_patterns` | `table` | `{}` | Array of custom PCRE regular expressions to block. Alias: `block_patterns`. |
+| `block_patterns` | `table` | `{}` | Array of custom PCRE regular expressions to block. |
 | `allow_patterns` | `table` | `{}` | Array of custom PCRE regular expressions to exempt from blocking. |
 | `response` | `table` | `{ mode = "json", status_code = 403 }` | Response execution table. |
 

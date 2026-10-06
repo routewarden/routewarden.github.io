@@ -261,7 +261,7 @@ const caddyfile_syntax = buildSnippet({
     enable_default_allow_patterns <true|false>
     check_query <true|false>
 
-    path_patterns <regex...>
+    block_patterns <regex...>
     allow_patterns <regex...>
     allowed_ips <ip_or_cidr...>
 
@@ -326,7 +326,7 @@ const ex2_code = buildSnippet({
 app.example.com {
     route_warden { # [!code ++]
         enable_default_patterns true # [!code ++]
-        path_patterns "(?i)^/admin(/.*)?$" "(?i)^/metrics$" # [!code ++]
+        block_patterns "(?i)^/admin(/.*)?$" "(?i)^/metrics$" # [!code ++]
         allow_patterns "(?i)^/admin/health$" # [!code ++]
         allowed_ips "10.0.0.0/8" "192.168.1.100" # [!code ++]
         response { # [!code ++]
@@ -356,7 +356,7 @@ const ex3_code = buildSnippet({
 honeypot.example.com {
     route_warden { # [!code ++]
         enable_default_patterns true # [!code ++]
-        path_patterns "(?i)^/wp-login\\.php$" "(?i)^/xmlrpc\\.php$" # [!code ++]
+        block_patterns "(?i)^/wp-login\\.php$" "(?i)^/xmlrpc\\.php$" # [!code ++]
         response { # [!code ++]
             mode gzip_bomb # [!code ++]
             status_code 200 # [!code ++]
@@ -383,7 +383,7 @@ const ex4_code = buildSnippet({
 
 portal.example.com {
     route_warden { # [!code ++]
-        path_patterns "(?i)^/portal/sensitive(/.*)?$" # [!code ++]
+        block_patterns "(?i)^/portal/sensitive(/.*)?$" # [!code ++]
         response { # [!code ++]
             mode captcha # [!code ++]
             captcha { # [!code ++]
@@ -495,7 +495,7 @@ You can define RouteWarden security rules using **`routewarden.json` (Recommende
 `routewarden.json` acts as a portable security policy with IDE autocompletion and CI/CD validation. Its properties correspond directly to Caddy's directive blocks and JSON handler objects:
 - `"methods"` ➔ Caddyfile `methods GET POST` / JSON `"methods": ["GET", "POST"]`
 - `"allowedIps"` ➔ Caddyfile `allowed_ips ...` / JSON `"allowed_ips": [...]`
-- `"pathPatterns"` ➔ Caddyfile `path_patterns ...` / JSON `"path_patterns": [...]`
+- `"blockPatterns"` ➔ Caddyfile `block_patterns ...` / JSON `"block_patterns": [...]`
 - `"response"` ➔ Caddyfile `response { mode ... }` / JSON `"response": { ... }`
 
 <CodeViewer :snippets="configOpt1Snippets" />

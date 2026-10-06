@@ -171,7 +171,7 @@ The **IMAP4 Mail Guard** plugin monitors Internet Message Access Protocol versio
 
 | Threat / Attack Vector | Defense Mechanism | Action Taken |
 | :--- | :--- | :--- |
-| **Credential Stuffing & Password Spraying** | Tracks tagged `NO` / `BAD` authentication responses | Client IP banned after `max_auth_failures` threshold |
+| **Credential Stuffing & Password Spraying** | Tracks tagged `NO` / `BAD` authentication responses; enforces connection close with `* BYE Too many auth failures` when cap is reached (since v3.4.0) | Client IP banned after `max_auth_failures` threshold; connection terminated immediately |
 | **Connection Exhaustion** | Enforces connection rate limits and burst caps | New connections throttled at the proxy layer |
 | **STARTTLS Handover** | Detects tagged `OK Begin TLS negotiation now` | Transparently transitions to encrypted bidirectional pipe |
 
@@ -198,7 +198,7 @@ Add an IMAP guard service to `tcp-warden.yaml`:
 | `listen` | `string` | `":1143"` | Local proxy listen address and port. |
 | `upstream` | `string` | `"127.0.0.1:143"` | Target IMAP server (e.g. Dovecot) address and port. |
 | `protocol` | `string` | `"imap"` | Must be set to `"imap"`. |
-| `max_auth_failures` | `int` | `3` | Number of failed authentication attempts before banning. |
+| `max_auth_failures` | `int` | `3` | Number of failed authentication attempts before banning. Since v3.4.0 the connection is actively closed with `* BYE Too many auth failures` when the cap is reached, and scanner-style infinite retry loops are prevented. |
 | `ban_duration` | `string` | `"1h"` | Duration of the automated IP ban (`"30m"`, `"1h"`, `"24h"`). |
 | `plugin_config.banner` | `string` | `""` | Optional synthetic greeting banner returned to clients. |
 

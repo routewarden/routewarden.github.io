@@ -18,7 +18,7 @@ const r1_json = buildSnippet({
   "$schema": "https://raw.githubusercontent.com/routewarden/cli/main/config.schema.json",
   "enabled": true,
   "enableDefaultPatterns": true,
-  "pathPatterns": [
+  "blockPatterns": [
     "(?i)^/admin(/.*)?$",
     "(?i)^/metrics$"
   ],
@@ -51,7 +51,7 @@ const r1_nginx = buildSnippet({
  # [!code ++]
         warden = routewarden.new({ # [!code ++]
             enable_default_patterns = true, # [!code ++]
-            path_patterns = { # [!code ++]
+            block_patterns = { # [!code ++]
                 "(?i)^/admin(/.*)?$", # [!code ++]
                 "(?i)^/metrics$" # [!code ++]
             }, # [!code ++]
@@ -101,7 +101,7 @@ const r2_json = buildSnippet({
   code: `{
   "$schema": "https://raw.githubusercontent.com/routewarden/cli/main/config.schema.json",
   "enabled": true,
-  "pathPatterns": [
+  "blockPatterns": [
     "(?i)^/portal/sensitive(/.*)?$"
   ],
   "response": {
@@ -122,7 +122,7 @@ const r2_nginx = buildSnippet({
     local routewarden = require("resty.routewarden") # [!code ++]
  # [!code ++]
     warden = routewarden.new({ # [!code ++]
-        path_patterns = { # [!code ++]
+        block_patterns = { # [!code ++]
             "(?i)^/portal/sensitive(/.*)?$" # [!code ++]
         }, # [!code ++]
         response = { # [!code ++]
@@ -216,7 +216,7 @@ const r4_json = buildSnippet({
   code: `{
   "$schema": "https://raw.githubusercontent.com/routewarden/cli/main/config.schema.json",
   "enabled": true,
-  "pathPatterns": [
+  "blockPatterns": [
     "(?i)^/.*\\\\.(sql|dump|bak|tar\\\\.gz)$"
   ],
   "response": {
@@ -233,7 +233,7 @@ const r4_nginx = buildSnippet({
     local routewarden = require("resty.routewarden") # [!code ++]
  # [!code ++]
     warden = routewarden.new({ # [!code ++]
-        path_patterns = { # [!code ++]
+        block_patterns = { # [!code ++]
             "(?i)^/.*\\\\.(sql|dump|bak|tar\\\\.gz)$" # [!code ++]
         }, # [!code ++]
         response = { # [!code ++]
@@ -272,7 +272,7 @@ const r5_json = buildSnippet({
   code: `{
   "$schema": "https://raw.githubusercontent.com/routewarden/cli/main/config.schema.json",
   "enabled": true,
-  "pathPatterns": [
+  "blockPatterns": [
     "(?i)^/wp-admin(/.*)?$",
     "(?i)^/xmlrpc\\\\.php$"
   ],
@@ -288,7 +288,7 @@ const r5_nginx = buildSnippet({
     local routewarden = require("resty.routewarden") # [!code ++]
  # [!code ++]
     warden = routewarden.new({ # [!code ++]
-        path_patterns = { # [!code ++]
+        block_patterns = { # [!code ++]
             "(?i)^/wp-admin(/.*)?$", # [!code ++]
             "(?i)^/xmlrpc\\\\.php$" # [!code ++]
         }, # [!code ++]

@@ -16,7 +16,7 @@ http:
           enabled: true # [!code ++]
           enableDefaultPatterns: true # [!code ++]
           # Guard metrics, profiling, and actuator endpoints
-          pathPatterns: # [!code ++]
+          blockPatterns: # [!code ++]
             - '(?i)^/(metrics|server-metrics|telemetry)(/.*)?$' # [!code ++]
             - '(?i)^/actuator(/.*)?$' # [!code ++]
             - '(?i)^/debug/(pprof|vars)(/.*)?$' # [!code ++]
@@ -49,7 +49,7 @@ http:
 [http.middlewares.metrics-cloak.plugin.routewarden] # [!code ++]
   enabled = true # [!code ++]
   enableDefaultPatterns = true # [!code ++]
-  pathPatterns = [ # [!code ++]
+  blockPatterns = [ # [!code ++]
     "(?i)^/(metrics|server-metrics|telemetry)(/.*)?$", # [!code ++]
     "(?i)^/actuator(/.*)?$", # [!code ++]
     "(?i)^/debug/(pprof|vars)(/.*)?$" # [!code ++]
@@ -65,7 +65,7 @@ http:
 - "traefik.http.routers.app.rule=Host(\`app.example.com\`)"
 - "traefik.http.routers.app.middlewares=metrics-cloak" # [!code ++]
 - "traefik.http.middlewares.metrics-cloak.plugin.routewarden.enabled=true" # [!code ++]
-- "traefik.http.middlewares.metrics-cloak.plugin.routewarden.pathPatterns=(?i)^/(metrics|server-metrics)(/.*)?$,(?i)^/actuator(/.*)?$,(?i)^/debug/pprof(/.*)?$" # [!code ++]
+- "traefik.http.middlewares.metrics-cloak.plugin.routewarden.blockPatterns=(?i)^/(metrics|server-metrics)(/.*)?$,(?i)^/actuator(/.*)?$,(?i)^/debug/pprof(/.*)?$" # [!code ++]
 - "traefik.http.middlewares.metrics-cloak.plugin.routewarden.allowedIps=10.0.0.50/32,10.244.0.0/16,127.0.0.1" # [!code ++]
 - "traefik.http.middlewares.metrics-cloak.plugin.routewarden.response.mode=json" # [!code ++]
 - "traefik.http.middlewares.metrics-cloak.plugin.routewarden.response.statusCode=404" # [!code ++]` }),
@@ -78,7 +78,7 @@ http:
 app.example.com {
     route_warden { # [!code ++]
         enable_default_patterns true # [!code ++]
-        path_patterns "(?i)^/(metrics|server-metrics|telemetry)(/.*)?$" "(?i)^/actuator(/.*)?$" "(?i)^/debug/(pprof|vars)(/.*)?$" # [!code ++]
+        block_patterns "(?i)^/(metrics|server-metrics|telemetry)(/.*)?$" "(?i)^/actuator(/.*)?$" "(?i)^/debug/(pprof|vars)(/.*)?$" # [!code ++]
         allowed_ips "10.0.0.50/32" "10.244.0.0/16" "127.0.0.1" # [!code ++]
         response { # [!code ++]
             mode json # [!code ++]
@@ -99,7 +99,7 @@ http {
 
         metrics_warden = routewarden.new({ # [!code ++]
             enable_default_patterns = true, # [!code ++]
-            path_patterns = { # [!code ++]
+            block_patterns = { # [!code ++]
                 "(?i)^/(metrics|server-metrics|telemetry)(/.*)?$", # [!code ++]
                 "(?i)^/actuator(/.*)?$", # [!code ++]
                 "(?i)^/debug/(pprof|vars)(/.*)?$" # [!code ++]

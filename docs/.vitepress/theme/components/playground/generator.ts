@@ -65,7 +65,7 @@ export function generateGatewaySnippet(opts: SnippetOptions): string {
     if (checkQuery) out += `    check_query true\n`
 
     if (blockList.length > 0) {
-      out += `    path_patterns`
+      out += `    block_patterns`
       for (const p of blockList) out += ` "${p}"`
       out += `\n`
     }
@@ -123,7 +123,7 @@ export function generateGatewaySnippet(opts: SnippetOptions): string {
     if (checkQuery) out += `        check_query = true,\n`
 
     if (blockList.length > 0) {
-      out += `        path_patterns = {\n`
+      out += `        block_patterns = {\n`
       for (const p of blockList) out += `            "${p}",\n`
       out += `        },\n`
     }
@@ -194,7 +194,7 @@ export function generateGatewaySnippet(opts: SnippetOptions): string {
     if (checkQuery) out += `          checkQuery: true\n`
 
     if (blockList.length > 0) {
-      out += `          pathPatterns:\n`
+      out += `          blockPatterns:\n`
       for (const p of blockList) out += `            - "${p}"\n`
     }
     if (allowList.length > 0) {
@@ -244,7 +244,7 @@ export function generateGatewaySnippet(opts: SnippetOptions): string {
     if (checkQuery) out += `checkQuery = true\n`
 
     if (blockList.length > 0) {
-      out += `pathPatterns = [\n`
+      out += `blockPatterns = [\n`
       for (const p of blockList) out += `  "${p}",\n`
       out += `]\n`
     }
@@ -300,7 +300,7 @@ export function generateGatewaySnippet(opts: SnippetOptions): string {
       out += `      - "${prefix}.methods=${methodsList.join(',')}"\n`
     }
     blockList.forEach((p, idx) => {
-      out += `      - "${prefix}.pathPatterns[${idx}]=${p}"\n`
+      out += `      - "${prefix}.blockPatterns[${idx}]=${p}"\n`
     })
     allowList.forEach((p, idx) => {
       out += `      - "${prefix}.allowPatterns[${idx}]=${p}"\n`
@@ -344,7 +344,7 @@ export function generateGatewaySnippet(opts: SnippetOptions): string {
       for (const m of methodsList) out += `        - "${m}"\n`
     }
     if (blockList.length > 0) {
-      out += `      pathPatterns:\n`
+      out += `      blockPatterns:\n`
       for (const p of blockList) out += `        - "${p}"\n`
     }
     if (allowList.length > 0) {
@@ -387,7 +387,7 @@ export function generateGatewaySnippet(opts: SnippetOptions): string {
     if (checkQuery) out += `        check_query true\n`
 
     if (blockList.length > 0) {
-      out += `        path_patterns`
+      out += `        block_patterns`
       for (const p of blockList) out += ` "${p}"`
       out += `\n`
     }
@@ -447,7 +447,7 @@ export function generateGatewaySnippet(opts: SnippetOptions): string {
     if (checkQuery) out += `          check_query = true,\n`
 
     if (blockList.length > 0) {
-      out += `          path_patterns = {\n`
+      out += `          block_patterns = {\n`
       for (const p of blockList) out += `            "${p}",\n`
       out += `          },\n`
     }
@@ -508,7 +508,7 @@ export function generateGatewaySnippet(opts: SnippetOptions): string {
     if (!enableDefaultPatterns) configObj.enableDefaultPatterns = false
     if (!enableDefaultAllowPatterns) configObj.enableDefaultAllowPatterns = false
     if (checkQuery) configObj.checkQuery = true
-    if (blockList.length > 0) configObj.pathPatterns = blockList
+    if (blockList.length > 0) configObj.blockPatterns = blockList
     if (allowList.length > 0) configObj.allowPatterns = allowList
     if (ipList.length > 0) configObj.allowedIps = ipList
     if (trustedProxiesList.length > 0) configObj.trustedProxies = trustedProxiesList

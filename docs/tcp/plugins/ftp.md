@@ -160,7 +160,7 @@ The **FTP Control Guard** plugin inspects File Transfer Protocol control connect
 
 | Threat / Attack Vector | Defense Mechanism | Action Taken |
 | :--- | :--- | :--- |
-| **Credential Brute-Force & Spraying** | Intercepts `530 Login incorrect` response codes | Client IP banned after `max_auth_failures` threshold |
+| **Credential Brute-Force & Spraying** | Intercepts `530 Login incorrect` response codes; enforces connection close with `421 Too many auth failures` when cap is reached (since v3.4.0) | Client IP banned after `max_auth_failures` threshold; connection terminated immediately |
 | **Anonymous Login Abuse** | Intercepts `USER anonymous` / `USER ftp` | Command blocked with `530 Anonymous access disabled` |
 | **Connection Flooding** | Enforces rate limits per minute and burst caps | Connection throttled at the proxy layer |
 | **AUTH TLS Handover** | Detects `234 Proceed with negotiation` | Transitions to bidirectional TLS pipe |
@@ -188,7 +188,7 @@ Add an FTP guard service to `tcp-warden.yaml`:
 | `listen` | `string` | `":2121"` | Local proxy listen address and port. |
 | `upstream` | `string` | `"127.0.0.1:21"` | Target FTP server (e.g. vsftpd) address and port. |
 | `protocol` | `string` | `"ftp"` | Must be set to `"ftp"`. |
-| `max_auth_failures` | `int` | `5` | Number of failed login attempts before IP is banned. |
+| `max_auth_failures` | `int` | `5` | Number of failed login attempts before IP is banned. Since v3.4.0 the connection is actively closed with a `421 Too many auth failures` response when the cap is reached, and individual lines from clients are bounded to prevent heap exhaustion. |
 | `ban_duration` | `string` | `"2h"` | Duration of the automated IP ban (`"30m"`, `"2h"`, `"24h"`). |
 | `plugin_config.allow_anonymous` | `bool` | `true` | When `false`, blocks `USER anonymous` or `USER ftp` commands. |
 

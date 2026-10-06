@@ -83,7 +83,7 @@ RouteWarden evaluates inbound HTTP requests in five stages:
   <div class="pipeline-step">
     <div class="pipeline-num">Stage 4</div>
     <div class="pipeline-title">Rule Evaluation</div>
-    <div class="pipeline-desc">Evaluates safe exemptions (<code>allowPatterns</code>) first. If not exempted, checks built-in sensitive dictionaries and custom <code>pathPatterns</code>.</div>
+    <div class="pipeline-desc">Evaluates safe exemptions (<code>allowPatterns</code>) first. If not exempted, checks built-in sensitive dictionaries and custom <code>blockPatterns</code>.</div>
   </div>
   <div class="pipeline-step">
     <div class="pipeline-num">Stage 5</div>
