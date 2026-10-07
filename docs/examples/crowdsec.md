@@ -275,7 +275,7 @@ http {
       - "--providers.docker.exposedbydefault=false"
       - "--entrypoints.web.address=:80"
       - "--experimental.plugins.routewarden.modulename=github.com/routewarden/traefik-warden" # [!code ++]
-      - "--experimental.plugins.routewarden.version=v1.4.0" # [!code ++]
+      - "--experimental.plugins.routewarden.version=v1.4.1" # [!code ++]
     ports:
       - "80:80"
       - "8080:8080"

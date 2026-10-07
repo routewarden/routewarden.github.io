@@ -35,7 +35,7 @@ const testIp = ref('198.51.100.42')
 const testForwardedFor = ref('')
 
 // 2. Patterns state
-const pathPatternsInput = ref('')
+const blockPatternsInput = ref('')
 const allowPatternsInput = ref('')
 const newBlockInput = ref('')
 const newAllowInput = ref('')
@@ -195,7 +195,7 @@ function normalizePath(rawPath: string) {
 }
 
 const customBlockList = computed(() => {
-  return pathPatternsInput.value.split('\n').map(s => s.trim()).filter(Boolean)
+  return blockPatternsInput.value.split('\n').map(s => s.trim()).filter(Boolean)
 })
 
 const customAllowList = computed(() => {
@@ -206,7 +206,7 @@ function addNewBlockPattern() {
   const pat = smartCompileRegex(newBlockInput.value)
   if (!pat) return
   if (!customBlockList.value.includes(pat)) {
-    pathPatternsInput.value = customBlockList.value.length ? `${pathPatternsInput.value.trim()}\n${pat}` : pat
+    blockPatternsInput.value = customBlockList.value.length ? `${blockPatternsInput.value.trim()}\n${pat}` : pat
   }
   newBlockInput.value = ''
 }
@@ -214,7 +214,7 @@ function addNewBlockPattern() {
 function removeBlockPattern(index: number) {
   const lines = customBlockList.value.slice()
   lines.splice(index, 1)
-  pathPatternsInput.value = lines.join('\n')
+  blockPatternsInput.value = lines.join('\n')
 }
 
 function addNewAllowPattern() {
@@ -712,8 +712,8 @@ function buildShareUrl(): string {
   if (testForwardedFor.value.trim()) {
     url.searchParams.set('forwardedFor', testForwardedFor.value.trim())
   }
-  if (pathPatternsInput.value.trim()) {
-    url.searchParams.set('block', pathPatternsInput.value.trim())
+  if (blockPatternsInput.value.trim()) {
+    url.searchParams.set('block', blockPatternsInput.value.trim())
   }
   if (allowPatternsInput.value.trim()) {
     url.searchParams.set('allow', allowPatternsInput.value.trim())
@@ -795,7 +795,7 @@ onMounted(() => {
     if (pForwarded) testForwardedFor.value = pForwarded
 
     const pBlock = params.get('block') || params.get('blockPatterns') || params.get('pathPatterns')
-    if (pBlock) pathPatternsInput.value = pBlock
+    if (pBlock) blockPatternsInput.value = pBlock
 
     const pAllow = params.get('allow') || params.get('allowPatterns')
     if (pAllow) allowPatternsInput.value = pAllow

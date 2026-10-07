@@ -1,7 +1,7 @@
 {
-  "traefik": "v1.4.0",
-  "caddy": "v1.4.0",
+  "traefik": "v1.4.1",
+  "caddy": "v1.4.1",
   "tcp": "v3.4.0",
   "cli": "v4.4.0",
-  "nginx": "v1.4.0"
+  "nginx": "v1.4.1"
 }
