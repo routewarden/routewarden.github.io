@@ -9,7 +9,18 @@ All notable changes to **NGINX Warden** (`github.com/routewarden/nginx-warden`) 
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and NGINX Warden adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v1.4.0] - 2026-10-05 (Latest)
+## [v1.4.1] - 2026-10-07 (Latest)
+
+### Key Highlights
+
+- **Strict Status Code Canonicalization (`status_code`)**:
+  - Removed deprecated `opts.status` and `opts.response.status` alias fallbacks in OpenResty Lua configuration (`init.lua`) in favor of strictly canonical `status_code`.
+- **Comprehensive Pattern Test Suite**:
+  - Added full test suite verifying `block_patterns` and `allow_patterns` precedence, exact URI matching, and custom pattern override behavior across OpenResty phases.
+
+---
+
+## [v1.4.0] - 2026-10-05
 
 ### Key Highlights
 

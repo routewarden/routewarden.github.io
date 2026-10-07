@@ -9,7 +9,20 @@ All notable changes to the **Caddy Warden** module (`github.com/routewarden/cadd
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and Caddy Warden adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v1.4.0] - 2026-10-05 (Latest)
+## [v1.4.1] - 2026-10-07 (Latest)
+
+### Key Highlights
+
+- **Strict Status Code Canonicalization (`status_code`)**:
+  - Removed deprecated `status` alias at the root Caddyfile directive level and within `response { ... }` blocks in favor of strictly canonical `status_code <int>`.
+  - Added unit test coverage confirming that deprecated `status` and `path_patterns` directives fail Caddyfile parsing with clear unrecognized directive errors.
+- **Canonical Directive Cleanup & Verification**:
+  - Replaced legacy `path_patterns` references across test fixtures and sample Caddyfiles with canonical `block_patterns`.
+  - Added comprehensive test suites verifying `block_patterns` and `allow_patterns` matching, query parameter filtering, and exact regex rule evaluation.
+
+---
+
+## [v1.4.0] - 2026-10-05
 
 ### Key Highlights
 
