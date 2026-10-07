@@ -669,5 +669,108 @@ test('playground engine & generator: comprehensive test matrix (100+ cases)', as
       assert.ok(code.includes('"10.0.0.0/8"'))
     })
   })
+
+  await t.test('Section 12: Comprehensive customBlockList and customAllowList Verification', async (st) => {
+    const customBlocks = ['(?i)^/admin/.*$', '(?i)\\.(key|pem|conf|secret)$', '(?i)^/internal/debug$']
+    const customAllows = [
+      '(?i)^/admin/public/health$',
+      '(?i)^/admin/assets/.*$',
+      '(?i)^/public/sample\\.conf$',
+      '(?i)^/\\.well-known/acme-challenge/.*$'
+    ]
+
+    await st.test('custom block pattern blocks /admin/dashboard', () => {
+      const res = evaluateRequest({
+        testPath: '/admin/dashboard',
+        customBlockList: customBlocks,
+        customAllowList: customAllows
+      })
+      assert.equal(res.verdict, 'BLOCK')
+      assert.equal(res.statusCode, 403)
+    })
+
+    await st.test('custom block pattern blocks case-insensitively /ADMIN/Settings', () => {
+      const res = evaluateRequest({
+        testPath: '/ADMIN/Settings',
+        customBlockList: customBlocks,
+        customAllowList: customAllows
+      })
+      assert.equal(res.verdict, 'BLOCK')
+      assert.equal(res.statusCode, 403)
+    })
+
+    await st.test('custom block pattern blocks sensitive extension /certs/server.key', () => {
+      const res = evaluateRequest({
+        testPath: '/certs/server.key',
+        customBlockList: customBlocks,
+        customAllowList: customAllows
+      })
+      assert.equal(res.verdict, 'BLOCK')
+      assert.equal(res.statusCode, 403)
+    })
+
+    await st.test('custom allow pattern overrides block for /admin/public/health', () => {
+      const res = evaluateRequest({
+        testPath: '/admin/public/health',
+        customBlockList: customBlocks,
+        customAllowList: customAllows
+      })
+      assert.equal(res.verdict, 'ALLOW')
+      assert.equal(res.statusCode, 200)
+    })
+
+    await st.test('custom allow pattern overrides block for /admin/assets/app.js', () => {
+      const res = evaluateRequest({
+        testPath: '/admin/assets/app.js',
+        customBlockList: customBlocks,
+        customAllowList: customAllows
+      })
+      assert.equal(res.verdict, 'ALLOW')
+      assert.equal(res.statusCode, 200)
+    })
+
+    await st.test('custom allow pattern overrides block for /public/sample.conf', () => {
+      const res = evaluateRequest({
+        testPath: '/public/sample.conf',
+        customBlockList: customBlocks,
+        customAllowList: customAllows
+      })
+      assert.equal(res.verdict, 'ALLOW')
+      assert.equal(res.statusCode, 200)
+    })
+
+    await st.test('custom allow pattern overrides default block for /.well-known/acme-challenge/token', () => {
+      const res = evaluateRequest({
+        testPath: '/.well-known/acme-challenge/token',
+        customBlockList: customBlocks,
+        customAllowList: customAllows
+      })
+      assert.equal(res.verdict, 'ALLOW')
+      assert.equal(res.statusCode, 200)
+    })
+
+    await st.test('clean unblocked route /api/v1/products passes', () => {
+      const res = evaluateRequest({
+        testPath: '/api/v1/products',
+        customBlockList: customBlocks,
+        customAllowList: customAllows
+      })
+      assert.equal(res.verdict, 'PASS')
+      assert.equal(res.statusCode, 200)
+    })
+
+    await st.test('whitelisted IP bypasses custom block patterns', () => {
+      const res = evaluateRequest({
+        testPath: '/admin/dashboard',
+        testIp: '192.168.100.50',
+        allowedIpsInput: '192.168.100.50',
+        customBlockList: customBlocks,
+        customAllowList: customAllows
+      })
+      assert.equal(res.verdict, 'BYPASS')
+      assert.equal(res.reason, 'IP whitelisted')
+    })
+  })
 })
+
 
