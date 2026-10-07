@@ -308,7 +308,7 @@ http {
                 "(?i)^/(admin|api/(accounts|ciphers|folders|sync|collections|organizations))"
             },
             check_body = true,
-            check_check_body_patterns = {
+            check_body_patterns = {
                 "(?i)grant_type=password"
             },
             allowed_ips = {
