@@ -9,7 +9,20 @@ All notable changes to the **Traefik Warden** plugin (`github.com/routewarden/tr
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and Traefik Warden adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v1.4.0] - 2026-10-05 (Latest)
+## [v1.4.1] - 2026-10-07 (Latest)
+
+### Key Highlights
+
+- **Standardization on Canonical `blockPatterns` Directive**:
+  - Replaced all legacy `pathPatterns` and `path_patterns` references across documentation, Docker Compose examples, `.traefik.yml` manifest, and test scripts with canonical `blockPatterns`.
+  - Enforced strict canonical configuration directives, verifying that legacy aliases (`pathPatterns`, `path_patterns`, `action`) do not populate active middleware configuration.
+- **Enhanced Verification & Alias Safety**:
+  - Added comprehensive test suites verifying `blockPatterns` and `allowPatterns` matching, wildcard prefixes, and regex override precedence.
+  - Added unit tests confirming removed legacy alias keys are ignored and do not affect canonical fields.
+
+---
+
+## [v1.4.0] - 2026-10-05
 
 ### Key Highlights
 

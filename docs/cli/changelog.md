@@ -2,7 +2,23 @@
 
 All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and the CLI adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v4.4.0] - 2026-10-06 (Latest)
+## [v4.4.1] - 2026-10-07 (Latest)
+
+### Changed
+- **Canonical Directive Standardization & Gateway Generator Alignment (`engine/engine.go`)**:
+  - Emitted strictly canonical `status_code`, `retry_after_seconds`, and `tarpit_max_duration_seconds` directives in Caddyfile generation (`rwarden generate --target caddy`), aligning with Caddy Warden v1.4.1+.
+  - Standardized CLI configuration samples and generator templates on canonical `blockPatterns` / `block_patterns` and `allowPatterns` / `allow_patterns`.
+- **JSON Schema Parity & Alias Cleanup (`config.schema.json`)**:
+  - Removed deprecated legacy alias properties (`pathPatterns`, `action`) from official embedded schema (`rwarden schema`) and published schema definitions in favor of canonical `blockPatterns`, `allowPatterns`, and `mode`.
+  - Added `trustedProxies` definitions across official schemas and evaluation engines.
+
+### Added
+- **Comprehensive Pattern & Directive Verification Suites**:
+  - Added unit test suites verifying canonical `blockPatterns` and `allowPatterns` matrix matching, query parameter validation, and offline rule simulation across Traefik, Caddy, and NGINX targets.
+
+---
+
+## [v4.4.0] - 2026-10-06
 
 ### Security
 
