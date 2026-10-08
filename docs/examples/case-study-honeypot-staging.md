@@ -15,6 +15,10 @@ http:
       plugin: # [!code ++]
         routewarden: # [!code ++]
           enabled: true # [!code ++]
+          methods: # [!code ++]
+            - GET # [!code ++]
+            - POST # [!code ++]
+            - HEAD # [!code ++]
           enableDefaultPatterns: true # [!code ++]
           # Close connection immediately on probe attempts
           response: # [!code ++]
@@ -22,17 +26,24 @@ http:
   traefik_toml: buildSnippet({ lang: 'toml', code: `# dynamic_conf.toml
 [http.middlewares.scanner-drop.plugin.routewarden] # [!code ++]
   enabled = true # [!code ++]
+  methods = ["GET", "POST", "HEAD"] # [!code ++]
   enableDefaultPatterns = true # [!code ++]
  # [!code ++]
 [http.middlewares.scanner-drop.plugin.routewarden.response] # [!code ++]
   mode = "silentDrop" # [!code ++]` }),
   traefik_labels: buildSnippet({ lang: 'docker', code: `# Docker Compose Labels
 - "traefik.http.middlewares.scanner-drop.plugin.routewarden.enabled=true" # [!code ++]
+- "traefik.http.middlewares.scanner-drop.plugin.routewarden.methods=GET,POST,HEAD" # [!code ++]
 - "traefik.http.middlewares.scanner-drop.plugin.routewarden.enableDefaultPatterns=true" # [!code ++]
 - "traefik.http.middlewares.scanner-drop.plugin.routewarden.response.mode=silentDrop" # [!code ++]` }),
   caddy: buildSnippet({ lang: 'caddy', code: `# Caddyfile
+{
+    order route_warden before reverse_proxy # [!code ++]
+}
+
 example.com {
     route_warden { # [!code ++]
+        methods GET POST HEAD # [!code ++]
         enable_default_patterns true # [!code ++]
         response { # [!code ++]
             mode silent_drop # [!code ++]
@@ -48,6 +59,7 @@ http {
         local routewarden = require("resty.routewarden") # [!code ++]
 
         drop_warden = routewarden.new({ # [!code ++]
+            methods = { "GET", "POST", "HEAD" }, # [!code ++]
             enable_default_patterns = true, # [!code ++]
             response = { # [!code ++]
                 mode = "silentDrop" # [!code ++]
@@ -72,6 +84,7 @@ http {
 {
   "$schema": "https://raw.githubusercontent.com/routewarden/cli/main/config.schema.json",
   "enabled": true,
+  "methods": ["GET", "POST", "HEAD"],
   "enableDefaultPatterns": true,
   "response": {
     "mode": "silentDrop"
@@ -88,6 +101,10 @@ http:
       plugin: # [!code ++]
         routewarden: # [!code ++]
           enabled: true # [!code ++]
+          methods: # [!code ++]
+            - GET # [!code ++]
+            - POST # [!code ++]
+            - HEAD # [!code ++]
           enableDefaultPatterns: true # [!code ++]
           response: # [!code ++]
             mode: redirect # [!code ++]
@@ -98,6 +115,7 @@ http:
   traefik_toml: buildSnippet({ lang: 'toml', code: `# dynamic_conf.toml
 [http.middlewares.honeypot-deflect.plugin.routewarden] # [!code ++]
   enabled = true # [!code ++]
+  methods = ["GET", "POST", "HEAD"] # [!code ++]
   enableDefaultPatterns = true # [!code ++]
  # [!code ++]
 [http.middlewares.honeypot-deflect.plugin.routewarden.response] # [!code ++]
@@ -109,14 +127,20 @@ http:
   X-RouteWarden-Deflected = "true" # [!code ++]` }),
   traefik_labels: buildSnippet({ lang: 'docker', code: `# Docker Compose Labels
 - "traefik.http.middlewares.honeypot-deflect.plugin.routewarden.enabled=true" # [!code ++]
+- "traefik.http.middlewares.honeypot-deflect.plugin.routewarden.methods=GET,POST,HEAD" # [!code ++]
 - "traefik.http.middlewares.honeypot-deflect.plugin.routewarden.enableDefaultPatterns=true" # [!code ++]
 - "traefik.http.middlewares.honeypot-deflect.plugin.routewarden.response.mode=redirect" # [!code ++]
 - "traefik.http.middlewares.honeypot-deflect.plugin.routewarden.response.statusCode=307" # [!code ++]
 - "traefik.http.middlewares.honeypot-deflect.plugin.routewarden.response.redirectUrl=https://honeypot.internal.corp/capture" # [!code ++]
 - "traefik.http.middlewares.honeypot-deflect.plugin.routewarden.response.headers.X-RouteWarden-Deflected=true" # [!code ++]` }),
   caddy: buildSnippet({ lang: 'caddy', code: `# Caddyfile
+{
+    order route_warden before reverse_proxy # [!code ++]
+}
+
 example.com {
     route_warden { # [!code ++]
+        methods GET POST HEAD # [!code ++]
         enable_default_patterns true # [!code ++]
         response { # [!code ++]
             mode redirect # [!code ++]
@@ -134,6 +158,7 @@ http {
         local routewarden = require("resty.routewarden") # [!code ++]
 
         honeypot_warden = routewarden.new({ # [!code ++]
+            methods = { "GET", "POST", "HEAD" }, # [!code ++]
             enable_default_patterns = true, # [!code ++]
             response = { # [!code ++]
                 mode = "redirect", # [!code ++]
@@ -163,6 +188,7 @@ http {
 {
   "$schema": "https://raw.githubusercontent.com/routewarden/cli/main/config.schema.json",
   "enabled": true,
+  "methods": ["GET", "POST", "HEAD"],
   "enableDefaultPatterns": true,
   "response": {
     "mode": "redirect",
@@ -184,6 +210,13 @@ http:
       plugin: # [!code ++]
         routewarden: # [!code ++]
           enabled: true # [!code ++]
+          methods: # [!code ++]
+            - GET # [!code ++]
+            - POST # [!code ++]
+            - PUT # [!code ++]
+            - DELETE # [!code ++]
+            - PATCH # [!code ++]
+            - HEAD # [!code ++]
           # Block everything by default
           blockPatterns: # [!code ++]
             - '^/.*$' # [!code ++]
@@ -201,6 +234,7 @@ http:
   traefik_toml: buildSnippet({ lang: 'toml', code: `# dynamic_conf.toml
 [http.middlewares.staging-guard.plugin.routewarden] # [!code ++]
   enabled = true # [!code ++]
+  methods = ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD"] # [!code ++]
   enableDefaultAllowPatterns = false # [!code ++]
   blockPatterns = ["^/.*$"] # [!code ++]
   allowedIps = ["10.0.0.0/8", "100.64.0.0/10", "203.0.113.50/32"] # [!code ++]
@@ -211,6 +245,7 @@ http:
   body = '{"error":"Not Found"}' # [!code ++]` }),
   traefik_labels: buildSnippet({ lang: 'docker', code: `# Docker Compose Labels
 - "traefik.http.middlewares.staging-guard.plugin.routewarden.enabled=true" # [!code ++]
+- "traefik.http.middlewares.staging-guard.plugin.routewarden.methods=GET,POST,PUT,DELETE,PATCH,HEAD" # [!code ++]
 - "traefik.http.middlewares.staging-guard.plugin.routewarden.enableDefaultAllowPatterns=false" # [!code ++]
 - "traefik.http.middlewares.staging-guard.plugin.routewarden.blockPatterns=^/.*$" # [!code ++]
 - "traefik.http.middlewares.staging-guard.plugin.routewarden.allowedIps=10.0.0.0/8,100.64.0.0/10,203.0.113.50/32" # [!code ++]
@@ -218,8 +253,13 @@ http:
 - "traefik.http.middlewares.staging-guard.plugin.routewarden.response.statusCode=404" # [!code ++]
 - 'traefik.http.middlewares.staging-guard.plugin.routewarden.response.body={"error":"Not Found"}' # [!code ++]` }),
   caddy: buildSnippet({ lang: 'caddy', code: `# Caddyfile
+{
+    order route_warden before reverse_proxy # [!code ++]
+}
+
 pr-142.staging.example.com {
     route_warden { # [!code ++]
+        methods GET POST PUT DELETE PATCH HEAD # [!code ++]
         enable_default_allow_patterns false # [!code ++]
         block_patterns "^/.*$" # [!code ++]
         allowed_ips "10.0.0.0/8" "100.64.0.0/10" "203.0.113.50/32" # [!code ++]
@@ -239,6 +279,7 @@ http {
         local routewarden = require("resty.routewarden") # [!code ++]
 
         staging_warden = routewarden.new({ # [!code ++]
+            methods = { "GET", "POST", "PUT", "DELETE", "PATCH", "HEAD" }, # [!code ++]
             enable_default_allow_patterns = false, # [!code ++]
             block_patterns = { # [!code ++]
                 "^/.*$" # [!code ++]
@@ -273,6 +314,7 @@ http {
 {
   "$schema": "https://raw.githubusercontent.com/routewarden/cli/main/config.schema.json",
   "enabled": true,
+  "methods": ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD"],
   "enableDefaultAllowPatterns": false,
   "blockPatterns": [
     "^/.*$"
@@ -299,6 +341,10 @@ http:
       plugin: # [!code ++]
         routewarden: # [!code ++]
           enabled: true # [!code ++]
+          methods: # [!code ++]
+            - GET # [!code ++]
+            - POST # [!code ++]
+            - HEAD # [!code ++]
           blockPatterns: # [!code ++]
             # Lure crawlers scanning for high-value targets
             - '(?i)(^|/)(\\.env.*|\\.git.*|wp-login\\.php|phpmyadmin.*)$' # [!code ++]
@@ -309,6 +355,7 @@ http:
   traefik_toml: buildSnippet({ lang: 'toml', code: `# dynamic_conf.toml
 [http.middlewares.honeypot-bomber.plugin.routewarden] # [!code ++]
   enabled = true # [!code ++]
+  methods = ["GET", "POST", "HEAD"] # [!code ++]
   blockPatterns = ["(?i)(^|/)(\\\\.env.*|\\\\.git.*|wp-login\\\\.php|phpmyadmin.*)$"] # [!code ++]
  # [!code ++]
 [http.middlewares.honeypot-bomber.plugin.routewarden.response] # [!code ++]
@@ -317,13 +364,19 @@ http:
   gzipBombMB = 10 # [!code ++]` }),
   traefik_labels: buildSnippet({ lang: 'docker', code: `# Docker Compose Labels
 - "traefik.http.middlewares.honeypot-bomber.plugin.routewarden.enabled=true" # [!code ++]
+- "traefik.http.middlewares.honeypot-bomber.plugin.routewarden.methods=GET,POST,HEAD" # [!code ++]
 - "traefik.http.middlewares.honeypot-bomber.plugin.routewarden.blockPatterns=(?i)(^|/)(\\\\.env.*|\\\\.git.*|wp-login\\\\.php|phpmyadmin.*)$" # [!code ++]
 - "traefik.http.middlewares.honeypot-bomber.plugin.routewarden.response.mode=gzipBomb" # [!code ++]
 - "traefik.http.middlewares.honeypot-bomber.plugin.routewarden.response.statusCode=200" # [!code ++]
 - "traefik.http.middlewares.honeypot-bomber.plugin.routewarden.response.gzipBombMB=10" # [!code ++]` }),
   caddy: buildSnippet({ lang: 'caddy', code: `# Caddyfile
+{
+    order route_warden before reverse_proxy # [!code ++]
+}
+
 honeypot.example.com {
     route_warden { # [!code ++]
+        methods GET POST HEAD # [!code ++]
         block_patterns "(?i)(^|/)(\\.env.*|\\.git.*|wp-login\\.php|phpmyadmin.*)$" # [!code ++]
         response { # [!code ++]
             mode gzip_bomb # [!code ++]
@@ -341,6 +394,7 @@ http {
         local routewarden = require("resty.routewarden") # [!code ++]
 
         bomb_warden = routewarden.new({ # [!code ++]
+            methods = { "GET", "POST", "HEAD" }, # [!code ++]
             block_patterns = { # [!code ++]
                 "(?i)(^|/)(\\\\.env.*|\\\\.git.*|wp-login\\\\.php|phpmyadmin.*)$" # [!code ++]
             }, # [!code ++]
@@ -369,6 +423,7 @@ http {
 {
   "$schema": "https://raw.githubusercontent.com/routewarden/cli/main/config.schema.json",
   "enabled": true,
+  "methods": ["GET", "POST", "HEAD"],
   "blockPatterns": [
     "(?i)(^|/)(\\\\.env.*|\\\\.git.*|wp-login\\\\.php|phpmyadmin.*)$"
   ],
@@ -388,6 +443,10 @@ const tarpit = {
       plugin: # [!code ++]
         routewarden: # [!code ++]
           enabled: true # [!code ++]
+          methods: # [!code ++]
+            - GET # [!code ++]
+            - POST # [!code ++]
+            - HEAD # [!code ++]
           blockPatterns: # [!code ++]
             - '(?i)^/(phpmyadmin|pma|wp-login\\.php|\\.env|\\.git.*)$' # [!code ++]
           response: # [!code ++]
@@ -398,6 +457,7 @@ const tarpit = {
   traefik_toml: buildSnippet({ lang: 'toml', code: `# dynamic_conf.toml
 [http.middlewares.tarpit-sink.plugin.routewarden] # [!code ++]
   enabled = true # [!code ++]
+  methods = ["GET", "POST", "HEAD"] # [!code ++]
   blockPatterns = ["(?i)^/(phpmyadmin|pma|wp-login\\\\.php|\\\\.env|\\\\.git.*)$"] # [!code ++]
  # [!code ++]
 [http.middlewares.tarpit-sink.plugin.routewarden.response] # [!code ++]
@@ -407,13 +467,20 @@ const tarpit = {
   tarpitMaxDurationSeconds = 120 # [!code ++]` }),
   traefik_labels: buildSnippet({ lang: 'docker', code: `# Docker Compose Labels
 - "traefik.http.middlewares.tarpit-sink.plugin.routewarden.enabled=true" # [!code ++]
+- "traefik.http.middlewares.tarpit-sink.plugin.routewarden.methods=GET,POST,HEAD" # [!code ++]
 - "traefik.http.middlewares.tarpit-sink.plugin.routewarden.blockPatterns=(?i)^/(phpmyadmin|pma|wp-login\\\\.php|\\\\.env|\\\\.git.*)$" # [!code ++]
 - "traefik.http.middlewares.tarpit-sink.plugin.routewarden.response.mode=tarpit" # [!code ++]
 - "traefik.http.middlewares.tarpit-sink.plugin.routewarden.response.statusCode=200" # [!code ++]
 - "traefik.http.middlewares.tarpit-sink.plugin.routewarden.response.tarpitDelayMs=1000" # [!code ++]
 - "traefik.http.middlewares.tarpit-sink.plugin.routewarden.response.tarpitMaxDurationSeconds=120" # [!code ++]` }),
-  caddy: buildSnippet({ lang: 'caddy', code: `honeypot.example.com {
+  caddy: buildSnippet({ lang: 'caddy', code: `# Caddyfile
+{
+    order route_warden before reverse_proxy # [!code ++]
+}
+
+honeypot.example.com {
     route_warden { # [!code ++]
+        methods GET POST HEAD # [!code ++]
         block_patterns "(?i)^/(phpmyadmin|pma|wp-login\\.php|\\.env|\\.git.*)$" # [!code ++]
         response { # [!code ++]
             mode tarpit # [!code ++]
@@ -432,6 +499,7 @@ http {
         local routewarden = require("resty.routewarden") # [!code ++]
 
         tarpit_warden = routewarden.new({ # [!code ++]
+            methods = { "GET", "POST", "HEAD" }, # [!code ++]
             block_patterns = { # [!code ++]
                 "(?i)^/(phpmyadmin|pma|wp-login\\\\.php|\\\\.env|\\\\.git.*)$" # [!code ++]
             }, # [!code ++]
@@ -456,6 +524,7 @@ http {
   cli: buildSnippet({ lang: 'json', code: `{
   "$schema": "https://raw.githubusercontent.com/routewarden/cli/main/config.schema.json",
   "enabled": true,
+  "methods": ["GET", "POST", "HEAD"],
   "blockPatterns": [
     "(?i)^/(phpmyadmin|pma|wp-login\\\\.php|\\\\.env|\\\\.git.*)$"
   ],
@@ -512,6 +581,10 @@ Rather than allocating memory buffers and sending an HTTP status response, Route
 - Port scanners receive a connection reset (`TCP RST` or EOF).
 - Automated vulnerability tools flag the endpoint as dead or unresponsive, prompting them to abandon the host.
 - Zero server bandwidth spent delivering HTML error bodies.
+
+> [!WARNING]
+> **Edge Proxy & CDN Compatibility**:
+> When using `silentDrop` behind an edge proxy or CDN (such as Cloudflare, Traefik edge, AWS ALB, or NGINX reverse proxy), abruptly dropping the TCP connection may cause the edge proxy to report an **`HTTP 502 Bad Gateway`** error page to the client rather than hanging or silently terminating the connection. If you want stealth deflection without triggering proxy 502 errors, use `mode: json` or `mode: html` with `statusCode: 404` (see [Strategy C](#strategy-c-staging-preview-environment-cloaking)).
 
 ---
 
