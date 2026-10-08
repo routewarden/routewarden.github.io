@@ -175,13 +175,14 @@ const volumeSharingSnippets = computed(() => ({
 const s = {
   json: buildSnippet({ lang: 'json', code: `{
   "$schema": "https://raw.githubusercontent.com/routewarden/cli/main/config.schema.json",
-  "enabled": true, # [!code ++]
-  "securityLog": true, # [!code ++]
-  "enableDefaultPatterns": true, # [!code ++]
-  "response": { # [!code ++]
-    "mode": "fakeSuccess", # [!code ++]
-    "statusCode": 200 # [!code ++]
-  } # [!code ++]
+  "enabled": true, // [!code ++]
+  "methods": ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD"], // [!code ++]
+  "securityLog": true, // [!code ++]
+  "enableDefaultPatterns": true, // [!code ++]
+  "response": { // [!code ++]
+    "mode": "fakeSuccess", // [!code ++]
+    "statusCode": 200 // [!code ++]
+  } // [!code ++]
 }` }),
   traefik_yaml: buildSnippet({ lang: 'yaml', code: `http:
   middlewares:
@@ -189,6 +190,13 @@ const s = {
       plugin: # [!code ++]
         routewarden: # [!code ++]
           enabled: true # [!code ++]
+          methods: # [!code ++]
+            - GET # [!code ++]
+            - POST # [!code ++]
+            - PUT # [!code ++]
+            - DELETE # [!code ++]
+            - PATCH # [!code ++]
+            - HEAD # [!code ++]
           # Emits structured JSON events on stdout for CrowdSec
           securityLog: true # [!code ++]
           enableDefaultPatterns: true # [!code ++]
@@ -199,6 +207,7 @@ const s = {
   traefik_toml: buildSnippet({ lang: 'toml', code: `# dynamic_conf.toml
 [http.middlewares.routewarden-shield.plugin.routewarden] # [!code ++]
   enabled = true # [!code ++]
+  methods = ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD"] # [!code ++]
   securityLog = true # [!code ++]
   enableDefaultPatterns = true # [!code ++]
  # [!code ++]
@@ -213,6 +222,7 @@ const s = {
       - "traefik.http.routers.app.rule=Host(\`example.com\`)"
       - "traefik.http.routers.app.middlewares=routewarden-shield"
       - "traefik.http.middlewares.routewarden-shield.plugin.routewarden.enabled=true" # [!code ++]
+      - "traefik.http.middlewares.routewarden-shield.plugin.routewarden.methods=GET,POST,PUT,DELETE,PATCH,HEAD" # [!code ++]
       - "traefik.http.middlewares.routewarden-shield.plugin.routewarden.securityLog=true" # [!code ++]
       - "traefik.http.middlewares.routewarden-shield.plugin.routewarden.response.mode=fakeSuccess" # [!code ++]` }),
   caddy: buildSnippet({ lang: 'caddy', code: `{
@@ -221,12 +231,12 @@ const s = {
 
 example.com {
     route_warden { # [!code ++]
-        enabled true # [!code ++]
+        methods GET POST PUT DELETE PATCH HEAD # [!code ++]
         # Emits structured JSON events on stdout for CrowdSec
         security_log true # [!code ++]
         enable_default_patterns true # [!code ++]
         response { # [!code ++]
-            mode fake_success # [!code ++]
+            mode fakeSuccess # [!code ++]
             status_code 200 # [!code ++]
         } # [!code ++]
     } # [!code ++]
@@ -241,6 +251,7 @@ http {
 
         warden = routewarden.new({ # [!code ++]
             enabled = true, # [!code ++]
+            methods = { "GET", "POST", "PUT", "DELETE", "PATCH", "HEAD" }, # [!code ++]
             -- Emits structured JSON events on stdout for CrowdSec
             security_log = true, # [!code ++]
             enable_default_patterns = true, # [!code ++]
@@ -318,7 +329,7 @@ volumes:
       context: . # [!code ++]
       dockerfile_inline: | # [!code ++]
         FROM caddy:2-builder AS builder # [!code ++]
-        RUN xcaddy build --with github.com/routewarden/caddy-warden@v1.2.1 # [!code ++]
+        RUN xcaddy build --with github.com/routewarden/caddy-warden@v1.4.1 # [!code ++]
         FROM caddy:2-alpine # [!code ++]
         COPY --from=builder /usr/bin/caddy /usr/bin/caddy # [!code ++]
     ports:
@@ -454,37 +465,59 @@ const scenarioSnippets = computed(() => ({
   traefik: [{ filename: 'routewarden-threat.yaml', lang: 'yaml', code: crowdsecScenario.cleanCode, html: crowdsecScenario.html, hasDiff: false }],
 }))
 
+// ─── Caddy Directive Ordering Snippet ─────────────────────────────────────────
+const caddyOrder = buildSnippet({
+  lang: 'caddy',
+  code: `# Caddyfile Global Options
+{
+    order route_warden before reverse_proxy
+}`
+})
+
+const caddyOrderSnippets = computed(() => ({
+  caddy: [
+    { filename: 'Caddyfile', lang: 'caddy', code: caddyOrder.cleanCode, html: caddyOrder.html, hasDiff: false },
+  ],
+}))
+
 // ─── Testing & Verification Commands ───────────────────────────────────────────
 const testProbeCmd = buildSnippet({
   lang: 'bash',
-  code: `curl -i -H "User-Agent: Nuclei/v3.1.0" http://localhost/.env`,
+  code: `# 1. Simulate vulnerability scanner probing for exposed configuration files
+curl -i -H "User-Agent: Nuclei/v3.1.0" http://localhost/.env
+
+# Response (RouteWarden fakeSuccess deception):
+# HTTP/1.1 200 OK
+# Content-Type: text/plain
+# APP_NAME=Laravel
+# APP_ENV=production
+# DB_PASSWORD=...`,
 })
 
 const verifyLogCmd = buildSnippet({
   lang: 'bash',
-  code: `docker logs traefik | grep routewarden_block`,
+  code: `# 2. Check gateway container logs for structured audit event
+docker logs traefik | grep routewarden_block
+
+# Or for Caddy:
+# docker logs caddy | grep routewarden_block
+
+# Or for NGINX:
+# docker logs nginx | grep routewarden_block`,
 })
 
 const crowdsecCheckCmd = buildSnippet({
   lang: 'bash',
-  code: `# View trigger alerts
+  code: `# 3. Verify CrowdSec detected the scan and banned the attacker IP
+
+# View trigger alerts:
 docker exec -t crowdsec cscli alerts list
 
-# View active firewall remediation decisions
-docker exec -t crowdsec cscli decisions list`,
+# View active firewall remediation decisions:
+docker exec -t crowdsec cscli decisions list
+
+# The client IP is now banned across all bouncers!`,
 })
-
-const testProbeSnippets = computed(() => ({
-  traefik: [{ filename: 'Shell(Bash)', lang: 'bash', code: testProbeCmd.cleanCode, html: testProbeCmd.html, hasDiff: false }],
-}))
-
-const verifyLogSnippets = computed(() => ({
-  traefik: [{ filename: 'Shell(Bash)', lang: 'bash', code: verifyLogCmd.cleanCode, html: verifyLogCmd.html, hasDiff: false }],
-}))
-
-const crowdsecCheckSnippets = computed(() => ({
-  traefik: [{ filename: 'Shell(Bash)', lang: 'bash', code: crowdsecCheckCmd.cleanCode, html: crowdsecCheckCmd.html, hasDiff: false }],
-}))
 
 // ─── JSON Log Snippets ────────────────────────────────────────────────────────
 const structuredAuditEvent = buildSnippet({
@@ -508,13 +541,13 @@ const structuredAuditSnippets = computed(() => ({
   traefik: [{ filename: 'routewarden_block.json', lang: 'json', code: structuredAuditEvent.cleanCode, html: structuredAuditEvent.html, hasDiff: false }],
 }))
 
-const exampleLogOutput = buildSnippet({
-  lang: 'json',
-  code: `{"action":"json","client_ip":"172.18.0.1","method":"GET","path":"/.env","pattern":"(?i)(^|/)(\\.env.*|.*\\.(txt|log|bak|backup|sql|conf|config|ini|yaml|yml))$","plugin":"routewarden","reason":"path_blocked","request_uri":"/.env","timestamp":"2026-09-19T15:30:12Z","type":"routewarden_block","user_agent":"Nuclei/v3.1.0"}`,
-})
-
-const exampleLogSnippets = computed(() => ({
-  traefik: [{ filename: 'routewarden_block.json', lang: 'json', code: exampleLogOutput.cleanCode, html: exampleLogOutput.html, hasDiff: false }],
+const verificationSnippets = computed(() => ({
+  traefik: [
+    { filename: '1-test-probe.sh', lang: 'bash', code: testProbeCmd.cleanCode, html: testProbeCmd.html, hasDiff: false },
+    { filename: '2-verify-logs.sh', lang: 'bash', code: verifyLogCmd.cleanCode, html: verifyLogCmd.html, hasDiff: false },
+    { filename: '3-crowdsec-ban.sh', lang: 'bash', code: crowdsecCheckCmd.cleanCode, html: crowdsecCheckCmd.html, hasDiff: false },
+    { filename: 'routewarden_block.json', lang: 'json', code: structuredAuditEvent.cleanCode, html: structuredAuditEvent.html, hasDiff: false },
+  ],
 }))
 </script>
 
@@ -599,6 +632,12 @@ Security logging is **enabled by default** (`securityLog: true` / `security_log 
 
 <CodeViewer :snippets="gatewaySnippets" />
 
+#### Caddy Directive Ordering
+
+When using Caddy, you must register RouteWarden before Caddy's built-in `reverse_proxy` directive in the global options block:
+
+<CodeViewer :snippets="caddyOrderSnippets" />
+
 ---
 
 ## Complete Docker Compose Example
@@ -611,29 +650,11 @@ Here is a practical Docker Compose setup running your preferred gateway with Rou
 
 ## Testing the Integration
 
-### 1. Send a Test Probe
+Test end-to-end integration: send a test probe, verify structured security event emission on gateway logs, and verify the CrowdSec automatic ban:
 
-Simulate a vulnerability scanner probing for exposed configuration files:
+<CodeViewer :snippets="verificationSnippets" />
 
-<CodeViewer :snippets="testProbeSnippets" />
-
-### 2. Verify Structured Security Log Emission
-
-Check Traefik or Caddy output for the security block record:
-
-<CodeViewer :snippets="verifyLogSnippets" />
-
-Example JSON output:
-
-<CodeViewer :snippets="exampleLogSnippets" />
-
-### 3. Check Active CrowdSec Decisions
-
-Verify that CrowdSec parsed the event and issued a ban:
-
-<CodeViewer :snippets="crowdsecCheckSnippets" />
-
-The client IP is now banned by CrowdSec across all attached bouncers.
+The client IP is now banned by CrowdSec across all attached bouncers (firewall, iptables, Cloudflare).
 
 ---
 
