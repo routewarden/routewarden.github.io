@@ -18,6 +18,13 @@ http:
       plugin: # [!code ++]
         routewarden: # [!code ++]
           enabled: true # [!code ++]
+          methods: # [!code ++]
+            - GET # [!code ++]
+            - POST # [!code ++]
+            - PUT # [!code ++]
+            - DELETE # [!code ++]
+            - PATCH # [!code ++]
+            - HEAD # [!code ++]
           enableDefaultPatterns: true # Blocks .env, .git, config dumps # [!code ++]
           blockPatterns: # [!code ++]
             - '(?i)^/api/auth/login.*$' # [!code ++]
@@ -71,6 +78,7 @@ const traefikToml = buildSnippet({
 
 [http.middlewares.immich-public-shield.plugin.routewarden] # [!code ++]
   enabled = true # [!code ++]
+  methods = ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD"] # [!code ++]
   enableDefaultPatterns = true # [!code ++]
   blockPatterns = [ # [!code ++]
     "(?i)^/api/auth/login.*$", # [!code ++]
@@ -100,6 +108,7 @@ const traefikLabels = buildSnippet({
 - "traefik.http.routers.immich-pub.entrypoints=websecure"
 - "traefik.http.routers.immich-pub.middlewares=immich-public-shield" # [!code ++]
 - "traefik.http.middlewares.immich-public-shield.plugin.routewarden.enabled=true" # [!code ++]
+- "traefik.http.middlewares.immich-public-shield.plugin.routewarden.methods=GET,POST,PUT,DELETE,PATCH,HEAD" # [!code ++]
 - "traefik.http.middlewares.immich-public-shield.plugin.routewarden.blockPatterns=(?i)^/api/auth/login.*$,(?i)^/api/auth/admin-sign-up.*$,(?i)^/api/users.*$,(?i)^/api/admin.*$,(?i)^/api/server-info/stats.*$" # [!code ++]
 - "traefik.http.middlewares.immich-public-shield.plugin.routewarden.response.mode=json" # [!code ++]
 - "traefik.http.middlewares.immich-public-shield.plugin.routewarden.response.statusCode=404" # [!code ++]
@@ -123,6 +132,13 @@ spec: # [!code ++]
   plugin: # [!code ++]
     routewarden: # [!code ++]
       enabled: true # [!code ++]
+      methods: # [!code ++]
+        - GET # [!code ++]
+        - POST # [!code ++]
+        - PUT # [!code ++]
+        - DELETE # [!code ++]
+        - PATCH # [!code ++]
+        - HEAD # [!code ++]
       enableDefaultPatterns: true # [!code ++]
       blockPatterns: # [!code ++]
         - '(?i)^/api/auth/login.*$' # [!code ++]
@@ -164,6 +180,7 @@ const caddyFile = buildSnippet({
 # 1. PUBLIC SITE: Shielded from login and administration probes
 photos.example.com {
     route_warden { # [!code ++]
+        methods GET POST PUT DELETE PATCH HEAD # [!code ++]
         enable_default_patterns true # [!code ++]
         block_patterns "(?i)^/api/auth/login.*$" "(?i)^/api/auth/admin-sign-up.*$" "(?i)^/api/users.*$" "(?i)^/api/admin.*$" "(?i)^/api/server-info/stats.*$" # [!code ++]
         response { # [!code ++]
@@ -245,6 +262,7 @@ data:
     
     photos.example.com { # [!code ++]
         route_warden { # [!code ++]
+            methods GET POST PUT DELETE PATCH HEAD # [!code ++]
             enable_default_patterns true # [!code ++]
             block_patterns "(?i)^/api/auth/login.*$" "(?i)^/api/auth/admin-sign-up.*$" "(?i)^/api/users.*$" "(?i)^/api/admin.*$" "(?i)^/api/server-info/stats.*$" # [!code ++]
             response { # [!code ++]
@@ -268,6 +286,7 @@ http {
         local routewarden = require("resty.routewarden") # [!code ++]
 
         public_warden = routewarden.new({ # [!code ++]
+            methods = { "GET", "POST", "PUT", "DELETE", "PATCH", "HEAD" }, # [!code ++]
             enable_default_patterns = true, # [!code ++]
             block_patterns = { # [!code ++]
                 "(?i)^/api/auth/login.*$", # [!code ++]
@@ -357,6 +376,7 @@ metadata:
       access_by_lua_block { # [!code ++]
           local routewarden = require("resty.routewarden") # [!code ++]
           local warden = routewarden.new({ # [!code ++]
+              methods = { "GET", "POST", "PUT", "DELETE", "PATCH", "HEAD" }, # [!code ++]
               enable_default_patterns = true, # [!code ++]
               block_patterns = { # [!code ++]
                   "(?i)^/api/auth/login.*$", # [!code ++]
@@ -489,6 +509,13 @@ http:
       plugin: # [!code ++]
         routewarden: # [!code ++]
           enabled: true # [!code ++]
+          methods: # [!code ++]
+            - GET # [!code ++]
+            - POST # [!code ++]
+            - PUT # [!code ++]
+            - DELETE # [!code ++]
+            - PATCH # [!code ++]
+            - HEAD # [!code ++]
           enableDefaultPatterns: true # [!code ++]
           blockPatterns: # [!code ++]
             - '(?i)^/api/auth/login.*$' # [!code ++]
@@ -524,6 +551,7 @@ const altTraefikToml = buildSnippet({
 
 [http.middlewares.immich-smart-shield.plugin.routewarden] # [!code ++]
   enabled = true # [!code ++]
+  methods = ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD"] # [!code ++]
   enableDefaultPatterns = true # [!code ++]
   blockPatterns = [ # [!code ++]
     "(?i)^/api/auth/login.*$", # [!code ++]
@@ -556,6 +584,7 @@ const altTraefikLabels = buildSnippet({
 - "traefik.http.routers.immich.entrypoints=websecure"
 - "traefik.http.routers.immich.middlewares=immich-smart-shield" # [!code ++]
 - "traefik.http.middlewares.immich-smart-shield.plugin.routewarden.enabled=true" # [!code ++]
+- "traefik.http.middlewares.immich-smart-shield.plugin.routewarden.methods=GET,POST,PUT,DELETE,PATCH,HEAD" # [!code ++]
 - "traefik.http.middlewares.immich-smart-shield.plugin.routewarden.enableDefaultPatterns=true" # [!code ++]
 - "traefik.http.middlewares.immich-smart-shield.plugin.routewarden.blockPatterns=(?i)^/api/auth/login.*$,(?i)^/api/auth/admin-sign-up.*$,(?i)^/api/users.*$,(?i)^/api/admin.*$,(?i)^/api/server-info/stats.*$" # [!code ++]
 - "traefik.http.middlewares.immich-smart-shield.plugin.routewarden.allowedIps=10.0.0.0/8,100.64.0.0/10,192.168.1.0/24" # [!code ++]
@@ -568,8 +597,13 @@ const altTraefikLabels = buildSnippet({
 const altCaddyfile = buildSnippet({
   lang: 'caddy',
   code: `# Caddyfile: Single domain with IP allowlist bypass
+{
+    order route_warden before reverse_proxy # [!code ++]
+}
+
 photos.example.com {
     route_warden { # [!code ++]
+        methods GET POST PUT DELETE PATCH HEAD # [!code ++]
         enable_default_patterns true # [!code ++]
         block_patterns "(?i)^/api/auth/login.*$" "(?i)^/api/auth/admin-sign-up.*$" "(?i)^/api/users.*$" "(?i)^/api/admin.*$" "(?i)^/api/server-info/stats.*$" # [!code ++]
         # Whitelisted VPN and LAN subnets bypass the block:
@@ -592,6 +626,7 @@ http {
     init_by_lua_block {
         local routewarden = require("resty.routewarden") # [!code ++]
         immich_warden = routewarden.new({ # [!code ++]
+            methods = { "GET", "POST", "PUT", "DELETE", "PATCH", "HEAD" }, # [!code ++]
             enable_default_patterns = true, # [!code ++]
             block_patterns = { # [!code ++]
                 "(?i)^/api/auth/login.*$", # [!code ++]
@@ -674,8 +709,18 @@ const alternativeSnippets = computed(() => ({
 
 const testPublicLogin = buildSnippet({
   lang: 'bash',
-  code: `# Attempt to access login API from public internet
+  code: `# 1. Attempt GET probe to login API from public internet
 curl -i https://photos.example.com/api/auth/login
+
+# Response:
+# HTTP/2 404
+# content-type: application/json
+# {"error":"Not Found","message":"Endpoint unavailable on public router"}
+
+# 2. Attempt POST login probe (credential stuffing / brute force)
+curl -i -X POST https://photos.example.com/api/auth/login \\
+  -H "Content-Type: application/json" \\
+  -d '{"email":"admin@example.com","password":"password123"}'
 
 # Response:
 # HTTP/2 404
@@ -694,12 +739,23 @@ curl -i https://photos.example.com/api/users
 
 const testPublicShare = buildSnippet({
   lang: 'bash',
-  code: `# Public shared album link accessed from the internet
+  code: `# 1. Public shared album link accessed from the internet
 curl -i https://photos.example.com/share/abcdef123456
 
 # Response:
 # HTTP/2 200 OK
-# Immich serves shared album viewer successfully`,
+# Immich serves shared album viewer successfully
+
+# 2. Password-protected shared album submission
+# Client submits password via POST; Immich validates and issues a 303 redirect:
+curl -i -X POST https://photos.example.com/share/abcdef123456 \\
+  -H "Content-Type: application/json" \\
+  -d '{"password":"family-secret"}'
+
+# Response:
+# HTTP/2 303 See Other
+# Location: /share/abcdef123456
+# Set-Cookie: immich_share_auth=...`,
 })
 
 const testInternalLogin = buildSnippet({
@@ -900,6 +956,66 @@ When Immich generates public share links (e.g. for photo albums or partner shari
 Select your gateway below to see the full configuration. Diff highlights show the RouteWarden-specific additions:
 
 <CodeViewer :snippets="snippets" />
+
+---
+
+## Crucial Implementation Notes & Production Caveats
+
+### 1. HTTP Methods: Why `methods` is Mandatory
+
+By default, RouteWarden inspects only `GET` requests (`methods: ["GET"]`) to preserve performance for non-idempotent operations unless configured otherwise.
+
+However, modern web applications like Immich execute credential checks and administrative operations using **`POST`**, **`PUT`**, and **`DELETE`**:
+- Login attempts: `POST /api/auth/login`
+- Admin sign-ups: `POST /api/auth/admin-sign-up`
+- User creations: `POST /api/users`
+
+> [!WARNING]
+> If you omit the `methods` directive, RouteWarden will inspect only `GET` requests. An attacker sending a `POST /api/auth/login` credential brute-force request would **completely bypass RouteWarden** and hit the Immich backend directly. Always explicitly define:
+> - **Caddy**: `methods GET POST PUT DELETE PATCH HEAD`
+> - **Traefik (YAML / TOML)**: `methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD"]`
+> - **NGINX (Lua)**: `methods = { "GET", "POST", "PUT", "DELETE", "PATCH", "HEAD" }`
+
+### 2. Public Share Links (`/share/...`) & Password-Protected Albums
+
+Immich provides two types of public shares:
+1. **Unprotected Albums**: Visitors access `GET /share/<shareKey>`. The Immich frontend loads and retrieves preview assets via `/api/assets/*`.
+2. **Password-Protected Albums**: The visitor is presented with a password prompt. Submitting the password sends a **`POST /share/<shareKey>`** request with the password payload. Immich validates the password, sets a session cookie, and returns an **`HTTP 303 See Other`** redirect back to `GET /share/<shareKey>`.
+
+Because our recommended `blockPatterns` strictly target authentication and admin endpoints (`/api/auth/login`, `/api/auth/admin-sign-up`, `/api/users`, `/api/admin`, `/api/server-info/stats`), public `/share/*` flows—including password submission redirects—function seamlessly without being blocked.
+
+### 3. Stealth Cloaking (404 Not Found) vs `silentDrop` (Avoid 502 Edge Errors)
+
+In our snippets, the recommended response is **`mode: json`** (or **`mode: html`**) with **`statusCode: 404`**:
+
+```json
+"response": {
+  "mode": "json",
+  "statusCode": 404,
+  "body": "{\"error\":\"Not Found\",\"message\":\"Endpoint unavailable on public router\"}"
+}
+```
+
+> [!IMPORTANT]
+> If your reverse proxy is placed behind an edge proxy or CDN (such as Cloudflare, Traefik edge gateway, AWS ALB, or NGINX), avoid using `mode: silentDrop`. 
+>
+> When RouteWarden drops or resets a TCP connection under `silentDrop`, the upstream edge proxy cannot complete the connection and will return an **`HTTP 502 Bad Gateway`** error page to the client. Using `mode: json` or `mode: html` with `statusCode: 404` returns a natural, stealthy "Not Found" response that mimics a non-existent route without causing edge proxy 502 errors.
+
+### 4. Caddy Directive Ordering
+
+When using Caddy, you must register RouteWarden before Caddy's built-in `reverse_proxy` directive in the global options block:
+
+```caddy
+{
+    order route_warden before reverse_proxy
+}
+```
+
+*(You may also use the alias `order routewarden before reverse_proxy`.)*
+
+Without this directive order, Caddy will fail to start with the error:
+`directive 'route_warden' is not an ordered HTTP handler`.
+Alternatively, you can encapsulate RouteWarden and your proxy inside an explicit `route { ... }` block.
 
 ---
 

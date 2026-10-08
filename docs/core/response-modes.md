@@ -595,6 +595,14 @@ Rather than allocating HTTP response buffers, RouteWarden hijacks the underlying
 - **Zero Server Bandwidth**: No HTTP headers or status codes are sent over the wire.
 - **Port Scanner Disruption**: Automated scanners (like `masscan` or `nmap`) receive an unexpected connection reset, causing them to flag the port or endpoint as dead.
 
+### Limitations & Caveats
+
+> [!WARNING]
+> **Edge Proxies, CDNs, and 502 Bad Gateway**:
+> When running behind **Cloudflare, AWS ALB, NGINX, Traefik, or any reverse proxy / CDN**, closing the TCP socket without an HTTP response causes the upstream proxy to perceive a backend connection failure or dropped peer. The upstream proxy will typically render an **HTTP `502 Bad Gateway`** error to the client.
+>
+> If you are diagnosing unexpected 502 errors or want predictable error codes delivered through CDNs, use `mode json` or `mode html` with `statusCode 403` or `404` instead of `silentDrop`.
+
 ---
 
 ## 8. Gzip Decompression Bomb (`gzipBomb` / `bomb`)
