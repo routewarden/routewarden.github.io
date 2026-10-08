@@ -175,6 +175,7 @@ const r4_json = buildSnippet({
   code: `{
   "$schema": "https://raw.githubusercontent.com/routewarden/cli/main/config.schema.json",
   "enabled": true,
+  "methods": ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD"],
   "enableDefaultPatterns": true,
   "blockPatterns": [
     "(?i)^/api/auth/login.*$",
@@ -198,6 +199,13 @@ const r4_dynamic = buildSnippet({
       plugin: # [!code ++]
         routewarden: # [!code ++]
           enabled: true # [!code ++]
+          methods: # [!code ++]
+            - GET # [!code ++]
+            - POST # [!code ++]
+            - PUT # [!code ++]
+            - DELETE # [!code ++]
+            - PATCH # [!code ++]
+            - HEAD # [!code ++]
           enableDefaultPatterns: true # [!code ++]
           blockPatterns: # [!code ++]
             - '(?i)^/api/auth/login.*$' # [!code ++]

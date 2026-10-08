@@ -177,6 +177,7 @@ const r4_json = buildSnippet({
   code: `{
   "$schema": "https://raw.githubusercontent.com/routewarden/cli/main/config.schema.json",
   "enabled": true,
+  "methods": ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD"],
   "enableDefaultPatterns": true,
   "blockPatterns": [
     "(?i)^/api/auth/login.*$",
@@ -201,6 +202,7 @@ const r4_caddy = buildSnippet({
 # 1. PUBLIC SITE: Shielded from login and administration probes
 photos.example.com {
     route_warden { # [!code ++]
+        methods GET POST PUT DELETE PATCH HEAD # [!code ++]
         enable_default_patterns true # [!code ++]
         block_patterns "(?i)^/api/auth/login.*$" "(?i)^/api/auth/admin-sign-up.*$" "(?i)^/api/users.*$" "(?i)^/api/admin.*$" # [!code ++]
         response { # [!code ++]
