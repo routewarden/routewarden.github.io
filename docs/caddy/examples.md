@@ -179,11 +179,18 @@ const r4_json = buildSnippet({
   "enabled": true,
   "methods": ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD"],
   "enableDefaultPatterns": true,
+  "allowPatterns": [
+    "(?i)^/share(/.*)?$",
+    "(?i)^/api/shared-links(/.*)?$",
+    "(?i)^/api/server/media-types$",
+    "(?i)^/api/server/config$",
+    "(?i)^/api/server/features$",
+    "(?i)^/api/assets(/.*)?$",
+    "(?i)^/_app(/.*)?$",
+    "(?i)^/(favicon\\.ico|manifest\\.json)$"
+  ],
   "blockPatterns": [
-    "(?i)^/api/auth/login.*$",
-    "(?i)^/api/auth/admin-sign-up.*$",
-    "(?i)^/api/users.*$",
-    "(?i)^/api/admin.*$"
+    "(?i)^/.*$"
   ],
   "response": {
     "mode": "json",
@@ -199,12 +206,15 @@ const r4_caddy = buildSnippet({
     order route_warden before reverse_proxy # [!code ++]
 }
 
-# 1. PUBLIC SITE: Shielded from login and administration probes
+# 1. PUBLIC SITE: Shielded with Zero-Trust Allowlisting
 photos.example.com {
     route_warden { # [!code ++]
         methods GET POST PUT DELETE PATCH HEAD # [!code ++]
         enable_default_patterns true # [!code ++]
-        block_patterns "(?i)^/api/auth/login.*$" "(?i)^/api/auth/admin-sign-up.*$" "(?i)^/api/users.*$" "(?i)^/api/admin.*$" # [!code ++]
+        # Zero-Trust Allowlist: permit strictly public share viewer & required APIs # [!code ++]
+        allow_patterns "(?i)^/share(/.*)?$" "(?i)^/api/shared-links(/.*)?$" "(?i)^/api/server/media-types$" "(?i)^/api/server/config$" "(?i)^/api/server/features$" "(?i)^/api/assets(/.*)?$" "(?i)^/_app(/.*)?$" "(?i)^/(favicon\\.ico|manifest\\.json)$" # [!code ++]
+        # Catch-all: default-deny all other routes (blocks root redirects, login UI, admin) # [!code ++]
+        block_patterns "(?i)^/.*$" # [!code ++]
         response { # [!code ++]
             mode json # [!code ++]
             status_code 404 # [!code ++]

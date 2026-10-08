@@ -26,12 +26,19 @@ http:
             - PATCH # [!code ++]
             - HEAD # [!code ++]
           enableDefaultPatterns: true # Blocks .env, .git, config dumps # [!code ++]
+          # Zero-Trust Allowlist: permit strictly public share viewer & required APIs # [!code ++]
+          allowPatterns: # [!code ++]
+            - '(?i)^/share(/.*)?$' # [!code ++]
+            - '(?i)^/api/shared-links(/.*)?$' # [!code ++]
+            - '(?i)^/api/server/media-types$' # [!code ++]
+            - '(?i)^/api/server/config$' # [!code ++]
+            - '(?i)^/api/server/features$' # [!code ++]
+            - '(?i)^/api/assets(/.*)?$' # [!code ++]
+            - '(?i)^/_app(/.*)?$' # [!code ++]
+            - '(?i)^/(favicon\.ico|manifest\.json)$' # [!code ++]
+          # Catch-all: default-deny all other routes (blocks root redirects, login UI, admin) # [!code ++]
           blockPatterns: # [!code ++]
-            - '(?i)^/api/auth/login.*$' # [!code ++]
-            - '(?i)^/api/auth/admin-sign-up.*$' # [!code ++]
-            - '(?i)^/api/users.*$' # [!code ++]
-            - '(?i)^/api/admin.*$' # [!code ++]
-            - '(?i)^/api/server-info/stats.*$' # [!code ++]
+            - '(?i)^/.*$' # [!code ++]
           response: # [!code ++]
             mode: json # [!code ++]
             statusCode: 404 # [!code ++]
@@ -80,12 +87,20 @@ const traefikToml = buildSnippet({
   enabled = true # [!code ++]
   methods = ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD"] # [!code ++]
   enableDefaultPatterns = true # [!code ++]
+  # Zero-Trust Allowlist: permit strictly public share viewer & required APIs # [!code ++]
+  allowPatterns = [ # [!code ++]
+    "(?i)^/share(/.*)?$", # [!code ++]
+    "(?i)^/api/shared-links(/.*)?$", # [!code ++]
+    "(?i)^/api/server/media-types$", # [!code ++]
+    "(?i)^/api/server/config$", # [!code ++]
+    "(?i)^/api/server/features$", # [!code ++]
+    "(?i)^/api/assets(/.*)?$", # [!code ++]
+    "(?i)^/_app(/.*)?$", # [!code ++]
+    "(?i)^/(favicon\\.ico|manifest\\.json)$" # [!code ++]
+  ] # [!code ++]
+  # Catch-all: default-deny all other routes (blocks root redirects, login UI, admin) # [!code ++]
   blockPatterns = [ # [!code ++]
-    "(?i)^/api/auth/login.*$", # [!code ++]
-    "(?i)^/api/auth/admin-sign-up.*$", # [!code ++]
-    "(?i)^/api/users.*$", # [!code ++]
-    "(?i)^/api/admin.*$", # [!code ++]
-    "(?i)^/api/server-info/stats.*$" # [!code ++]
+    "(?i)^/.*$" # [!code ++]
   ] # [!code ++]
 
 [http.middlewares.immich-public-shield.plugin.routewarden.response] # [!code ++]
@@ -109,7 +124,9 @@ const traefikLabels = buildSnippet({
 - "traefik.http.routers.immich-pub.middlewares=immich-public-shield" # [!code ++]
 - "traefik.http.middlewares.immich-public-shield.plugin.routewarden.enabled=true" # [!code ++]
 - "traefik.http.middlewares.immich-public-shield.plugin.routewarden.methods=GET,POST,PUT,DELETE,PATCH,HEAD" # [!code ++]
-- "traefik.http.middlewares.immich-public-shield.plugin.routewarden.blockPatterns=(?i)^/api/auth/login.*$,(?i)^/api/auth/admin-sign-up.*$,(?i)^/api/users.*$,(?i)^/api/admin.*$,(?i)^/api/server-info/stats.*$" # [!code ++]
+- "traefik.http.middlewares.immich-public-shield.plugin.routewarden.enableDefaultPatterns=true" # [!code ++]
+- "traefik.http.middlewares.immich-public-shield.plugin.routewarden.allowPatterns=(?i)^/share(/.*)?$,(?i)^/api/shared-links(/.*)?$,(?i)^/api/server/media-types$,(?i)^/api/server/config$,(?i)^/api/server/features$,(?i)^/api/assets(/.*)?$,(?i)^/_app(/.*)?$,(?i)^/(favicon\\.ico|manifest\\.json)$" # [!code ++]
+- "traefik.http.middlewares.immich-public-shield.plugin.routewarden.blockPatterns=(?i)^/.*$" # [!code ++]
 - "traefik.http.middlewares.immich-public-shield.plugin.routewarden.response.mode=json" # [!code ++]
 - "traefik.http.middlewares.immich-public-shield.plugin.routewarden.response.statusCode=404" # [!code ++]
 - 'traefik.http.middlewares.immich-public-shield.plugin.routewarden.response.body={"error":"Not Found","message":"Endpoint unavailable on public router"}' # [!code ++]
@@ -140,12 +157,19 @@ spec: # [!code ++]
         - PATCH # [!code ++]
         - HEAD # [!code ++]
       enableDefaultPatterns: true # [!code ++]
+      # Zero-Trust Allowlist: permit strictly public share viewer & required APIs # [!code ++]
+      allowPatterns: # [!code ++]
+        - '(?i)^/share(/.*)?$' # [!code ++]
+        - '(?i)^/api/shared-links(/.*)?$' # [!code ++]
+        - '(?i)^/api/server/media-types$' # [!code ++]
+        - '(?i)^/api/server/config$' # [!code ++]
+        - '(?i)^/api/server/features$' # [!code ++]
+        - '(?i)^/api/assets(/.*)?$' # [!code ++]
+        - '(?i)^/_app(/.*)?$' # [!code ++]
+        - '(?i)^/(favicon\.ico|manifest\.json)$' # [!code ++]
+      # Catch-all: default-deny all other routes (blocks root redirects, login UI, admin) # [!code ++]
       blockPatterns: # [!code ++]
-        - '(?i)^/api/auth/login.*$' # [!code ++]
-        - '(?i)^/api/auth/admin-sign-up.*$' # [!code ++]
-        - '(?i)^/api/users.*$' # [!code ++]
-        - '(?i)^/api/admin.*$' # [!code ++]
-        - '(?i)^/api/server-info/stats.*$' # [!code ++]
+        - '(?i)^/.*$' # [!code ++]
       response: # [!code ++]
         mode: json # [!code ++]
         statusCode: 404 # [!code ++]
@@ -177,12 +201,15 @@ const caddyFile = buildSnippet({
     order route_warden before reverse_proxy # [!code ++]
 }
 
-# 1. PUBLIC SITE: Shielded from login and administration probes
+# 1. PUBLIC SITE: Shielded with Zero-Trust Allowlisting
 photos.example.com {
     route_warden { # [!code ++]
         methods GET POST PUT DELETE PATCH HEAD # [!code ++]
         enable_default_patterns true # [!code ++]
-        block_patterns "(?i)^/api/auth/login.*$" "(?i)^/api/auth/admin-sign-up.*$" "(?i)^/api/users.*$" "(?i)^/api/admin.*$" "(?i)^/api/server-info/stats.*$" # [!code ++]
+        # Zero-Trust Allowlist: permit strictly public share viewer & required APIs # [!code ++]
+        allow_patterns "(?i)^/share(/.*)?$" "(?i)^/api/shared-links(/.*)?$" "(?i)^/api/server/media-types$" "(?i)^/api/server/config$" "(?i)^/api/server/features$" "(?i)^/api/assets(/.*)?$" "(?i)^/_app(/.*)?$" "(?i)^/(favicon\\.ico|manifest\\.json)$" # [!code ++]
+        # Catch-all: default-deny all other routes (blocks root redirects, login UI, admin) # [!code ++]
+        block_patterns "(?i)^/.*$" # [!code ++]
         response { # [!code ++]
             mode json # [!code ++]
             status_code 404 # [!code ++]
@@ -239,7 +266,7 @@ const caddyDockerfile = buildSnippet({
 FROM caddy:2-builder AS builder # [!code ++]
 
 RUN xcaddy build \\ # [!code ++]
-    --with github.com/routewarden/caddy-routewarden # [!code ++]
+    --with github.com/routewarden/caddy-warden@v1.4.1 # [!code ++]
 
 FROM caddy:2
 
@@ -264,7 +291,10 @@ data:
         route_warden { # [!code ++]
             methods GET POST PUT DELETE PATCH HEAD # [!code ++]
             enable_default_patterns true # [!code ++]
-            block_patterns "(?i)^/api/auth/login.*$" "(?i)^/api/auth/admin-sign-up.*$" "(?i)^/api/users.*$" "(?i)^/api/admin.*$" "(?i)^/api/server-info/stats.*$" # [!code ++]
+            # Zero-Trust Allowlist: permit strictly public share viewer & required APIs # [!code ++]
+            allow_patterns "(?i)^/share(/.*)?$" "(?i)^/api/shared-links(/.*)?$" "(?i)^/api/server/media-types$" "(?i)^/api/server/config$" "(?i)^/api/server/features$" "(?i)^/api/assets(/.*)?$" "(?i)^/_app(/.*)?$" "(?i)^/(favicon\\.ico|manifest\\.json)$" # [!code ++]
+            # Catch-all: default-deny all other routes # [!code ++]
+            block_patterns "(?i)^/.*$" # [!code ++]
             response { # [!code ++]
                 mode json # [!code ++]
                 status_code 404 # [!code ++]
@@ -288,12 +318,20 @@ http {
         public_warden = routewarden.new({ # [!code ++]
             methods = { "GET", "POST", "PUT", "DELETE", "PATCH", "HEAD" }, # [!code ++]
             enable_default_patterns = true, # [!code ++]
+            -- Zero-Trust Allowlist: permit strictly public share viewer & required APIs # [!code ++]
+            allow_patterns = { # [!code ++]
+                "(?i)^/share(/.*)?$", # [!code ++]
+                "(?i)^/api/shared-links(/.*)?$", # [!code ++]
+                "(?i)^/api/server/media-types$", # [!code ++]
+                "(?i)^/api/server/config$", # [!code ++]
+                "(?i)^/api/server/features$", # [!code ++]
+                "(?i)^/api/assets(/.*)?$", # [!code ++]
+                "(?i)^/_app(/.*)?$", # [!code ++]
+                "(?i)^/(favicon\\.ico|manifest\\.json)$" # [!code ++]
+            }, # [!code ++]
+            -- Catch-all: default-deny all other routes # [!code ++]
             block_patterns = { # [!code ++]
-                "(?i)^/api/auth/login.*$", # [!code ++]
-                "(?i)^/api/auth/admin-sign-up.*$", # [!code ++]
-                "(?i)^/api/users.*$", # [!code ++]
-                "(?i)^/api/admin.*$", # [!code ++]
-                "(?i)^/api/server-info/stats.*$" # [!code ++]
+                "(?i)^/.*$" # [!code ++]
             }, # [!code ++]
             response = { # [!code ++]
                 mode = "json", # [!code ++]
@@ -333,7 +371,7 @@ http {
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         }
     }
-}`,
+} `,
 })
 
 const nginxDockerCompose = buildSnippet({
@@ -378,11 +416,20 @@ metadata:
           local warden = routewarden.new({ # [!code ++]
               methods = { "GET", "POST", "PUT", "DELETE", "PATCH", "HEAD" }, # [!code ++]
               enable_default_patterns = true, # [!code ++]
+              -- Zero-Trust Allowlist: permit strictly public share viewer & required APIs # [!code ++]
+              allow_patterns = { # [!code ++]
+                  "(?i)^/share(/.*)?$", # [!code ++]
+                  "(?i)^/api/shared-links(/.*)?$", # [!code ++]
+                  "(?i)^/api/server/media-types$", # [!code ++]
+                  "(?i)^/api/server/config$", # [!code ++]
+                  "(?i)^/api/server/features$", # [!code ++]
+                  "(?i)^/api/assets(/.*)?$", # [!code ++]
+                  "(?i)^/_app(/.*)?$", # [!code ++]
+                  "(?i)^/(favicon\\.ico|manifest\\.json)$" # [!code ++]
+              }, # [!code ++]
+              -- Catch-all: default-deny all other routes # [!code ++]
               block_patterns = { # [!code ++]
-                  "(?i)^/api/auth/login.*$", # [!code ++]
-                  "(?i)^/api/auth/admin-sign-up.*$", # [!code ++]
-                  "(?i)^/api/users.*$", # [!code ++]
-                  "(?i)^/api/admin.*$" # [!code ++]
+                  "(?i)^/.*$" # [!code ++]
               } # [!code ++]
           }) # [!code ++]
           warden:check() # [!code ++]
@@ -517,12 +564,19 @@ http:
             - PATCH # [!code ++]
             - HEAD # [!code ++]
           enableDefaultPatterns: true # [!code ++]
+          # Zero-Trust Allowlist: permit strictly public share viewer & required APIs # [!code ++]
+          allowPatterns: # [!code ++]
+            - '(?i)^/share(/.*)?$' # [!code ++]
+            - '(?i)^/api/shared-links(/.*)?$' # [!code ++]
+            - '(?i)^/api/server/media-types$' # [!code ++]
+            - '(?i)^/api/server/config$' # [!code ++]
+            - '(?i)^/api/server/features$' # [!code ++]
+            - '(?i)^/api/assets(/.*)?$' # [!code ++]
+            - '(?i)^/_app(/.*)?$' # [!code ++]
+            - '(?i)^/(favicon\.ico|manifest\.json)$' # [!code ++]
+          # Catch-all: default-deny all other routes for external traffic # [!code ++]
           blockPatterns: # [!code ++]
-            - '(?i)^/api/auth/login.*$' # [!code ++]
-            - '(?i)^/api/auth/admin-sign-up.*$' # [!code ++]
-            - '(?i)^/api/users.*$' # [!code ++]
-            - '(?i)^/api/admin.*$' # [!code ++]
-            - '(?i)^/api/server-info/stats.*$' # [!code ++]
+            - '(?i)^/.*$' # [!code ++]
           # Trusted Home / VPN Subnets bypass the shield:
           allowedIps: # [!code ++]
             - "10.0.0.0/8"          # Internal LAN # [!code ++]
@@ -553,12 +607,20 @@ const altTraefikToml = buildSnippet({
   enabled = true # [!code ++]
   methods = ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD"] # [!code ++]
   enableDefaultPatterns = true # [!code ++]
+  # Zero-Trust Allowlist: permit strictly public share viewer & required APIs # [!code ++]
+  allowPatterns = [ # [!code ++]
+    "(?i)^/share(/.*)?$", # [!code ++]
+    "(?i)^/api/shared-links(/.*)?$", # [!code ++]
+    "(?i)^/api/server/media-types$", # [!code ++]
+    "(?i)^/api/server/config$", # [!code ++]
+    "(?i)^/api/server/features$", # [!code ++]
+    "(?i)^/api/assets(/.*)?$", # [!code ++]
+    "(?i)^/_app(/.*)?$", # [!code ++]
+    "(?i)^/(favicon\\.ico|manifest\\.json)$" # [!code ++]
+  ] # [!code ++]
+  # Catch-all: default-deny all other routes # [!code ++]
   blockPatterns = [ # [!code ++]
-    "(?i)^/api/auth/login.*$", # [!code ++]
-    "(?i)^/api/auth/admin-sign-up.*$", # [!code ++]
-    "(?i)^/api/users.*$", # [!code ++]
-    "(?i)^/api/admin.*$", # [!code ++]
-    "(?i)^/api/server-info/stats.*$" # [!code ++]
+    "(?i)^/.*$" # [!code ++]
   ] # [!code ++]
   allowedIps = [ # [!code ++]
     "10.0.0.0/8",      # Internal LAN # [!code ++]
@@ -586,7 +648,8 @@ const altTraefikLabels = buildSnippet({
 - "traefik.http.middlewares.immich-smart-shield.plugin.routewarden.enabled=true" # [!code ++]
 - "traefik.http.middlewares.immich-smart-shield.plugin.routewarden.methods=GET,POST,PUT,DELETE,PATCH,HEAD" # [!code ++]
 - "traefik.http.middlewares.immich-smart-shield.plugin.routewarden.enableDefaultPatterns=true" # [!code ++]
-- "traefik.http.middlewares.immich-smart-shield.plugin.routewarden.blockPatterns=(?i)^/api/auth/login.*$,(?i)^/api/auth/admin-sign-up.*$,(?i)^/api/users.*$,(?i)^/api/admin.*$,(?i)^/api/server-info/stats.*$" # [!code ++]
+- "traefik.http.middlewares.immich-smart-shield.plugin.routewarden.allowPatterns=(?i)^/share(/.*)?$,(?i)^/api/shared-links(/.*)?$,(?i)^/api/server/media-types$,(?i)^/api/server/config$,(?i)^/api/server/features$,(?i)^/api/assets(/.*)?$,(?i)^/_app(/.*)?$,(?i)^/(favicon\\.ico|manifest\\.json)$" # [!code ++]
+- "traefik.http.middlewares.immich-smart-shield.plugin.routewarden.blockPatterns=(?i)^/.*$" # [!code ++]
 - "traefik.http.middlewares.immich-smart-shield.plugin.routewarden.allowedIps=10.0.0.0/8,100.64.0.0/10,192.168.1.0/24" # [!code ++]
 - "traefik.http.middlewares.immich-smart-shield.plugin.routewarden.response.mode=json" # [!code ++]
 - "traefik.http.middlewares.immich-smart-shield.plugin.routewarden.response.statusCode=404" # [!code ++]
@@ -605,7 +668,10 @@ photos.example.com {
     route_warden { # [!code ++]
         methods GET POST PUT DELETE PATCH HEAD # [!code ++]
         enable_default_patterns true # [!code ++]
-        block_patterns "(?i)^/api/auth/login.*$" "(?i)^/api/auth/admin-sign-up.*$" "(?i)^/api/users.*$" "(?i)^/api/admin.*$" "(?i)^/api/server-info/stats.*$" # [!code ++]
+        # Zero-Trust Allowlist: permit strictly public share viewer & required APIs # [!code ++]
+        allow_patterns "(?i)^/share(/.*)?$" "(?i)^/api/shared-links(/.*)?$" "(?i)^/api/server/media-types$" "(?i)^/api/server/config$" "(?i)^/api/server/features$" "(?i)^/api/assets(/.*)?$" "(?i)^/_app(/.*)?$" "(?i)^/(favicon\\.ico|manifest\\.json)$" # [!code ++]
+        # Catch-all: default-deny all other routes # [!code ++]
+        block_patterns "(?i)^/.*$" # [!code ++]
         # Whitelisted VPN and LAN subnets bypass the block:
         allowed_ips "10.0.0.0/8" "100.64.0.0/10" "192.168.1.0/24" # [!code ++]
         response { # [!code ++]
@@ -628,12 +694,20 @@ http {
         immich_warden = routewarden.new({ # [!code ++]
             methods = { "GET", "POST", "PUT", "DELETE", "PATCH", "HEAD" }, # [!code ++]
             enable_default_patterns = true, # [!code ++]
+            -- Zero-Trust Allowlist: permit strictly public share viewer & required APIs # [!code ++]
+            allow_patterns = { # [!code ++]
+                "(?i)^/share(/.*)?$", # [!code ++]
+                "(?i)^/api/shared-links(/.*)?$", # [!code ++]
+                "(?i)^/api/server/media-types$", # [!code ++]
+                "(?i)^/api/server/config$", # [!code ++]
+                "(?i)^/api/server/features$", # [!code ++]
+                "(?i)^/api/assets(/.*)?$", # [!code ++]
+                "(?i)^/_app(/.*)?$", # [!code ++]
+                "(?i)^/(favicon\\.ico|manifest\\.json)$" # [!code ++]
+            }, # [!code ++]
+            -- Catch-all: default-deny all other routes # [!code ++]
             block_patterns = { # [!code ++]
-                "(?i)^/api/auth/login.*$", # [!code ++]
-                "(?i)^/api/auth/admin-sign-up.*$", # [!code ++]
-                "(?i)^/api/users.*$", # [!code ++]
-                "(?i)^/api/admin.*$", # [!code ++]
-                "(?i)^/api/server-info/stats.*$" # [!code ++]
+                "(?i)^/.*$" # [!code ++]
             }, # [!code ++]
             allowed_ips = { # [!code ++]
                 "10.0.0.0/8", "100.64.0.0/10", "192.168.1.0/24" # [!code ++]
@@ -705,19 +779,42 @@ const alternativeSnippets = computed(() => ({
   ],
 }))
 
+// ─── Caddy Directive Ordering Snippet ─────────────────────────────────────────
+const caddyOrder = buildSnippet({
+  lang: 'caddy',
+  code: `# Caddyfile Global Options
+{
+    order route_warden before reverse_proxy
+}`
+})
+
+const caddyOrderSnippets = computed(() => ({
+  caddy: [
+    { filename: 'Caddyfile', lang: 'caddy', code: caddyOrder.cleanCode, html: caddyOrder.html, hasDiff: false },
+  ],
+}))
+
 // ─── Verification Curl Test Snippets ─────────────────────────────────────────
 
-const testPublicLogin = buildSnippet({
+const testRootAndLoginCmd = buildSnippet({
   lang: 'bash',
-  code: `# 1. Attempt GET probe to login API from public internet
-curl -i https://photos.example.com/api/auth/login
+  code: `# 1. Probe the root URL (prevents 302/307 redirect to /auth/login)
+curl -i https://photos.example.com/
 
 # Response:
 # HTTP/2 404
 # content-type: application/json
 # {"error":"Not Found","message":"Endpoint unavailable on public router"}
 
-# 2. Attempt POST login probe (credential stuffing / brute force)
+# 2. Probe the web UI login URL directly
+curl -i https://photos.example.com/auth/login
+
+# Response:
+# HTTP/2 404
+# content-type: application/json
+# {"error":"Not Found","message":"Endpoint unavailable on public router"}
+
+# 3. Probe the authentication API (credential brute-force)
 curl -i -X POST https://photos.example.com/api/auth/login \\
   -H "Content-Type: application/json" \\
   -d '{"email":"admin@example.com","password":"password123"}'
@@ -728,16 +825,18 @@ curl -i -X POST https://photos.example.com/api/auth/login \\
 # {"error":"Not Found","message":"Endpoint unavailable on public router"}`,
 })
 
-const testPublicStats = buildSnippet({
+const testPublicStatsCmd = buildSnippet({
   lang: 'bash',
-  code: `# Attempt to probe server statistics or user list
+  code: `# Probe server statistics, administration, or user enumeration
+curl -i https://photos.example.com/admin
+curl -i https://photos.example.com/api/admin
 curl -i https://photos.example.com/api/server-info/stats
 curl -i https://photos.example.com/api/users
 
-# Both return 404 Not Found immediately without touching Immich backend!`,
+# All return 404 Not Found immediately without touching Immich backend!`,
 })
 
-const testPublicShare = buildSnippet({
+const testPublicShareCmd = buildSnippet({
   lang: 'bash',
   code: `# 1. Public shared album link accessed from the internet
 curl -i https://photos.example.com/share/abcdef123456
@@ -746,7 +845,32 @@ curl -i https://photos.example.com/share/abcdef123456
 # HTTP/2 200 OK
 # Immich serves shared album viewer successfully
 
-# 2. Password-protected shared album submission
+# 2. Public shared link metadata API (with share key)
+curl -i "https://photos.example.com/api/shared-links/me?key=S1g-sOovheVp1Npk-sdf"
+
+# Response:
+# HTTP/2 200 OK
+# Returns album metadata, key validation, and assets list
+
+# 3. Public server media types API (supported MIME types)
+curl -i https://photos.example.com/api/server/media-types
+
+# Response:
+# HTTP/2 200 OK
+
+# 4. Public server configuration API (features, theme, settings)
+curl -i https://photos.example.com/api/server/config
+
+# Response:
+# HTTP/2 200 OK
+
+# 5. Public server features API (enabled instance features)
+curl -i https://photos.example.com/api/server/features
+
+# Response:
+# HTTP/2 200 OK
+
+# 6. Password-protected shared album submission
 # Client submits password via POST; Immich validates and issues a 303 redirect:
 curl -i -X POST https://photos.example.com/share/abcdef123456 \\
   -H "Content-Type: application/json" \\
@@ -758,29 +882,23 @@ curl -i -X POST https://photos.example.com/share/abcdef123456 \\
 # Set-Cookie: immich_share_auth=...`,
 })
 
-const testInternalLogin = buildSnippet({
+const testInternalLoginCmd = buildSnippet({
   lang: 'bash',
   code: `# Admin login from internal VPN router or whitelisted IP
+curl -i https://photos-internal.example.com/auth/login
 curl -i https://photos-internal.example.com/api/auth/login
 
 # Response:
-# HTTP/2 200 OK (or backend response from Immich authentication handler)`,
+# HTTP/2 200 OK (Full admin access preserved)`,
 })
 
-const testPublicLoginSnippets = computed(() => ({
-  traefik: [{ filename: 'Shell(Bash)', lang: 'bash', code: testPublicLogin.cleanCode, html: testPublicLogin.html, hasDiff: false }],
-}))
-
-const testPublicStatsSnippets = computed(() => ({
-  traefik: [{ filename: 'Shell(Bash)', lang: 'bash', code: testPublicStats.cleanCode, html: testPublicStats.html, hasDiff: false }],
-}))
-
-const testPublicShareSnippets = computed(() => ({
-  traefik: [{ filename: 'Shell(Bash)', lang: 'bash', code: testPublicShare.cleanCode, html: testPublicShare.html, hasDiff: false }],
-}))
-
-const testInternalLoginSnippets = computed(() => ({
-  traefik: [{ filename: 'Shell(Bash)', lang: 'bash', code: testInternalLogin.cleanCode, html: testInternalLogin.html, hasDiff: false }],
+const verificationSnippets = computed(() => ({
+  traefik: [
+    { filename: '1-root-and-login.sh', lang: 'bash', code: testRootAndLoginCmd.cleanCode, html: testRootAndLoginCmd.html, hasDiff: false },
+    { filename: '2-api-probes.sh', lang: 'bash', code: testPublicStatsCmd.cleanCode, html: testPublicStatsCmd.html, hasDiff: false },
+    { filename: '3-public-share.sh', lang: 'bash', code: testPublicShareCmd.cleanCode, html: testPublicShareCmd.html, hasDiff: false },
+    { filename: '4-internal-admin.sh', lang: 'bash', code: testInternalLoginCmd.cleanCode, html: testInternalLoginCmd.html, hasDiff: false },
+  ],
 }))
 
 // ─── Dual-Router Architecture Diagram Snippets ──────────────────────────────
@@ -790,7 +908,7 @@ const immich_mermaid_raw = `flowchart TD
     EDGE -->|Host: photos.domain| PUB["<b>Public Router</b><br/>EntryPoint: websecure"]:::routerNode
     EDGE -->|Host: photos-lan.vpn| PRIV["<b>Private / VPN Router</b><br/>EntryPoint: internal (Tailscale / WireGuard)"]:::vpnNode
 
-    PUB --> SHIELD["<b>RouteWarden Shield</b><br/>• Intercepts: /api/auth/login*, /api/users*, /api/admin*<br/>• Enforces 403 Forbidden or silent TCP drop"]:::shieldNode
+    PUB --> SHIELD["<b>RouteWarden Shield (Zero-Trust Allowlist)</b><br/>• Allowlist: /share/*, /api/shared-links*, /api/server/media-types, /api/server/config, /api/server/features, /api/assets/*<br/>• Default-Deny: Intercepts all other routes (/, /auth/*, /admin*) with 404"]:::shieldNode
 
     PRIV -->|Direct Full Admin Access| BACKEND["<b>Immich Server</b><br/>Upstream Backend Application"]:::upstreamNode
     SHIELD -->|Allowed Public Assets /share/*| BACKEND
@@ -875,8 +993,8 @@ const immich_graph_svg = `<div class="rw-graph-container">
     <rect x="60" y="284" width="340" height="88" rx="10" class="rw-g-box" fill="url(#immich-grad-shield)"/>
     <circle cx="86" cy="310" r="7" fill="#ef4444"/>
     <text x="104" y="308" class="rw-g-card-title">RouteWarden Middleware Shield</text>
-    <text x="86" y="328" class="rw-g-desc">• Strictly intercepts: /api/auth/login*, /api/users*, /api/admin*</text>
-    <text x="86" y="344" class="rw-g-desc">• Blocks sensitive probing with 403 Forbidden or silent TCP drop</text>
+    <text x="86" y="328" class="rw-g-desc">• Zero-Trust: Default-Deny (^/.*$) with stealth 404 cloaking</text>
+    <text x="86" y="344" class="rw-g-desc">• Allowlist: /share/*, /api/shared-links*, /api/server/media-types, /api/server/config, /api/server/features, /api/assets/*</text>
     <text x="86" y="360" class="rw-g-desc">• Allowed paths pass safely: /share/*, /api/asset/*</text>
 
     <!-- Connectors to Upstream Backend -->
@@ -918,14 +1036,15 @@ We use **[Immich](https://immich.app/)** (a self-hosted high-performance photo a
 You want to share public photo albums, shared timeline links, or public asset previews with family, friends, or clients over the internet (e.g., `photos.yourdomain.com`). 
 
 However, exposing Immich directly to the public web introduces significant attack surface:
+- **Root Path Redirects & Web UI Login**: Immich has no public homepage at `/`. Visiting `/` unconditionally issues an `HTTP 302/307` redirect to `/auth/login`. If unshielded, internet users and scanners load the complete web login UI.
 - **Authentication & Login APIs**: Brute-force credential stuffing against `/api/auth/login`.
-- **Administrative Endpoints**: Potential exposure of `/api/admin/*` or `/api/server-info/stats`.
+- **Administrative Endpoints**: Exposure of `/admin` (web UI) or `/api/admin/*` and `/api/server-info/stats`.
 - **User Management**: Public scanning against user enumeration APIs like `/api/users*`.
-- **Account Registration**: Public bot registrations against `/api/auth/admin-sign-up*`.
+- **Account Registration**: Public bot registrations against `/auth/admin-sign-up` or `/api/auth/admin-sign-up*`.
 
 ### The Goal
 1. **Private Router (Admins / Family)**: Accessible via internal network / VPN (WireGuard, Tailscale, or corporate subnet). Has full access to all features, administration, background jobs, user management, and login.
-2. **Public Router (Internet)**: Accessible publicly to view shared photos/albums, but **strictly intercepts and blocks** all sensitive login, administrative, and user management endpoints before they can ever be probed by internet scanners.
+2. **Public Router (Internet)**: Accessible publicly to view shared photos/albums (`/share/*`), but **hardened with Zero-Trust Allowlisting**—permitting strictly the public share viewer, required server config, and media assets, while default-denying the root path `/`, authentication, and administrative endpoints before they can ever reach the Immich backend or trigger login redirects.
 
 ---
 
@@ -976,13 +1095,23 @@ However, modern web applications like Immich execute credential checks and admin
 > - **Traefik (YAML / TOML)**: `methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD"]`
 > - **NGINX (Lua)**: `methods = { "GET", "POST", "PUT", "DELETE", "PATCH", "HEAD" }`
 
-### 2. Public Share Links (`/share/...`) & Password-Protected Albums
+### 2. Public Share Links (`/share/...`), Media APIs & Password-Protected Albums
 
 Immich provides two types of public shares:
 1. **Unprotected Albums**: Visitors access `GET /share/<shareKey>`. The Immich frontend loads and retrieves preview assets via `/api/assets/*`.
 2. **Password-Protected Albums**: The visitor is presented with a password prompt. Submitting the password sends a **`POST /share/<shareKey>`** request with the password payload. Immich validates the password, sets a session cookie, and returns an **`HTTP 303 See Other`** redirect back to `GET /share/<shareKey>`.
 
-Because our recommended `blockPatterns` strictly target authentication and admin endpoints (`/api/auth/login`, `/api/auth/admin-sign-up`, `/api/users`, `/api/admin`, `/api/server-info/stats`), public `/share/*` flows—including password submission redirects—function seamlessly without being blocked.
+When viewing public shares, the Immich web frontend requires access to a minimal set of endpoints:
+- **`(?i)^/share(/.*)?$`**: Public album viewer interface and password submission handling (`POST /share/<shareKey>`).
+- **`(?i)^/api/shared-links(/.*)?$`**: Shared link metadata API (`GET /api/shared-links/me?key=...`), which validates the share key and returns the album structure.
+- **`(?i)^/api/server/media-types$`**: Supported MIME types query (`GET /api/server/media-types`), required by the frontend player to determine playback capabilities.
+- **`(?i)^/api/server/config$`**: Public server configuration API (`GET /api/server/config`), required to render the application theme, branding, and enabled public features.
+- **`(?i)^/api/server/features$`**: Features API query (`GET /api/server/features`), required by the client to discover enabled server-side capabilities (e.g. search, oauth, trash).
+- **`(?i)^/api/assets(/.*)?$`**: Asset streaming, photo thumbnails, and video previews.
+- **`(?i)^/_app(/.*)?$`**: SvelteKit static bundles (JS, CSS, fonts).
+- **`(?i)^/(favicon\.ico|manifest\.json)$`**: Standard browser icons and web app manifest.
+
+Because RouteWarden evaluates `allowPatterns` **before** testing block patterns, all legitimate sharing interactions function seamlessly while every unlisted route is safely blocked.
 
 ### 3. Stealth Cloaking (404 Not Found) vs `silentDrop` (Avoid 502 Edge Errors)
 
@@ -1005,17 +1134,38 @@ In our snippets, the recommended response is **`mode: json`** (or **`mode: html`
 
 When using Caddy, you must register RouteWarden before Caddy's built-in `reverse_proxy` directive in the global options block:
 
-```caddy
-{
-    order route_warden before reverse_proxy
-}
-```
-
-*(You may also use the alias `order routewarden before reverse_proxy`.)*
+<CodeViewer :snippets="caddyOrderSnippets" />
 
 Without this directive order, Caddy will fail to start with the error:
 `directive 'route_warden' is not an ordered HTTP handler`.
 Alternatively, you can encapsulate RouteWarden and your proxy inside an explicit `route { ... }` block.
+
+### 5. Why Immich `/` Redirects to `/auth/login` (and How Zero-Trust Allowlisting Prevents Bypass)
+
+By default, Immich has no public homepage at the root path (`/`). When an unauthenticated visitor accesses `https://photos.example.com/`:
+1. Immich responds with an **`HTTP 302/307 Redirect`** pointing to **`/auth/login`** (the web UI login form).
+2. The browser automatically follows the redirect and issues a `GET /auth/login` request.
+
+#### The Fragility of Traditional Denylisting (Blocklists)
+If your RouteWarden configuration relies solely on a blocklist (denylist) targeting specific paths (e.g., `^/api/auth/login`):
+- The initial request to `/` passes through to Immich, which issues the 302 redirect.
+- The redirected request to `/auth/login` does not start with `/api/`, so it bypasses RouteWarden entirely, causing Immich to render the full web login screen to public visitors.
+- Even if you manually add `/auth/login` to `blockPatterns`, any future endpoint or unexpected redirect introduced in upstream updates could create another bypass. Denylisting forces administrators to play an endless, error-prone game of "whack-a-mole".
+
+#### The Zero-Trust Inversion (Default-Deny)
+By inverting RouteWarden's security model to **Zero-Trust Allowlisting**:
+1. **Catch-All Block (`blockPatterns: ['(?i)^/.*$']`)**: RouteWarden enforces a strict default-deny policy across the entire domain. Any unlisted route—including the root path `/`, `/auth/login`, `/admin`, and internal APIs—is immediately intercepted and cloaked with a 404 Not Found at the edge proxy. Because the initial request to `/` never reaches Immich, Immich never gets the opportunity to return the 302 redirect.
+2. **Precedence-Based Allowlist (`allowPatterns`)**: Because RouteWarden evaluates `allowPatterns` *before* `blockPatterns`, only explicitly authorized public routes pass through to the Immich backend:
+   - `(?i)^/share(/.*)?$`: Public album viewing and password verification (`POST /share/<key>`).
+   - `(?i)^/api/shared-links(/.*)?$`: Shared link metadata API (`GET /api/shared-links/me?key=...`).
+   - `(?i)^/api/server/media-types$`: Supported media MIME types query (`GET /api/server/media-types`).
+   - `(?i)^/api/server/config$`: Public server configuration (`GET /api/server/config`).
+   - `(?i)^/api/server/features$`: Features API query (`GET /api/server/features`).
+   - `(?i)^/api/assets(/.*)?$`: Asset streaming, photo thumbnails, and video previews.
+   - `(?i)^/_app(/.*)?$`: SvelteKit frontend JavaScript and CSS bundles.
+   - `(?i)^/(favicon\.ico|manifest\.json)$`: Browser favicons and web application manifest.
+
+This architecture is completely immune to upstream routing changes, new admin screens, or redirect maneuvers.
 
 ---
 
@@ -1033,19 +1183,9 @@ With this approach:
 
 ## Security Verification & Curl Tests
 
-### 1. Test from Public Internet (Simulated Attack)
+Test public route cloaking, redirect prevention, public photo sharing, and internal admin access:
 
-<CodeViewer :snippets="testPublicLoginSnippets" />
-
-<CodeViewer :snippets="testPublicStatsSnippets" />
-
-### 2. Test Public Photo Sharing (Allowed Traffic)
-
-<CodeViewer :snippets="testPublicShareSnippets" />
-
-### 3. Test from Internal / VPN Router
-
-<CodeViewer :snippets="testInternalLoginSnippets" />
+<CodeViewer :snippets="verificationSnippets" />
 
 ---
 

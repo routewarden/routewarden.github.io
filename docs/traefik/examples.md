@@ -177,11 +177,18 @@ const r4_json = buildSnippet({
   "enabled": true,
   "methods": ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD"],
   "enableDefaultPatterns": true,
+  "allowPatterns": [
+    "(?i)^/share(/.*)?$",
+    "(?i)^/api/shared-links(/.*)?$",
+    "(?i)^/api/server/media-types$",
+    "(?i)^/api/server/config$",
+    "(?i)^/api/server/features$",
+    "(?i)^/api/assets(/.*)?$",
+    "(?i)^/_app(/.*)?$",
+    "(?i)^/(favicon\\.ico|manifest\\.json)$"
+  ],
   "blockPatterns": [
-    "(?i)^/api/auth/login.*$",
-    "(?i)^/api/auth/admin-sign-up.*$",
-    "(?i)^/api/users.*$",
-    "(?i)^/api/admin.*$"
+    "(?i)^/.*$"
   ],
   "response": {
     "mode": "json",
@@ -207,11 +214,19 @@ const r4_dynamic = buildSnippet({
             - PATCH # [!code ++]
             - HEAD # [!code ++]
           enableDefaultPatterns: true # [!code ++]
+          # Zero-Trust Allowlist: permit strictly public share viewer & required APIs # [!code ++]
+          allowPatterns: # [!code ++]
+            - '(?i)^/share(/.*)?$' # [!code ++]
+            - '(?i)^/api/shared-links(/.*)?$' # [!code ++]
+            - '(?i)^/api/server/media-types$' # [!code ++]
+            - '(?i)^/api/server/config$' # [!code ++]
+            - '(?i)^/api/server/features$' # [!code ++]
+            - '(?i)^/api/assets(/.*)?$' # [!code ++]
+            - '(?i)^/_app(/.*)?$' # [!code ++]
+            - '(?i)^/(favicon\\.ico|manifest\\.json)$' # [!code ++]
+          # Catch-all: default-deny all other routes (blocks root redirects, login UI, admin) # [!code ++]
           blockPatterns: # [!code ++]
-            - '(?i)^/api/auth/login.*$' # [!code ++]
-            - '(?i)^/api/auth/admin-sign-up.*$' # [!code ++]
-            - '(?i)^/api/users.*$' # [!code ++]
-            - '(?i)^/api/admin.*$' # [!code ++]
+            - '(?i)^/.*$' # [!code ++]
           response: # [!code ++]
             mode: json # [!code ++]
             statusCode: 404 # [!code ++]
