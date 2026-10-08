@@ -14,6 +14,13 @@ http:
       plugin: # [!code ++]
         routewarden: # [!code ++]
           enabled: true # [!code ++]
+          methods: # [!code ++]
+            - GET # [!code ++]
+            - POST # [!code ++]
+            - PUT # [!code ++]
+            - DELETE # [!code ++]
+            - PATCH # [!code ++]
+            - HEAD # [!code ++]
           enableDefaultPatterns: true # Blocks wp-config.php.bak, .sql, .env # [!code ++]
           blockPatterns: # [!code ++]
             - '(?i)^/(wp-login\\.php|xmlrpc\\.php)$' # [!code ++]
@@ -49,6 +56,7 @@ http:
 
 [http.middlewares.wordpress-shield.plugin.routewarden] # [!code ++]
   enabled = true # [!code ++]
+  methods = ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD"] # [!code ++]
   enableDefaultPatterns = true # [!code ++]
   blockPatterns = [ # [!code ++]
     "(?i)^/(wp-login\\\\.php|xmlrpc\\\\.php)$", # [!code ++]
@@ -69,6 +77,7 @@ http:
 - "traefik.http.routers.blog.rule=Host(\`blog.example.com\`)"
 - "traefik.http.routers.blog.middlewares=wordpress-shield" # [!code ++]
 - "traefik.http.middlewares.wordpress-shield.plugin.routewarden.enabled=true" # [!code ++]
+- "traefik.http.middlewares.wordpress-shield.plugin.routewarden.methods=GET,POST,PUT,DELETE,PATCH,HEAD" # [!code ++]
 - "traefik.http.middlewares.wordpress-shield.plugin.routewarden.blockPatterns=(?i)^/(wp-login\\\\.php|xmlrpc\\\\.php)$,(?i)^/wp-admin(/.*)?$" # [!code ++]
 - "traefik.http.middlewares.wordpress-shield.plugin.routewarden.allowedIps=192.168.1.0/24,10.0.0.0/8" # [!code ++]
 - "traefik.http.middlewares.wordpress-shield.plugin.routewarden.response.mode=captcha" # [!code ++]
@@ -82,6 +91,7 @@ http:
 
 blog.example.com {
     route_warden { # [!code ++]
+        methods GET POST PUT DELETE PATCH HEAD # [!code ++]
         enable_default_patterns true # [!code ++]
         block_patterns "(?i)^/(wp-login\\.php|xmlrpc\\.php)$" "(?i)^/wp-admin(/.*)?$" # [!code ++]
         allowed_ips "192.168.1.0/24" "10.0.0.0/8" # [!code ++]
@@ -106,6 +116,7 @@ http {
         local routewarden = require("resty.routewarden") # [!code ++]
 
         wp_warden = routewarden.new({ # [!code ++]
+            methods = { "GET", "POST", "PUT", "DELETE", "PATCH", "HEAD" }, # [!code ++]
             enable_default_patterns = true, # [!code ++]
             block_patterns = { # [!code ++]
                 "(?i)^/(wp-login\\\\.php|xmlrpc\\\\.php)$", # [!code ++]
@@ -145,6 +156,7 @@ http {
 {
   "$schema": "https://raw.githubusercontent.com/routewarden/cli/main/config.schema.json",
   "enabled": true,
+  "methods": ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD"],
   "enableDefaultPatterns": true,
   "blockPatterns": [
     "(?i)^/(wp-login\\\\.php|xmlrpc\\\\.php)$",
@@ -209,3 +221,7 @@ If content creators always connect via a corporate VPN or office IP, RouteWarden
 ## Middleware Configuration (Captcha Challenge Mode)
 
 <CodeViewer :snippets="snippets" />
+
+> [!IMPORTANT]
+> **HTTP Methods Requirement**:
+> Attackers and credential stuffing scripts almost exclusively use **`POST`** to submit passwords to `wp-login.php` or execute multi-call amplification on `xmlrpc.php`. Because RouteWarden inspects only `GET` requests by default, always explicitly define `methods GET POST PUT DELETE PATCH HEAD` (or `methods: ["GET", "POST"]`) so POST attack traffic cannot bypass RouteWarden.

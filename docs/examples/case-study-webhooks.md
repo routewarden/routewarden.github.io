@@ -14,6 +14,13 @@ http:
       plugin: # [!code ++]
         routewarden: # [!code ++]
           enabled: true # [!code ++]
+          methods: # [!code ++]
+            - GET # [!code ++]
+            - POST # [!code ++]
+            - PUT # [!code ++]
+            - DELETE # [!code ++]
+            - PATCH # [!code ++]
+            - HEAD # [!code ++]
           enableDefaultPatterns: true # [!code ++]
           # Block everything under /webhooks by default
           blockPatterns: # [!code ++]
@@ -49,6 +56,7 @@ http:
 
 [http.middlewares.webhook-shield.plugin.routewarden] # [!code ++]
   enabled = true # [!code ++]
+  methods = ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD"] # [!code ++]
   enableDefaultPatterns = true # [!code ++]
   blockPatterns = ["(?i)^/webhooks(/.*)?$"] # [!code ++]
   allowPatterns = ["(?i)^/webhooks/stripe/v1$"] # [!code ++]
@@ -67,6 +75,7 @@ http:
 - "traefik.http.routers.webhook.rule=Host(\`api.example.com\`) && PathPrefix(\`/webhooks\`)"
 - "traefik.http.routers.webhook.middlewares=webhook-shield" # [!code ++]
 - "traefik.http.middlewares.webhook-shield.plugin.routewarden.enabled=true" # [!code ++]
+- "traefik.http.middlewares.webhook-shield.plugin.routewarden.methods=GET,POST,PUT,DELETE,PATCH,HEAD" # [!code ++]
 - "traefik.http.middlewares.webhook-shield.plugin.routewarden.blockPatterns=(?i)^/webhooks(/.*)?$" # [!code ++]
 - "traefik.http.middlewares.webhook-shield.plugin.routewarden.allowPatterns=(?i)^/webhooks/stripe/v1$" # [!code ++]
 - "traefik.http.middlewares.webhook-shield.plugin.routewarden.allowedIps=3.18.12.63/32,3.130.192.231/32,13.235.14.237/32" # [!code ++]
@@ -79,6 +88,7 @@ http:
 
 api.example.com {
     route_warden { # [!code ++]
+        methods GET POST PUT DELETE PATCH HEAD # [!code ++]
         enable_default_patterns true # [!code ++]
         block_patterns "(?i)^/webhooks(/.*)?$" # [!code ++]
         allow_patterns "(?i)^/webhooks/stripe/v1$" # [!code ++]
@@ -99,6 +109,7 @@ http {
         local routewarden = require("resty.routewarden") # [!code ++]
 
         webhook_warden = routewarden.new({ # [!code ++]
+            methods = { "GET", "POST", "PUT", "DELETE", "PATCH", "HEAD" }, # [!code ++]
             enable_default_patterns = true, # [!code ++]
             block_patterns = { # [!code ++]
                 "(?i)^/webhooks(/.*)?$" # [!code ++]
@@ -140,6 +151,7 @@ http {
 {
   "$schema": "https://raw.githubusercontent.com/routewarden/cli/main/config.schema.json",
   "enabled": true,
+  "methods": ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD"],
   "enableDefaultPatterns": true,
   "blockPatterns": ["(?i)^/webhooks(/.*)?$"],
   "allowPatterns": ["(?i)^/webhooks/stripe/v1$"],
@@ -202,3 +214,11 @@ With RouteWarden, you enforce a two-tier gatekeeper at the edge:
 ## Configuration (Traefik, Caddy & NGINX)
 
 <CodeViewer :snippets="snippets" />
+
+> [!IMPORTANT]
+> **HTTP Methods Requirement**:
+> Webhook providers (such as Stripe, GitHub, Shopify, and Paddle) exclusively deliver event notifications using **`POST`** requests. Because RouteWarden inspects only `GET` requests by default, always explicitly define `methods GET POST PUT DELETE PATCH HEAD` (or `methods: ["GET", "POST"]`) so inbound webhook traffic and probes are evaluated against your allowlist and CIDR restrictions.
+
+> [!WARNING]
+> **Edge Proxy & CDN Compatibility**:
+> When using `mode: silentDrop` behind an edge proxy or CDN (such as Cloudflare, Traefik edge, AWS ALB, or NGINX reverse proxy), dropping the TCP connection abruptly will cause the edge proxy to report an **`HTTP 502 Bad Gateway`** error to unauthorized clients. If you want stealth deflection without triggering edge proxy 502 errors, use `mode: json` or `mode: html` with `statusCode: 404` instead.

@@ -112,9 +112,28 @@ Comprehensive syntax and configuration options for **Caddy Warden** (`github.com
 
 ## 1. Directive Ordering
 
-Caddy evaluates HTTP handler directives strictly according to order. Because RouteWarden acts as an edge security boundary to neutralize attacks before backend processing or authentication, configure directive ordering in global options:
+Caddy evaluates HTTP handler directives strictly according to an internal order. Custom third-party directives like `routewarden` (or `route_warden`) do not have a hardcoded position in Caddy's directive list. If placed alongside handlers like `reverse_proxy` without ordering, Caddy fails at startup with:
+
+```text
+directive 'routewarden' is not an ordered HTTP handler, so it cannot be used here - try placing within a route block or using the order global option
+```
+
+To resolve this, declare directive ordering in your Caddyfile's global options block:
 
 <CodeViewer :snippets="orderingSnippets" />
+
+> [!TIP]
+> **Using a `route` Block**: Alternatively, you can encapsulate RouteWarden and your upstream proxy inside a `route { ... }` block, which tells Caddy to execute directives strictly in the order they are written:
+> ```caddy
+> example.com {
+>     route {
+>         routewarden {
+>             # configuration
+>         }
+>         reverse_proxy backend:8080
+>     }
+> }
+> ```
 
 ---
 
@@ -139,6 +158,9 @@ Caddy evaluates HTTP handler directives strictly according to order. Because Rou
 | `allowed_ips` | `list` | `[]` | IPv4, IPv6, or CIDR blocks exempted from checks. |
 | `methods` | `list` | `["GET"]` | HTTP verbs to inspect (e.g. `methods GET POST`). Non-matching verbs bypass inspection. |
 
+> [!IMPORTANT]
+> **Inspecting Non-GET Methods (`methods`)**: By default, RouteWarden only inspects `GET` requests (`methods GET`). If you are blocking API endpoints, authentication routes (e.g. `POST /api/auth/login`), or administrative actions that accept `POST`, `PUT`, `DELETE`, or `PATCH`, you **must** configure `methods` to include them (e.g. `methods GET POST PUT DELETE PATCH HEAD`). Unlisted HTTP verbs bypass RouteWarden entirely and flow straight to the backend.
+
 > [!TIP]
 > **CrowdSec Integration**: For automated attacker remediation using `security_log`, see the **[CrowdSec Integration Guide](/examples/crowdsec)**.
 
@@ -153,12 +175,18 @@ Caddy evaluates HTTP handler directives strictly according to order. Because Rou
 | `text` | `status_code`, `body` | Minimal plain-text rejection |
 | `redirect` | `status_code`, `redirect_url` | Deflect scanners to honeypot or warning page |
 | `captcha` | `captcha.provider`, `captcha.site_key` | Challenge suspicious visits via Cloudflare Turnstile/hCaptcha |
-| `silent_drop` | None | Reset TCP connection immediately |
+| `silent_drop` | None | Reset TCP connection immediately (`conn.Close()`) |
 | `gzip_bomb` | `status_code`, `gzip_bomb_mb` | Active defense memory-exhaustion trap |
 | `tarpit` | `tarpit_delay_ms` | Slowloris defense trickling bytes to tie up scanner concurrency |
 | `ratelimit` | `status_code`, `retry_after_seconds` | 429 Too Many Requests response |
 | `proxy` | `proxy_url` | Transparent canary/forensics honeypot mirror |
 | `fake_success` | `status_code`, `body` | Synthetic decoy responses (`wp-login`, fake `.env`) |
+
+> [!WARNING]
+> **`silent_drop` Behind Edge Proxies / CDNs (502 Bad Gateway)**:
+> In `silent_drop` mode, RouteWarden terminates the TCP socket immediately without sending an HTTP status line. If Caddy is deployed behind **Cloudflare, AWS ALB, NGINX, Traefik, or any reverse proxy / CDN**, the edge proxy detects an abrupt connection termination and presents a **`502 Bad Gateway`** error to the client.
+> 
+> When debugging unexpected 502 errors or when clean client responses are required, switch to `mode json` or `mode html` with `status_code 403` or `404`.
 
 ---
 

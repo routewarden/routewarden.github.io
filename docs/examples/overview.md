@@ -28,6 +28,8 @@ Browse ready-to-run configurations and production blueprints for RouteWarden acr
 | [4. CMS & WordPress Brute-Force Shield](/examples/case-study-cms-shield) | Eliminate credential-stuffing on `wp-login.php`, `xmlrpc.php`, and `/admin`. | Cloudflare Turnstile / hCaptcha Challenge |
 | [5. Password Vaults (Vaultwarden)](/examples/case-study-vaultwarden) | Public mobile password sync while restricting `/admin` to Tailscale/WireGuard. | VPN Subnet Filter + 404 Error Cloaking |
 | [6. Honeypots & Staging Cloaking](/examples/case-study-honeypot-staging) | Neutralize scanning bots and hide pull-request preview clusters from crawlers. | TCP RST (`silentDrop`) & 307 Deflection |
+| [7. Media Streaming (Jellyfin & Plex)](/examples/case-study-media) | Secure media playback over the web while cloaking admin consoles. | Selective Endpoint Masking + VPN Bypass |
+| [8. Smart Home (Home Assistant)](/examples/case-study-home-assistant) | Allow mobile GPS/sensor webhooks while shielding smart locks and auth. | Webhook Regex Allowlist + Admin Cloaking |
 
 ---
 
