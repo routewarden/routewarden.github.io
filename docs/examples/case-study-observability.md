@@ -14,6 +14,13 @@ http:
       plugin: # [!code ++]
         routewarden: # [!code ++]
           enabled: true # [!code ++]
+          methods: # [!code ++]
+            - GET # [!code ++]
+            - POST # [!code ++]
+            - PUT # [!code ++]
+            - DELETE # [!code ++]
+            - PATCH # [!code ++]
+            - HEAD # [!code ++]
           enableDefaultPatterns: true # [!code ++]
           # Guard metrics, profiling, and actuator endpoints
           blockPatterns: # [!code ++]
@@ -48,6 +55,7 @@ http:
 
 [http.middlewares.metrics-cloak.plugin.routewarden] # [!code ++]
   enabled = true # [!code ++]
+  methods = ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD"] # [!code ++]
   enableDefaultPatterns = true # [!code ++]
   blockPatterns = [ # [!code ++]
     "(?i)^/(metrics|server-metrics|telemetry)(/.*)?$", # [!code ++]
@@ -65,6 +73,7 @@ http:
 - "traefik.http.routers.app.rule=Host(\`app.example.com\`)"
 - "traefik.http.routers.app.middlewares=metrics-cloak" # [!code ++]
 - "traefik.http.middlewares.metrics-cloak.plugin.routewarden.enabled=true" # [!code ++]
+- "traefik.http.middlewares.metrics-cloak.plugin.routewarden.methods=GET,POST,PUT,DELETE,PATCH,HEAD" # [!code ++]
 - "traefik.http.middlewares.metrics-cloak.plugin.routewarden.blockPatterns=(?i)^/(metrics|server-metrics)(/.*)?$,(?i)^/actuator(/.*)?$,(?i)^/debug/pprof(/.*)?$" # [!code ++]
 - "traefik.http.middlewares.metrics-cloak.plugin.routewarden.allowedIps=10.0.0.50/32,10.244.0.0/16,127.0.0.1" # [!code ++]
 - "traefik.http.middlewares.metrics-cloak.plugin.routewarden.response.mode=json" # [!code ++]
@@ -77,6 +86,7 @@ http:
 
 app.example.com {
     route_warden { # [!code ++]
+        methods GET POST PUT DELETE PATCH HEAD # [!code ++]
         enable_default_patterns true # [!code ++]
         block_patterns "(?i)^/(metrics|server-metrics|telemetry)(/.*)?$" "(?i)^/actuator(/.*)?$" "(?i)^/debug/(pprof|vars)(/.*)?$" # [!code ++]
         allowed_ips "10.0.0.50/32" "10.244.0.0/16" "127.0.0.1" # [!code ++]
@@ -98,6 +108,7 @@ http {
         local routewarden = require("resty.routewarden") # [!code ++]
 
         metrics_warden = routewarden.new({ # [!code ++]
+            methods = { "GET", "POST", "PUT", "DELETE", "PATCH", "HEAD" }, # [!code ++]
             enable_default_patterns = true, # [!code ++]
             block_patterns = { # [!code ++]
                 "(?i)^/(metrics|server-metrics|telemetry)(/.*)?$", # [!code ++]
@@ -135,6 +146,7 @@ http {
 {
   "$schema": "https://raw.githubusercontent.com/routewarden/cli/main/config.schema.json",
   "enabled": true,
+  "methods": ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD"],
   "enableDefaultPatterns": true,
   "blockPatterns": [
     "(?i)^/(metrics|server-metrics|telemetry)(/.*)?$",

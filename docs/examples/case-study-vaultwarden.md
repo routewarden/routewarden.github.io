@@ -14,6 +14,13 @@ http:
       plugin: # [!code ++]
         routewarden: # [!code ++]
           enabled: true # [!code ++]
+          methods: # [!code ++]
+            - GET # [!code ++]
+            - POST # [!code ++]
+            - PUT # [!code ++]
+            - DELETE # [!code ++]
+            - PATCH # [!code ++]
+            - HEAD # [!code ++]
           enableDefaultPatterns: true # [!code ++]
           # Intercept the administrative console
           blockPatterns: # [!code ++]
@@ -46,6 +53,7 @@ http:
 
 [http.middlewares.vaultwarden-shield.plugin.routewarden] # [!code ++]
   enabled = true # [!code ++]
+  methods = ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD"] # [!code ++]
   enableDefaultPatterns = true # [!code ++]
   blockPatterns = ["(?i)^/admin(/.*)?$"] # [!code ++]
   allowedIps = ["100.64.0.0/10", "10.8.0.0/24", "127.0.0.1"] # [!code ++]
@@ -59,6 +67,7 @@ http:
 - "traefik.http.routers.vault.rule=Host(\`vault.example.com\`)"
 - "traefik.http.routers.vault.middlewares=vaultwarden-shield" # [!code ++]
 - "traefik.http.middlewares.vaultwarden-shield.plugin.routewarden.enabled=true" # [!code ++]
+- "traefik.http.middlewares.vaultwarden-shield.plugin.routewarden.methods=GET,POST,PUT,DELETE,PATCH,HEAD" # [!code ++]
 - "traefik.http.middlewares.vaultwarden-shield.plugin.routewarden.blockPatterns=(?i)^/admin(/.*)?$" # [!code ++]
 - "traefik.http.middlewares.vaultwarden-shield.plugin.routewarden.allowedIps=100.64.0.0/10,10.8.0.0/24,127.0.0.1" # [!code ++]
 - "traefik.http.middlewares.vaultwarden-shield.plugin.routewarden.response.mode=json" # [!code ++]
@@ -71,6 +80,7 @@ http:
 
 vault.example.com {
     route_warden { # [!code ++]
+        methods GET POST PUT DELETE PATCH HEAD # [!code ++]
         enable_default_patterns true # [!code ++]
         block_patterns "(?i)^/admin(/.*)?$" # [!code ++]
         allowed_ips "100.64.0.0/10" "10.8.0.0/24" "127.0.0.1" # [!code ++]
@@ -92,6 +102,7 @@ http {
         local routewarden = require("resty.routewarden") # [!code ++]
 
         vault_warden = routewarden.new({ # [!code ++]
+            methods = { "GET", "POST", "PUT", "DELETE", "PATCH", "HEAD" }, # [!code ++]
             enable_default_patterns = true, # [!code ++]
             block_patterns = { # [!code ++]
                 "(?i)^/admin(/.*)?$" # [!code ++]
@@ -127,6 +138,7 @@ http {
 {
   "$schema": "https://raw.githubusercontent.com/routewarden/cli/main/config.schema.json",
   "enabled": true,
+  "methods": ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD"],
   "enableDefaultPatterns": true,
   "blockPatterns": [
     "(?i)^/admin(/.*)?$"

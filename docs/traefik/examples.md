@@ -247,6 +247,7 @@ const r5_json = buildSnippet({
   code: `{
   "$schema": "https://raw.githubusercontent.com/routewarden/cli/main/config.schema.json",
   "enabled": true,
+  "methods": ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD"],
   "enableDefaultPatterns": true,
   "blockPatterns": [
     "(?i)^/(wp-login\\\\.php|xmlrpc\\\\.php)$",
@@ -275,6 +276,13 @@ const r5_dynamic = buildSnippet({
       plugin: # [!code ++]
         routewarden: # [!code ++]
           enabled: true # [!code ++]
+          methods: # [!code ++]
+            - GET # [!code ++]
+            - POST # [!code ++]
+            - PUT # [!code ++]
+            - DELETE # [!code ++]
+            - PATCH # [!code ++]
+            - HEAD # [!code ++]
           enableDefaultPatterns: true # [!code ++]
           blockPatterns: # [!code ++]
             - '(?i)^/(wp-login\\.php|xmlrpc\\.php)$' # [!code ++]
@@ -305,6 +313,7 @@ const r6_json = buildSnippet({
   code: `{
   "$schema": "https://raw.githubusercontent.com/routewarden/cli/main/config.schema.json",
   "enabled": true,
+  "methods": ["GET", "POST", "HEAD"],
   "blockPatterns": [
     "(?i)(^|/)(\\\\.env.*|\\\\.git.*|wp-login\\\\.php|phpmyadmin.*)$"
   ],
@@ -324,6 +333,10 @@ const r6_dynamic = buildSnippet({
       plugin: # [!code ++]
         routewarden: # [!code ++]
           enabled: true # [!code ++]
+          methods: # [!code ++]
+            - GET # [!code ++]
+            - POST # [!code ++]
+            - HEAD # [!code ++]
           blockPatterns: # [!code ++]
             - '(?i)(^|/)(\\.env.*|\\.git.*|wp-login\\.php|phpmyadmin.*)$' # [!code ++]
           response: # [!code ++]
