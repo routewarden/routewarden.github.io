@@ -205,11 +205,12 @@ A common security requirement is exposing **only the Bitwarden Send feature** to
 ### The Challenge with Password-Protected Sends
 When a recipient unlocks a password-protected Send, the client sends a `POST` request to `/identity/connect/token` with `grant_type=send_access`. A full vault login also targets `/identity/connect/token` with `grant_type=password`.
 
-### Solution with `check_body` and `check_body_patterns`
-Using RouteWarden's request body inspection across Caddy, Traefik, and NGINX:
-1. Allow public access to `/api/sends/*` and `/identity/connect/token`.
-2. Enable `check_body` (`checkBody`) with `check_body_patterns` (`checkBodyPatterns`) targeting `(?i)grant_type=password` to block vault logins while allowing `grant_type=send_access`.
-3. Restrict administrative and vault sync APIs to your trusted VPN IPs (`allowed_ips` / `allowedIps`).
+### Solution with Zero-Trust Allowlisting and `check_body`
+Using RouteWarden's allowlisting and request body inspection across Caddy, Traefik, and NGINX:
+1. **Zero-Trust Allowlist (`allow_patterns` / `allowPatterns`)**: Permit strictly public Send viewing (`/api/sends/*`), the token unlock API (`/identity/connect/token`), and frontend static assets.
+2. **Default-Deny Catch-All (`block_patterns` / `blockPatterns`)**: Catch-all regex `(?i)^/.*$` blocks all unlisted routes—including the root path `/`, vault sync, ciphers, and admin panel.
+3. **Payload Inspection (`check_body` & `check_body_patterns`)**: Guard `/identity/connect/token` by blocking `(?i)grant_type=password` while permitting `grant_type=send_access`.
+4. **VPN Subnets (`allowed_ips` / `allowedIps`)**: Trusted Tailscale / WireGuard subnets bypass the catch-all block, retaining full vault access for authorized users.
 
 #### 1. Caddy (`Caddyfile`)
 
@@ -225,14 +226,17 @@ vault.example.com {
         # Inspect both GET and POST requests
         methods GET POST
 
-        # 1. Block admin, vault sync, accounts, ciphers, and non-send APIs
-        block_patterns "(?i)^/(admin|api/(accounts|ciphers|folders|sync|collections|organizations))"
+        # 1. Zero-Trust Allowlist: permit strictly public Send viewing and unlock APIs
+        allow_patterns "(?i)^/api/sends(/.*)?$" "(?i)^/identity/connect/token$" "(?i)^/(app|images|fonts|locales|scripts)(/.*)?$" "(?i)^/(favicon\\.ico|manifest\\.json)$"
 
-        # 2. Inspect POST body payloads on /identity/connect/token
+        # 2. Catch-all: default-deny all other routes (blocks root web vault, sync, ciphers, admin)
+        block_patterns "(?i)^/.*$"
+
+        # 3. Inspect POST body payloads on /identity/connect/token to block password logins
         check_body true
         check_body_patterns "(?i)grant_type=password"
 
-        # 3. Trusted VPN / WireGuard / Tailscale subnets bypass all restrictions
+        # 4. Trusted VPN / WireGuard / Tailscale subnets bypass all restrictions
         allowed_ips "100.64.0.0/10" "10.8.0.0/24" "127.0.0.1"
 
         response {
@@ -259,11 +263,20 @@ http:
           methods:
             - GET
             - POST
+          # 1. Zero-Trust Allowlist: permit strictly public Send viewing and unlock APIs
+          allowPatterns:
+            - '(?i)^/api/sends(/.*)?$'
+            - '(?i)^/identity/connect/token$'
+            - '(?i)^/(app|images|fonts|locales|scripts)(/.*)?$'
+            - '(?i)^/(favicon\.ico|manifest\.json)$'
+          # 2. Catch-all: default-deny all other routes (blocks root web vault, sync, ciphers, admin)
           blockPatterns:
-            - '(?i)^/(admin|api/(accounts|ciphers|folders|sync|collections|organizations))'
+            - '(?i)^/.*$'
+          # 3. Inspect POST body payloads on /identity/connect/token to block password logins
           checkBody: true
           checkBodyPatterns:
             - '(?i)grant_type=password'
+          # 4. Trusted VPN subnets bypass all restrictions
           allowedIps:
             - "100.64.0.0/10"
             - "10.8.0.0/24"
@@ -296,7 +309,8 @@ services:
       - "traefik.http.routers.vault.middlewares=vaultwarden-shield@docker"
       - "traefik.http.middlewares.vaultwarden-shield.plugin.routewarden.enabled=true"
       - "traefik.http.middlewares.vaultwarden-shield.plugin.routewarden.methods=GET,POST"
-      - "traefik.http.middlewares.vaultwarden-shield.plugin.routewarden.blockPatterns=(?i)^/(admin|api/(accounts|ciphers|folders|sync|collections|organizations))"
+      - "traefik.http.middlewares.vaultwarden-shield.plugin.routewarden.allowPatterns=(?i)^/api/sends(/.*)?$,(?i)^/identity/connect/token$,(?i)^/(app|images|fonts|locales|scripts)(/.*)?$,(?i)^/(favicon\\.ico|manifest\\.json)$"
+      - "traefik.http.middlewares.vaultwarden-shield.plugin.routewarden.blockPatterns=(?i)^/.*$"
       - "traefik.http.middlewares.vaultwarden-shield.plugin.routewarden.checkBody=true"
       - "traefik.http.middlewares.vaultwarden-shield.plugin.routewarden.checkBodyPatterns=(?i)grant_type=password"
       - "traefik.http.middlewares.vaultwarden-shield.plugin.routewarden.allowedIps=100.64.0.0/10,10.8.0.0/24,127.0.0.1"
@@ -316,8 +330,14 @@ http {
         vaultwarden_warden = routewarden.new({
             enabled = true,
             methods = { "GET", "POST" },
+            allow_patterns = {
+                "(?i)^/api/sends(/.*)?$",
+                "(?i)^/identity/connect/token$",
+                "(?i)^/(app|images|fonts|locales|scripts)(/.*)?$",
+                "(?i)^/(favicon\\.ico|manifest\\.json)$"
+            },
             block_patterns = {
-                "(?i)^/(admin|api/(accounts|ciphers|folders|sync|collections|organizations))"
+                "(?i)^/.*$"
             },
             check_body = true,
             check_body_patterns = {
@@ -362,10 +382,13 @@ Validate rules offline before deploying:
 # 1. Test public password-protected Send unlock (Allowed)
 rwarden test -c routewarden.json -X POST /identity/connect/token -b "grant_type=send_access"
 
-# 2. Test public vault login attempt (Blocked)
+# 2. Test root web vault access (Blocked by Default-Deny)
+rwarden test -c routewarden.json -X GET /
+
+# 3. Test public vault login attempt (Blocked by checkBody)
 rwarden test -c routewarden.json -X POST /identity/connect/token -b "grant_type=password&username=admin"
 
-# 3. Test VPN client bypassing restriction (Allowed)
+# 4. Test VPN client bypassing restriction (Allowed)
 rwarden test -c routewarden.json -X POST /identity/connect/token -b "grant_type=password&username=admin" --ip 100.64.1.20
 ```
 
@@ -375,6 +398,7 @@ rwarden test -c routewarden.json -X POST /identity/connect/token -b "grant_type=
 |:---|:---|:---|:---:|:---:|
 | **Public Send Access** | `GET /api/sends/{id}` | N/A | ✅ **Allowed** | ✅ **Allowed** |
 | **Password Send Unlock** | `POST /identity/connect/token` | `grant_type=send_access` | ✅ **Allowed** | ✅ **Allowed** |
+| **Root Web Vault Access** | `GET /` | N/A | ❌ **Blocked (404)** | ✅ **Allowed** |
 | **User Vault Login Attempt** | `POST /identity/connect/token` | `grant_type=password` | ❌ **Blocked (404)** | ✅ **Allowed** |
 | **Vault Sync / Cipher Theft** | `GET /api/sync` | N/A | ❌ **Blocked (404)** | ✅ **Allowed** |
 | **Admin Panel Access** | `GET /admin` | N/A | ❌ **Blocked (404)** | ✅ **Allowed** |
