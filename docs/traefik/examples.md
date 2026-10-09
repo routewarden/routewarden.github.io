@@ -30,7 +30,7 @@ const r1_compose = buildSnippet({
   lang: 'docker',
   code: `services:
   traefik:
-    image: traefik:v3.0
+    image: traefik:latest
     command:
       - "--api.insecure=true"
       - "--providers.docker=true"
