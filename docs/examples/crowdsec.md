@@ -103,7 +103,7 @@ log:
 
 const logfile_traefik_docker = buildSnippet({ lang: 'yaml', code: `services:
   traefik:
-    image: traefik:v3.1
+    image: traefik:latest
     volumes:
       - /var/log/traefik:/var/log/traefik
     command:
@@ -278,7 +278,7 @@ http {
 
   docker_traefik: buildSnippet({ lang: 'yaml', code: `services:
   traefik:
-    image: traefik:v3.1
+    image: traefik:latest
     container_name: traefik
     command:
       - "--api.insecure=true"
@@ -286,7 +286,7 @@ http {
       - "--providers.docker.exposedbydefault=false"
       - "--entrypoints.web.address=:80"
       - "--experimental.plugins.routewarden.modulename=github.com/routewarden/traefik-warden" # [!code ++]
-      - "--experimental.plugins.routewarden.version=v1.4.1" # [!code ++]
+      - "--experimental.plugins.routewarden.version=v1.4.2" # [!code ++]
     ports:
       - "80:80"
       - "8080:8080"

@@ -12,7 +12,7 @@ const optin_compose = buildSnippet({
   lang: 'yaml',
   code: `services:
   traefik:
-    image: traefik:v3.3
+    image: traefik:latest
     container_name: traefik
     labels:
       - "routewarden.logs=true"
@@ -43,7 +43,7 @@ docker run -d \\
   --name my-gateway \\
   --label routewarden.logs=true \\
   -p 80:80 \\
-  traefik:v3.3
+  traefik:latest
 
 # Run TCP Warden daemon with RouteWarden logging enabled
 docker run -d \\

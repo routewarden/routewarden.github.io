@@ -81,9 +81,13 @@ This reference covers all configuration options available in **Traefik Warden**.
 | `blockPatterns` | `[]string` | `[]` | List of custom regular expressions to block (matches against normalized path). |
 | `allowPatterns` | `[]string` | `[]` | Additional custom regex patterns to explicitly allow even if matching blocked rules. |
 | `allowedIps` | `[]string` | `[]` | Whitelisted IPv4/IPv6 addresses or CIDR subnets (e.g., `10.0.0.0/8`, `127.0.0.1`). |
+| `trustedProxies` | `[]string` | `[]` | Upstream proxies/load-balancers trusted for `X-Forwarded-For` / `X-Real-IP`. Untrusted connections use socket IP directly. |
 | `methods` | `[]string` | `["GET"]` | HTTP request verbs to inspect (e.g. `["GET", "POST"]`). Non-matching verbs bypass inspection. |
 | `checkQuery` | `bool` | `false` | Also inspects the URL raw query string for blocked patterns. |
 | `checkHeaders` | `[]string` | `[]` | Optional list of HTTP request headers to inspect for path smuggling (e.g. `["X-Forwarded-Uri", "X-Rewrite-URL"]`). |
+| `checkBody` | `bool` | `false` | When true, buffers and inspects request bodies against blocked patterns. |
+| `checkBodyMaxBytes` | `int64` | `65536` | Maximum bytes to buffer for body inspection (default: 64KB). |
+| `checkBodyPatterns` | `[]string` | `[]` | Specific regex patterns to match against request body (falls back to `blockPatterns` if empty). |
 | `statusCode` | `int` | `403` | Default HTTP status code when request is blocked (legacy shortcut). |
 
 ---
@@ -155,7 +159,7 @@ When `enableDefaultAllowPatterns: true` (default), RouteWarden immediately permi
 
 | Key | Type | Default | Description |
 |---|---|---|---|
-| `mode` | `string` | `"json"` | Response mode: `json`, `html`, `text`, `xml`, `redirect`, `captcha`, `silentDrop`, `gzipBomb` (`bomb`), `tarpit`, `fakeSuccess` (`decoy`), `rateLimitChallenge` (`ratelimit`), `proxy` (`mirror`), or `infiniteStream` (`garbagestream`). |
+| `mode` | `string` | `"text"` | Response mode: `json`, `html`, `text`, `xml`, `redirect`, `captcha`, `silentDrop`, `gzipBomb` (`bomb`), `tarpit`, `fakeSuccess` (`decoy`), `rateLimitChallenge` (`ratelimit`), `proxy` (`mirror`), or `infiniteStream` (`garbagestream`). |
 | `statusCode` | `int` | `403` | HTTP status code returned to client (use `200` for honeypots / deception, `429` for rate limit challenge). |
 | `body` | `string` | `""` | Response body for `json`, `html`, `xml`, or `text` mode. |
 | `headers` | `map[string]string` | `{}` | Custom HTTP response headers injected into blocked responses. |
