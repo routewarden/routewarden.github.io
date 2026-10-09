@@ -486,6 +486,16 @@ When using Caddy, you must register RouteWarden before Caddy's built-in `reverse
 
 <CodeViewer :snippets="caddyOrderSnippets" />
 
+### 4. Architectural Note: Selective Shielding vs. Zero-Trust Allowlisting
+
+In architectures like **[Immich](/examples/case-study-immich)** (where external visitors only need `/share/*`) or **[Home Assistant](/examples/case-study-home-assistant)** (where only `/api/webhook/*` is exposed), public access is strictly bounded to a few discrete paths. In those scenarios, **Zero-Trust Allowlisting (`blockPatterns: ['(?i)^/.*$']`)** is recommended to completely eliminate root `/` redirect bypasses.
+
+However, self-hosted media servers (**Jellyfin** and **Plex**) are designed for full interactive multi-device streaming:
+- Media players across Smart TVs (Apple TV, Roku, Android TV), gaming consoles, and mobile apps communicate across dozens of dynamic APIs (`/Items`, `/Videos`, `/Audio`, `/Images`, `/Sessions`, `/DisplayPreferences`, `/Branding`, `/web/*`).
+- Enforcing a default-deny catch-all (`blockPatterns: ['(?i)^/.*$']`) would break device playback and subtitle streaming unless hundreds of application routes were continuously maintained.
+
+For media streaming servers, **Selective Administrative Shielding** (`blockPatterns` targeting `/admin`, `/System`, `/Plugins`, `/Users/New`) paired with VPN bypass (`allowedIps`) provides the ideal balance: public users enjoy seamless media playback while privileged controls remain strictly invisible to the internet.
+
 ---
 
 ## Verification Matrix & Curl Tests

@@ -22,12 +22,12 @@ http:
             - PATCH # [!code ++]
             - HEAD # [!code ++]
           enableDefaultPatterns: true # [!code ++]
-          # Block everything under /webhooks by default
-          blockPatterns: # [!code ++]
-            - '(?i)^/webhooks(/.*)?$' # [!code ++]
-          # Allow ONLY the verified production webhook handler
+          # 1. Zero-Trust Allowlist: permit strictly verified production webhook handler # [!code ++]
           allowPatterns: # [!code ++]
             - '(?i)^/webhooks/stripe/v1$' # [!code ++]
+          # 2. Catch-all: default-deny all other webhook routes # [!code ++]
+          blockPatterns: # [!code ++]
+            - '(?i)^/webhooks(/.*)?$' # [!code ++]
           # Restrict to official Stripe Webhook IP ranges
           allowedIps: # [!code ++]
             - "3.18.12.63/32" # [!code ++]
@@ -58,8 +58,10 @@ http:
   enabled = true # [!code ++]
   methods = ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD"] # [!code ++]
   enableDefaultPatterns = true # [!code ++]
-  blockPatterns = ["(?i)^/webhooks(/.*)?$"] # [!code ++]
+  # Zero-Trust Allowlist: permit strictly verified production webhook handler # [!code ++]
   allowPatterns = ["(?i)^/webhooks/stripe/v1$"] # [!code ++]
+  # Catch-all: default-deny all other webhook routes # [!code ++]
+  blockPatterns = ["(?i)^/webhooks(/.*)?$"] # [!code ++]
   allowedIps = [ # [!code ++]
     "3.18.12.63/32", # [!code ++]
     "3.130.192.231/32", # [!code ++]
@@ -76,8 +78,8 @@ http:
 - "traefik.http.routers.webhook.middlewares=webhook-shield" # [!code ++]
 - "traefik.http.middlewares.webhook-shield.plugin.routewarden.enabled=true" # [!code ++]
 - "traefik.http.middlewares.webhook-shield.plugin.routewarden.methods=GET,POST,PUT,DELETE,PATCH,HEAD" # [!code ++]
-- "traefik.http.middlewares.webhook-shield.plugin.routewarden.blockPatterns=(?i)^/webhooks(/.*)?$" # [!code ++]
 - "traefik.http.middlewares.webhook-shield.plugin.routewarden.allowPatterns=(?i)^/webhooks/stripe/v1$" # [!code ++]
+- "traefik.http.middlewares.webhook-shield.plugin.routewarden.blockPatterns=(?i)^/webhooks(/.*)?$" # [!code ++]
 - "traefik.http.middlewares.webhook-shield.plugin.routewarden.allowedIps=3.18.12.63/32,3.130.192.231/32,13.235.14.237/32" # [!code ++]
 - "traefik.http.middlewares.webhook-shield.plugin.routewarden.response.mode=silentDrop" # [!code ++]` }),
 
@@ -90,8 +92,10 @@ api.example.com {
     route_warden { # [!code ++]
         methods GET POST PUT DELETE PATCH HEAD # [!code ++]
         enable_default_patterns true # [!code ++]
-        block_patterns "(?i)^/webhooks(/.*)?$" # [!code ++]
+        # Zero-Trust Allowlist: permit strictly verified production webhook handler # [!code ++]
         allow_patterns "(?i)^/webhooks/stripe/v1$" # [!code ++]
+        # Catch-all: default-deny all other webhook routes # [!code ++]
+        block_patterns "(?i)^/webhooks(/.*)?$" # [!code ++]
         allowed_ips "3.18.12.63/32" "3.130.192.231/32" "13.235.14.237/32" "13.235.122.149/32" "35.154.171.200/32" # [!code ++]
         response { # [!code ++]
             mode silent_drop # [!code ++]
@@ -111,11 +115,13 @@ http {
         webhook_warden = routewarden.new({ # [!code ++]
             methods = { "GET", "POST", "PUT", "DELETE", "PATCH", "HEAD" }, # [!code ++]
             enable_default_patterns = true, # [!code ++]
-            block_patterns = { # [!code ++]
-                "(?i)^/webhooks(/.*)?$" # [!code ++]
-            }, # [!code ++]
+            -- Zero-Trust Allowlist: permit strictly verified production webhook handler # [!code ++]
             allow_patterns = { # [!code ++]
                 "(?i)^/webhooks/stripe/v1$" # [!code ++]
+            }, # [!code ++]
+            -- Catch-all: default-deny all other webhook routes # [!code ++]
+            block_patterns = { # [!code ++]
+                "(?i)^/webhooks(/.*)?$" # [!code ++]
             }, # [!code ++]
             allowed_ips = { # [!code ++]
                 "3.18.12.63/32", # [!code ++]
@@ -153,8 +159,8 @@ http {
   "enabled": true,
   "methods": ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD"],
   "enableDefaultPatterns": true,
-  "blockPatterns": ["(?i)^/webhooks(/.*)?$"],
   "allowPatterns": ["(?i)^/webhooks/stripe/v1$"],
+  "blockPatterns": ["(?i)^/webhooks(/.*)?$"],
   "allowedIps": [
     "3.18.12.63/32",
     "3.130.192.231/32",
