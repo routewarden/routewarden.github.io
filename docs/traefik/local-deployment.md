@@ -212,17 +212,21 @@ const walk_restartSnippets = computed(() => ({
 }))
 </script>
 
-# Local Development & Deployment
+# Local & Air-Gapped Deployment (/plugins-local)
 
-This guide explains how to develop, test, and run RouteWarden locally as a Traefik plugin without publishing to GitHub or the Traefik Plugin Catalog.
+This guide explains how to install, develop, and run RouteWarden in **air-gapped**, **offline**, and **local enterprise environments** using Traefik's native `/plugins-local` mechanism without external downloads from GitHub or the Traefik Plugin Catalog.
 
 ---
 
 ## 1. How Traefik Local Plugins Work
 
-Traefik allows loading plugins directly from a local directory on your filesystem using the `experimental.localPlugins` configuration key.
+Traefik allows loading plugins directly from the host filesystem using the `experimental.localPlugins` configuration key. This provides several key advantages:
 
-When using `localPlugins`, Traefik requires the source code to be mounted in a specific directory structure matching Go's module namespace:
+- **100% Offline / Air-Gapped**: Traefik never calls out to `plugins.traefik.io` or GitHub, eliminating network timeouts, proxy issues, or firewall blocks.
+- **Zero Build Steps**: Traefik's embedded Yaegi Go interpreter compiles the `.go` source files directly in memory at launch.
+- **Instant Live Iteration**: Code changes take effect immediately on container restart without rebuilding container images or tagging releases.
+
+When using `localPlugins`, Traefik strictly requires the source code to be mounted into a specific path matching Go's import hierarchy under `/plugins-local/src/`:
 
 <CodeViewer :snippets="dirSnippets" />
 
@@ -269,3 +273,81 @@ Because the repository root is mounted with `- .:/plugins-local/src/github.com/r
 <CodeViewer :snippets="walk_restartSnippets" />
 
 *(No Docker rebuild or external plugin download required!)*
+
+---
+
+## 5. Air-Gapped & Enterprise Production Setup
+
+When deploying to production clusters with no public internet access (e.g., banking, healthcare, government, or private VPCs), follow these steps to bundle RouteWarden offline.
+
+### Step 1: Prepare the Offline Plugin Bundle
+On an internet-connected workstation, clone the repository or download the release archive:
+
+```bash
+# Clone the repository
+git clone https://github.com/routewarden/traefik-warden.git
+
+# Or download the release tarball and unpack:
+curl -sSL https://github.com/routewarden/traefik-warden/archive/refs/tags/v1.4.2.tar.gz | tar -xz
+mv traefik-warden-1.4.2 traefik-warden
+```
+
+Transfer the `traefik-warden/` directory to your air-gapped host (e.g., via secure artifact repository, USB drive, or SCP).
+
+### Step 2: Production Docker Compose Setup
+Place the `traefik-warden` directory adjacent to your `docker-compose.yml`:
+
+```yaml
+services:
+  traefik:
+    image: traefik:v3.3
+    command:
+      - "--providers.docker=true"
+      - "--providers.file.filename=/etc/traefik/dynamic.yml"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      # Enable offline local plugin:
+      - "--experimental.localplugins.routewarden.modulename=github.com/routewarden/traefik-warden"
+      # Attach globally to entrypoint:
+      - "--entrypoints.web.http.middlewares=routewarden@file"
+      - "--entrypoints.websecure.http.middlewares=routewarden@file"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./dynamic.yml:/etc/traefik/dynamic.yml:ro
+      # Mount RouteWarden into the required /plugins-local destination:
+      - ./traefik-warden:/plugins-local/src/github.com/routewarden/traefik-warden:ro
+```
+
+### Step 3: Kubernetes Air-Gapped Deployment
+In Kubernetes environments using the official Traefik Helm chart, use an `initContainer` or `extraVolumes` to mount the plugin source:
+
+```yaml
+# Helm values.yaml for Traefik
+additionalArguments:
+  - "--experimental.localplugins.routewarden.modulename=github.com/routewarden/traefik-warden"
+
+extraVolumes:
+  - name: routewarden-plugin
+    configMap:
+      name: routewarden-plugin-source
+
+extraVolumeMounts:
+  - name: routewarden-plugin
+    mountPath: /plugins-local/src/github.com/routewarden/traefik-warden
+    readOnly: true
+```
+
+---
+
+## 6. Common Pitfalls & Troubleshooting
+
+| Symptom | Cause | Solution |
+|---|---|---|
+| `unable to find plugin "routewarden"` | Incorrect container mount path | Ensure the destination path inside the container is exactly `/plugins-local/src/github.com/routewarden/traefik-warden`, NOT `/plugins-local/traefik-warden`. |
+| `permission denied` | File permission restrictions | Ensure the Traefik process has read access (`chmod -R 755 traefik-warden`). |
+| `missing plugin manifest` | Missing `.traefik.yml` file | Verify that `.traefik.yml` is present in the root of the mounted directory. |
+| `module name mismatch` | CLI flag does not match directory | Verify `--experimental.localplugins.routewarden.modulename=github.com/routewarden/traefik-warden` exactly matches the subpath `/plugins-local/src/github.com/routewarden/traefik-warden`. |
+

@@ -9,7 +9,22 @@ All notable changes to the **Traefik Warden** plugin (`github.com/routewarden/tr
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and Traefik Warden adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v1.4.1] - 2026-10-07 (Latest)
+## [v1.4.2] - 2026-10-09 (Latest)
+
+### Key Highlights
+
+- **Traefik Catalog Archive Integrity & Fresh Checksum Release**:
+  - Published clean SemVer patch release `v1.4.2` to resolve the immutable hash mismatch on Traefik Plugin Catalog (`plugins.traefik.io`), preventing `plugin integrity check failed` errors when installing from the catalog.
+- **Local & Offline Plugin Installation (`/plugins-local`)**:
+  - Added comprehensive documentation and production deployment guides for running RouteWarden as a local Traefik plugin via `--experimental.localplugins` and volume mounting to `/plugins-local/src/github.com/routewarden/traefik-warden`, enabling zero-network air-gapped and enterprise usage.
+- **Documentation & Configuration Parity**:
+  - Updated configuration tables with full documentation for `trustedProxies`, `checkHeaders`, `checkBody`, `checkBodyMaxBytes`, and `checkBodyPatterns`.
+  - Corrected default `response.mode` to `"text"` (matching `CreateConfig()`).
+  - Aligned all documentation links to canonical routes (`/traefik/*`, `/core/*`).
+
+---
+
+## [v1.4.1] - 2026-10-07
 
 ### Key Highlights
 

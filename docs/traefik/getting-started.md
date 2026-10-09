@@ -54,15 +54,28 @@ const local_toml = buildSnippet({
 })
 
 const local_cli = buildSnippet({
-  lang: 'bash',
-  code: `traefik --experimental.localplugins.routewarden.modulename=github.com/routewarden/traefik-warden`,
+  lang: 'yaml',
+  code: `# docker-compose.yml (Local / Air-Gapped via /plugins-local)
+services:
+  traefik:
+    image: traefik:v3.3
+    command:
+      - "--providers.docker=true"
+      - "--entrypoints.web.address=:80"
+      - "--experimental.localplugins.routewarden.modulename=github.com/routewarden/traefik-warden" # [!code ++]
+    ports:
+      - "80:80"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      # Mount repository into Traefik's required /plugins-local path:
+      - "./traefik-warden:/plugins-local/src/github.com/routewarden/traefik-warden:ro" # [!code ++]`,
 })
 
 const localPluginsSnippets = computed(() => ({
   traefik: [
     { filename: 'traefik.yaml', lang: local_yaml.lang, code: local_yaml.cleanCode, html: local_yaml.html, hasDiff: local_yaml.hasDiff },
     { filename: 'traefik.toml', lang: local_toml.lang, code: local_toml.cleanCode, html: local_toml.html, hasDiff: local_toml.hasDiff },
-    { filename: 'docker-compose.yaml', lang: local_cli.lang, code: local_cli.cleanCode, html: local_cli.html, hasDiff: false },
+    { filename: 'docker-compose.yml', lang: local_cli.lang, code: local_cli.cleanCode, html: local_cli.html, hasDiff: local_cli.hasDiff },
   ],
 }))
 
@@ -356,17 +369,39 @@ const entrypointSnippets = computed(() => ({
 
 ## Installation & Traefik Setup
 
-### 1. Static Configuration
+### 1. Static Configuration: Plugin Declaration
 
-Declare RouteWarden in Traefik's plugins configuration:
+Choose between two installation methods depending on your environment:
+
+#### Method A: Traefik Plugin Catalog (Online / Standard)
+
+For standard deployments with internet connectivity, Traefik automatically downloads the verified release from `plugins.traefik.io` at startup:
 
 <CodeViewer :snippets="installationSnippets" />
 
-> **Local Development (`localPlugins`)**:
-> 
-> When testing locally without pulling from GitHub or Traefik Pilot, register the plugin in `localPlugins`:
-> 
-> <CodeViewer :snippets="localPluginsSnippets" />
+#### Method B: Local & Air-Gapped Installation (`localPlugins` via `/plugins-local`)
+
+For **air-gapped networks**, private enterprise environments without internet access, or local development, Traefik can load RouteWarden directly from disk without external downloads using `localPlugins`.
+
+Traefik strictly requires the plugin directory inside the container to match the Go module path under `/plugins-local/src/`:
+```plaintext
+/plugins-local/
+└── src/
+    └── github.com/
+        └── routewarden/
+            └── traefik-warden/
+                ├── .traefik.yml
+                ├── config.go
+                ├── routewarden.go
+                └── ...
+```
+
+Mount the repository and declare it in your static configuration:
+
+<CodeViewer :snippets="localPluginsSnippets" />
+
+> [!TIP]
+> When using `localPlugins`, no Git tag or `version` property is required. Traefik's built-in Yaegi interpreter compiles the Go source files directly from `/plugins-local/src/github.com/routewarden/traefik-warden` on startup. For an in-depth walkthrough, see **[Local & Air-Gapped Deployment](/traefik/local-deployment)**.
 
 ---
 
