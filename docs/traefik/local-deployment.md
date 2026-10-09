@@ -210,6 +210,102 @@ const walk_restartSnippets = computed(() => ({
     { filename: 'Terminal', lang: 'bash', code: walk_restart.cleanCode, html: walk_restart.html, hasDiff: false },
   ],
 }))
+
+// ─── 5. Air-Gapped & Enterprise Production Setup ─────────────────────────────
+const bundle_git = buildSnippet({
+  lang: 'bash',
+  code: `# Clone repository onto an internet-connected machine
+git clone https://github.com/routewarden/traefik-warden.git`,
+})
+
+const bundle_tar = buildSnippet({
+  lang: 'bash',
+  code: `# Download and extract verified release archive
+curl -sSL https://github.com/routewarden/traefik-warden/archive/refs/tags/v1.4.2.tar.gz | tar -xz
+mv traefik-warden-1.4.2 traefik-warden`,
+})
+
+const bundleSnippets = computed(() => ({
+  traefik: [
+    { filename: 'Git Clone', lang: 'bash', code: bundle_git.cleanCode, html: bundle_git.html, hasDiff: false },
+    { filename: 'Release Tarball', lang: 'bash', code: bundle_tar.cleanCode, html: bundle_tar.html, hasDiff: false },
+  ],
+}))
+
+const prod_compose = buildSnippet({
+  lang: 'yaml',
+  code: `# docker-compose.yml (Air-Gapped Production via /plugins-local)
+services:
+  traefik:
+    image: traefik:v3.3
+    command:
+      - "--providers.docker=true"
+      - "--providers.file.filename=/etc/traefik/dynamic.yml"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      # Enable offline local plugin:
+      - "--experimental.localplugins.routewarden.modulename=github.com/routewarden/traefik-warden" # [!code ++]
+      # Attach globally to entrypoints:
+      - "--entrypoints.web.http.middlewares=routewarden@file" # [!code ++]
+      - "--entrypoints.websecure.http.middlewares=routewarden@file" # [!code ++]
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./dynamic.yml:/etc/traefik/dynamic.yml:ro
+      # Mount RouteWarden into required /plugins-local destination:
+      - ./traefik-warden:/plugins-local/src/github.com/routewarden/traefik-warden:ro # [!code ++]`,
+})
+
+const prodComposeSnippets = computed(() => ({
+  traefik: [
+    { filename: 'docker-compose.yml', lang: 'docker', code: prod_compose.cleanCode, html: prod_compose.html, hasDiff: prod_compose.hasDiff },
+  ],
+}))
+
+const k8s_helm = buildSnippet({
+  lang: 'yaml',
+  code: `# Helm values.yaml for Traefik
+additionalArguments:
+  - "--experimental.localplugins.routewarden.modulename=github.com/routewarden/traefik-warden" # [!code ++]
+
+extraVolumes:
+  - name: routewarden-plugin
+    configMap:
+      name: routewarden-plugin-source
+
+extraVolumeMounts:
+  - name: routewarden-plugin
+    mountPath: /plugins-local/src/github.com/routewarden/traefik-warden # [!code ++]
+    readOnly: true`,
+})
+
+const k8s_daemon = buildSnippet({
+  lang: 'yaml',
+  code: `# Traefik Kubernetes Pod / Deployment volume mount
+spec:
+  containers:
+    - name: traefik
+      image: traefik:v3.3
+      args:
+        - "--experimental.localplugins.routewarden.modulename=github.com/routewarden/traefik-warden" # [!code ++]
+      volumeMounts:
+        - name: plugin-volume
+          mountPath: /plugins-local/src/github.com/routewarden/traefik-warden # [!code ++]
+          readOnly: true
+  volumes:
+    - name: plugin-volume
+      hostPath:
+        path: /opt/traefik-plugins/github.com/routewarden/traefik-warden`,
+})
+
+const k8sAirgappedSnippets = computed(() => ({
+  traefik: [
+    { filename: 'Helm values.yaml', lang: 'yaml', code: k8s_helm.cleanCode, html: k8s_helm.html, hasDiff: k8s_helm.hasDiff },
+    { filename: 'Deployment.yaml', lang: 'yaml', code: k8s_daemon.cleanCode, html: k8s_daemon.html, hasDiff: k8s_daemon.hasDiff },
+  ],
+}))
 </script>
 
 # Local & Air-Gapped Deployment (/plugins-local)
@@ -283,62 +379,19 @@ When deploying to production clusters with no public internet access (e.g., bank
 ### Step 1: Prepare the Offline Plugin Bundle
 On an internet-connected workstation, clone the repository or download the release archive:
 
-```bash
-# Clone the repository
-git clone https://github.com/routewarden/traefik-warden.git
+<CodeViewer :snippets="bundleSnippets" />
 
-# Or download the release tarball and unpack:
-curl -sSL https://github.com/routewarden/traefik-warden/archive/refs/tags/v1.4.2.tar.gz | tar -xz
-mv traefik-warden-1.4.2 traefik-warden
-```
-
-Transfer the `traefik-warden/` directory to your air-gapped host (e.g., via secure artifact repository, USB drive, or SCP).
+Transfer the `traefik-warden/` directory to your air-gapped host (e.g., via secure artifact repository, internal registry, USB drive, or SCP).
 
 ### Step 2: Production Docker Compose Setup
 Place the `traefik-warden` directory adjacent to your `docker-compose.yml`:
 
-```yaml
-services:
-  traefik:
-    image: traefik:v3.3
-    command:
-      - "--providers.docker=true"
-      - "--providers.file.filename=/etc/traefik/dynamic.yml"
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.websecure.address=:443"
-      # Enable offline local plugin:
-      - "--experimental.localplugins.routewarden.modulename=github.com/routewarden/traefik-warden"
-      # Attach globally to entrypoint:
-      - "--entrypoints.web.http.middlewares=routewarden@file"
-      - "--entrypoints.websecure.http.middlewares=routewarden@file"
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./dynamic.yml:/etc/traefik/dynamic.yml:ro
-      # Mount RouteWarden into the required /plugins-local destination:
-      - ./traefik-warden:/plugins-local/src/github.com/routewarden/traefik-warden:ro
-```
+<CodeViewer :snippets="prodComposeSnippets" />
 
 ### Step 3: Kubernetes Air-Gapped Deployment
-In Kubernetes environments using the official Traefik Helm chart, use an `initContainer` or `extraVolumes` to mount the plugin source:
+In Kubernetes environments using the official Traefik Helm chart or direct manifests, mount the plugin source:
 
-```yaml
-# Helm values.yaml for Traefik
-additionalArguments:
-  - "--experimental.localplugins.routewarden.modulename=github.com/routewarden/traefik-warden"
-
-extraVolumes:
-  - name: routewarden-plugin
-    configMap:
-      name: routewarden-plugin-source
-
-extraVolumeMounts:
-  - name: routewarden-plugin
-    mountPath: /plugins-local/src/github.com/routewarden/traefik-warden
-    readOnly: true
-```
+<CodeViewer :snippets="k8sAirgappedSnippets" />
 
 ---
 
