@@ -22,12 +22,12 @@ http:
             - PATCH # [!code ++]
             - HEAD # [!code ++]
           enableDefaultPatterns: true # [!code ++]
-          # 1. Block sensitive UI authentication, supervisor, and service triggers
-          blockPatterns: # [!code ++]
-            - '(?i)^/(auth|api/config|api/services|api/hassio|api/states|api/events)(/.*)?$' # [!code ++]
-          # 2. Allow ONLY mobile companion app webhook callbacks
+          # 1. Zero-Trust Allowlist: permit strictly mobile companion app webhook callbacks # [!code ++]
           allowPatterns: # [!code ++]
             - '(?i)^/api/webhook/[a-zA-Z0-9_-]+$' # [!code ++]
+          # 2. Catch-all: default-deny all other routes (blocks root Lovelace UI, login, states) # [!code ++]
+          blockPatterns: # [!code ++]
+            - '(?i)^/.*$' # [!code ++]
           # 3. Trusted Home LAN and Tailscale / WireGuard VPN subnets bypass all blocks
           allowedIps: # [!code ++]
             - "10.0.0.0/8"        # Internal Home LAN # [!code ++]
@@ -59,11 +59,13 @@ http:
   enabled = true # [!code ++]
   methods = ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD"] # [!code ++]
   enableDefaultPatterns = true # [!code ++]
-  blockPatterns = [ # [!code ++]
-    "(?i)^/(auth|api/config|api/services|api/hassio|api/states|api/events)(/.*)?$" # [!code ++]
-  ] # [!code ++]
+  # Zero-Trust Allowlist: permit strictly mobile companion app webhook callbacks # [!code ++]
   allowPatterns = [ # [!code ++]
     "(?i)^/api/webhook/[a-zA-Z0-9_-]+$" # [!code ++]
+  ] # [!code ++]
+  # Catch-all: default-deny all other routes # [!code ++]
+  blockPatterns = [ # [!code ++]
+    "(?i)^/.*$" # [!code ++]
   ] # [!code ++]
   allowedIps = ["10.0.0.0/8", "100.64.0.0/10", "192.168.1.0/24", "127.0.0.1"] # [!code ++]
 
@@ -79,8 +81,8 @@ http:
 - "traefik.http.routers.hass.middlewares=homeassistant-shield" # [!code ++]
 - "traefik.http.middlewares.homeassistant-shield.plugin.routewarden.enabled=true" # [!code ++]
 - "traefik.http.middlewares.homeassistant-shield.plugin.routewarden.methods=GET,POST,PUT,DELETE,PATCH,HEAD" # [!code ++]
-- "traefik.http.middlewares.homeassistant-shield.plugin.routewarden.blockPatterns=(?i)^/(auth|api/config|api/services|api/hassio|api/states|api/events)(/.*)?$" # [!code ++]
 - "traefik.http.middlewares.homeassistant-shield.plugin.routewarden.allowPatterns=(?i)^/api/webhook/[a-zA-Z0-9_-]+$" # [!code ++]
+- "traefik.http.middlewares.homeassistant-shield.plugin.routewarden.blockPatterns=(?i)^/.*$" # [!code ++]
 - "traefik.http.middlewares.homeassistant-shield.plugin.routewarden.allowedIps=10.0.0.0/8,100.64.0.0/10,192.168.1.0/24,127.0.0.1" # [!code ++]
 - "traefik.http.middlewares.homeassistant-shield.plugin.routewarden.response.mode=json" # [!code ++]
 - "traefik.http.middlewares.homeassistant-shield.plugin.routewarden.response.statusCode=404" # [!code ++]` }),
@@ -94,8 +96,10 @@ home.example.com {
     route_warden { # [!code ++]
         methods GET POST PUT DELETE PATCH HEAD # [!code ++]
         enable_default_patterns true # [!code ++]
-        block_patterns "(?i)^/(auth|api/config|api/services|api/hassio|api/states|api/events)(/.*)?$" # [!code ++]
+        # Zero-Trust Allowlist: permit strictly mobile companion app webhook callbacks # [!code ++]
         allow_patterns "(?i)^/api/webhook/[a-zA-Z0-9_-]+$" # [!code ++]
+        # Catch-all: default-deny all other routes # [!code ++]
+        block_patterns "(?i)^/.*$" # [!code ++]
         allowed_ips "10.0.0.0/8" "100.64.0.0/10" "192.168.1.0/24" "127.0.0.1" # [!code ++]
         response { # [!code ++]
             mode json # [!code ++]
@@ -105,7 +109,7 @@ home.example.com {
     } # [!code ++]
 
     reverse_proxy homeassistant:8123
-}` }),
+} ` }),
 
   nginx: buildSnippet({ lang: 'nginx', code: `# nginx.conf: Home Assistant Mobile Ingress Protection
 http {
@@ -117,11 +121,13 @@ http {
         hass_warden = routewarden.new({ # [!code ++]
             methods = { "GET", "POST", "PUT", "DELETE", "PATCH", "HEAD" }, # [!code ++]
             enable_default_patterns = true, # [!code ++]
-            block_patterns = { # [!code ++]
-                "(?i)^/(auth|api/config|api/services|api/hassio|api/states|api/events)(/.*)?$" # [!code ++]
-            }, # [!code ++]
+            -- Zero-Trust Allowlist: permit strictly mobile companion app webhook callbacks # [!code ++]
             allow_patterns = { # [!code ++]
                 "(?i)^/api/webhook/[a-zA-Z0-9_-]+$" # [!code ++]
+            }, # [!code ++]
+            -- Catch-all: default-deny all other routes # [!code ++]
+            block_patterns = { # [!code ++]
+                "(?i)^/.*$" # [!code ++]
             }, # [!code ++]
             allowed_ips = { # [!code ++]
                 "10.0.0.0/8", "100.64.0.0/10", "192.168.1.0/24", "127.0.0.1" # [!code ++]
@@ -160,11 +166,11 @@ http {
   "enabled": true,
   "methods": ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD"],
   "enableDefaultPatterns": true,
-  "blockPatterns": [
-    "(?i)^/(auth|api/config|api/services|api/hassio|api/states|api/events)(/.*)?$"
-  ],
   "allowPatterns": [
     "(?i)^/api/webhook/[a-zA-Z0-9_-]+$"
+  ],
+  "blockPatterns": [
+    "(?i)^/.*$"
   ],
   "allowedIps": [
     "10.0.0.0/8",
@@ -249,21 +255,26 @@ curl -i -X POST https://home.example.com/api/webhook/d8f76e5a4b3c2d1e0f \\
   -d '{"type":"update_location","data":{"gps":[37.7749,-122.4194],"battery":85}}'
 # Response: HTTP/2 200 OK (Content-Type: application/json)
 
-# 2. Test Public Login Attempt (Blocked)
+# 2. Test Root Web UI & Lovelace Dashboard Probe (Blocked & Cloaked)
+# External visitor or scanner visits home root URL
+curl -i https://home.example.com/
+# Response: HTTP/2 404 Not Found (Zero-trust default-deny blocks root before Lovelace UI or login redirect)
+
+# 3. Test Public Login Attempt (Blocked)
 # External attacker probes authentication endpoint
 curl -i -X POST https://home.example.com/auth/token \\
   -H "Content-Type: application/x-www-form-urlencoded" \\
   -d "grant_type=password&username=admin&password=password123"
 # Response: HTTP/2 404 Not Found ({"error":"Not Found","message":"Endpoint unavailable on public router"})
 
-# 3. Test Public Service Manipulation Attempt (Blocked)
+# 4. Test Public Service Manipulation Attempt (Blocked)
 # External bot probes service execution to unlock a smart door lock
 curl -i -X POST https://home.example.com/api/services/lock/unlock \\
   -H "Content-Type: application/json" \\
   -d '{"entity_id":"lock.front_door"}'
 # Response: HTTP/2 404 Not Found
 
-# 4. Test Home LAN / VPN Access (Allowed)
+# 5. Test Home LAN / VPN Access (Allowed)
 # Administrator connects from Tailscale (100.64.0.15) or Home Wi-Fi
 curl -i -X POST https://home.example.com/auth/token \\
   -H "Content-Type: application/x-www-form-urlencoded" \\
@@ -278,13 +289,16 @@ const haRwardenTests = buildSnippet({
 # 1. Test mobile GPS webhook passes through cleanly
 rwarden test -c routewarden.json -X POST /api/webhook/d8f76e5a4b3c2d1e0f -b '{"gps":[37.77,-122.41]}'
 
-# 2. Test public login endpoint is cloaked with 404
+# 2. Test root path is blocked by default-deny catch-all
+rwarden test -c routewarden.json -X GET /
+
+# 3. Test public login endpoint is cloaked with 404
 rwarden test -c routewarden.json -X POST /auth/token -b 'grant_type=password'
 
-# 3. Test unauthorized entity control service call is blocked
+# 4. Test unauthorized entity control service call is blocked
 rwarden test -c routewarden.json -X POST /api/services/lock/unlock -b '{"entity_id":"lock.door"}'
 
-# 4. Test home LAN / Tailscale admin bypasses all blocks
+# 5. Test home LAN / Tailscale admin bypasses all blocks
 rwarden test -c routewarden.json -X POST /auth/token --ip 100.64.0.15`
 })
 
@@ -298,7 +312,7 @@ const verificationSnippets = computed(() => ({
 
 # Case Study: Smart Home Mobile Ingress (Home Assistant)
 
-This case study demonstrates how to securely configure **Home Assistant** for external mobile companion access (location updates, push notifications, and automation triggers) while completely cloaking smart door locks, alarm controls, and login panels from public internet exposure.
+This case study demonstrates how to securely configure **Home Assistant** for external mobile companion access (location updates, push notifications, and automation triggers) while completely cloaking smart door locks, alarm controls, and login panels from public internet exposure using **Zero-Trust Allowlisting**.
 
 ---
 
@@ -312,14 +326,15 @@ To support mobile presence detection and automation, the official **Home Assista
 - Responding to actionable push notifications.
 
 However, exposing Home Assistant directly over the internet (`home.example.com`) introduces existential physical risks:
-1. **Credential Stuffing & Login Probing**: Scanners continuously attempt dictionary attacks on `/auth/token`, `/auth/authorize`, and `/auth/login_flow`.
-2. **Unauthorized Entity Manipulation**: Attackers could probe `/api/services/lock/unlock` or `/api/services/cover/open_cover` to compromise physical security.
-3. **Supervisor & Configuration Dumps**: Automated vulnerability tools scan for `/api/hassio/*`, `/api/config`, and YAML secret backups.
+1. **Root Path Lovelace & UI Exposure**: Visiting `/` serves the Lovelace web UI or triggers a redirect to `/auth/login_flow`. If not shielded by a default-deny policy, public visitors load the entire frontend application.
+2. **Credential Stuffing & Login Probing**: Scanners continuously attempt dictionary attacks on `/auth/token`, `/auth/authorize`, and `/auth/login_flow`.
+3. **Unauthorized Entity Manipulation**: Attackers could probe `/api/services/lock/unlock` or `/api/services/cover/open_cover` to compromise physical security.
+4. **Supervisor & Configuration Dumps**: Automated vulnerability tools scan for `/api/hassio/*`, `/api/config`, and YAML secret backups.
 
 ### The Objective
 
 1. **Mobile Ingress (Public Internet)**: Allow the mobile companion app to deliver device webhooks (`/api/webhook/*`) seamlessly without requiring an always-on VPN connection on your phone.
-2. **Administrative & Entity Shield**: Intercept and cloak all authentication paths (`/auth/*`), state inspection (`/api/states`), service execution (`/api/services/*`), and supervisor endpoints with **`404 Not Found`**.
+2. **Zero-Trust Entity & Admin Shield**: Enforce a strict **Default-Deny (`blockPatterns: ['(?i)^/.*$']`)** policy so that every unlisted endpoint—including the root path `/`, Lovelace UI, authentication (`/auth/*`), and internal APIs—is cloaked with **`404 Not Found`**.
 3. **Home LAN & VPN Whitelist**: Full web dashboard, lovelace cards, and configuration settings are accessible when connected to home Wi-Fi or via **Tailscale / WireGuard** VPN (`allowedIps`).
 
 ---
@@ -369,6 +384,17 @@ Whenever Home Assistant runs behind Traefik, Caddy, or NGINX, Home Assistant's i
 
 <CodeViewer :snippets="haConfigSnippets" />
 
+### 6. Why Zero-Trust Allowlisting Prevents Root Lovelace & Redirect Bypasses
+
+Home Assistant has no standalone public landing page; visiting `https://home.example.com/` serves the Lovelace web application or redirects visitors to `/auth/login_flow`.
+
+Traditional denylists (blocklists) targeting `/auth` or `/api/config` fail because the initial `GET /` request does not match the blocklist, allowing internet scanners to load the web interface and confirm that Home Assistant is running.
+
+By inverting to **Zero-Trust Allowlisting (Default-Deny)**:
+- **`blockPatterns: ['(?i)^/.*$']`**: Intercepts all inbound traffic at the reverse proxy. Requests to `/`, `/lovelace`, and administrative APIs never reach the Home Assistant container.
+- **`allowPatterns: ['(?i)^/api/webhook/[a-zA-Z0-9_-]+$']`**: Because RouteWarden evaluates `allowPatterns` *before* `blockPatterns`, valid mobile companion webhooks pass through seamlessly.
+- **`allowedIps`**: Your internal LAN and Tailscale/WireGuard subnets bypass the catch-all block, preserving complete administrative control for trusted devices.
+
 ---
 
 ## Verification Matrix & Curl Tests
@@ -381,6 +407,7 @@ Inspect live curl verification commands and offline RouteWarden CLI tests:
 |:---|:---|:---:|:---:|
 | **Mobile Geolocation Webhook** | `POST /api/webhook/{token}` | ✅ **Allowed** | ✅ **Allowed** |
 | **Mobile Push Notification Ack** | `POST /api/webhook/{token}` | ✅ **Allowed** | ✅ **Allowed** |
+| **Root Web UI & Lovelace Dashboard** | `GET /` | ❌ **Blocked (404)** | ✅ **Allowed** |
 | **Web UI Authentication** | `POST /auth/token` | ❌ **Blocked (404)** | ✅ **Allowed** |
 | **Service Execution (Smart Locks)** | `POST /api/services/*` | ❌ **Blocked (404)** | ✅ **Allowed** |
 | **Supervisor API** | `GET /api/hassio/*` | ❌ **Blocked (404)** | ✅ **Allowed** |

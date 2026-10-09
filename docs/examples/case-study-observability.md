@@ -22,7 +22,11 @@ http:
             - PATCH # [!code ++]
             - HEAD # [!code ++]
           enableDefaultPatterns: true # [!code ++]
-          # Guard metrics, profiling, and actuator endpoints
+          # Allow safe public healthcheck probe # [!code ++]
+          allowPatterns: # [!code ++]
+            - '(?i)^/actuator/health$' # [!code ++]
+            - '(?i)^/healthz$' # [!code ++]
+          # Guard all other metrics, profiling, and actuator endpoints # [!code ++]
           blockPatterns: # [!code ++]
             - '(?i)^/(metrics|server-metrics|telemetry)(/.*)?$' # [!code ++]
             - '(?i)^/actuator(/.*)?$' # [!code ++]
@@ -57,6 +61,10 @@ http:
   enabled = true # [!code ++]
   methods = ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD"] # [!code ++]
   enableDefaultPatterns = true # [!code ++]
+  allowPatterns = [ # [!code ++]
+    "(?i)^/actuator/health$", # [!code ++]
+    "(?i)^/healthz$" # [!code ++]
+  ] # [!code ++]
   blockPatterns = [ # [!code ++]
     "(?i)^/(metrics|server-metrics|telemetry)(/.*)?$", # [!code ++]
     "(?i)^/actuator(/.*)?$", # [!code ++]
@@ -74,6 +82,7 @@ http:
 - "traefik.http.routers.app.middlewares=metrics-cloak" # [!code ++]
 - "traefik.http.middlewares.metrics-cloak.plugin.routewarden.enabled=true" # [!code ++]
 - "traefik.http.middlewares.metrics-cloak.plugin.routewarden.methods=GET,POST,PUT,DELETE,PATCH,HEAD" # [!code ++]
+- "traefik.http.middlewares.metrics-cloak.plugin.routewarden.allowPatterns=(?i)^/actuator/health$,(?i)^/healthz$" # [!code ++]
 - "traefik.http.middlewares.metrics-cloak.plugin.routewarden.blockPatterns=(?i)^/(metrics|server-metrics)(/.*)?$,(?i)^/actuator(/.*)?$,(?i)^/debug/pprof(/.*)?$" # [!code ++]
 - "traefik.http.middlewares.metrics-cloak.plugin.routewarden.allowedIps=10.0.0.50/32,10.244.0.0/16,127.0.0.1" # [!code ++]
 - "traefik.http.middlewares.metrics-cloak.plugin.routewarden.response.mode=json" # [!code ++]
@@ -88,6 +97,9 @@ app.example.com {
     route_warden { # [!code ++]
         methods GET POST PUT DELETE PATCH HEAD # [!code ++]
         enable_default_patterns true # [!code ++]
+        # Allow safe public healthcheck probe # [!code ++]
+        allow_patterns "(?i)^/actuator/health$" "(?i)^/healthz$" # [!code ++]
+        # Guard all other metrics, profiling, and actuator endpoints # [!code ++]
         block_patterns "(?i)^/(metrics|server-metrics|telemetry)(/.*)?$" "(?i)^/actuator(/.*)?$" "(?i)^/debug/(pprof|vars)(/.*)?$" # [!code ++]
         allowed_ips "10.0.0.50/32" "10.244.0.0/16" "127.0.0.1" # [!code ++]
         response { # [!code ++]
@@ -110,6 +122,10 @@ http {
         metrics_warden = routewarden.new({ # [!code ++]
             methods = { "GET", "POST", "PUT", "DELETE", "PATCH", "HEAD" }, # [!code ++]
             enable_default_patterns = true, # [!code ++]
+            allow_patterns = { # [!code ++]
+                "(?i)^/actuator/health$", # [!code ++]
+                "(?i)^/healthz$" # [!code ++]
+            }, # [!code ++]
             block_patterns = { # [!code ++]
                 "(?i)^/(metrics|server-metrics|telemetry)(/.*)?$", # [!code ++]
                 "(?i)^/actuator(/.*)?$", # [!code ++]
@@ -148,6 +164,10 @@ http {
   "enabled": true,
   "methods": ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD"],
   "enableDefaultPatterns": true,
+  "allowPatterns": [
+    "(?i)^/actuator/health$",
+    "(?i)^/healthz$"
+  ],
   "blockPatterns": [
     "(?i)^/(metrics|server-metrics|telemetry)(/.*)?$",
     "(?i)^/actuator(/.*)?$",
@@ -201,11 +221,12 @@ When exposed to the public internet, these endpoints leak proprietary architectu
 
 ---
 
-## The Solution: Ingress Masking via RouteWarden
+## The Solution: Two-Tier Masking with Healthcheck Allowlisting
 
-RouteWarden intercepts all requests directed at diagnostic and metrics paths:
-- **Public Traffic**: Receives a cloaked `404 Not Found` response.
-- **Authorized Scrapers**: Requests originating from the internal monitoring cluster (e.g. Prometheus pod CIDR `10.244.0.0/16` or VPC subnet) bypass the filter and receive live metrics.
+RouteWarden enforces a granular defense policy:
+1. **Public Healthcheck Allowlist (`allowPatterns`)**: Safe liveness probes (e.g. `/actuator/health`, `/healthz`) remain reachable by external load balancers and uptime monitors.
+2. **Sensitive Observability Cloaking (`blockPatterns`)**: All other telemetry endpoints (`/metrics`, `/actuator/env`, `/debug/pprof`) are intercepted at the edge and cloaked with `404 Not Found`.
+3. **Authorized Scrapers (`allowedIps`)**: Monitoring servers (Prometheus, Datadog) originating from trusted VPC subnets or Kubernetes pod CIDRs bypass the block and scrape full metrics uninterrupted.
 
 ---
 
