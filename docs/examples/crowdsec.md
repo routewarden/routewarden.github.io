@@ -103,7 +103,7 @@ log:
 
 const logfile_traefik_docker = buildSnippet({ lang: 'yaml', code: `services:
   traefik:
-    image: traefik:v3.1
+    image: traefik:latest
     volumes:
       - /var/log/traefik:/var/log/traefik
     command:
@@ -278,7 +278,7 @@ http {
 
   docker_traefik: buildSnippet({ lang: 'yaml', code: `services:
   traefik:
-    image: traefik:v3.1
+    image: traefik:latest
     container_name: traefik
     command:
       - "--api.insecure=true"

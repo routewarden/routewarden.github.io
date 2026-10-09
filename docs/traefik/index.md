@@ -11,7 +11,7 @@ const install_compose = buildSnippet({
   lang: 'yaml',
   code: `services:
   traefik:
-    image: traefik:v3.3
+    image: traefik:latest
     command:
       - "--experimental.plugins.routewarden.modulename=github.com/routewarden/traefik-warden" # [!code ++]
       - "--experimental.plugins.routewarden.version={{traefik_version}}" # [!code ++]
@@ -82,7 +82,7 @@ const quick_compose = buildSnippet({
   code: `# docker-compose.yml: Global protection on entryPoint
 services:
   traefik:
-    image: traefik:v3.3
+    image: traefik:latest
     command:
       - "--experimental.plugins.routewarden.modulename=github.com/routewarden/traefik-warden"  # [!code ++]
       - "--experimental.plugins.routewarden.version={{traefik_version}}" # [!code ++]

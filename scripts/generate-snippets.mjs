@@ -84,7 +84,7 @@ export async function generateSetupSnippets(options = {}) {
         diffLines: [5, 6, 9, 17, 18],
         code: `services:
   traefik:
-    image: traefik:v3.3
+    image: traefik:latest
     command:
       - "--experimental.plugins.routewarden.modulename=github.com/routewarden/traefik-warden"
       - "--experimental.plugins.routewarden.version=${traefikVersion}"

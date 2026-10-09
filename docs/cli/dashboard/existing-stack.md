@@ -136,7 +136,7 @@ const tag_compose = buildSnippet({
 services:
   # Traefik example
   traefik:
-    image: traefik:v3.3
+    image: traefik:latest
     container_name: traefik
     labels:
       - "routewarden.logs=true" # [!code ++]
@@ -181,7 +181,7 @@ docker run -d \\
   --name traefik \\
   --label routewarden.logs=true \\ # [!code ++]
   -p 80:80 -p 443:443 \\
-  traefik:v3.3
+  traefik:latest
 
 # Run Caddy with RouteWarden logging enabled
 docker run -d \\

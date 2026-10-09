@@ -107,7 +107,7 @@ const compose_setup = buildSnippet({
   lang: 'yaml',
   code: `services:
   traefik:
-    image: traefik:v3.1
+    image: traefik:latest
     command:
       - "--api.insecure=true"
       - "--providers.docker=true"
@@ -237,7 +237,7 @@ const prod_compose = buildSnippet({
   code: `# docker-compose.yml (Air-Gapped Production via /plugins-local)
 services:
   traefik:
-    image: traefik:v3.3
+    image: traefik:latest
     command:
       - "--providers.docker=true"
       - "--providers.file.filename=/etc/traefik/dynamic.yml"
@@ -287,7 +287,7 @@ const k8s_daemon = buildSnippet({
 spec:
   containers:
     - name: traefik
-      image: traefik:v3.3
+      image: traefik:latest
       args:
         - "--experimental.localplugins.routewarden.modulename=github.com/routewarden/traefik-warden" # [!code ++]
       volumeMounts:

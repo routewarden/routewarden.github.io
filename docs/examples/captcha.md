@@ -271,7 +271,7 @@ http {
 }` }),
   docker_traefik: buildSnippet({ lang: 'yaml', code: `services:
   traefik:
-    image: traefik:v3.1
+    image: traefik:latest
     command:
       - "--providers.docker=true"
       - "--entrypoints.web.address=:80"

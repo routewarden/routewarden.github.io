@@ -58,7 +58,7 @@ const local_cli = buildSnippet({
   code: `# docker-compose.yml (Local / Air-Gapped via /plugins-local)
 services:
   traefik:
-    image: traefik:v3.3
+    image: traefik:latest
     command:
       - "--providers.docker=true"
       - "--entrypoints.web.address=:80"
@@ -182,7 +182,7 @@ const dyn_labels = buildSnippet({
   code: `# Docker Compose labels mapping from routewarden.json
 services:
   traefik:
-    image: traefik:v3.3
+    image: traefik:latest
     labels:
       - "traefik.enable=true"
       # RouteWarden middleware definition
@@ -306,7 +306,7 @@ const ep_cli = buildSnippet({
   code: `# docker-compose.yml (Global EntryPoint protection via CLI flags)
 services:
   traefik:
-    image: traefik:v3.3
+    image: traefik:latest
     command:
       - "--providers.docker=true"
       - "--providers.file.filename=/etc/traefik/dynamic.yml"
