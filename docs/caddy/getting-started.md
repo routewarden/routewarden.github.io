@@ -82,11 +82,11 @@ COPY --from=builder /usr/bin/caddy /usr/bin/caddy # [!code ++]`,
 const compose_caddyfile = buildSnippet({
   lang: 'caddy',
   code: `{
-    order route_warden before reverse_proxy # [!code ++]
+    order routewarden before reverse_proxy # [!code ++]
 }
 
 example.com {
-    route_warden { # [!code ++]
+    routewarden { # [!code ++]
         enable_default_patterns true # [!code ++]
         response { # [!code ++]
             mode json # [!code ++]
@@ -135,11 +135,11 @@ const config_opt1_caddyfile = buildSnippet({
   lang: 'caddy',
   code: `# Caddyfile mapping from routewarden.json
 {
-    order route_warden before reverse_proxy # [!code ++]
+    order routewarden before reverse_proxy # [!code ++]
 }
 
 example.com {
-    route_warden { # [!code ++]
+    routewarden { # [!code ++]
         enabled true # [!code ++]
         enable_default_patterns true # [!code ++]
         methods GET POST # [!code ++]
@@ -159,7 +159,7 @@ const config_opt1_api = buildSnippet({
   lang: 'json',
   code: `// POST /load or /config/apps/http/servers/srv0/routes
 {
-  "handler": "route_warden",
+  "handler": "routewarden",
   "enabled": true,
   "enable_default_patterns": true,
   "methods": ["GET", "POST"],
@@ -242,7 +242,7 @@ const pipelineSnippets = computed(() => ({
 const ordering_code = buildSnippet({
   lang: 'caddy',
   code: `{
-    order route_warden before basicauth # [!code ++]
+    order routewarden before basicauth # [!code ++]
 }`,
 })
 
@@ -255,7 +255,7 @@ const orderingSnippets = computed(() => ({
 // ─── Option 2: Caddyfile Syntax ─────────────────────────────────────────────
 const caddyfile_syntax = buildSnippet({
   lang: 'caddy',
-  code: `route_warden {
+  code: `routewarden {
     enabled <true|false>
     enable_default_patterns <true|false>
     enable_default_allow_patterns <true|false>
@@ -293,11 +293,11 @@ const caddyfileSyntaxSnippets = computed(() => ({
 const ex1_code = buildSnippet({
   lang: 'caddy',
   code: `{
-    order route_warden before reverse_proxy # [!code ++]
+    order routewarden before reverse_proxy # [!code ++]
 }
 
 example.com {
-    route_warden { # [!code ++]
+    routewarden { # [!code ++]
         enable_default_patterns true # [!code ++]
         response { # [!code ++]
             mode json # [!code ++]
@@ -320,11 +320,11 @@ const ex1Snippets = computed(() => ({
 const ex2_code = buildSnippet({
   lang: 'caddy',
   code: `{
-    order route_warden before reverse_proxy # [!code ++]
+    order routewarden before reverse_proxy # [!code ++]
 }
 
 app.example.com {
-    route_warden { # [!code ++]
+    routewarden { # [!code ++]
         enable_default_patterns true # [!code ++]
         block_patterns "(?i)^/admin(/.*)?$" "(?i)^/metrics$" # [!code ++]
         allow_patterns "(?i)^/admin/health$" # [!code ++]
@@ -350,11 +350,11 @@ const ex2Snippets = computed(() => ({
 const ex3_code = buildSnippet({
   lang: 'caddy',
   code: `{
-    order route_warden before reverse_proxy # [!code ++]
+    order routewarden before reverse_proxy # [!code ++]
 }
 
 honeypot.example.com {
-    route_warden { # [!code ++]
+    routewarden { # [!code ++]
         enable_default_patterns true # [!code ++]
         block_patterns "(?i)^/wp-login\\.php$" "(?i)^/xmlrpc\\.php$" # [!code ++]
         response { # [!code ++]
@@ -378,11 +378,11 @@ const ex3Snippets = computed(() => ({
 const ex4_code = buildSnippet({
   lang: 'caddy',
   code: `{
-    order route_warden before reverse_proxy # [!code ++]
+    order routewarden before reverse_proxy # [!code ++]
 }
 
 portal.example.com {
-    route_warden { # [!code ++]
+    routewarden { # [!code ++]
         block_patterns "(?i)^/portal/sensitive(/.*)?$" # [!code ++]
         response { # [!code ++]
             mode captcha # [!code ++]
@@ -416,7 +416,7 @@ const json_api_code = buildSnippet({
             {
               "handle": [
                 {
-                  "handler": "route_warden", // [!code ++]
+                  "handler": "routewarden", // [!code ++]
                   "enabled": true, // [!code ++]
                   "enable_default_patterns": true, // [!code ++]
                   "allowed_ips": ["10.0.0.0/8"], // [!code ++]
@@ -510,7 +510,7 @@ If you maintain `routewarden.json` as your single source of truth across Git rep
 
 ## Directive Ordering
 
-In Caddy, custom HTTP handler modules must be ordered in the middleware chain. Add `order route_warden before basicauth` or `order route_warden before reverse_proxy` inside your Caddyfile global options block:
+In Caddy, custom HTTP handler modules must be ordered in the middleware chain. Add `order routewarden before basicauth` or `order routewarden before reverse_proxy` inside your Caddyfile global options block:
 
 <CodeViewer :snippets="orderingSnippets" />
 

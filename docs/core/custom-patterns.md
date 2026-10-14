@@ -129,11 +129,11 @@ const bpA_caddy = buildSnippet({
   lang: 'caddy',
   code: `# Caddyfile
 {
-    order route_warden before reverse_proxy # [!code ++]
+    order routewarden before reverse_proxy # [!code ++]
 }
 
 shop.example.com {
-    route_warden { # [!code ++]
+    routewarden { # [!code ++]
         enable_default_patterns true # [!code ++]
         block_patterns "(?i)(^|/)(xmlrpc\\.php|wp-config\\.php|install\\.php|license\\.txt|readme\\.html)$" # [!code ++]
         allow_patterns "(?i)^/wp-content/uploads/.*" "(?i)^/robots\\.txt$" # [!code ++]
@@ -274,7 +274,7 @@ const bpB_compose = buildSnippet({
 const bpB_caddy = buildSnippet({
   lang: 'caddy',
   code: `app.example.com {
-    route_warden { # [!code ++]
+    routewarden { # [!code ++]
         enable_default_patterns true # [!code ++]
         block_patterns "(?i)(^|/)(next\\.config\\.js|tsconfig\\.json|package\\.json|package-lock\\.json|yarn\\.lock)$" # [!code ++]
         allow_patterns "(?i)^/_next/static/.*" "(?i)^/favicon\\.ico$" # [!code ++]
@@ -376,7 +376,7 @@ const bpC_compose = buildSnippet({
 const bpC_caddy = buildSnippet({
   lang: 'caddy',
   code: `api.example.com {
-    route_warden { # [!code ++]
+    routewarden { # [!code ++]
         enable_default_patterns true # [!code ++]
         block_patterns "(?i)(^|/)(__pycache__|\\.venv|venv|local_settings\\.py|manage\\.py)$" # [!code ++]
         allow_patterns "(?i)^/static/.*" "(?i)^/media/.*" # [!code ++]
@@ -476,7 +476,7 @@ const bpD_compose = buildSnippet({
 const bpD_caddy = buildSnippet({
   lang: 'caddy',
   code: `service.internal.example.com {
-    route_warden { # [!code ++]
+    routewarden { # [!code ++]
         enable_default_patterns true # [!code ++]
         block_patterns "(?i)^/(actuator|metrics|heapdump|trace|env|h2-console)(/.*)?$" # [!code ++]
         allow_patterns "(?i)^/actuator/health$" # [!code ++]
@@ -575,7 +575,7 @@ const bpE_compose = buildSnippet({
 const bpE_caddy = buildSnippet({
   lang: 'caddy',
   code: `laravel.example.com {
-    route_warden { # [!code ++]
+    routewarden { # [!code ++]
         enable_default_patterns true # [!code ++]
         block_patterns "(?i)(^|/)(artisan|composer\\.json|composer\\.lock|package\\.json|\\.env.*)$" # [!code ++]
         allow_patterns "(?i)^/(css|js|images|storage)/.*" # [!code ++]
@@ -654,7 +654,7 @@ const allow_labels = buildSnippet({
 const allow_caddy = buildSnippet({
   lang: 'caddy',
   code: `example.com {
-    route_warden {
+    routewarden {
         block_patterns "(?i).*\\.ya?ml$" "(?i)^/api/(internal|admin).*"
         allow_patterns "(?i)^/api/v1/openapi\\.ya?ml$" "(?i)^/api/internal/health$"
     }
@@ -727,7 +727,7 @@ const query_labels = buildSnippet({
 const query_caddy = buildSnippet({
   lang: 'caddy',
   code: `example.com {
-    route_warden {
+    routewarden {
         check_query true
         block_patterns "(?i)(\\.env|phpinfo|backup\\.sql)"
     }
@@ -873,11 +873,11 @@ const multi_compose = buildSnippet({
 const multi_caddy = buildSnippet({
   lang: 'caddy',
   code: `{
-    order route_warden before reverse_proxy # [!code ++]
+    order routewarden before reverse_proxy # [!code ++]
 }
 
 app.example.com {
-    route_warden { # [!code ++]
+    routewarden { # [!code ++]
         enabled true # [!code ++]
         enable_default_patterns true # [!code ++]
         block_patterns "(?i)^/api/(internal|admin)(/.*)?$" "(?i).*\\.(sql|dump)$" # [!code ++]

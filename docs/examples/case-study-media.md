@@ -84,11 +84,11 @@ http:
 
   caddy: buildSnippet({ lang: 'caddy', code: `# Caddyfile
 {
-    order route_warden before reverse_proxy # [!code ++]
+    order routewarden before reverse_proxy # [!code ++]
 }
 
 media.example.com {
-    route_warden { # [!code ++]
+    routewarden { # [!code ++]
         methods GET POST PUT DELETE PATCH HEAD # [!code ++]
         enable_default_patterns true # [!code ++]
         block_patterns "(?i)^/(admin|System|Plugins|Users/New)(/.*)?$" "(?i)^/web/index\\.html#!/dashboard.*$" "(?i)^/web/index\\.html#!/apikeys.*$" # [!code ++]
@@ -264,11 +264,11 @@ http:
 
   caddy: buildSnippet({ lang: 'caddy', code: `# Caddyfile - Plex Media Server
 {
-    order route_warden before reverse_proxy # [!code ++]
+    order routewarden before reverse_proxy # [!code ++]
 }
 
 plex.example.com {
-    route_warden { # [!code ++]
+    routewarden { # [!code ++]
         methods GET POST PUT DELETE PATCH HEAD # [!code ++]
         enable_default_patterns true # [!code ++]
         block_patterns "(?i)^/(system|updater|activities|diagnostics|manage)(/.*)?$" "(?i)^/web/index\\.html#!/settings.*$" "(?i)^/servers(/.*)?$" # [!code ++]
@@ -403,7 +403,7 @@ const caddyOrder = buildSnippet({
   lang: 'caddy',
   code: `# Caddyfile Global Options
 {
-    order route_warden before reverse_proxy
+    order routewarden before reverse_proxy
 }`
 })
 

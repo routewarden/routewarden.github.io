@@ -76,11 +76,11 @@ metadata:
 data:
   Caddyfile: |
     {
-        order route_warden before reverse_proxy
+        order routewarden before reverse_proxy
     }
 
     production.example.com {
-        route_warden {
+        routewarden {
             enable_default_patterns true
             check_query true
             allowed_ips "10.0.0.0/8" "172.16.0.0/12"
@@ -104,7 +104,7 @@ metadata:
   name: production-ingress
   namespace: default
   annotations:
-    caddy.community/order: "route_warden before reverse_proxy"
+    caddy.community/order: "routewarden before reverse_proxy"
 spec:
   ingressClassName: caddy
   rules:

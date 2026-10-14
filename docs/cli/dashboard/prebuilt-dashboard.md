@@ -47,7 +47,15 @@ Two donut graphs illustrate your traffic breakdown:
 ### 4. Threat Geography & GeoIP Intelligence
 
 A comprehensive geographic intelligence suite providing real-time visibility into attacking nation states and geographic concentrations:
-- **Global Attack Origins Map (Geomap)**: Interactive world map plotting attack origins by ISO 3166-1 alpha-2 country codes. Marker sizes and colors scale dynamically with attack intensity.
+- **Global Attack Origins Map (Geomap)**: Interactive world map plotting attack origins by ISO 3166-1 alpha-2 country codes. Marker sizes and colors scale dynamically with attack intensity. Defaults to **OpenStreetMap** (`osm-standard`) for out-of-the-box operation without requiring external API keys.
+  > [!TIP]
+  > **Using CARTO Basemaps with an API Key**:
+  > As of late 2026, CARTO requires an API key for its raster tile server (`basemaps.cartocdn.com`). If you prefer CARTO's dark basemap styling instead of OpenStreetMap:
+  > 1. Obtain a free key at [carto.com/basemaps/apikey](https://carto.com/basemaps/apikey/).
+  > 2. In Grafana, edit the **Global Attack Origins Map** panel.
+  > 3. Under **Basemap layer**, set the type to **XYZ**.
+  > 4. Enter the URL: `https://basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}.png?key=YOUR_CARTO_API_KEY`
+  > 5. Set Attribution to `© CARTO © OpenStreetMap contributors`.
 - **Top Attacking Countries**: Ranked bar gauge showing the top 10 nation-state origins of blocked probes and hostile requests.
 - **Country Threat Share**: Donut chart displaying the percentage breakdown of global threat traffic by origin country.
 

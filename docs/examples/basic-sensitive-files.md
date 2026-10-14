@@ -79,11 +79,11 @@ http:
 
   caddy: buildSnippet({ lang: 'caddy', code: `# Caddyfile
 {
-    order route_warden before reverse_proxy
+    order routewarden before reverse_proxy
 }
 
 localhost {
-    route_warden {
+    routewarden {
         enable_default_patterns true
         response {
             mode json

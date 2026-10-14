@@ -198,12 +198,12 @@ const caddyFile = buildSnippet({
   lang: 'caddy',
   code: `# Caddyfile — Dual-Site Architecture
 {
-    order route_warden before reverse_proxy # [!code ++]
+    order routewarden before reverse_proxy # [!code ++]
 }
 
 # 1. PUBLIC SITE: Shielded with Zero-Trust Allowlisting
 photos.example.com {
-    route_warden { # [!code ++]
+    routewarden { # [!code ++]
         methods GET POST PUT DELETE PATCH HEAD # [!code ++]
         enable_default_patterns true # [!code ++]
         # Zero-Trust Allowlist: permit strictly public share viewer & required APIs # [!code ++]
@@ -284,11 +284,11 @@ metadata:
 data:
   Caddyfile: | # [!code ++]
     { # [!code ++]
-        order route_warden before reverse_proxy # [!code ++]
+        order routewarden before reverse_proxy # [!code ++]
     } # [!code ++]
     
     photos.example.com { # [!code ++]
-        route_warden { # [!code ++]
+        routewarden { # [!code ++]
             methods GET POST PUT DELETE PATCH HEAD # [!code ++]
             enable_default_patterns true # [!code ++]
             # Zero-Trust Allowlist: permit strictly public share viewer & required APIs # [!code ++]
@@ -661,11 +661,11 @@ const altCaddyfile = buildSnippet({
   lang: 'caddy',
   code: `# Caddyfile: Single domain with IP allowlist bypass
 {
-    order route_warden before reverse_proxy # [!code ++]
+    order routewarden before reverse_proxy # [!code ++]
 }
 
 photos.example.com {
-    route_warden { # [!code ++]
+    routewarden { # [!code ++]
         methods GET POST PUT DELETE PATCH HEAD # [!code ++]
         enable_default_patterns true # [!code ++]
         # Zero-Trust Allowlist: permit strictly public share viewer & required APIs # [!code ++]
@@ -784,7 +784,7 @@ const caddyOrder = buildSnippet({
   lang: 'caddy',
   code: `# Caddyfile Global Options
 {
-    order route_warden before reverse_proxy
+    order routewarden before reverse_proxy
 }`
 })
 
@@ -1137,7 +1137,7 @@ When using Caddy, you must register RouteWarden before Caddy's built-in `reverse
 <CodeViewer :snippets="caddyOrderSnippets" />
 
 Without this directive order, Caddy will fail to start with the error:
-`directive 'route_warden' is not an ordered HTTP handler`.
+`directive 'routewarden' is not an ordered HTTP handler`.
 Alternatively, you can encapsulate RouteWarden and your proxy inside an explicit `route { ... }` block.
 
 ### 5. Why Immich `/` Redirects to `/auth/login` (and How Zero-Trust Allowlisting Prevents Bypass)

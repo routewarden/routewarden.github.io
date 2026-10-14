@@ -56,7 +56,7 @@ export function generateGatewaySnippet(opts: SnippetOptions): string {
   const trustedProxiesList = opts.trustedProxiesList || []
 
   if (snippetFormat === 'caddy') {
-    let out = `example.com {\n  route_warden {\n`
+    let out = `example.com {\n  routewarden {\n`
     if (!enabled) out += `    enabled false\n`
     if (debug) out += `    debug true\n`
     if (!securityLog) out += `    security_log false\n`
@@ -378,7 +378,7 @@ export function generateGatewaySnippet(opts: SnippetOptions): string {
   }
 
   if (snippetFormat === 'k8s_caddy') {
-    let out = `apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: caddy-config\n  namespace: default\ndata:\n  Caddyfile: |\n    {\n      order route_warden before reverse_proxy\n    }\n\n    example.com {\n      route_warden {\n`
+    let out = `apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: caddy-config\n  namespace: default\ndata:\n  Caddyfile: |\n    {\n      order routewarden before reverse_proxy\n    }\n\n    example.com {\n      routewarden {\n`
     if (!enabled) out += `        enabled false\n`
     if (debug) out += `        debug true\n`
     if (!securityLog) out += `        security_log false\n`

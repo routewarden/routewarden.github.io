@@ -83,11 +83,11 @@ http:
 
   caddy: buildSnippet({ lang: 'caddy', code: `# Caddyfile
 {
-    order route_warden before reverse_proxy
+    order routewarden before reverse_proxy
 }
 
 admin.localhost {
-    route_warden {
+    routewarden {
         block_patterns "(?i)^/admin(/.*)?$" "(?i)^/metrics(/.*)?$"
         allowed_ips "10.0.0.0/8" "192.168.1.100"
         response {

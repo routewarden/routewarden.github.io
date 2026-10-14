@@ -86,7 +86,7 @@ traefik \\
 
   caddy: buildSnippet({ lang: 'caddy', code: `# Caddyfile: Global RouteWarden Snippet applied across all sites
 (global_warden_shield) {
-    route_warden {
+    routewarden {
         enable_default_patterns true
         allowed_ips "127.0.0.1" "10.0.0.0/8"
         response {
@@ -98,7 +98,7 @@ traefik \\
 }
 
 {
-    order route_warden before reverse_proxy
+    order routewarden before reverse_proxy
 }
 
 frontend.localhost {

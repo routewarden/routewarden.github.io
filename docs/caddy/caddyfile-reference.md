@@ -14,17 +14,17 @@ directive 'routewarden' is not an ordered HTTP handler, so it cannot be used her
 
 Configure directive ordering in global options:
 
-```nginx
+```caddy
 {
-    order route_warden before basicauth
+    order routewarden before basicauth
 }
 ```
 
 Or before `reverse_proxy` if you do not use Caddy's built-in `basicauth`:
 
-```nginx
+```caddy
 {
-    order route_warden before reverse_proxy
+    order routewarden before reverse_proxy
 }
 ```
 
@@ -45,8 +45,8 @@ Or before `reverse_proxy` if you do not use Caddy's built-in `basicauth`:
 
 ## 2. Complete Caddyfile Schema
 
-```nginx
-route_warden {
+```caddy
+routewarden {
     # Boolean Flags
     enabled <true|false>                        # Default: true
     enable_default_patterns <true|false>        # Default: true (.env, .git, backups, etc.)
@@ -164,7 +164,7 @@ For zero-downtime environments configured via Caddy's dynamic API:
 
 ```json
 {
-  "handler": "route_warden",
+  "handler": "routewarden",
   "enabled": true,
   "enable_default_patterns": true,
   "allowed_ips": ["10.0.0.0/8", "192.168.1.50"],

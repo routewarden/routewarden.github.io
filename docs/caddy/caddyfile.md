@@ -9,14 +9,14 @@ import { buildSnippet } from '../.vitepress/theme/composables/useCodeSnippet'
 const order_basicauth = buildSnippet({
   lang: 'caddy',
   code: `{
-    order route_warden before basicauth # [!code ++]
+    order routewarden before basicauth # [!code ++]
 }`,
 })
 
 const order_reverse_proxy = buildSnippet({
   lang: 'caddy',
   code: `{
-    order route_warden before reverse_proxy # [!code ++]
+    order routewarden before reverse_proxy # [!code ++]
 }`,
 })
 
@@ -30,7 +30,7 @@ const orderingSnippets = computed(() => ({
 // ─── 2. Complete Caddyfile Schema ───────────────────────────────────────────
 const schema_code = buildSnippet({
   lang: 'caddy',
-  code: `route_warden {
+  code: `routewarden {
     # Boolean Flags
     enabled <true|false>                        # Default: true
     debug <true|false>                          # Default: false (verbose diagnostic logs)
@@ -82,7 +82,7 @@ const schemaSnippets = computed(() => ({
 const api_code = buildSnippet({
   lang: 'json',
   code: `{
-  "handler": "route_warden", // [!code ++]
+  "handler": "routewarden", // [!code ++]
   "enabled": true, // [!code ++]
   "enable_default_patterns": true, // [!code ++]
   "allowed_ips": ["10.0.0.0/8", "192.168.1.50"], // [!code ++]
