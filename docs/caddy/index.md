@@ -11,11 +11,11 @@ import { buildSnippet } from '../.vitepress/theme/composables/useCodeSnippet'
 const quick_caddyfile = buildSnippet({
   lang: 'caddy',
   code: `{
-    order route_warden before reverse_proxy # [!code ++]
+    order routewarden before reverse_proxy # [!code ++]
 }
 
 example.com {
-    route_warden { # [!code ++]
+    routewarden { # [!code ++]
         enable_default_patterns true # [!code ++]
     } # [!code ++]
 
@@ -26,7 +26,7 @@ example.com {
 const quick_json = buildSnippet({
   lang: 'json',
   code: `{
-  "handler": "route_warden", // [!code ++]
+  "handler": "routewarden", // [!code ++]
   "enabled": true, // [!code ++]
   "enable_default_patterns": true // [!code ++]
 }`,

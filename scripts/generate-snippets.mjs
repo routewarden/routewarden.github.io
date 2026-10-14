@@ -47,7 +47,7 @@ export async function generateSetupSnippets(options = {}) {
       },
       {
         name: 'keyword.control.caddyfile',
-        match: '\\b(order|route_warden|reverse_proxy|tls|respond|import|handle|handle_path|root|encode|log|rewrite|redir|header|request_header|basicauth|forward_auth|abort|error)\\b'
+        match: '\\b(order|routewarden|route_warden|reverse_proxy|tls|respond|import|handle|handle_path|root|encode|log|rewrite|redir|header|request_header|basicauth|forward_auth|abort|error)\\b'
       },
       {
         name: 'entity.name.tag.caddyfile',
@@ -185,14 +185,14 @@ volumes:
       {
         filename: 'Caddyfile',
         lang: 'caddy',
-        // Lines 2 = order directive; 6,7,8 = route_warden block
+        // Lines 2 = order directive; 6,7,8 = routewarden block
         diffLines: [2, 6, 7, 8],
         code: `{
-    order route_warden before reverse_proxy
+    order routewarden before reverse_proxy
 }
 
 :80 {
-    route_warden {
+    routewarden {
         enable_default_patterns true
     }
     respond "OK" 200

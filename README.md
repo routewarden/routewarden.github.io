@@ -105,11 +105,11 @@ xcaddy build --with github.com/routewarden/caddy-warden@v1.2.1
 Configure `Caddyfile`:
 ```caddyfile
 {
-    order route_warden before reverse_proxy
+    order routewarden before reverse_proxy
 }
 
 :80 {
-    route_warden {
+    routewarden {
         enable_default_patterns
         response {
             mode json

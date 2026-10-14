@@ -342,7 +342,7 @@ const workflow_graph_svg = `<div class="rw-graph-container">
     <circle cx="672" cy="345" r="8" fill="#14b8a6"/>
     <text x="690" y="342" class="rw-g-card-title">Caddy</text>
     <rect x="690" y="352" width="130" height="18" rx="4" fill="#14b8a6" fill-opacity="0.12"/>
-    <text x="755" y="365" text-anchor="middle" class="rw-g-pill-txt" fill="#14b8a6">Native route_warden</text>
+    <text x="755" y="365" text-anchor="middle" class="rw-g-pill-txt" fill="#14b8a6">Native routewarden</text>
     <text x="665" y="388" class="rw-g-desc">• Native HTTP handler module pipeline</text>
     <text x="665" y="404" class="rw-g-desc">• Updated via Caddy REST API or JSON reload</text>
   </svg>
@@ -406,7 +406,7 @@ Use a top-of-file modeline comment to bind the schema directly without global ID
 
 ### Caddy JSON Configuration
 
-When configuring Caddy via the REST API or JSON files, map the `route_warden` handler directly:
+When configuring Caddy via the REST API or JSON files, map the `routewarden` handler directly:
 
 <CodeViewer :snippets="caddyJsonSnippets" />
 

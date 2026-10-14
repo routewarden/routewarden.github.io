@@ -110,7 +110,7 @@ const logfile_traefik_docker = buildSnippet({ lang: 'yaml', code: `services:
       - "--log.filePath=/var/log/traefik/traefik.log"` })
 
 const logfile_caddy = buildSnippet({ lang: 'caddy', code: `{
-    order route_warden before reverse_proxy
+    order routewarden before reverse_proxy
     log {
         output file /var/log/caddy/caddy.log {
             roll_size 50mb
@@ -226,11 +226,11 @@ const s = {
       - "traefik.http.middlewares.routewarden-shield.plugin.routewarden.securityLog=true" # [!code ++]
       - "traefik.http.middlewares.routewarden-shield.plugin.routewarden.response.mode=fakeSuccess" # [!code ++]` }),
   caddy: buildSnippet({ lang: 'caddy', code: `{
-    order route_warden before reverse_proxy # [!code ++]
+    order routewarden before reverse_proxy # [!code ++]
 }
 
 example.com {
-    route_warden { # [!code ++]
+    routewarden { # [!code ++]
         methods GET POST PUT DELETE PATCH HEAD # [!code ++]
         # Emits structured JSON events on stdout for CrowdSec
         security_log true # [!code ++]
@@ -470,7 +470,7 @@ const caddyOrder = buildSnippet({
   lang: 'caddy',
   code: `# Caddyfile Global Options
 {
-    order route_warden before reverse_proxy
+    order routewarden before reverse_proxy
 }`
 })
 

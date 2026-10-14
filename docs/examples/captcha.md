@@ -81,11 +81,11 @@ http:
 - "traefik.http.middlewares.hcaptcha-barrier.plugin.routewarden.response.captcha.title=Human Verification (hCaptcha)"` }),
   caddy: buildSnippet({ lang: 'caddy', code: `# Caddyfile
 {
-    order route_warden before reverse_proxy
+    order routewarden before reverse_proxy
 }
 
 app.example.com {
-    route_warden {
+    routewarden {
         block_patterns "(?i)^/(admin|login)(/.*)?$"
         response {
             mode captcha
@@ -214,11 +214,11 @@ http:
 - "traefik.http.middlewares.turnstile-barrier.plugin.routewarden.response.captcha.title=Security Verification Required"` }),
   caddy: buildSnippet({ lang: 'caddy', code: `# Caddyfile
 {
-    order route_warden before reverse_proxy
+    order routewarden before reverse_proxy
 }
 
 login.example.com {
-    route_warden {
+    routewarden {
         block_patterns "(?i)^/login(/.*)?$" "(?i)^/reset-password(/.*)?$"
         response {
             mode captcha

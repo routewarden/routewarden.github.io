@@ -75,11 +75,11 @@ http:
 
   caddy: buildSnippet({ lang: 'caddy', code: `# Caddyfile
 {
-    order route_warden before reverse_proxy # [!code ++]
+    order routewarden before reverse_proxy # [!code ++]
 }
 
 vault.example.com {
-    route_warden { # [!code ++]
+    routewarden { # [!code ++]
         methods GET POST PUT DELETE PATCH HEAD # [!code ++]
         enable_default_patterns true # [!code ++]
         block_patterns "(?i)^/admin(/.*)?$" # [!code ++]
@@ -216,11 +216,11 @@ Using RouteWarden's allowlisting and request body inspection across Caddy, Traef
 
 ```caddy
 {
-    order route_warden before reverse_proxy
+    order routewarden before reverse_proxy
 }
 
 vault.example.com {
-    route_warden {
+    routewarden {
         enable_default_patterns true
 
         # Inspect both GET and POST requests

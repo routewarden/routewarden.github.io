@@ -113,11 +113,11 @@ http:
 
   caddy: buildSnippet({ lang: 'caddy', code: `# Caddyfile: Service-specific custom rules and allowlist exceptions
 {
-    order route_warden before reverse_proxy
+    order routewarden before reverse_proxy
 }
 
 example.com {
-    route_warden {
+    routewarden {
         enable_default_patterns true
         check_query true
         block_patterns "(?i)^/admin(/.*)?$" "(?i)^/api/internal(/.*)?$"

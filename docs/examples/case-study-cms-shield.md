@@ -86,11 +86,11 @@ http:
 
   caddy: buildSnippet({ lang: 'caddy', code: `# Caddyfile
 {
-    order route_warden before reverse_proxy # [!code ++]
+    order routewarden before reverse_proxy # [!code ++]
 }
 
 blog.example.com {
-    route_warden { # [!code ++]
+    routewarden { # [!code ++]
         methods GET POST PUT DELETE PATCH HEAD # [!code ++]
         enable_default_patterns true # [!code ++]
         block_patterns "(?i)^/(wp-login\\.php|xmlrpc\\.php)$" "(?i)^/wp-admin(/.*)?$" # [!code ++]

@@ -8,7 +8,7 @@ import { buildSnippet } from '../.vitepress/theme/composables/useCodeSnippet'
 // ─── 1. Module Handler Identification ───────────────────────────────────────
 const module_id = buildSnippet({
   lang: 'plaintext',
-  code: `caddy.http.handlers.route_warden`,
+  code: `caddy.http.handlers.routewarden`,
 })
 
 const moduleIdSnippets = computed(() => ({
@@ -21,7 +21,7 @@ const moduleIdSnippets = computed(() => ({
 const schema_json = buildSnippet({
   lang: 'json',
   code: `{
-  "handler": "route_warden",
+  "handler": "routewarden",
   "enabled": true,
   "debug": false,
   "security_log": true,
@@ -74,7 +74,7 @@ const update_curl = buildSnippet({
   code: `curl -X POST http://localhost:2019/config/apps/http/servers/srv0/routes/0/handle/0 \\
   -H "Content-Type: application/json" \\
   -d '{
-    "handler": "route_warden",
+    "handler": "routewarden",
     "enabled": true,
     "security_log": true,
     "enable_default_patterns": true,
@@ -107,7 +107,7 @@ Caddy Warden registers itself in Caddy's HTTP middleware system under the ID:
 
 <CodeViewer :snippets="moduleIdSnippets" />
 
-When building routes via JSON, specify `"handler": "route_warden"` in your route handler list.
+When building routes via JSON, specify `"handler": "routewarden"` in your route handler list.
 
 ---
 

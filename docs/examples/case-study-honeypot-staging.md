@@ -38,11 +38,11 @@ http:
 - "traefik.http.middlewares.scanner-drop.plugin.routewarden.response.mode=silentDrop" # [!code ++]` }),
   caddy: buildSnippet({ lang: 'caddy', code: `# Caddyfile
 {
-    order route_warden before reverse_proxy # [!code ++]
+    order routewarden before reverse_proxy # [!code ++]
 }
 
 example.com {
-    route_warden { # [!code ++]
+    routewarden { # [!code ++]
         methods GET POST HEAD # [!code ++]
         enable_default_patterns true # [!code ++]
         response { # [!code ++]
@@ -135,11 +135,11 @@ http:
 - "traefik.http.middlewares.honeypot-deflect.plugin.routewarden.response.headers.X-RouteWarden-Deflected=true" # [!code ++]` }),
   caddy: buildSnippet({ lang: 'caddy', code: `# Caddyfile
 {
-    order route_warden before reverse_proxy # [!code ++]
+    order routewarden before reverse_proxy # [!code ++]
 }
 
 example.com {
-    route_warden { # [!code ++]
+    routewarden { # [!code ++]
         methods GET POST HEAD # [!code ++]
         enable_default_patterns true # [!code ++]
         response { # [!code ++]
@@ -254,11 +254,11 @@ http:
 - 'traefik.http.middlewares.staging-guard.plugin.routewarden.response.body={"error":"Not Found"}' # [!code ++]` }),
   caddy: buildSnippet({ lang: 'caddy', code: `# Caddyfile
 {
-    order route_warden before reverse_proxy # [!code ++]
+    order routewarden before reverse_proxy # [!code ++]
 }
 
 pr-142.staging.example.com {
-    route_warden { # [!code ++]
+    routewarden { # [!code ++]
         methods GET POST PUT DELETE PATCH HEAD # [!code ++]
         enable_default_allow_patterns false # [!code ++]
         block_patterns "^/.*$" # [!code ++]
@@ -371,11 +371,11 @@ http:
 - "traefik.http.middlewares.honeypot-bomber.plugin.routewarden.response.gzipBombMB=10" # [!code ++]` }),
   caddy: buildSnippet({ lang: 'caddy', code: `# Caddyfile
 {
-    order route_warden before reverse_proxy # [!code ++]
+    order routewarden before reverse_proxy # [!code ++]
 }
 
 honeypot.example.com {
-    route_warden { # [!code ++]
+    routewarden { # [!code ++]
         methods GET POST HEAD # [!code ++]
         block_patterns "(?i)(^|/)(\\.env.*|\\.git.*|wp-login\\.php|phpmyadmin.*)$" # [!code ++]
         response { # [!code ++]
@@ -475,11 +475,11 @@ const tarpit = {
 - "traefik.http.middlewares.tarpit-sink.plugin.routewarden.response.tarpitMaxDurationSeconds=120" # [!code ++]` }),
   caddy: buildSnippet({ lang: 'caddy', code: `# Caddyfile
 {
-    order route_warden before reverse_proxy # [!code ++]
+    order routewarden before reverse_proxy # [!code ++]
 }
 
 honeypot.example.com {
-    route_warden { # [!code ++]
+    routewarden { # [!code ++]
         methods GET POST HEAD # [!code ++]
         block_patterns "(?i)^/(phpmyadmin|pma|wp-login\\.php|\\.env|\\.git.*)$" # [!code ++]
         response { # [!code ++]

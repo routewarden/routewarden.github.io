@@ -337,7 +337,7 @@ Compile a universal `routewarden.json` policy into target reverse proxy syntax:
 | `traefik-yaml` | `traefik`, `yaml` | Traefik Dynamic File Provider YAML |
 | `traefik-toml` | `toml` | Traefik Dynamic File Provider TOML |
 | `traefik-labels` | `labels`, `compose` | Docker Compose container label syntax |
-| `caddy` | `caddyfile` | Native Caddyfile `route_warden` directive block |
+| `caddy` | `caddyfile` | Native Caddyfile `routewarden` directive block |
 | `nginx` | `openresty`, `lua` | OpenResty `init_by_lua_block` Lua table |
 | `tcp-warden` | `tcp`, `l4` | TCP Warden daemon YAML configuration |
 

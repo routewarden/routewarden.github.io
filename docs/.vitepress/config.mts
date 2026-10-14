@@ -33,7 +33,7 @@ const caddyLanguage = {
     },
     {
       name: 'keyword.control.caddyfile',
-      match: '\\b(order|route_warden|reverse_proxy|tls|respond|import|handle|handle_path|root|encode|log|rewrite|redir|header|request_header|basicauth|forward_auth|abort|error)\\b'
+      match: '\\b(order|routewarden|route_warden|reverse_proxy|tls|respond|import|handle|handle_path|root|encode|log|rewrite|redir|header|request_header|basicauth|forward_auth|abort|error)\\b'
     },
     {
       name: 'entity.name.tag.caddyfile',

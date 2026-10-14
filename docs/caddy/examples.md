@@ -44,11 +44,11 @@ const r1_json = buildSnippet({
 const r1_caddy = buildSnippet({
   lang: 'caddy',
   code: `{
-    order route_warden before reverse_proxy # [!code ++]
+    order routewarden before reverse_proxy # [!code ++]
 }
 
 app.example.com {
-    route_warden { # [!code ++]
+    routewarden { # [!code ++]
         enable_default_patterns true # [!code ++]
         block_patterns "(?i)^/admin(/.*)?$" "(?i)^/metrics$" # [!code ++]
         allow_patterns "(?i)^/admin/health$" # [!code ++]
@@ -97,11 +97,11 @@ const r2_json = buildSnippet({
 const r2_caddy = buildSnippet({
   lang: 'caddy',
   code: `{
-    order route_warden before reverse_proxy # [!code ++]
+    order routewarden before reverse_proxy # [!code ++]
 }
 
 portal.example.com {
-    route_warden { # [!code ++]
+    routewarden { # [!code ++]
         block_patterns "(?i)^/portal/sensitive(/.*)?$" # [!code ++]
         response { # [!code ++]
             mode captcha # [!code ++]
@@ -145,11 +145,11 @@ const r3_json = buildSnippet({
 const r3_caddy = buildSnippet({
   lang: 'caddy',
   code: `{
-    order route_warden before reverse_proxy # [!code ++]
+    order routewarden before reverse_proxy # [!code ++]
 }
 
 honeypot.example.com {
-    route_warden { # [!code ++]
+    routewarden { # [!code ++]
         block_patterns "(?i)^/(wp-login\\.php|\\.env|\\.git.*|xmlrpc\\.php)$" # [!code ++]
         response { # [!code ++]
             mode gzip_bomb # [!code ++]
@@ -203,12 +203,12 @@ const r4_json = buildSnippet({
 const r4_caddy = buildSnippet({
   lang: 'caddy',
   code: `{
-    order route_warden before reverse_proxy # [!code ++]
+    order routewarden before reverse_proxy # [!code ++]
 }
 
 # 1. PUBLIC SITE: Shielded with Zero-Trust Allowlisting
 photos.example.com {
-    route_warden { # [!code ++]
+    routewarden { # [!code ++]
         methods GET POST PUT DELETE PATCH HEAD # [!code ++]
         enable_default_patterns true # [!code ++]
         # Zero-Trust Allowlist: permit strictly public share viewer & required APIs # [!code ++]
@@ -271,11 +271,11 @@ const r5_json = buildSnippet({
 const r5_caddy = buildSnippet({
   lang: 'caddy',
   code: `{
-    order route_warden before reverse_proxy # [!code ++]
+    order routewarden before reverse_proxy # [!code ++]
 }
 
 api.example.com {
-    route_warden { # [!code ++]
+    routewarden { # [!code ++]
         methods GET POST PUT DELETE PATCH HEAD # [!code ++]
         enable_default_patterns true # [!code ++]
         block_patterns "(?i)^/webhooks(/.*)?$" # [!code ++]
@@ -327,11 +327,11 @@ const r6_json = buildSnippet({
 const r6_caddy = buildSnippet({
   lang: 'caddy',
   code: `{
-    order route_warden before reverse_proxy # [!code ++]
+    order routewarden before reverse_proxy # [!code ++]
 }
 
 app.example.com {
-    route_warden { # [!code ++]
+    routewarden { # [!code ++]
         methods GET POST PUT DELETE PATCH HEAD # [!code ++]
         enable_default_patterns true # [!code ++]
         block_patterns "(?i)^/(metrics|server-metrics|telemetry)(/.*)?$" "(?i)^/actuator(/.*)?$" # [!code ++]

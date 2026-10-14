@@ -89,11 +89,11 @@ http:
 
   caddy: buildSnippet({ lang: 'caddy', code: `# Caddyfile
 {
-    order route_warden before reverse_proxy # [!code ++]
+    order routewarden before reverse_proxy # [!code ++]
 }
 
 home.example.com {
-    route_warden { # [!code ++]
+    routewarden { # [!code ++]
         methods GET POST PUT DELETE PATCH HEAD # [!code ++]
         enable_default_patterns true # [!code ++]
         # Zero-Trust Allowlist: permit strictly mobile companion app webhook callbacks # [!code ++]
@@ -207,7 +207,7 @@ const caddyOrder = buildSnippet({
   lang: 'caddy',
   code: `# Caddyfile Global Options
 {
-    order route_warden before reverse_proxy
+    order routewarden before reverse_proxy
 }`
 })
 

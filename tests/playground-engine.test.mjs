@@ -426,10 +426,10 @@ test('playground engine & generator: comprehensive test matrix (100+ cases)', as
       { format: 'traefik_yaml', key: 'plugin:', altKey: 'routewarden:' },
       { format: 'traefik_toml', key: '[http.middlewares', altKey: 'plugin.routewarden' },
       { format: 'docker', key: 'traefik.http.middlewares', altKey: 'labels:' },
-      { format: 'caddy', key: 'route_warden', altKey: 'reverse_proxy' },
+      { format: 'caddy', key: 'routewarden', altKey: 'reverse_proxy' },
       { format: 'nginx', key: 'resty.routewarden', altKey: 'init_by_lua_block' },
       { format: 'k8s_traefik', key: 'traefik.io/v1alpha1', altKey: 'kind: Middleware' },
-      { format: 'k8s_caddy', key: 'caddy-config', altKey: 'route_warden' },
+      { format: 'k8s_caddy', key: 'caddy-config', altKey: 'routewarden' },
       { format: 'k8s_nginx', key: 'networking.k8s.io/v1', altKey: 'nginx.ingress.kubernetes.io' },
       { format: 'cli_cmd', key: 'rwarden test', altKey: '--method' },
       { format: 'cli_json', key: 'https://routewarden.github.io/schema.json', altKey: 'blockPatterns' }
