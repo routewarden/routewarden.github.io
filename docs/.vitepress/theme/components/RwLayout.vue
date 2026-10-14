@@ -130,6 +130,13 @@ onUnmounted(() => {
         <span class="rw-nav-label">Playground</span>
       </button>
     </template>
+
+    <!-- Inject Product Hunt badge into the home hero info section -->
+    <template #home-hero-info-after>
+      <div class="rw-hero-ph-wrap">
+        <ProductHuntBadge />
+      </div>
+    </template>
   </Layout>
 
   <!-- Full-screen Overlay Panel -->
