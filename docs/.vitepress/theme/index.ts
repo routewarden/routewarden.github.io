@@ -3,6 +3,7 @@ import type { EnhanceAppContext } from 'vitepress'
 import './custom.css'
 import PatternChecker from './components/PatternChecker.vue'
 import CodeViewer from './components/CodeViewer.vue'
+import ProductHuntBadge from './components/ProductHuntBadge.vue'
 import RwLayout from './components/RwLayout.vue'
 import { trackPageView, trackPlaygroundEvent } from './telemetry'
 
@@ -285,6 +286,7 @@ export default {
   enhanceApp({ app, router }: EnhanceAppContext) {
     app.component('PatternChecker', PatternChecker)
     app.component('CodeViewer', CodeViewer)
+    app.component('ProductHuntBadge', ProductHuntBadge)
 
     // Route tracking for SPA page transitions in VitePress
     if (router && typeof window !== 'undefined') {

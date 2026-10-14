@@ -7,6 +7,16 @@
 </p>
 
 <p align="center">
+  <a href="https://www.producthunt.com/products/routewarden?embed=true&amp;utm_source=badge-featured&amp;utm_medium=badge&amp;utm_campaign=badge-routewarden" target="_blank" rel="noopener noreferrer">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1279797&amp;theme=dark&amp;t=1791955923055">
+      <source media="(prefers-color-scheme: light)" srcset="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1279797&amp;theme=light&amp;t=1791955891872">
+      <img alt="Routewarden - Zero-dependency edge defense for Traefik, Caddy &amp; NGINX | Product Hunt" width="250" height="54" src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1279797&amp;theme=light&amp;t=1791955891872">
+    </picture>
+  </a>
+</p>
+
+<p align="center">
   <a href="https://github.com/routewarden/tcp-warden"><img src="https://img.shields.io/badge/TCP--Warden-L4%20Proxy-orange.svg" alt="TCP Warden L4"></a>
   <a href="https://github.com/routewarden/traefik-warden/actions/workflows/ci.yml"><img src="https://github.com/routewarden/traefik-warden/actions/workflows/ci.yml/badge.svg" alt="Traefik CI Status"></a>
   <a href="https://github.com/routewarden/caddy-warden/actions/workflows/ci.yml"><img src="https://github.com/routewarden/caddy-warden/actions/workflows/ci.yml/badge.svg" alt="Caddy CI Status"></a>
