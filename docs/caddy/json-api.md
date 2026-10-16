@@ -22,6 +22,7 @@ const schema_json = buildSnippet({
   lang: 'json',
   code: `{
   "handler": "routewarden",
+  "config_file": "/etc/routewarden/routewarden.json",
   "enabled": true,
   "debug": false,
   "security_log": true,

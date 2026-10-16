@@ -9,7 +9,21 @@ All notable changes to **NGINX Warden** (`github.com/routewarden/nginx-warden`) 
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and NGINX Warden adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v1.4.1] - 2026-10-07 (Latest)
+## [v1.5.0] - 2026-10-16 (Latest)
+
+### Key Highlights
+
+- **File-Based Configuration (`config_file`)**:
+  - Added new `config_file` option to `routewarden.new({ config_file = "/etc/routewarden/routewarden.json" })` (or passing the file path directly: `routewarden.new(filepath)`).
+  - Automatically loads and parses shared `routewarden.json` policy manifests, mapping universal camelCase properties (`enableDefaultPatterns`, `blockPatterns`, `allowedIps`, `response.mode`, `statusCode`) to native Lua table keys.
+  - Supports OpenResty's built-in `cjson` / `cjson.safe` with an embedded pure-Lua JSON parser fallback for standalone environments.
+  - Inline Lua configuration overrides file settings while preserving file-defined rule slices.
+  - Missing or malformed configuration files cause a hard startup error with descriptive diagnostics.
+  - Added unit test coverage in `t/test_config.lua`.
+
+---
+
+## [v1.4.1] - 2026-10-07
 
 ### Key Highlights
 

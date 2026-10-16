@@ -2,32 +2,32 @@
 
 All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and the CLI adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v4.4.1] - 2026-10-07 (Latest)
+## [v4.4.0] - 2026-10-16 (Latest)
+
+### Added
+- **File-Based Configuration (`configFile` / `config_file`)**:
+  - Added support for loading a base `routewarden.json` policy file and merging inline options on top across the evaluation engine (`engine.NewEngine`) and all gateway generators.
+  - Added `configFile` and `config_file` properties to the official RouteWarden JSON Schema (`config.schema.json`) and `rwarden schema` output.
+  - Added Docker labels parsing support for `traefik.http.middlewares.<name>.plugin.routewarden.configFile` (and snake_case alias).
+  - Added generator support for emitting `configFile` across Traefik Dynamic YAML, Traefik TOML, Traefik Docker labels, Caddyfile (`config_file`), and OpenResty NGINX Lua (`config_file`).
+  - Added base config file path diagnostics in `rwarden validate`.
+- **Observability Dashboard Map Layer Update**:
+  - Migrated the GeoIP threat map layer in the bundled Grafana dashboards from Carto to OpenStreetMap.
+- **Comprehensive Test Coverage & Anti-Evasion Matrix**:
+  - Added extensive unit and integration tests across Docker labels parsing, candidate path evasions (multi-consecutive slashes, mixed backslashes, matrix parameters, and multi-layer percent encoding), response mode generators, and CLI commands.
+
+### Security
+- **CRLF Injection Prevention in Gateway Config Generators (`engine/engine.go`)**:
+  - Sanitized carriage-return (`\r`) and newline (`\n`) characters from user-supplied pattern strings before emitting gateway-specific configuration snippets (Traefik TOML, Traefik Docker labels, NGINX Lua).
+  - Characters `\r` and `\n` are replaced with their literal `\r` and `\n` escape sequences in all generated outputs, preserving pattern intent while eliminating injection risk.
 
 ### Changed
 - **Canonical Directive Standardization & Gateway Generator Alignment (`engine/engine.go`)**:
-  - Emitted strictly canonical `status_code`, `retry_after_seconds`, and `tarpit_max_duration_seconds` directives in Caddyfile generation (`rwarden generate --target caddy`), aligning with Caddy Warden v1.4.1+.
+  - Emitted strictly canonical `status_code`, `retry_after_seconds`, and `tarpit_max_duration_seconds` directives in Caddyfile generation (`rwarden generate --target caddy`), aligning with Caddy Warden v1.5.0+.
   - Standardized CLI configuration samples and generator templates on canonical `blockPatterns` / `block_patterns` and `allowPatterns` / `allow_patterns`.
 - **JSON Schema Parity & Alias Cleanup (`config.schema.json`)**:
-  - Removed deprecated legacy alias properties (`pathPatterns`, `action`) from official embedded schema (`rwarden schema`) and published schema definitions in favor of canonical `blockPatterns`, `allowPatterns`, and `mode`.
+  - Removed deprecated legacy alias properties (`pathPatterns`, `action`) from official embedded schema (`rwarden schema`) in favor of canonical `blockPatterns`, `allowPatterns`, and `mode`.
   - Added `trustedProxies` definitions across official schemas and evaluation engines.
-
-### Added
-- **Comprehensive Pattern & Directive Verification Suites**:
-  - Added unit test suites verifying canonical `blockPatterns` and `allowPatterns` matrix matching, query parameter validation, and offline rule simulation across Traefik, Caddy, and NGINX targets.
-
----
-
-## [v4.4.0] - 2026-10-06
-
-### Security
-
-- **CRLF Injection Prevention in Gateway Config Generators (`engine/engine.go`)**:
-  - Sanitized carriage-return (`\r`) and newline (`\n`) characters from user-supplied pattern strings before emitting gateway-specific configuration snippets (Traefik TOML, Traefik Docker labels, NGINX Lua).
-  - A crafted pattern value containing a CRLF sequence could previously inject arbitrary lines into the generated configuration output, potentially introducing unauthorized directives or breaking config parsers that load the generated snippets automatically.
-  - Characters `\r` and `\n` are now replaced with their literal `\r` and `\n` escape sequences in all generated outputs, preserving pattern intent while eliminating injection risk.
-  - **Affected generators**: Traefik TOML (`generate --target traefik-toml`), Traefik Docker Compose labels (`generate --target traefik-labels`), NGINX Lua (`generate --target nginx`).
-  - **Tests**: `TestGenerateCRLFSanitization` in `engine/engine_test.go` verifies that CRLF sequences in pattern values are escaped in all three affected output formats.
 
 ---
 
