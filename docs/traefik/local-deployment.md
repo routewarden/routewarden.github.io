@@ -221,8 +221,8 @@ git clone https://github.com/routewarden/traefik-warden.git`,
 const bundle_tar = buildSnippet({
   lang: 'bash',
   code: `# Download and extract verified release archive
-curl -sSL https://github.com/routewarden/traefik-warden/archive/refs/tags/v1.4.2.tar.gz | tar -xz
-mv traefik-warden-1.4.2 traefik-warden`,
+curl -sSL https://github.com/routewarden/traefik-warden/archive/refs/tags/v1.5.0.tar.gz | tar -xz
+mv traefik-warden-1.5.0 traefik-warden`,
 })
 
 const bundleSnippets = computed(() => ({

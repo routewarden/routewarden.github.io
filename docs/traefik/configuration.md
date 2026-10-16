@@ -61,6 +61,95 @@ const configExampleSnippets = computed(() => ({
     { filename: 'ingressroute.yaml', lang: 'yaml', code: ex_k8s.cleanCode, html: ex_k8s.html, hasDiff: false },
   ],
 }))
+
+// ─── Config File Snippets ───────────────────────────────────────────────────
+const cfg_yaml = buildSnippet({
+  lang: 'yaml',
+  code: `http:
+  middlewares:
+    warden:
+      plugin:
+        routewarden:
+          configFile: /etc/routewarden/routewarden.json # [!code ++]
+          # Inline fields override file values — e.g. override just the response mode:
+          response:
+            mode: tarpit # [!code ++]`,
+})
+
+const cfg_labels = buildSnippet({
+  lang: 'yaml',
+  code: `services:
+  webapp:
+    labels:
+      - "traefik.http.middlewares.warden.plugin.routewarden.configFile=/etc/routewarden/routewarden.json" # [!code ++]
+      - "traefik.http.middlewares.warden.plugin.routewarden.response.mode=tarpit" # [!code ++]`,
+})
+
+const cfg_k8s = buildSnippet({
+  lang: 'yaml',
+  code: `apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: warden
+spec:
+  plugin:
+    routewarden:
+      configFile: /etc/routewarden/routewarden.json # [!code ++]
+      response:
+        mode: tarpit # [!code ++]`,
+})
+
+const cfg_json = buildSnippet({
+  lang: 'json',
+  code: `{
+  "enableDefaultPatterns": true,
+  "enableDefaultAllowPatterns": true,
+  "methods": ["GET", "POST"],
+  "blockPatterns": [
+    "(?i)^/admin(/.*)?$",
+    "(?i)^/internal(/.*)?$"
+  ],
+  "allowedIps": ["10.0.0.0/8", "192.168.1.0/24"],
+  "response": {
+    "mode": "json",
+    "statusCode": 403,
+    "body": "{\\"error\\": \\"Forbidden\\"}"
+  }
+}`,
+})
+
+const configFileSnippets = computed(() => ({
+  traefik: [
+    { filename: 'traefik.yml', lang: 'yaml', code: cfg_yaml.cleanCode, html: cfg_yaml.html, hasDiff: cfg_yaml.hasDiff },
+    { filename: 'docker-compose.yml', lang: 'docker', code: cfg_labels.cleanCode, html: cfg_labels.html, hasDiff: cfg_labels.hasDiff },
+    { filename: 'ingressroute.yaml', lang: 'yaml', code: cfg_k8s.cleanCode, html: cfg_k8s.html, hasDiff: cfg_k8s.hasDiff },
+    { filename: 'routewarden.json', lang: 'json', code: cfg_json.cleanCode, html: cfg_json.html, hasDiff: false },
+  ],
+}))
+
+// ─── Security Audit Log Snippet ─────────────────────────────────────────────
+const audit_event = buildSnippet({
+  lang: 'json',
+  code: `{
+  "type": "routewarden_block",
+  "timestamp": "2026-09-19T15:30:00Z",
+  "plugin": "routewarden",
+  "client_ip": "198.51.100.42",
+  "method": "GET",
+  "path": "/.env",
+  "request_uri": "/.env",
+  "pattern": "(?i)(^|/)(\\\\.env.*|.*\\\\.(txt|log|bak|backup|sql|conf|config|ini|yaml|yml))$",
+  "action": "json",
+  "reason": "path_blocked",
+  "user_agent": "Nuclei/v3.1.0"
+}`,
+})
+
+const auditLogSnippets = computed(() => ({
+  traefik: [
+    { filename: 'routewarden_block.json', lang: 'json', code: audit_event.cleanCode, html: audit_event.html, hasDiff: false },
+  ],
+}))
 </script>
 
 # Traefik Warden: Configuration Reference
@@ -73,6 +162,7 @@ This reference covers all configuration options available in **Traefik Warden**.
 
 | Key | Type | Default | Description |
 |---|---|---|---|
+| `configFile` | `string` | `""` | Path to a `routewarden.json` file loaded as the base config. Inline fields always take precedence over the file. |
 | `enabled` | `bool` | `true` | Enables or disables the middleware. When `false`, all traffic passes through. |
 | `debug` | `bool` | `false` | Enables verbose diagnostic logging for request candidate normalization, method matching, and allow/block evaluation details. |
 | `securityLog` | `bool` | `true` | Emits single-line structured JSON security audit events on stdout for CrowdSec, SIEMs, or fail2ban on blocked requests. |
@@ -92,15 +182,37 @@ This reference covers all configuration options available in **Traefik Warden**.
 
 ---
 
+## Config File (`configFile`)
+
+Instead of inlining every configuration option in `traefik.yml` or Docker labels, you can point RouteWarden at a shared `routewarden.json` file. This is especially useful for self-hosters managing multiple services or for keeping security policy in version control independently of your Traefik config.
+
+<CodeViewer :snippets="configFileSnippets" />
+
+The `routewarden.json` file uses the standard RouteWarden JSON schema (view it with `rwarden schema` or the [CLI Schema](/cli/schema)):
+
+### Merge Semantics
+
+| Priority | Source |
+|---|---|
+| **1 (wins)** | Inline fields in `traefik.yml` / Docker labels |
+| **2 (base)** | Fields from `configFile` |
+
+- **Non-zero inline values always override** the corresponding file values.
+- **Empty/omitted slices** in the inline config defer to the file (so you don't need to re-specify `blockPatterns` just to change the response mode).
+- A **missing or malformed file** causes a hard startup error — RouteWarden will not silently fall back to defaults.
+
+> [!TIP]
+> Mount `routewarden.json` as a Docker volume or Kubernetes ConfigMap and share it across multiple Traefik middleware instances for consistent policy enforcement across services.
+
+---
+
 ## Security Audit Logging (`securityLog`)
 
 RouteWarden includes built-in structured security audit logging designed for [CrowdSec](/examples/crowdsec), SIEM platforms (Elasticsearch, Loki, Splunk, Datadog), and automated intrusion remediation tools.
 
 When `securityLog: true` (the default), every intercepted probe emits a single-line JSON payload to `stdout`:
 
-```json
-{"action":"json","client_ip":"198.51.100.42","method":"GET","path":"/.env","pattern":"(?i)(^|/)(\\.env.*|.*\\.(txt|log|bak|backup|sql|conf|config|ini|yaml|yml))$","plugin":"routewarden","reason":"path_blocked","request_uri":"/.env","timestamp":"2026-09-19T15:30:00Z","type":"routewarden_block","user_agent":"Nuclei/v3.1.0"}
-```
+<CodeViewer :snippets="auditLogSnippets" />
 
 | Field | Description |
 |---|---|

@@ -45,6 +45,9 @@ const initSnippets = computed(() => ({
 const full_config = buildSnippet({
   lang: 'lua',
   code: `warden = routewarden.new({
+    -- Load base configuration from shared JSON policy file (optional)
+    config_file = "/etc/routewarden/routewarden.json", -- [!code ++]
+
     -- Master toggle
     enabled = true,                        -- Default: true
     debug = false,                         -- Default: false (outputs trace logs via ngx.log)
@@ -115,6 +118,48 @@ const fullConfigSnippets = computed(() => ({
   ],
 }))
 
+// ─── 4. Config File Snippets ────────────────────────────────────────────────
+const cfg_nginx = buildSnippet({
+  lang: 'nginx',
+  code: `http {
+    init_by_lua_block {
+        local routewarden = require("resty.routewarden")
+
+        -- Load base policy from shared file with inline overrides
+        warden = routewarden.new({ # [!code ++]
+            config_file = "/etc/routewarden/routewarden.json", # [!code ++]
+            # Override response mode just for this NGINX instance: # [!code ++]
+            mode = "tarpit" # [!code ++]
+        }) # [!code ++]
+    }
+}`,
+})
+
+const cfg_json = buildSnippet({
+  lang: 'json',
+  code: `{
+  "enableDefaultPatterns": true,
+  "enableDefaultAllowPatterns": true,
+  "methods": ["GET", "POST"],
+  "blockPatterns": [
+    "(?i)^/admin(/.*)?$",
+    "(?i)^/internal(/.*)?$"
+  ],
+  "allowedIps": ["10.0.0.0/8"],
+  "response": {
+    "mode": "json",
+    "statusCode": 403
+  }
+}`,
+})
+
+const configFileSnippets = computed(() => ({
+  nginx: [
+    { filename: 'nginx.conf', lang: 'nginx', code: cfg_nginx.cleanCode, html: cfg_nginx.html, hasDiff: cfg_nginx.hasDiff },
+    { filename: 'routewarden.json', lang: 'json', code: cfg_json.cleanCode, html: cfg_json.html, hasDiff: false },
+  ],
+}))
+
 // ─── 5. Client IP Resolution ──────────────────────────────────────────────────
 const ip_resolution = buildSnippet({
   lang: 'nginx',
@@ -156,6 +201,7 @@ Initialize RouteWarden using `routewarden.new(config)` within NGINX's `init_by_l
 
 | Key | Type | Default | Description |
 |---|---|---|---|
+| `config_file` | `string` | `nil` | Path to a `routewarden.json` base configuration file. Inline Lua table options override file settings. |
 | `enabled` | `boolean` | `true` | Enables or disables RouteWarden inspection. |
 | `debug` | `boolean` | `false` | When true, logs normalization transformations and rule matching details. |
 | `security_log` | `boolean` | `false` | Emits single-line structured JSON security events on stdout for CrowdSec and SIEM auto-ban. |
@@ -170,7 +216,31 @@ Initialize RouteWarden using `routewarden.new(config)` within NGINX's `init_by_l
 
 ---
 
-## 4. Response Modes Table
+## 4. Config File (`config_file`)
+
+Instead of writing all rules inline inside NGINX configuration blocks, point RouteWarden at a shared `routewarden.json` file. Inline Lua table fields override file values, so you can maintain a single shared security policy and customize behavior per virtual host:
+
+<CodeViewer :snippets="configFileSnippets" />
+
+The `routewarden.json` file uses the standard RouteWarden JSON schema (view it with `rwarden schema` or the [CLI Schema](/cli/schema)):
+
+### Merge Semantics
+
+| Priority | Source |
+|---|---|
+| **1 (wins)** | Inline Lua options in `routewarden.new({ ... })` |
+| **2 (base)** | Fields from `config_file` (`routewarden.json`) |
+
+- **Non-nil inline values override** corresponding file values.
+- **Empty/omitted inline directives defer to the file** — you don't need to duplicate `block_patterns` just to change the response mode.
+- A **missing or malformed file causes an immediate startup error**, preventing silent fallback to insecure defaults.
+
+> [!TIP]
+> Mount `routewarden.json` into your OpenResty container as a volume or Kubernetes ConfigMap to share uniform security rules across multiple NGINX instances.
+
+---
+
+## 5. Response Modes Table
 
 RouteWarden for NGINX supports 13 response modes matching the core engine:
 
@@ -192,7 +262,7 @@ RouteWarden for NGINX supports 13 response modes matching the core engine:
 
 ---
 
-## 5. Client IP Resolution
+## 6. Client IP Resolution
 
 RouteWarden evaluates client addresses using the following priority:
 1. `X-Forwarded-For` header (first non-internal IP)

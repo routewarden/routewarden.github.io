@@ -9,7 +9,19 @@ All notable changes to the **Caddy Warden** module (`github.com/routewarden/cadd
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and Caddy Warden adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v1.4.1] - 2026-10-07 (Latest)
+## [v1.5.0] - 2026-10-16 (Latest)
+
+### Key Highlights
+
+- **File-Based Configuration (`config_file`)**:
+  - Added new `config_file` Caddyfile directive and `config_file` JSON field to `RouteWarden`. When set, RouteWarden loads the specified `routewarden.json` as the base configuration during `Provision()`.
+  - Inline Caddyfile / JSON API values take precedence over the file, enabling a shared policy file with per-site Caddyfile overrides.
+  - Empty/omitted inline directives defer to the file — no need to repeat `block_patterns` just to change `mode`.
+  - Missing or malformed files cause an immediate provisioning error with a descriptive message.
+
+---
+
+## [v1.4.1] - 2026-10-07
 
 ### Key Highlights
 

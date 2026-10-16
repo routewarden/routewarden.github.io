@@ -267,6 +267,7 @@ export function syncVersion(options = {}) {
     const { cleanVersion: caddyClean } = formatVersion(appVersions.caddy)
     const caddyFiles = []
     collectMarkdownFiles(path.join(rootDir, 'docs/caddy'), rootDir, caddyFiles)
+    collectMarkdownFiles(path.join(rootDir, 'docs/examples'), rootDir, caddyFiles)
 
     for (const relPath of caddyFiles) {
       updateFileContent(relPath, (content) => {
