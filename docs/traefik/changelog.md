@@ -9,7 +9,20 @@ All notable changes to the **Traefik Warden** plugin (`github.com/routewarden/tr
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and Traefik Warden adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v1.4.2] - 2026-10-09 (Latest)
+## [v1.5.0] - 2026-10-16 (Latest)
+
+### Key Highlights
+
+- **File-Based Configuration (`configFile`)**:
+  - Added new `configFile` field to `Config`. When set, RouteWarden loads the specified `routewarden.json` as the base configuration at startup.
+  - Inline `traefik.yml` / Docker label values take precedence over the file, enabling a shared policy file with per-service overrides.
+  - Empty/omitted inline slices defer to the file so `blockPatterns` from the file are preserved when only overriding `response.mode`.
+  - Missing or malformed files cause an immediate startup error with a descriptive message — no silent fallback to defaults.
+  - Added 6 new unit tests covering: file-only load, inline override, missing file error, malformed JSON error, pattern merge from file, and empty-path no-op.
+
+---
+
+## [v1.4.2] - 2026-10-09
 
 ### Key Highlights
 

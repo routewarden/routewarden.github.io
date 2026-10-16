@@ -17,11 +17,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 TCP Warden v3.4.0 is a comprehensive security hardening release, closing a set of boundary-condition vulnerabilities identified during an internal audit of the plugin ecosystem and the core daemon's UDP engine and plugin installer subsystems. All 21 official protocol plugins were audited; seven received targeted fixes.
 
-#### 1. UDP Engine — Synchronous Ban Fast-Path
+#### 1. UDP Engine — Synchronous Ban Fast-Path & Resilience
 
 - **Synchronous Pre-Goroutine Drop**: The UDP datagram engine (`core/udp_engine.go`) now checks the active ban list and CrowdSec block list **before** allocating a session goroutine or NAT socket for incoming datagrams.
 - **Zero-Goroutine-Leak DoS Mitigation**: Previously, a banned sender triggering high-frequency UDP floods could saturate the goroutine pool before per-session ban checks executed. Bans from permanently blacklisted IPs are now dropped inline on the receive loop without scheduling any goroutine.
-- **Tests**: `TestUDPEngine_BannedIP_Dropped` verifies the fast-path verdict for active bans.
+- **Nil Safety & Panic Recovery**: Added nil guards for `listenConn`, logger fallbacks (`DefaultLogger()`), and daemon configuration checks. Handlers gracefully recover and log diagnostic details without crashing the daemon.
+- **Zero-Byte Datagram & IPv6 Resilience**: Guarded against zero-byte packet payloads and validated dual-stack IPv6 UDP sessions.
+- **Tests**: `TestUDPEngine_BannedIP_Dropped`, `TestUDPEngine_ZeroBytePacket`, `TestUDPEngine_IPv6Client`, and `TestUDPSessionTable_ConcurrentAccess`.
 
 #### 2. Plugin Installer — Path Traversal & Symlink Safety
 
@@ -57,6 +59,13 @@ TCP Warden v3.4.0 is a comprehensive security hardening release, closing a set o
 - **Authentication Failure Cap (`max_auth_failures`)**: All authentication-inspecting plugins (SMTP, LDAP, IMAP, POP3, FTP) now enforce `MaxAuthFailures` by sending a protocol-appropriate rejection and closing the connection once the cap is reached, with `ctx.OnAuthFailure()` and `ctx.OnSecurityEvent` emitted on every excess attempt.
 - **LDAP DN Suffix Spoofing Prevention**: The LDAP inspector validates that the `BindDN` in a Bind Request matches only literal suffixes from the `allowed_bind_dn_suffixes` list (case-folded), preventing evasion via Unicode homoglyphs or LDAP attribute reordering.
 - **Memcached Storage Length Validation**: The Memcached inspector rejects `set`/`add`/`replace`/`append`/`prepend` commands with a declared `bytes` field that is negative or exceeds 1 MB (configurable), preventing heap exhaustion via synthetic large-object commands.
+
+#### 4. Core Daemon & CLI Robustness
+
+- **Table Truncation Boundary Safety**: The CLI table formatter (`truncate()`) is now hardened against non-positive column limits (`maxLen <= 0`) and single-character widths (`maxLen == 1` correctly emits `…`), eliminating potential index slice out-of-range panics.
+- **Strict Services Definition Validation**: Added validation that immediately rejects configurations with an empty `services: {}` block with a clear diagnostic message (`no services defined`).
+- **CLI Argument Normalization**: Hardened argument parsing to ensure consistent flag and positional argument handling across CLI commands.
+- **Banlist & Engine Concurrency Tests**: Added automated test coverage for concurrent banlist reads/writes (`TestBanList_ConcurrentAccess`), non-existent IP unbanning, and ban expiration timers.
 
 ---
 

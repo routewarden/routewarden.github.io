@@ -20,10 +20,24 @@ const order_reverse_proxy = buildSnippet({
 }`,
 })
 
+const order_route_block = buildSnippet({
+  lang: 'caddy',
+  code: `example.com {
+    # Directives placed inside a route block evaluate strictly in order
+    route { # [!code ++]
+        routewarden { # [!code ++]
+            # configuration # [!code ++]
+        } # [!code ++]
+        reverse_proxy backend:8080
+    }
+}`,
+})
+
 const orderingSnippets = computed(() => ({
   caddy: [
     { filename: 'Before Basicauth', lang: 'caddy', code: order_basicauth.cleanCode, html: order_basicauth.html, hasDiff: order_basicauth.hasDiff },
     { filename: 'Before Reverse Proxy', lang: 'caddy', code: order_reverse_proxy.cleanCode, html: order_reverse_proxy.html, hasDiff: order_reverse_proxy.hasDiff },
+    { filename: 'Inside Route Block', lang: 'caddy', code: order_route_block.cleanCode, html: order_route_block.html, hasDiff: order_route_block.hasDiff },
   ],
 }))
 
@@ -31,6 +45,9 @@ const orderingSnippets = computed(() => ({
 const schema_code = buildSnippet({
   lang: 'caddy',
   code: `routewarden {
+    # Load base config from a shared JSON file (inline fields override file values)
+    config_file <path>                              # e.g. /etc/routewarden/routewarden.json
+
     # Boolean Flags
     enabled <true|false>                        # Default: true
     debug <true|false>                          # Default: false (verbose diagnostic logs)
@@ -78,11 +95,52 @@ const schemaSnippets = computed(() => ({
   ],
 }))
 
+// ─── 4. Config File Snippets ───────────────────────────────────────────────
+const config_file_caddy = buildSnippet({
+  lang: 'caddy',
+  code: `example.com {
+    route {
+        routewarden {
+            config_file /etc/routewarden/routewarden.json # [!code ++]
+            # Override just the response mode for this site:
+            mode tarpit # [!code ++]
+        }
+        reverse_proxy backend:8080
+    }
+}`,
+})
+
+const config_file_json = buildSnippet({
+  lang: 'json',
+  code: `{
+  "enableDefaultPatterns": true,
+  "enableDefaultAllowPatterns": true,
+  "methods": ["GET", "POST"],
+  "blockPatterns": [
+    "(?i)^/admin(/.*)?$",
+    "(?i)^/internal(/.*)?$"
+  ],
+  "allowedIps": ["10.0.0.0/8"],
+  "response": {
+    "mode": "json",
+    "statusCode": 403
+  }
+}`,
+})
+
+const configFileSnippets = computed(() => ({
+  caddy: [
+    { filename: 'Caddyfile', lang: 'caddy', code: config_file_caddy.cleanCode, html: config_file_caddy.html, hasDiff: config_file_caddy.hasDiff },
+    { filename: 'routewarden.json', lang: 'json', code: config_file_json.cleanCode, html: config_file_json.html, hasDiff: false },
+  ],
+}))
+
 // ─── 5. JSON Configuration (Caddy REST API) ─────────────────────────────────
 const api_code = buildSnippet({
   lang: 'json',
   code: `{
   "handler": "routewarden", // [!code ++]
+  "config_file": "/etc/routewarden/routewarden.json", // [!code ++]
   "enabled": true, // [!code ++]
   "enable_default_patterns": true, // [!code ++]
   "allowed_ips": ["10.0.0.0/8", "192.168.1.50"], // [!code ++]
@@ -123,17 +181,7 @@ To resolve this, declare directive ordering in your Caddyfile's global options b
 <CodeViewer :snippets="orderingSnippets" />
 
 > [!TIP]
-> **Using a `route` Block**: Alternatively, you can encapsulate RouteWarden and your upstream proxy inside a `route { ... }` block, which tells Caddy to execute directives strictly in the order they are written:
-> ```caddy
-> example.com {
->     route {
->         routewarden {
->             # configuration
->         }
->         reverse_proxy backend:8080
->     }
-> }
-> ```
+> **Using a `route` Block**: Alternatively, select the **Inside Route Block** tab in the CodeViewer above. Encapsulating RouteWarden and your upstream proxy inside a `route { ... }` block instructs Caddy to execute directives strictly in the order they are written, eliminating the need for global options.
 
 ---
 
@@ -147,6 +195,7 @@ To resolve this, declare directive ordering in your Caddyfile's global options b
 
 | Directive | Type | Default | Description |
 |---|---|---|---|
+| `config_file` | `string` | `""` | Path to a `routewarden.json` file loaded as the base config. Inline Caddyfile fields take precedence over the file. |
 | `enabled` | `bool` | `true` | Enables or disables RouteWarden inspection. |
 | `debug` | `bool` | `false` | Enables verbose diagnostic logging in Caddy's logger. |
 | `security_log` | `bool` | `true` | Emits single-line structured JSON security events on stdout for CrowdSec, SIEMs, or log aggregators on blocked requests. |
@@ -166,7 +215,59 @@ To resolve this, declare directive ordering in your Caddyfile's global options b
 
 ---
 
-## 4. Response Modes Matrix
+## 4. Config File (`config_file`)
+
+Instead of inlining every option in your Caddyfile, point RouteWarden at a shared `routewarden.json` file. Inline Caddyfile fields always override file values, so you can keep a single shared policy file and customize per-site behaviour in the Caddyfile.
+
+<CodeViewer :snippets="configFileSnippets" />
+
+The `routewarden.json` file uses the standard RouteWarden JSON schema (view it with `rwarden schema` or the [CLI Schema](/cli/schema)):
+
+### Merge Semantics
+
+| Priority | Source |
+|---|---|
+| **1 (wins)** | Inline `Caddyfile` / JSON API fields |
+| **2 (base)** | Fields from `config_file` |
+
+- Empty/omitted Caddyfile directives defer to the file — you don't need to re-specify `block_patterns` just to change `mode`.
+- A missing or malformed file causes a **hard startup error**.
+
+> [!TIP]
+> Mount `routewarden.json` as a Docker volume or Kubernetes ConfigMap and reference it from each virtual host's Caddyfile block for consistent policy across all services.
+
+---
+
+## 5. Built-in Default Patterns
+
+### Default Block Patterns (`enable_default_patterns true`)
+
+When enabled (default), Caddy Warden intercepts requests matching these compiled regular expressions:
+
+| Target Category | Compiled Regex | Intercepted Examples |
+|---|---|---|
+| **Environment & Configs** | `(?i)(^|/)(\.env.*|.*\.(txt|log|bak|backup|sql|conf|config|ini|yaml|yml))$` | `/.env`, `/.env.production`, `/app.config`, `/dump.sql`, `/debug.log`, `/app.ini` |
+| **VCS & Hidden Metadata** | `(?i)(^|/)\.(git|svn|hg|bzr|cvs)(/.*|$)` | `/.git/config`, `/.git/HEAD`, `/.svn/entries` |
+| **Cloud & Shell Credentials** | `(?i)(^|/)\.(aws|ssh|kube|docker)(/.*|$)` | `/.aws/credentials`, `/.ssh/id_rsa`, `/.kube/config` |
+| **Archives & DB Dumps** | `(?i).*\.(tar|tar\.gz|tgz|zip|rar|7z|gz|bz2|iso|dump|sqlite|sqlite3|db)$` | `/backup.tar.gz`, `/site.zip`, `/users.dump`, `/data.sqlite3` |
+| **Sensitive Admin & Metrics** | `(?i)(^|/)(phpinfo\.php|info\.php|server-status|server-info|actuator(/.*)?|metrics|heapdump|trace|env)$` | `/phpinfo.php`, `/server-status`, `/actuator/health`, `/metrics` |
+| **Package Managers & Locks** | `(?i)(^|/)(composer\.(json|lock)|package-lock\.json|yarn\.lock|pnpm-lock\.yaml|Pipfile|Pipfile\.lock|requirements\.txt)$` | `/package-lock.json`, `/yarn.lock`, `/composer.lock`, `/requirements.txt` |
+
+### Default Allow Patterns (`enable_default_allow_patterns true`)
+
+When enabled (default), Caddy Warden immediately allows standard public resources through without checking block rules:
+
+| Target Resource | Compiled Regex | Purpose |
+|---|---|---|
+| **Crawler Indexing Directives** | `(?i)^/robots\.txt$` | Search engine bot crawling policy |
+| **Search Engine XML Sitemaps** | `(?i)^/sitemap.*\.xml$` | Public sitemaps (`/sitemap.xml`, `/sitemap_index.xml`) |
+| **Digital Ad Transparency** | `(?i)^/ads\.txt$` | Authorized digital advertising sellers verification |
+| **Security Disclosure Policies** | `(?i)^/security\.txt$` | RFC 9116 security researcher reporting endpoint |
+| **ACME & Web Standards** | `(?i)^/\.well-known(/.*)?$` | TLS certificate challenges & discovery (`/.well-known/*`) |
+
+---
+
+## 6. Response Modes Matrix
 
 | Mode | Options | Typical Use Case |
 |---|---|---|
@@ -190,7 +291,7 @@ To resolve this, declare directive ordering in your Caddyfile's global options b
 
 ---
 
-## 5. JSON Configuration (Caddy REST API)
+## 7. JSON Configuration (Caddy REST API)
 
 For zero-downtime environments configured via Caddy's dynamic API:
 
