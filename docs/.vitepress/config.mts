@@ -578,7 +578,7 @@ export default defineConfig({
             { text: 'Pre-Configured Panels', link: '/cli/dashboard/prebuilt-dashboard' },
             { text: 'Standalone Deployment', link: '/cli/dashboard/deployment' },
             { text: 'Reusing Existing Logging', link: '/cli/dashboard/existing-stack' },
-            { text: 'Event Format & Query Reference', link: '/cli/dashboard/logql-reference' }
+            { text: 'Event Format & Query Reference', link: '/cli/dashboard/event-format' }
           ]
         },
         {
