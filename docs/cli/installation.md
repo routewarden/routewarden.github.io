@@ -25,7 +25,63 @@ const scriptSnippets = computed(() => ({
   ],
 }))
 
-// ─── 2. Gatekeeper Fix ──────────────────────────────────────────────────────
+// ─── 2. Homebrew ────────────────────────────────────────────────────────────
+const brew_install = buildSnippet({
+  lang: 'bash',
+  code: `# Install via RouteWarden Homebrew Tap
+brew install routewarden/tap/rwarden
+
+# Verify installation
+rwarden version`,
+})
+
+const brewSnippets = computed(() => ({
+  cli: [
+    { filename: 'Homebrew (macOS & Linux)', lang: 'bash', code: brew_install.cleanCode, html: brew_install.html, hasDiff: false },
+  ],
+}))
+
+// ─── 3. Linux Package Managers (APT / RPM / APK) ───────────────────────────
+const apt_deb = buildSnippet({
+  lang: 'bash',
+  code: `# Download official .deb package (amd64)
+curl -fsSLO https://github.com/routewarden/cli/releases/latest/download/rwarden_linux_amd64.deb
+
+# Install with automatic dependency resolution via APT
+sudo apt install ./rwarden_linux_amd64.deb
+
+# Verify installation
+rwarden version`,
+})
+
+const rpm_pkg = buildSnippet({
+  lang: 'bash',
+  code: `# Install official .rpm package (Fedora, RHEL, CentOS)
+sudo rpm -ivh https://github.com/routewarden/cli/releases/latest/download/rwarden_linux_amd64.rpm
+
+# Verify installation
+rwarden version`,
+})
+
+const apk_pkg = buildSnippet({
+  lang: 'bash',
+  code: `# Alpine Linux (.apk)
+curl -fsSLO https://github.com/routewarden/cli/releases/latest/download/rwarden_linux_amd64.apk
+apk add --allow-untrusted ./rwarden_linux_amd64.apk
+
+# Verify installation
+rwarden version`,
+})
+
+const packageSnippets = computed(() => ({
+  cli: [
+    { filename: 'Debian / Ubuntu (APT)', lang: 'bash', code: apt_deb.cleanCode, html: apt_deb.html, hasDiff: false },
+    { filename: 'RHEL / Fedora (RPM)', lang: 'bash', code: rpm_pkg.cleanCode, html: rpm_pkg.html, hasDiff: false },
+    { filename: 'Alpine Linux (APK)', lang: 'bash', code: apk_pkg.cleanCode, html: apk_pkg.html, hasDiff: false },
+  ],
+}))
+
+// ─── 4. Gatekeeper Fix ──────────────────────────────────────────────────────
 const gatekeeper_code = buildSnippet({
   lang: 'bash',
   code: `# Remove quarantine attribute from PATH binary
@@ -41,7 +97,7 @@ const gatekeeperSnippets = computed(() => ({
   ],
 }))
 
-// ─── 3. Docker Image ────────────────────────────────────────────────────────
+// ─── 5. Docker Image ────────────────────────────────────────────────────────
 const docker_validate = buildSnippet({
   lang: 'bash',
   code: `# Validate configuration file directly
@@ -57,7 +113,7 @@ const dockerSnippets = computed(() => ({
   ],
 }))
 
-// ─── 4. From Source ─────────────────────────────────────────────────────────
+// ─── 6. From Source ─────────────────────────────────────────────────────────
 const source_code = buildSnippet({
   lang: 'bash',
   code: `git clone https://github.com/routewarden/cli.git
@@ -71,7 +127,7 @@ const sourceSnippets = computed(() => ({
   ],
 }))
 
-// ─── 5. Verification ────────────────────────────────────────────────────────
+// ─── 7. Verification ────────────────────────────────────────────────────────
 const verify_cli = buildSnippet({
   lang: 'bash',
   code: `rwarden version
@@ -91,13 +147,25 @@ const verifySnippets = computed(() => ({
   ],
 }))
 
-// ─── 6. Uninstallation ──────────────────────────────────────────────────────
+// ─── 8. Uninstallation ──────────────────────────────────────────────────────
 const uninstall_code = buildSnippet({
   lang: 'bash',
-  code: `# If installed system-wide (default):
+  code: `# Homebrew:
+brew uninstall rwarden
+
+# Debian / Ubuntu (APT):
+sudo apt remove rwarden
+
+# RHEL / Fedora (RPM):
+sudo rpm -e rwarden
+
+# Alpine Linux (APK):
+apk del rwarden
+
+# System-wide binary (default):
 sudo rm -f /usr/local/bin/rwarden
 
-# If installed in user directory:
+# User directory:
 rm -f ~/.local/bin/rwarden`,
 })
 
@@ -122,7 +190,23 @@ Download and install the latest release binary automatically:
 
 ---
 
-## 2. Pre-Built Release Binaries
+## 2. Homebrew (macOS & Linux)
+
+Install and manage `rwarden` using Homebrew:
+
+<CodeViewer :snippets="brewSnippets" />
+
+---
+
+## 3. Linux Package Managers (APT, RPM, APK)
+
+RouteWarden releases native `.deb`, `.rpm`, and `.apk` packages generated via NFPM for popular Linux distributions:
+
+<CodeViewer :snippets="packageSnippets" />
+
+---
+
+## 4. Pre-Built Release Binaries
 
 Download standalone, statically compiled binaries for **Linux**, **macOS**, and **Windows** directly from [GitHub Releases](https://github.com/routewarden/cli/releases/latest):
 
@@ -146,7 +230,7 @@ All downloads and SHA256 checksums are published on the [GitHub Releases Page](h
 
 ---
 
-## 3. Container Image (Docker / CI/CD)
+## 5. Container Image (Docker / CI/CD)
 
 Run `rwarden` inside a container without installing local binaries:
 
@@ -154,7 +238,7 @@ Run `rwarden` inside a container without installing local binaries:
 
 ---
 
-## 4. From Source (Go)
+## 6. From Source (Go)
 
 If you have Go 1.22+ installed, compile and install from source:
 

@@ -367,6 +367,16 @@ brew install routewarden/tap/rwarden
 rwarden version`,
 })
 
+const cli_apt = buildSnippet({
+  lang: 'bash',
+  code: `# Debian & Ubuntu via APT
+curl -fsSLO https://github.com/routewarden/cli/releases/latest/download/rwarden_linux_amd64.deb
+sudo apt install ./rwarden_linux_amd64.deb
+
+# Verify installation
+rwarden version`,
+})
+
 const cli_curl_system = buildSnippet({
   lang: 'bash',
   code: `# Universal one-liner installer (macOS & Linux)
@@ -397,6 +407,7 @@ rwarden version`,
 const cliInstallSnippets = computed(() => ({
   cli: [
     { filename: 'Homebrew', lang: 'bash', code: cli_brew.cleanCode, html: cli_brew.html, hasDiff: cli_brew.hasDiff },
+    { filename: 'Debian / Ubuntu (APT)', lang: 'bash', code: cli_apt.cleanCode, html: cli_apt.html, hasDiff: cli_apt.hasDiff },
     { filename: 'System-Wide (/usr/local/bin)', lang: 'bash', code: cli_curl_system.cleanCode, html: cli_curl_system.html, hasDiff: cli_curl_system.hasDiff },
     { filename: 'User Directory (~/.local/bin)', lang: 'bash', code: cli_curl_user.cleanCode, html: cli_curl_user.html, hasDiff: cli_curl_user.hasDiff },
     { filename: 'Go Install', lang: 'bash', code: cli_go.cleanCode, html: cli_go.html, hasDiff: cli_go.hasDiff },
