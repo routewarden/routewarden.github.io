@@ -71,7 +71,15 @@ scrape_configs:
             status_code: status_code
             matched_pattern: matched_pattern
             reason: reason
+            response_mode: response_mode
             country_code: country_code
+      - geoip:
+          db: '/etc/promtail/GeoLite2-Country.mmdb'
+          source: 'client_ip'
+          db_type: 'country'
+      - template:
+          source: country_code
+          template: '{{ if .country_code }}{{ .country_code }}{{ else if .geoip_country_code }}{{ .geoip_country_code }}{{ else }}LAN{{ end }}'
       - template:
           source: verdict
           template: '{{ if .verdict }}{{ .verdict }}{{ else if eq .type "routewarden_block" }}BLOCK{{ else if eq .type "routewarden_allow" }}ALLOW{{ else if eq .action "blocked" }}BLOCK{{ else if eq .action "allowed" }}ALLOW{{ else if eq .action "throttled" }}THROTTLED{{ else if eq .action "banned" }}BLOCK{{ else if .action }}{{ .action }}{{ end }}'
@@ -94,6 +102,7 @@ scrape_configs:
           protocol:
           client_ip:
           country_code:
+          response_mode:
           action:
           reason:`,
 })

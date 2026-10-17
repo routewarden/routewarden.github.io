@@ -2,7 +2,24 @@
 
 All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and the CLI adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v4.4.0] - 2026-10-16 (Latest)
+## [v4.5.0] - 2026-10-17 (Latest)
+
+### Added
+- **Automated Ingestion-Time GeoIP Resolution (`config.alloy` & `docker-compose.yml`)**:
+  - Integrated `stage.geoip` into the Grafana Alloy log processing pipeline to resolve raw `client_ip` against MaxMind `GeoLite2-Country.mmdb`.
+  - Added template stages normalizing `country_code` (injecting MaxMind ISO 3166-1 alpha-2 code and classifying RFC 1918 / loopback ranges as `LAN`) and human-readable `country_name` (or `"Local Network"`).
+  - Added automated `geoip-init` service in bundled Docker Compose stack with configurable `GEOIP_DB_URL` mirror for zero-friction database acquisition.
+  - Exposed `geoip-data` persistent volume mounted read-only to Alloy (`/etc/alloy/geoip:ro`).
+- **Enhanced Threat Profiling & Observability Panels (`routewarden-overview.json`)**:
+  - Renamed "Top Attacked Endpoints" to **"Top Target Paths"** and upgraded LogQL query with dynamic template filtering (`verdict=~"$verdict"`).
+  - Added **`🛡️ Defense Action Breakdown`** donut chart panel visualizing enforcement mode distributions (`silentDrop`, `text`, `json`, `custom`, `default`).
+  - Added **`🌐 Top Protected Virtual Hosts & Services`** bar gauge panel displaying the top backend services and virtual hosts under threat.
+  - Added **`⏱️ Threat Inspection Latency & Tarpit Timing`** dual-series timeseries panel tracking p95 and average execution latency (`duration_ms` / `latency_ms`).
+  - Rebalanced Threat Analysis grid layout into a structured 3-column row and adjusted downstream incident triage table and log stream rows.
+
+---
+
+## [v4.4.0] - 2026-10-16
 
 ### Added
 - **File-Based Configuration (`configFile` / `config_file`)**:

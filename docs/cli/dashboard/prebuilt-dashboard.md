@@ -73,11 +73,14 @@ Provides unified visibility across application-layer HTTP gateways and network-l
 ### 6. Threat Analysis & Attack Vector Profiling
 
 Pinpoints targets, repeat offenders, and offensive toolkits:
-- **Top Attacked Targets**: Heavily probed endpoints (`/.env`, `/.git/config`, `/wp-login.php`, `/actuator/env`).
+- **Top Target Paths**: Heavily probed endpoints and target paths (`/.env`, `/.git/config`, `/wp-login.php`, `/actuator/env`).
 - **Top Offender IPs & GeoIP**: Ranked client IP addresses annotated with resolved country codes (`[US]`, `[DE]`, `[LAN]`).
 - **Top Triggered Rules / Signatures**: Identifies which defense rules are firing most frequently (sensitive files, path traversal, SQLi, protocol anomalies).
 - **Malicious User-Agents & Security Scanners**: Automated scanner detection ranking offensive toolkits (`Nuclei`, `Nikto`, `sqlmap`, `Masscan`, `Go-http-client`, `python-requests`, `curl`, `ZGrab`).
 - **Attacked HTTP Methods & Verbs**: Donut chart illustrating HTTP verbs utilized in attacks (`GET`, `POST`, `HEAD`, `CONNECT`, `OPTIONS`).
+- **Defense Action Breakdown**: Donut chart tracking enforcement modes executed across gateways (`silentDrop`, `text`, `json`, `custom`, `default`).
+- **Top Protected Virtual Hosts & Services**: Ranked bar gauge illustrating protected services and backend routing hosts receiving threats.
+- **Threat Inspection Latency & Tarpit Timing**: Timeseries tracking p95 and average inspection duration (`duration_ms` / `latency_ms`) to detect tarpit efficacy and latency impact.
 
 ---
 
