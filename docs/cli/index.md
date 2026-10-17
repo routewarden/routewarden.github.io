@@ -8,9 +8,41 @@ import { computed } from 'vue'
 import { buildSnippet } from '../.vitepress/theme/composables/useCodeSnippet'
 
 // ─── 1. Installation ────────────────────────────────────────────────────────
+const install_mac = buildSnippet({
+  lang: 'bash',
+  code: `# Homebrew (macOS)
+brew install routewarden/tap/rwarden
+
+# Or automated installer:
+curl -fsSL https://routewarden.github.io/install.sh | bash
+
+# Verify installation
+rwarden version`,
+})
+
+const install_linux = buildSnippet({
+  lang: 'bash',
+  code: `# Debian / Ubuntu (APT)
+curl -fsSLO https://github.com/routewarden/cli/releases/latest/download/rwarden_linux_amd64.deb
+sudo apt install ./rwarden_linux_amd64.deb
+
+# Or Homebrew on Linux:
+# brew install routewarden/tap/rwarden
+
+# Or automated installer:
+# curl -fsSL https://routewarden.github.io/install.sh | bash
+
+# Verify installation
+rwarden version`,
+})
+
 const install_script = buildSnippet({
   lang: 'bash',
-  code: `curl -fsSL https://routewarden.github.io/install.sh | bash`,
+  code: `# Universal one-liner (macOS & Linux)
+curl -fsSL https://routewarden.github.io/install.sh | bash
+
+# Custom directory (~/.local/bin)
+curl -fsSL https://routewarden.github.io/install.sh | INSTALL_DIR=$HOME/.local/bin bash`,
 })
 
 const install_docker = buildSnippet({
@@ -20,7 +52,9 @@ const install_docker = buildSnippet({
 
 const installSnippets = computed(() => ({
   cli: [
-    { filename: 'Universal Script (curl)', lang: 'bash', code: install_script.cleanCode, html: install_script.html, hasDiff: false },
+    { filename: 'macOS (Homebrew / curl)', lang: 'bash', code: install_mac.cleanCode, html: install_mac.html, hasDiff: false },
+    { filename: 'Linux (APT / Homebrew / curl)', lang: 'bash', code: install_linux.cleanCode, html: install_linux.html, hasDiff: false },
+    { filename: 'Universal Script', lang: 'bash', code: install_script.cleanCode, html: install_script.html, hasDiff: false },
     { filename: 'Docker', lang: 'bash', code: install_docker.cleanCode, html: install_docker.html, hasDiff: false },
   ],
 }))
@@ -139,9 +173,11 @@ It enables security and platform teams to evaluate path rules offline, validate 
 
 ### 1. Install `rwarden`
 
-Install the latest pre-compiled binary via the universal one-liner script, or run without installation using Docker:
+Install the official pre-compiled CLI binary for **macOS** or **Linux**, or run without installation via Docker:
 
 <CodeViewer :snippets="installSnippets" />
+
+> 📖 **Complete Installation Guide**: Need `.deb`, `.rpm`, `.apk` package managers, standalone binary downloads for Linux/macOS/Windows, or source builds? See the [CLI Installation Guide](/cli/installation).
 
 ### 2. Test a Sensitive Path
 
