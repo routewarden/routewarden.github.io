@@ -765,4 +765,4 @@ Install it with Homebrew or curl:
 
 * **GitHub Discussions & Issues**: [github.com/routewarden](https://github.com/routewarden)
 * **Product Hunt Community**: Share feedback and engage with the maintainers.
-* **Security Advisories**: To report a security vulnerability responsibly, please email `routewarden@aman.ng` or file a private GitHub Advisory.
+* **Security Advisories**: To report a security vulnerability responsibly, please submit a private report via **GitHub Security Advisories** on the relevant repository or review our [Security Policy](https://github.com/routewarden/.github/blob/main/.github/SECURITY.md).
