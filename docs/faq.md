@@ -358,6 +358,15 @@ const containerOptInSnippets = computed(() => ({
 }))
 
 // ─── CLI Installation Snippets ──────────────────────────────────────────────
+const cli_brew = buildSnippet({
+  lang: 'bash',
+  code: `# macOS & Linux via Homebrew
+brew install routewarden/tap/rwarden
+
+# Verify installation
+rwarden version`,
+})
+
 const cli_curl_system = buildSnippet({
   lang: 'bash',
   code: `# Universal one-liner installer (macOS & Linux)
@@ -387,6 +396,7 @@ rwarden version`,
 
 const cliInstallSnippets = computed(() => ({
   cli: [
+    { filename: 'Homebrew', lang: 'bash', code: cli_brew.cleanCode, html: cli_brew.html, hasDiff: cli_brew.hasDiff },
     { filename: 'System-Wide (/usr/local/bin)', lang: 'bash', code: cli_curl_system.cleanCode, html: cli_curl_system.html, hasDiff: cli_curl_system.hasDiff },
     { filename: 'User Directory (~/.local/bin)', lang: 'bash', code: cli_curl_user.cleanCode, html: cli_curl_user.html, hasDiff: cli_curl_user.hasDiff },
     { filename: 'Go Install', lang: 'bash', code: cli_go.cleanCode, html: cli_go.html, hasDiff: cli_go.hasDiff },
