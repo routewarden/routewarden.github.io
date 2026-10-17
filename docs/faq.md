@@ -358,31 +358,37 @@ const containerOptInSnippets = computed(() => ({
 }))
 
 // ─── CLI Installation Snippets ──────────────────────────────────────────────
-const cli_brew = buildSnippet({
+const cli_curl_system = buildSnippet({
   lang: 'bash',
-  code: `# macOS & Linux via Homebrew
-brew install routewarden/tap/rwarden
+  code: `# Universal one-liner installer (macOS & Linux)
+curl -fsSL https://routewarden.github.io/install.sh | bash
+
+# Verify installation
 rwarden version`,
 })
 
-const cli_curl = buildSnippet({
+const cli_curl_user = buildSnippet({
   lang: 'bash',
-  code: `# Direct binary install via curl shell script
-curl -fsSL https://routewarden.github.io/install.sh | sh
+  code: `# Install to user directory without sudo (~/.local/bin)
+curl -fsSL https://routewarden.github.io/install.sh | INSTALL_DIR=$HOME/.local/bin bash
+
+# Verify installation
 rwarden version`,
 })
 
 const cli_go = buildSnippet({
   lang: 'bash',
   code: `# Build and install directly from Go source
-go install github.com/routewarden/cli/cmd/rwarden@latest
+go install github.com/routewarden/cli@latest
+
+# Verify installation
 rwarden version`,
 })
 
 const cliInstallSnippets = computed(() => ({
   cli: [
-    { filename: 'Homebrew', lang: 'bash', code: cli_brew.cleanCode, html: cli_brew.html, hasDiff: cli_brew.hasDiff },
-    { filename: 'Shell Script (curl)', lang: 'bash', code: cli_curl.cleanCode, html: cli_curl.html, hasDiff: cli_curl.hasDiff },
+    { filename: 'System-Wide (/usr/local/bin)', lang: 'bash', code: cli_curl_system.cleanCode, html: cli_curl_system.html, hasDiff: cli_curl_system.hasDiff },
+    { filename: 'User Directory (~/.local/bin)', lang: 'bash', code: cli_curl_user.cleanCode, html: cli_curl_user.html, hasDiff: cli_curl_user.hasDiff },
     { filename: 'Go Install', lang: 'bash', code: cli_go.cleanCode, html: cli_go.html, hasDiff: cli_go.hasDiff },
   ],
 }))
@@ -734,7 +740,7 @@ The `rwarden` CLI is a cross-platform command-line tool for developers and SecOp
 * **Config Snippet Generation**: Output production-ready Traefik, Caddy, NGINX, or Docker Compose snippets (`rwarden generate --gateway traefik`).
 * **Observability Management**: Launch and monitor the local Grafana/Loki security dashboard (`rwarden dashboard up`).
 
-Install it with Homebrew or curl:
+Install it with the universal installer script or from source:
 
 <CodeViewer :snippets="cliInstallSnippets" />
 
