@@ -2,7 +2,30 @@
 
 All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and the CLI adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v4.5.3] - 2026-10-17 (Latest)
+## [v5.0.0] - 2026-10-17 (Latest)
+
+### Added
+- **Native Linux Package Management via NFPM (`.deb`, `.rpm`, `.apk`)**:
+  - Configured GoReleaser NFPM packager to build and publish native packages across major Linux distributions:
+    - **Debian / Ubuntu (`.deb`)**: Direct installation via APT (`curl -fsSLO ... && sudo apt install ./rwarden_linux_amd64.deb`) with automated dependency resolution.
+    - **Red Hat / Fedora / CentOS / Rocky Linux (`.rpm`)**: Direct package installation via RPM (`sudo rpm -ivh ...`).
+    - **Alpine Linux (`.apk`)**: Standalone APK package installation (`apk add --allow-untrusted ...`).
+  - Standardized package metadata, license file mapping to `/usr/share/doc/rwarden/copyright`, and binary placement in `/usr/local/bin/rwarden`.
+- **Official Homebrew Tap Integration (`routewarden/homebrew-tap`)**:
+  - Published official Homebrew formula `Formula/rwarden.rb` supporting native compilation and bottled releases via `brew install routewarden/tap/rwarden`.
+  - Added automated GoReleaser v2 `brews` formula publishing pipeline triggered on release tags with fine-grained GitHub token authentication.
+- **Dedicated macOS and Linux Installation Documentation**:
+  - Redesigned the [CLI Installation Guide](/cli/installation) and [CLI Overview](/cli/) with tabbed, platform-specific installation workflows for macOS (Homebrew, automated curl installer, manual binary, Gatekeeper quarantine mitigation) and Linux (APT, Homebrew, RPM, APK, curl, manual binary).
+  - Added comprehensive uninstallation commands covering Homebrew, APT, RPM, APK, and standalone binaries.
+
+### Changed
+- **Version Alignment & Installer Script Synchronization**:
+  - Upgraded universal installer script (`install.sh`) fallback and default tag to `v5.0.0`.
+  - Synced documentation version registry (`version.json`) and release download artifacts to `v5.0.0`.
+
+---
+
+## [v4.5.3] - 2026-10-17
 
 ### Added
 - **Official Homebrew Tap Integration (`routewarden/homebrew-tap`)**:
