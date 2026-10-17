@@ -575,10 +575,10 @@ export default defineConfig({
           items: [
             { text: 'Overview & Architecture', link: '/cli/dashboard' },
             { text: 'Container Discovery & Logging', link: '/cli/dashboard/discovery-and-logging' },
-            { text: 'Pre-Configured Dashboard', link: '/cli/dashboard/prebuilt-dashboard' },
+            { text: 'Pre-Configured Panels', link: '/cli/dashboard/prebuilt-dashboard' },
             { text: 'Standalone Deployment', link: '/cli/dashboard/deployment' },
-            { text: 'Reusing Existing Stack', link: '/cli/dashboard/existing-stack' },
-            { text: 'LogQL & Alerting Reference', link: '/cli/dashboard/logql-reference' }
+            { text: 'Reusing Existing Logging', link: '/cli/dashboard/existing-stack' },
+            { text: 'Event Format & Query Reference', link: '/cli/dashboard/logql-reference' }
           ]
         },
         {

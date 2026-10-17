@@ -287,11 +287,11 @@ const trustedProxiesSnippets = computed(() => ({
 // ─── Dashboard Management Snippet ───────────────────────────────────────────
 const dash_start = buildSnippet({
   lang: 'bash',
-  code: `# Launch RouteWarden Grafana + Loki + Alloy Observability Stack
-rwarden dashboard up
+  code: `# Launch RouteWarden Security Dashboard (GoAccess)
+rwarden dashboard
 
-# Launch with automated threat alerting enabled
-rwarden dashboard up --enable-alerting`,
+# Launch on custom port
+rwarden dashboard up --port 7890`,
 })
 
 const dashboardStartSnippets = computed(() => ({
@@ -502,8 +502,8 @@ Everything you need to know about RouteWarden architecture, threat mitigation, p
     <p>SSH, SMTP, database protection, protocol inspection, and connection tarpits.</p>
   </div>
   <div class="attack-card">
-    <div style="font-size: 15px; font-weight: 700; margin-bottom: 8px;">📊 <a href="#observability-dashboard">Observability & CLI</a></div>
-    <p>Grafana/Loki integration, GeoIP country resolution, and rwarden linting.</p>
+    <div style="font-size: 15px; font-weight: 700; margin-bottom: 8px;">📊 <a href="#observability-dashboard">Security Dashboard & CLI</a></div>
+    <p>Real-time GoAccess dashboard, GeoIP country resolution, and rwarden linting.</p>
   </div>
 </div>
 
@@ -713,36 +713,24 @@ Because bots and brute-force tools (like `hydra`, `nmap`, or SSH scanners) alloc
 
 ---
 
-## Observability & Dashboard
+## Security Dashboard
 
 ### How does the RouteWarden Security Dashboard work?
 
-RouteWarden provides an out-of-the-box observability stack composed of:
-1. **Grafana Alloy**: Discovers RouteWarden containers or tails log files, enriches events with MaxMind GeoIP country codes, and ships structured records to Loki.
-2. **Grafana Loki**: High-efficiency append-only log aggregator indexing labels (`verdict`, `gateway`, `country_code`, `client_ip`).
-3. **Pre-built Grafana Dashboard**: Includes real-time threat maps, threat share charts, top attacking IPs, and an interactive threat incident triage table.
+RouteWarden provides a turnkey real-time security dashboard powered by **GoAccess** and `rwarden monitor`:
+1. **Container Auto-Discovery**: Automatically queries `/var/run/docker.sock` for running containers labeled with `routewarden=true` and multiplexes their logs concurrently.
+2. **In-Memory Analytics**: High-performance streaming parser tracking 403 blocks, 429 tarpits, unique IPs, and top target attack paths consuming only **~15MB RAM**.
+3. **Real-Time Web UI**: Built-in HTTP and WebSocket server accessible at `http://localhost:7890`.
 
-Start the stack with a single command:
+Start the dashboard with a single command:
 
 <CodeViewer :snippets="dashboardStartSnippets" />
 
 ---
 
-### Why were countries not showing on my dashboard, and how do I fix it?
+### Does RouteWarden scrape all Docker containers on my host?
 
-Country resolution requires two components:
-1. **GeoLite2 Database**: Alloy needs a valid `GeoLite2-Country.mmdb` mounted in `/etc/alloy/geoip`. RouteWarden automatically downloads this via the `geoip-init` container.
-2. **Public vs Private IPs**: Local addresses (`127.0.0.1`, `10.x.x.x`, `192.168.x.x`) are tagged as `LAN` by design because private subnets do not have geographical coordinates.
-
-If you recently updated Alloy or mounted the database, you can replay existing Loki logs through Alloy to backfill country codes:
-
-<CodeViewer :snippets="replayLogsSnippets" />
-
----
-
-### Does Grafana Alloy scrape all Docker containers on my host?
-
-**No.** RouteWarden Alloy discovery uses a **strict opt-in model**. It only ingests logs from containers that declare:
+**No.** RouteWarden uses a **strict opt-in model**. It only ingests logs from containers that declare:
 
 <CodeViewer :snippets="containerOptInSnippets" />
 
@@ -759,7 +747,7 @@ The `rwarden` CLI is a cross-platform command-line tool for developers and SecOp
 * **Offline Pattern Testing**: Test paths against RouteWarden normalization without running a live server (`rwarden check "/.env"`).
 * **Configuration Validation & Linting**: Validate `routewarden.json` against the JSON schema (`rwarden schema validate`).
 * **Config Snippet Generation**: Output production-ready Traefik, Caddy, NGINX, or Docker Compose snippets (`rwarden generate --gateway traefik`).
-* **Observability Management**: Launch and monitor the local Grafana/Loki security dashboard (`rwarden dashboard up`).
+* **Security Dashboard**: Launch and monitor the local real-time security dashboard (`rwarden dashboard`).
 
 Install it with the universal installer script or from source:
 
@@ -783,8 +771,8 @@ Install it with the universal installer script or from source:
 
 <CodeViewer :snippets="diagnoseSnippets" />
 
-2. **Check the Incident Triage Table**:
-   Open Grafana (`http://localhost:3000`), navigate to the **Interactive Threat Incident Triage Table (Panel 50)**, and filter by the client IP or path to see the exact rule ID and timestamp.
+2. **Check the Live Security Feed**:
+   Open the dashboard (`http://localhost:7890`), or run `rwarden monitor --verdict BLOCK`, to view real-time blocked threats, client IPs, and matched rules.
 
 ---
 

@@ -241,28 +241,19 @@ test('documentation structure and integrity', async (t) => {
     )
   })
 
-  await t.test('cli config.alloy is synchronized and imported as single source of truth', () => {
-    const docsAlloy = path.join(docsDir, 'cli', 'dashboard', 'config.alloy')
-    assert.ok(fs.existsSync(docsAlloy), 'Expected docs/cli/dashboard/config.alloy to exist')
-    const alloyContent = fs.readFileSync(docsAlloy, 'utf8')
-    assert.ok(alloyContent.length > 0, 'config.alloy must not be empty')
-    assert.ok(alloyContent.includes('discovery.relabel "routewarden_containers"'), 'must include relabel block')
-    assert.ok(alloyContent.includes('stage.json'), 'must include stage.json block')
-
-    // Verify existing-stack.md imports raw config.alloy rather than hardcoding it
-    const existingStackDoc = path.join(docsDir, 'cli', 'dashboard', 'existing-stack.md')
-    assert.ok(fs.existsSync(existingStackDoc), 'Expected existing-stack.md to exist')
-    const existingStackContent = fs.readFileSync(existingStackDoc, 'utf8')
-    assert.ok(
-      existingStackContent.includes("import alloyConfigRaw from './config.alloy?raw'"),
-      'existing-stack.md must import alloyConfigRaw directly from config.alloy?raw as single source of truth'
-    )
+  await t.test('cli goaccess.conf is synchronized and imported as single source of truth', () => {
+    const docsConf = path.join(docsDir, 'cli', 'dashboard', 'goaccess.conf')
+    assert.ok(fs.existsSync(docsConf), 'Expected docs/cli/dashboard/goaccess.conf to exist')
+    const confContent = fs.readFileSync(docsConf, 'utf8')
+    assert.ok(confContent.length > 0, 'goaccess.conf must not be empty')
+    assert.ok(confContent.includes('real-time-html true'), 'must include real-time-html directive')
+    assert.ok(confContent.includes('log-format COMBINED'), 'must include log-format directive')
 
     // When running inside monorepo, verify it exactly matches canonical cli repo file
-    const canonicalCliAlloy = path.join(rootDir, '../cli/observability/config.alloy')
-    if (fs.existsSync(canonicalCliAlloy)) {
-      const canonicalContent = fs.readFileSync(canonicalCliAlloy, 'utf8')
-      assert.equal(alloyContent, canonicalContent, 'docs/cli/dashboard/config.alloy must match cli/observability/config.alloy byte-for-byte')
+    const canonicalCliConf = path.join(rootDir, '../cli/observability/goaccess.conf')
+    if (fs.existsSync(canonicalCliConf)) {
+      const canonicalContent = fs.readFileSync(canonicalCliConf, 'utf8')
+      assert.equal(confContent, canonicalContent, 'docs/cli/dashboard/goaccess.conf must match cli/observability/goaccess.conf byte-for-byte')
     }
   })
 })

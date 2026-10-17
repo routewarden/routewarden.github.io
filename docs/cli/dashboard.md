@@ -125,20 +125,20 @@ const composeSnippets = computed(() => ({
 
 RouteWarden includes a turnkey, ultra-lightweight real-time security dashboard powered by [GoAccess](https://goaccess.io/) and `rwarden monitor`.
 
-It replaces heavy multi-container monitoring stacks (Grafana + Loki + Alloy) with an in-memory dashboard consuming only **~15MB of RAM**.
+It provides an ultra-fast, in-memory dashboard consuming only **~15MB of RAM**.
 
 ---
 
-## Why GoAccess Instead of Grafana?
+## Performance & Resource Efficiency
 
-| Metric | Grafana + Loki + Alloy Stack | RouteWarden GoAccess Dashboard |
+| Metric | Traditional Monitoring Stacks | RouteWarden GoAccess Dashboard |
 |:---|:---|:---|
 | **Memory Footprint** | ~500 MB – 1.2 GB RAM | **~15 MB – 25 MB RAM** |
-| **Containers Required** | 3 containers (`grafana`, `loki`, `alloy`) | **0 containers** (or 1 optional 10MB container) |
+| **Containers Required** | Multiple heavy containers | **0 containers** (or 1 optional 10MB container) |
 | **Startup Time** | 15–30 seconds | **Instant (< 100ms)** |
 | **Real-time Updates** | Polling intervals (5s–10s) | **Real-time WebSockets (< 50ms)** |
 | **Storage Overhead** | Persistent chunks & index volumes | **In-memory** / zero disk clutter |
-| **Configuration** | Complex LogQL, Alloy river configs | **Zero configuration** |
+| **Configuration** | Complex multi-file configs | **Zero configuration** |
 
 ---
 

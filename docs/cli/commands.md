@@ -586,7 +586,7 @@ Tail, multiplex, and colorize live reverse proxy security events directly in the
 When invoked without `--file` or a pipe, `rwarden monitor` automatically discovers running Docker containers tagged with `routewarden=true` (or `routewarden.logs=true`) and streams them simultaneously with container attribution tags (`[traefik]`, `[nginx]`, etc.).
 
 ::: tip Lightweight Web UI with GoAccess
-For homelabs or single-node deployments where deploying Grafana and Loki is too resource-heavy, run `rwarden monitor --raw` and pipe cleanly into [GoAccess](https://goaccess.io/) for a live, real-time web dashboard:
+For live terminal visualization or real-time web graphs, run `rwarden monitor --raw` and pipe cleanly into [GoAccess](https://goaccess.io/) for a live web dashboard:
 ```bash
 rwarden monitor --raw | goaccess -o /var/www/html/security.html --real-time-html --port=7890 -
 ```
