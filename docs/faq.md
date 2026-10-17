@@ -3,6 +3,446 @@ title: Frequently Asked Questions (FAQ)
 description: Answers to common questions about RouteWarden edge defense, anti-evasion normalization, response modes, Layer 4 TCP Warden, IP allowlisting, and observability.
 ---
 
+<script setup>
+import { computed } from 'vue'
+import { buildSnippet } from './.vitepress/theme/composables/useCodeSnippet'
+
+// ─── Built-in Dictionaries Snippet ──────────────────────────────────────────
+const default_dict = buildSnippet({
+  lang: 'plaintext',
+  code: `├── Environment Files     (.env, .env.local, .env.production, docker-compose.yml)
+├── Version Control       (.git, .svn, .hg, .bzr, .gitattributes, .gitmodules)
+├── Backups & Archives    (.bak, .backup, .old, .orig, .tar.gz, .sql.gz, dump.sql)
+├── Cloud & Credentials   (.aws/credentials, .kube/config, id_rsa, id_ed25519)
+├── Server Info & Debug   (phpinfo.php, server-status, _profiler, /actuator)
+├── OS & Editor Artifacts (.DS_Store, Thumbs.db, *~, #*#, .idea, .vscode)
+└── Database Management   (pma, phpmyadmin, adminer.php, myadmin)`,
+})
+
+const defaultDictSnippets = computed(() => ({
+  rules: [
+    { filename: 'Built-in Dictionaries', lang: 'plaintext', code: default_dict.cleanCode, html: default_dict.html, hasDiff: default_dict.hasDiff },
+  ],
+}))
+
+// ─── ACME Challenge Exemption Snippet ────────────────────────────────────────
+const acme_regex = buildSnippet({
+  lang: 'plaintext',
+  code: `^/.well-known/acme-challenge/.*`,
+})
+
+const acmeExemptionSnippets = computed(() => ({
+  rules: [
+    { filename: 'ACME Exemption Regex', lang: 'plaintext', code: acme_regex.cleanCode, html: acme_regex.html, hasDiff: acme_regex.hasDiff },
+  ],
+}))
+
+// ─── Custom Pattern Snippets ────────────────────────────────────────────────
+const cp_traefik_yaml = buildSnippet({
+  lang: 'yaml',
+  code: `# traefik.yml (Dynamic Configuration)
+http:
+  middlewares:
+    my-shield:
+      plugin:
+        routewarden:
+          enabled: true
+          customBlockPatterns: # [!code ++]
+            - "^/internal-api/.*" # [!code ++]
+            - "(?i)\\\\.(log|conf|ini|key)$" # [!code ++]
+            - "^/wp-login\\\\.php$" # [!code ++]`,
+})
+
+const cp_traefik_compose = buildSnippet({
+  lang: 'yaml',
+  code: `# docker-compose.yml (Container Labels)
+services:
+  webapp:
+    image: my-app:latest
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.app.middlewares=my-shield@docker"
+      - "traefik.http.middlewares.my-shield.plugin.routewarden.enabled=true"
+      - "traefik.http.middlewares.my-shield.plugin.routewarden.customBlockPatterns[0]=^/internal-api/.*" # [!code ++]
+      - "traefik.http.middlewares.my-shield.plugin.routewarden.customBlockPatterns[1]=(?i)\\\\.(log|conf|ini|key)$" # [!code ++]
+      - "traefik.http.middlewares.my-shield.plugin.routewarden.customBlockPatterns[2]=^/wp-login\\\\.php$" # [!code ++]`,
+})
+
+const cp_caddyfile = buildSnippet({
+  lang: 'caddy',
+  code: `# Caddyfile
+:443 {
+    route {
+        route_warden {
+            custom_block_patterns ^/internal-api/.* (?i)\\.(log|conf|ini|key)$ ^/wp-login\\.php$ # [!code ++]
+        }
+        reverse_proxy app:8080
+    }
+}`,
+})
+
+const cp_caddy_json = buildSnippet({
+  lang: 'json',
+  code: `// Caddy JSON Configuration
+{
+  "handler": "route_warden",
+  "custom_block_patterns": [ // [!code ++]
+    "^/internal-api/.*", // [!code ++]
+    "(?i)\\\\.(log|conf|ini|key)$", // [!code ++]
+    "^/wp-login\\\\.php$" // [!code ++]
+  ] // [!code ++]
+}`,
+})
+
+const cp_nginx_lua = buildSnippet({
+  lang: 'lua',
+  code: `# /etc/nginx/conf.d/default.conf
+access_by_lua_block {
+    local rw = require("routewarden")
+    rw.check({
+        custom_block_patterns = { -- [!code ++]
+            "^/internal-api/.*", -- [!code ++]
+            "(?i)\\.(log|conf|ini|key)$", -- [!code ++]
+            "^/wp-login\\.php$" -- [!code ++]
+        } -- [!code ++]
+    })
+}`,
+})
+
+const customPatternSnippets = computed(() => ({
+  traefik: [
+    { filename: 'traefik.yml', lang: 'yaml', code: cp_traefik_yaml.cleanCode, html: cp_traefik_yaml.html, hasDiff: cp_traefik_yaml.hasDiff },
+    { filename: 'docker-compose.yml', lang: 'yaml', code: cp_traefik_compose.cleanCode, html: cp_traefik_compose.html, hasDiff: cp_traefik_compose.hasDiff },
+  ],
+  caddy: [
+    { filename: 'Caddyfile', lang: 'caddy', code: cp_caddyfile.cleanCode, html: cp_caddyfile.html, hasDiff: cp_caddyfile.hasDiff },
+    { filename: 'caddy.json', lang: 'json', code: cp_caddy_json.cleanCode, html: cp_caddy_json.html, hasDiff: cp_caddy_json.hasDiff },
+  ],
+  nginx: [
+    { filename: 'nginx.conf (Lua)', lang: 'lua', code: cp_nginx_lua.cleanCode, html: cp_nginx_lua.html, hasDiff: cp_nginx_lua.hasDiff },
+  ],
+}))
+
+// ─── Allow Pattern Snippets ─────────────────────────────────────────────────
+const ap_traefik = buildSnippet({
+  lang: 'yaml',
+  code: `# traefik.yml (Dynamic Configuration)
+http:
+  middlewares:
+    my-shield:
+      plugin:
+        routewarden:
+          allowPatterns: # [!code ++]
+            - "^/downloads/sample\\\\.env$" # [!code ++]
+            - "^/public/documentation/.*\\\\.sql$" # [!code ++]`,
+})
+
+const ap_caddy = buildSnippet({
+  lang: 'caddy',
+  code: `# Caddyfile
+:443 {
+    route {
+        route_warden {
+            allow_patterns ^/downloads/sample\\.env$ ^/public/documentation/.*\\.sql$ # [!code ++]
+        }
+        reverse_proxy app:8080
+    }
+}`,
+})
+
+const ap_nginx = buildSnippet({
+  lang: 'lua',
+  code: `# /etc/nginx/conf.d/default.conf
+access_by_lua_block {
+    local rw = require("routewarden")
+    rw.check({
+        allow_patterns = { -- [!code ++]
+            "^/downloads/sample\\.env$", -- [!code ++]
+            "^/public/documentation/.*\\.sql$" -- [!code ++]
+        } -- [!code ++]
+    })
+}`,
+})
+
+const allowPatternSnippets = computed(() => ({
+  traefik: [
+    { filename: 'traefik.yml', lang: 'yaml', code: ap_traefik.cleanCode, html: ap_traefik.html, hasDiff: ap_traefik.hasDiff },
+  ],
+  caddy: [
+    { filename: 'Caddyfile', lang: 'caddy', code: ap_caddy.cleanCode, html: ap_caddy.html, hasDiff: ap_caddy.hasDiff },
+  ],
+  nginx: [
+    { filename: 'nginx.conf (Lua)', lang: 'lua', code: ap_nginx.cleanCode, html: ap_nginx.html, hasDiff: ap_nginx.hasDiff },
+  ],
+}))
+
+// ─── IP Whitelist Snippets ──────────────────────────────────────────────────
+const ip_traefik = buildSnippet({
+  lang: 'yaml',
+  code: `# traefik.yml
+http:
+  middlewares:
+    my-shield:
+      plugin:
+        routewarden:
+          allowedIps: # [!code ++]
+            - "127.0.0.1"        # Localhost loopback # [!code ++]
+            - "10.0.0.0/8"        # Internal corporate LAN # [!code ++]
+            - "172.16.0.0/12"     # Docker bridge network # [!code ++]
+            - "192.168.1.0/24"    # Office subnet # [!code ++]
+            - "100.64.0.0/10"     # Tailscale / NetBird CGNAT # [!code ++]`,
+})
+
+const ip_caddy = buildSnippet({
+  lang: 'caddy',
+  code: `# Caddyfile
+:443 {
+    route {
+        route_warden {
+            allowed_ips 127.0.0.1 10.0.0.0/8 172.16.0.0/12 192.168.1.0/24 100.64.0.0/10 # [!code ++]
+        }
+        reverse_proxy app:8080
+    }
+}`,
+})
+
+const ip_nginx = buildSnippet({
+  lang: 'lua',
+  code: `# /etc/nginx/conf.d/default.conf
+access_by_lua_block {
+    local rw = require("routewarden")
+    rw.check({
+        allowed_ips = { -- [!code ++]
+            "127.0.0.1", "10.0.0.0/8", "172.16.0.0/12", "192.168.1.0/24", "100.64.0.0/10" -- [!code ++]
+        } -- [!code ++]
+    })
+}`,
+})
+
+const ipAllowlistSnippets = computed(() => ({
+  traefik: [
+    { filename: 'traefik.yml', lang: 'yaml', code: ip_traefik.cleanCode, html: ip_traefik.html, hasDiff: ip_traefik.hasDiff },
+  ],
+  caddy: [
+    { filename: 'Caddyfile', lang: 'caddy', code: ip_caddy.cleanCode, html: ip_caddy.html, hasDiff: ip_caddy.hasDiff },
+  ],
+  nginx: [
+    { filename: 'nginx.conf (Lua)', lang: 'lua', code: ip_nginx.cleanCode, html: ip_nginx.html, hasDiff: ip_nginx.hasDiff },
+  ],
+}))
+
+// ─── Trusted Proxies Snippets ───────────────────────────────────────────────
+const tp_traefik = buildSnippet({
+  lang: 'yaml',
+  code: `# traefik.yml
+http:
+  middlewares:
+    my-shield:
+      plugin:
+        routewarden:
+          trustedProxies: # [!code ++]
+            - "173.245.48.0/20"   # Cloudflare IP range # [!code ++]
+            - "103.21.244.0/22"   # Cloudflare IP range # [!code ++]
+            - "10.0.0.0/8"        # Internal Load Balancer # [!code ++]`,
+})
+
+const tp_caddy = buildSnippet({
+  lang: 'caddy',
+  code: `# Caddyfile
+:443 {
+    route {
+        route_warden {
+            trusted_proxies 173.245.48.0/20 103.21.244.0/22 10.0.0.0/8 # [!code ++]
+        }
+        reverse_proxy app:8080
+    }
+}`,
+})
+
+const tp_nginx = buildSnippet({
+  lang: 'lua',
+  code: `# /etc/nginx/conf.d/default.conf
+access_by_lua_block {
+    local rw = require("routewarden")
+    rw.check({
+        trusted_proxies = { -- [!code ++]
+            "173.245.48.0/20", "103.21.244.0/22", "10.0.0.0/8" -- [!code ++]
+        } -- [!code ++]
+    })
+}`,
+})
+
+const trustedProxiesSnippets = computed(() => ({
+  traefik: [
+    { filename: 'traefik.yml', lang: 'yaml', code: tp_traefik.cleanCode, html: tp_traefik.html, hasDiff: tp_traefik.hasDiff },
+  ],
+  caddy: [
+    { filename: 'Caddyfile', lang: 'caddy', code: tp_caddy.cleanCode, html: tp_caddy.html, hasDiff: tp_caddy.hasDiff },
+  ],
+  nginx: [
+    { filename: 'nginx.conf (Lua)', lang: 'lua', code: tp_nginx.cleanCode, html: tp_nginx.html, hasDiff: tp_nginx.hasDiff },
+  ],
+}))
+
+// ─── Dashboard Management Snippet ───────────────────────────────────────────
+const dash_start = buildSnippet({
+  lang: 'bash',
+  code: `# Launch RouteWarden Grafana + Loki + Alloy Observability Stack
+rwarden dashboard up
+
+# Launch with automated threat alerting enabled
+rwarden dashboard up --enable-alerting`,
+})
+
+const dashboardStartSnippets = computed(() => ({
+  cli: [
+    { filename: 'Terminal', lang: 'bash', code: dash_start.cleanCode, html: dash_start.html, hasDiff: dash_start.hasDiff },
+  ],
+}))
+
+// ─── Log Replay Snippet ─────────────────────────────────────────────────────
+const replay_bash = buildSnippet({
+  lang: 'bash',
+  code: `# Fetch existing RouteWarden events from Loki and replay to Alloy UDP (1514)
+curl -G -s "http://localhost:3100/loki/api/v1/query_range" \\
+  --data-urlencode 'query={app="routewarden"}' \\
+  --data-urlencode 'limit=5000' \\
+  | jq -r '.data.result[].values[][1]' \\
+  | while IFS= read -r line; do
+      echo "$line" | nc -u -w0 127.0.0.1 1514
+      sleep 0.005
+    done`,
+})
+
+const replay_rescrape = buildSnippet({
+  lang: 'bash',
+  code: `# Clear Alloy's position cache to re-read Docker container logs from start
+docker compose stop alloy
+docker compose run --rm alloy rm -rf /var/lib/alloy/data/
+docker compose start alloy`,
+})
+
+const replayLogsSnippets = computed(() => ({
+  replay: [
+    { filename: 'Replay to Alloy (UDP)', lang: 'bash', code: replay_bash.cleanCode, html: replay_bash.html, hasDiff: replay_bash.hasDiff },
+    { filename: 'Re-scrape Container Logs', lang: 'bash', code: replay_rescrape.cleanCode, html: replay_rescrape.html, hasDiff: replay_rescrape.hasDiff },
+  ],
+}))
+
+// ─── Container Opt-in Logging Snippets ──────────────────────────────────────
+const optin_compose = buildSnippet({
+  lang: 'yaml',
+  code: `# docker-compose.yml: Opt-in container logging for Alloy
+services:
+  traefik:
+    image: traefik:latest
+    labels:
+      - "routewarden.logs=true" # [!code ++]
+      - "traefik.enable=true"`,
+})
+
+const optin_cli = buildSnippet({
+  lang: 'bash',
+  code: `# docker run with RouteWarden discovery label
+docker run -d \\
+  --label routewarden.logs=true \\ # [!code ++]
+  --name webapp \\
+  my-app:latest`,
+})
+
+const containerOptInSnippets = computed(() => ({
+  docker: [
+    { filename: 'docker-compose.yml', lang: 'yaml', code: optin_compose.cleanCode, html: optin_compose.html, hasDiff: optin_compose.hasDiff },
+    { filename: 'docker run CLI', lang: 'bash', code: optin_cli.cleanCode, html: optin_cli.html, hasDiff: optin_cli.hasDiff },
+  ],
+}))
+
+// ─── CLI Installation Snippets ──────────────────────────────────────────────
+const cli_brew = buildSnippet({
+  lang: 'bash',
+  code: `# macOS & Linux via Homebrew
+brew install routewarden/tap/rwarden
+rwarden version`,
+})
+
+const cli_curl = buildSnippet({
+  lang: 'bash',
+  code: `# Direct binary install via curl shell script
+curl -fsSL https://routewarden.github.io/install.sh | sh
+rwarden version`,
+})
+
+const cli_go = buildSnippet({
+  lang: 'bash',
+  code: `# Build and install directly from Go source
+go install github.com/routewarden/cli/cmd/rwarden@latest
+rwarden version`,
+})
+
+const cliInstallSnippets = computed(() => ({
+  cli: [
+    { filename: 'Homebrew', lang: 'bash', code: cli_brew.cleanCode, html: cli_brew.html, hasDiff: cli_brew.hasDiff },
+    { filename: 'Shell Script (curl)', lang: 'bash', code: cli_curl.cleanCode, html: cli_curl.html, hasDiff: cli_curl.hasDiff },
+    { filename: 'Go Install', lang: 'bash', code: cli_go.cleanCode, html: cli_go.html, hasDiff: cli_go.hasDiff },
+  ],
+}))
+
+// ─── CI/CD GitHub Actions Workflow ──────────────────────────────────────────
+const ga_workflow = buildSnippet({
+  lang: 'yaml',
+  code: `# .github/workflows/security-lint.yml
+name: Security Lint
+on: [push, pull_request]
+
+jobs:
+  routewarden:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install RouteWarden CLI
+        run: curl -fsSL https://routewarden.github.io/install.sh | sh
+      - name: Verify Sensitive Endpoints Are Blocked
+        run: |
+          rwarden check "/.env" --expect-block # [!code ++]
+          rwarden check "/.git/config" --expect-block # [!code ++]
+          rwarden check "/backup.sql" --expect-block # [!code ++]
+          rwarden check "/api/v1/health" --expect-allow # [!code ++]`,
+})
+
+const githubActionsSnippets = computed(() => ({
+  ci: [
+    { filename: 'security-lint.yml', lang: 'yaml', code: ga_workflow.cleanCode, html: ga_workflow.html, hasDiff: ga_workflow.hasDiff },
+  ],
+}))
+
+// ─── Diagnostic Snippets ────────────────────────────────────────────────────
+const diag_check = buildSnippet({
+  lang: 'bash',
+  code: `# Diagnose path normalization and pattern matching
+rwarden check "/path/to/resource" --debug
+
+# Example output:
+# [NORMALIZED] /path/to/resource
+# [VERDICT]    BLOCK
+# [MATCH]      ^/path/to/.* (Rule ID: custom_01)
+# [RESPONSE]   403 Forbidden`,
+})
+
+const diag_allow = buildSnippet({
+  lang: 'yaml',
+  code: `# Whitelist the identified false positive in your gateway config
+allowPatterns: # [!code ++]
+  - "^/path/to/resource$" # [!code ++]`,
+})
+
+const diagnoseSnippets = computed(() => ({
+  debug: [
+    { filename: 'CLI Diagnostic', lang: 'bash', code: diag_check.cleanCode, html: diag_check.html, hasDiff: diag_check.hasDiff },
+    { filename: 'allowPatterns Fix', lang: 'yaml', code: diag_allow.cleanCode, html: diag_allow.html, hasDiff: diag_allow.hasDiff },
+  ],
+}))
+</script>
+
 # Frequently Asked Questions (FAQ)
 
 <p class="tagline" style="font-size: 1.2rem; color: var(--vp-c-text-2); margin-bottom: 2rem;">
@@ -112,15 +552,7 @@ RouteWarden provides native integrations for all major open-source web gateways 
 
 When `enableDefaultPatterns: true` is active, RouteWarden blocks over 250 common scanner targets grouped into 7 categories:
 
-```
-├── Environment Files     (.env, .env.local, .env.production, docker-compose.yml)
-├── Version Control       (.git, .svn, .hg, .bzr, .gitattributes, .gitmodules)
-├── Backups & Archives    (.bak, .backup, .old, .orig, .tar.gz, .sql.gz, dump.sql)
-├── Cloud & Credentials   (.aws/credentials, .kube/config, id_rsa, id_ed25519)
-├── Server Info & Debug   (phpinfo.php, server-status, _profiler, /actuator)
-├── OS & Editor Artifacts (.DS_Store, Thumbs.db, *~, #*#, .idea, .vscode)
-└── Database Management   (pma, phpmyadmin, adminer.php, myadmin)
-```
+<CodeViewer :snippets="defaultDictSnippets" />
 
 For the complete list and interactive tests, visit the [Interactive Pattern Checker](/tools/pattern-checker).
 
@@ -143,60 +575,18 @@ Learn more in the [Anti-Evasion Normalization Deep Dive](/core/anti-evasion).
 ### Will RouteWarden block Let's Encrypt / ACME challenges (`.well-known`)?
 
 **No.** RouteWarden includes a built-in exemption for ACME certificate validation:
-```
-^/.well-known/acme-challenge/.*
-```
+
+<CodeViewer :snippets="acmeExemptionSnippets" />
+
 Legitimate requests from Let's Encrypt, ZeroSSL, or cert-manager to `/.well-known/acme-challenge/*` pass through unconditionally, ensuring automated TLS renewal is never disrupted.
 
 ---
 
 ### How do I add custom block patterns or regexes?
 
-You can supply custom rules via `customBlockPatterns` or `blockPatterns`. Patterns support both simple glob wildcards and full RE2 regular expressions:
+You can supply custom rules via `customBlockPatterns` or `blockPatterns`. Select your gateway below:
 
-::: code-group
-```yaml [Traefik (YAML)]
-experimental:
-  plugins:
-    routewarden:
-      moduleName: "github.com/routewarden/route-warden"
-      version: "v1.5.0"
-
-http:
-  middlewares:
-    my-shield:
-      plugin:
-        routewarden:
-          customBlockPatterns:
-            - "^/internal-api/.*"
-            - "(?i)\\.(log|conf|ini|key)$"
-            - "^/wp-login\\.php$"
-```
-
-```caddyfile [Caddy (Caddyfile)]
-:443 {
-    route {
-        route_warden {
-            custom_block_patterns ^/internal-api/.* (?i)\.(log|conf|ini|key)$ ^/wp-login\.php$
-        }
-        reverse_proxy app:8080
-    }
-}
-```
-
-```lua [NGINX (OpenResty)]
-access_by_lua_block {
-    local rw = require("routewarden")
-    rw.check({
-        custom_block_patterns = {
-            "^/internal-api/.*",
-            "(?i)\\.(log|conf|ini|key)$",
-            "^/wp-login\\.php$"
-        }
-    })
-}
-```
-:::
+<CodeViewer :snippets="customPatternSnippets" />
 
 ---
 
@@ -204,12 +594,7 @@ access_by_lua_block {
 
 Use `allowPatterns` (or `customAllowPatterns`). Rules in the allowlist are evaluated **before** block rules, guaranteeing that matching requests bypass inspection:
 
-```yaml
-# Allow sample configuration file for public downloads
-allowPatterns:
-  - "^/downloads/sample\\.env$"
-  - "^/public/documentation/.*\\.sql$"
-```
+<CodeViewer :snippets="allowPatternSnippets" />
 
 ---
 
@@ -257,14 +642,7 @@ The `gzipBomb` response serves an ultra-compressed **10 KB HTTP payload** that i
 
 Add specific IP addresses or CIDR ranges to `allowedIps`:
 
-```yaml
-allowedIps:
-  - "127.0.0.1"          # Localhost loopback
-  - "10.0.0.0/8"          # Internal corporate LAN
-  - "172.16.0.0/12"       # Docker bridge network
-  - "192.168.1.0/24"      # Office subnet
-  - "100.64.0.0/10"       # Tailscale / NetBird CGNAT subnet
-```
+<CodeViewer :snippets="ipAllowlistSnippets" />
 
 Requests from these addresses bypass all inspection rules immediately.
 
@@ -279,13 +657,7 @@ RouteWarden includes a **Trusted Proxies Engine**:
 2. If `RemoteAddr` belongs to a trusted proxy CIDR (such as Cloudflare or your internal load balancer), RouteWarden parses `X-Forwarded-For` from right to left to locate the verified client IP.
 3. If `RemoteAddr` is **not** in `trustedProxies`, RouteWarden ignores all incoming forwarding headers and treats `RemoteAddr` as the authoritative client IP.
 
-```yaml
-# Only trust X-Forwarded-For headers coming from Cloudflare or internal ingress
-trustedProxies:
-  - "173.245.48.0/20"
-  - "103.21.244.0/22"
-  - "10.0.0.0/8"
-```
+<CodeViewer :snippets="trustedProxiesSnippets" />
 
 ---
 
@@ -324,9 +696,8 @@ RouteWarden provides an out-of-the-box observability stack composed of:
 3. **Pre-built Grafana Dashboard**: Includes real-time threat maps, threat share charts, top attacking IPs, and an interactive threat incident triage table.
 
 Start the stack with a single command:
-```bash
-rwarden dashboard up
-```
+
+<CodeViewer :snippets="dashboardStartSnippets" />
 
 ---
 
@@ -337,26 +708,17 @@ Country resolution requires two components:
 2. **Public vs Private IPs**: Local addresses (`127.0.0.1`, `10.x.x.x`, `192.168.x.x`) are tagged as `LAN` by design because private subnets do not have geographical coordinates.
 
 If you recently updated Alloy or mounted the database, you can replay existing Loki logs through Alloy to backfill country codes:
-```bash
-curl -G -s "http://localhost:3100/loki/api/v1/query_range" \
-  --data-urlencode 'query={app="routewarden"}' \
-  --data-urlencode 'limit=5000' \
-  | jq -r '.data.result[].values[][1]' \
-  | while IFS= read -r line; do
-      echo "$line" | nc -u -w0 127.0.0.1 1514
-      sleep 0.005
-    done
-```
+
+<CodeViewer :snippets="replayLogsSnippets" />
 
 ---
 
 ### Does Grafana Alloy scrape all Docker containers on my host?
 
 **No.** RouteWarden Alloy discovery uses a **strict opt-in model**. It only ingests logs from containers that declare:
-```yaml
-labels:
-  - "routewarden.logs=true"
-```
+
+<CodeViewer :snippets="containerOptInSnippets" />
+
 Or containers monitored via the dedicated UDP syslog listener (`127.0.0.1:1514`). Unlabeled containers and host services are completely ignored.
 
 ---
@@ -373,11 +735,8 @@ The `rwarden` CLI is a cross-platform command-line tool for developers and SecOp
 * **Observability Management**: Launch and monitor the local Grafana/Loki security dashboard (`rwarden dashboard up`).
 
 Install it with Homebrew or curl:
-```bash
-brew install routewarden/tap/rwarden
-# Or via curl
-curl -fsSL https://routewarden.github.io/install.sh | sh
-```
+
+<CodeViewer :snippets="cliInstallSnippets" />
 
 ---
 
@@ -385,24 +744,7 @@ curl -fsSL https://routewarden.github.io/install.sh | sh
 
 **Yes.** You can integrate `rwarden` into pull request workflows to prevent developers from accidentally committing configurations that expose protected paths:
 
-```yaml
-name: Security Lint
-on: [push, pull_request]
-
-jobs:
-  routewarden:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install RouteWarden CLI
-        run: |
-          curl -fsSL https://routewarden.github.io/install.sh | sh
-      - name: Test Critical Endpoints
-        run: |
-          rwarden check "/.env" --expect-block
-          rwarden check "/.git/config" --expect-block
-          rwarden check "/api/v1/health" --expect-allow
-```
+<CodeViewer :snippets="githubActionsSnippets" />
 
 ---
 
@@ -410,20 +752,11 @@ jobs:
 
 ### A legitimate user request is getting blocked (403/404). How do I diagnose it?
 
-1. **Test the path with CLI**:
-   ```bash
-   rwarden check "/path/to/resource" --debug
-   ```
-   The output will display the normalized path and identify which specific regex pattern triggered the block.
+1. **Test the path with CLI and apply the allowlist fix**:
 
-2. **Add an allow pattern**:
-   Once identified, whitelist the path in your gateway configuration:
-   ```yaml
-   allowPatterns:
-     - "^/path/to/resource$"
-   ```
+<CodeViewer :snippets="diagnoseSnippets" />
 
-3. **Check the Incident Triage Table**:
+2. **Check the Incident Triage Table**:
    Open Grafana (`http://localhost:3000`), navigate to the **Interactive Threat Incident Triage Table (Panel 50)**, and filter by the client IP or path to see the exact rule ID and timestamp.
 
 ---
@@ -432,4 +765,4 @@ jobs:
 
 * **GitHub Discussions & Issues**: [github.com/routewarden](https://github.com/routewarden)
 * **Product Hunt Community**: Share feedback and engage with the maintainers.
-* **Security Advisories**: To report a security vulnerability responsibly, please email `security@routewarden.dev` or file a private GitHub Advisory.
+* **Security Advisories**: To report a security vulnerability responsibly, please email `routewarden@aman.ng` or file a private GitHub Advisory.
