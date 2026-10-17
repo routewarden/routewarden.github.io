@@ -71,6 +71,25 @@ const compose_file = buildSnippet({
     networks:
       - routewarden-observability
 
+  geoip-init:
+    image: curlimages/curl:latest
+    container_name: routewarden-geoip-init
+    restart: "no"
+    environment:
+      - GEOIP_DB_URL=\${GEOIP_DB_URL:-https://github.com/P3TERX/GeoLite.mmdb/raw/download/GeoLite2-Country.mmdb}
+    command:
+      - sh
+      - -c
+      - |
+        if [ ! -s /geoip/GeoLite2-Country.mmdb ]; then
+          echo "Downloading GeoLite2 Country database for RouteWarden GeoIP pipeline..."
+          curl -sSL --connect-timeout 15 --retry 3 "$$GEOIP_DB_URL" -o /geoip/GeoLite2-Country.mmdb || true
+        fi
+    volumes:
+      - geoip-data:/geoip
+    networks:
+      - routewarden-observability
+
   alloy:
     image: grafana/alloy:v1.1.0
     container_name: routewarden-alloy
@@ -83,8 +102,10 @@ const compose_file = buildSnippet({
       - ./config.alloy:/etc/alloy/config.alloy:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /var/log:/var/log:ro
+      - geoip-data:/etc/alloy/geoip:ro
     depends_on:
       - loki
+      - geoip-init
     networks:
       - routewarden-observability
 
@@ -113,6 +134,7 @@ const compose_file = buildSnippet({
 volumes:
   loki-data:
   grafana-data:
+  geoip-data:
 
 networks:
   routewarden-observability:
