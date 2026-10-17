@@ -2,7 +2,19 @@
 
 All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and the CLI adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v4.5.1] - 2026-10-17 (Latest)
+## [v4.5.2] - 2026-10-17 (Latest)
+
+### Fixed
+- **Duplicate Time Column in Incident Triage Table (`routewarden-overview.json`)**:
+  - Excluded raw JSON timestamp attributes (`timestamp`, `time`, `ts`) in the `organize` transformation of Panel 50 (**🚨 Interactive Threat Incident Triage Table**), eliminating the duplicate time column.
+  - Excluded auxiliary and middleware fields (`request_uri`, `geoip_country_code`, `geoip_country_name`, `is_private`, `duration`) to prevent unindexed columns from cluttering the incident triage grid.
+- **Observability Dashboard Metric & Legend Standardization**:
+  - Added clean `legendFormat` templating across **Top Target Paths** (`{{path}}`), **Top Triggered Rules / Signatures** (`{{matched_pattern}}`), **Security Events by Verdict Over Time** (`{{verdict}}`), and **Verdict Breakdown** (`{{verdict}}`), eliminating raw Loki label syntax.
+  - Standardized verdict color mappings (`BLOCK` = red, `ALLOW` = green, `THROTTLED` = yellow, `BYPASS` = blue) across trend graphs and donut charts.
+
+---
+
+## [v4.5.1] - 2026-10-17
 
 ### Fixed
 - **Pure Non-Root GeoIP Init Container Execution (`docker-compose.yml`)**:
