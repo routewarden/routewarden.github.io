@@ -118,8 +118,11 @@ Use these LogQL queries in Grafana **Explore**, panels, or alert definitions:
 | **Blocks Rate (per minute by gateway)** | `sum by (gateway) (rate({app="routewarden", verdict="BLOCK"}[1m]))` |
 | **Attack Ratio (%) over 5m** | `(sum(rate({app="routewarden", verdict="BLOCK"}[5m])) / sum(rate({app="routewarden"}[5m]))) * 100` |
 | **Top 10 Offending IPs** | `topk(10, sum by (client_ip) (count_over_time({app="routewarden", verdict="BLOCK"} \| json [$__range])))` |
-| **Top 10 Attacked Endpoints** | `topk(10, sum by (path) (count_over_time({app="routewarden", verdict="BLOCK"} \| json [$__range])))` |
+| **Top 10 Target Paths** | `topk(10, sum by (path) (count_over_time({app="routewarden", verdict=~"$verdict"} \| json [$__range])))` |
 | **Attack Volume by Country** | `sum by (country_code) (count_over_time({app="routewarden", verdict="BLOCK"}[1h]))` |
+| **Defense Action Breakdown** | `sum by (response_mode) (count_over_time({app="routewarden", verdict=~"$verdict", response_mode!=""} [$__range]))` |
+| **Top 10 Protected Services** | `topk(10, sum by (service) (count_over_time({app="routewarden", verdict=~"$verdict", service!=""} [$__range])))` |
+| **p95 Latency & Tarpit Duration** | `quantile_over_time(0.95, {app="routewarden"} \| json \| unwrap duration_ms [$__interval])` |
 
 ---
 
