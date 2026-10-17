@@ -270,6 +270,129 @@ const dashboardSnippets = computed(() => ({
     { filename: 'rwarden dashboard', lang: 'bash', code: dashboard_cmd.cleanCode, html: dashboard_cmd.html, hasDiff: false },
   ],
 }))
+
+// ─── 9. Audit Command ────────────────────────────────────────────────────────
+const audit_cmd = buildSnippet({
+  lang: 'bash',
+  code: `# Audit default routewarden.json
+rwarden audit
+
+# Audit custom configuration file
+rwarden audit ./config/routewarden.json
+
+# Strict mode: fail on warnings as well as critical flaws
+rwarden audit --strict routewarden.json
+
+# Output as JSON
+rwarden audit --format json routewarden.json
+
+# Output in OASIS SARIF v2.1.0 format for GitHub Code Scanning
+rwarden audit --format sarif routewarden.json > results.sarif`,
+})
+
+const auditSnippets = computed(() => ({
+  cli: [
+    { filename: 'rwarden audit', lang: 'bash', code: audit_cmd.cleanCode, html: audit_cmd.html, hasDiff: false },
+  ],
+}))
+
+// ─── 10. Diff Command ────────────────────────────────────────────────────────
+const diff_cmd = buildSnippet({
+  lang: 'bash',
+  code: `# Compare production policy against candidate update
+rwarden diff prod.json candidate.json
+
+# Output diff as machine-readable JSON
+rwarden diff --format json prod.json candidate.json
+
+# Fail with exit code 1 if differences exist, or code 2 if security posture is relaxed
+rwarden diff --exit-code prod.json candidate.json`,
+})
+
+const diffSnippets = computed(() => ({
+  cli: [
+    { filename: 'rwarden diff', lang: 'bash', code: diff_cmd.cleanCode, html: diff_cmd.html, hasDiff: false },
+  ],
+}))
+
+// ─── 11. Monitor Command ─────────────────────────────────────────────────────
+const monitor_cmd = buildSnippet({
+  lang: 'bash',
+  code: `# Stream from live Docker container
+docker logs -f traefik | rwarden monitor
+
+# Tail an NGINX or Apache access log file
+rwarden monitor --file /var/log/nginx/access.log
+
+# Filter exclusively for blocked threats
+rwarden monitor --verdict BLOCK
+
+# Filter by target path or offender IP
+rwarden monitor --path "/.env" --ip "192.168.1."`,
+})
+
+const monitorSnippets = computed(() => ({
+  cli: [
+    { filename: 'rwarden monitor', lang: 'bash', code: monitor_cmd.cleanCode, html: monitor_cmd.html, hasDiff: false },
+  ],
+}))
+
+// ─── 12. TUI Command ─────────────────────────────────────────────────────────
+const tui_cmd = buildSnippet({
+  lang: 'bash',
+  code: `# Launch interactive terminal simulator
+rwarden tui
+
+# Or with alias
+rwarden interactive
+
+# Pre-load custom policy configuration
+rwarden tui ./routewarden.json`,
+})
+
+const tuiSnippets = computed(() => ({
+  cli: [
+    { filename: 'rwarden tui', lang: 'bash', code: tui_cmd.cleanCode, html: tui_cmd.html, hasDiff: false },
+  ],
+}))
+
+// ─── 13. Completion Command ──────────────────────────────────────────────────
+const completion_cmd = buildSnippet({
+  lang: 'bash',
+  code: `# Bash
+source <(rwarden completion bash)
+
+# Zsh
+rwarden completion zsh > ~/.zsh/completion/_rwarden
+
+# Fish
+rwarden completion fish | source
+
+# PowerShell
+rwarden completion powershell | Out-String | Invoke-Expression`,
+})
+
+const completionSnippets = computed(() => ({
+  cli: [
+    { filename: 'rwarden completion', lang: 'bash', code: completion_cmd.cleanCode, html: completion_cmd.html, hasDiff: false },
+  ],
+}))
+
+// ─── 14. Manpage Command ─────────────────────────────────────────────────────
+const man_cmd = buildSnippet({
+  lang: 'bash',
+  code: `# View system manual page directly in terminal
+rwarden man | man -l -
+
+# Save manual page to system directory
+sudo rwarden man -o /usr/share/man/man1/rwarden.1`,
+})
+
+const manSnippets = computed(() => ({
+  cli: [
+    { filename: 'rwarden man', lang: 'bash', code: man_cmd.cleanCode, html: man_cmd.html, hasDiff: false },
+  ],
+}))
 </script>
 
 # Commands Reference
@@ -393,3 +516,100 @@ Launch and manage a turnkey cloud-native observability stack (Grafana, Grafana L
 | `--no-open` | bool | `false` | Do not launch system default browser |
 
 👉 For full configuration, LogQL query cheat sheets, and custom alerts, see the [Security Observability Stack Guide](/cli/dashboard).
+
+---
+
+## 9. Policy Static Analyzer & Linter (`audit`)
+
+Perform deep static analysis and linting on a RouteWarden policy file to catch ReDoS vulnerabilities, unescaped dots, universal wildcard traps, and header spoofing risks before deployment:
+
+<CodeViewer :snippets="auditSnippets" />
+
+### Flags
+
+| Flag | Type | Default | Description |
+|:---|:---|:---|:---|
+| `[file]` | string | `"routewarden.json"` | Configuration file to audit (or `-` for stdin) |
+| `-f`, `--format` | string | `"text"` | Output format: `text` (default), `json`, or `sarif` |
+| `-s`, `--strict` | bool | `false` | Strict mode: exit code 1 on warnings as well as critical flaws |
+
+---
+
+## 10. Policy Diffing (`diff`)
+
+Compare two RouteWarden policy files and evaluate the security posture delta (e.g. relaxed, hardened, or neutral):
+
+<CodeViewer :snippets="diffSnippets" />
+
+### Flags
+
+| Flag | Type | Default | Description |
+|:---|:---|:---|:---|
+| `<base.json>` | string | — | Baseline policy file |
+| `<candidate.json>` | string | — | Candidate policy file to evaluate against base |
+| `-f`, `--format` | string | `"text"` | Output format: `text` (default) or `json` |
+| `--exit-code` | bool | `false` | Exit code 1 if differences exist, 2 if posture is relaxed |
+
+---
+
+## 11. Live Terminal Threat Monitoring (`monitor`)
+
+Tail and colorize live reverse proxy security events directly in the terminal from Docker logs, NGINX access logs, or standard input:
+
+<CodeViewer :snippets="monitorSnippets" />
+
+### Flags
+
+| Flag | Type | Default | Description |
+|:---|:---|:---|:---|
+| `-f`, `--file` | string | `""` | Log file to read from (default: stdin) |
+| `--verdict` | string | `""` | Filter events by verdict (`BLOCK`, `ALLOW`, `TARPIT`) |
+| `--ip` | string | `""` | Filter events by client IP substring |
+| `--path` | string | `""` | Filter events by request path substring |
+
+---
+
+## 12. Interactive Terminal REPL (`tui`)
+
+Launch an interactive terminal simulator to experiment with paths, query strings, headers, and client IPs in real time:
+
+<CodeViewer :snippets="tuiSnippets" />
+
+### Interactive Commands
+
+| Command | Description |
+|:---|:---|
+| `<path>` | Evaluate path directly (e.g. `/.env` or `/api/v1/health?token=abc`) |
+| `:method <METHOD>` | Switch active HTTP method (`GET`, `POST`, `PUT`, `DELETE`, etc.) |
+| `:ip <address>` | Set client IP for allowlist / trusted proxy checks |
+| `:query <querystring>` | Set default query string |
+| `:body <payload>` | Set request body for body inspection tests |
+| `:header Key: Value` | Set or add custom request header |
+| `:clear-headers` | Clear all custom headers |
+| `:load <file.json>` | Load a custom `routewarden.json` policy |
+| `:status` | Display current test environment state |
+| `:clear` | Clear terminal screen |
+| `:exit` / `quit` | Exit interactive mode |
+
+---
+
+## 13. Shell Autocompletion (`completion`)
+
+Generate autocompletion scripts for subcommands, flags, and targets:
+
+<CodeViewer :snippets="completionSnippets" />
+
+### Supported Shells
+- **Bash**: `source <(rwarden completion bash)`
+- **Zsh**: `rwarden completion zsh > "${fpath[1]}/_rwarden"`
+- **Fish**: `rwarden completion fish | source`
+- **PowerShell**: `rwarden completion powershell | Out-String | Invoke-Expression`
+
+---
+
+## 14. System Manpage (`man`)
+
+Output the standard system manual page formatted in roff/troff:
+
+<CodeViewer :snippets="manSnippets" />
+
