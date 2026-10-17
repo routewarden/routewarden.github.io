@@ -14,8 +14,11 @@ const export_cmd = buildSnippet({
 rwarden dashboard export ./dashboard
 cd ./dashboard
 
-# 2. Start containers with Docker Compose
-docker compose up -d`,
+# 2. Option A: Launch dashboard reading an existing log file
+docker compose up -d
+
+# 2. Option B: Launch dashboard AND auto-fetch logs from Docker containers
+docker compose --profile monitor up -d`,
 })
 
 const export_cmd_docker = buildSnippet({
@@ -33,9 +36,9 @@ docker run --rm \\
 #  ├── goaccess.conf
 #  └── README.md
 
-# Bring the dashboard up with Docker Compose
+# Bring the dashboard up with Docker Compose (auto-fetching Docker logs)
 cd dashboard
-docker compose up -d
+docker compose --profile monitor up -d
 
 # Check live logs
 docker compose logs -f
@@ -65,15 +68,39 @@ const compose_full = buildSnippet({
       - TZ=UTC
     volumes:
       - ./goaccess.conf:/etc/goaccess/goaccess.conf:ro
-      - ./data:/srv/data:ro
+      - ./data:/srv/data
       - ./report:/srv/report
-    command: >
-      goaccess /srv/data/access.log
-      --config-file=/etc/goaccess/goaccess.conf
-      --real-time-html
-      --port=7890
-      --addr=0.0.0.0
-      -o /srv/report/index.html`,
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        mkdir -p /srv/data
+        touch /srv/data/access.log
+        exec goaccess /srv/data/access.log \\
+          --config-file=/etc/goaccess/goaccess.conf \\
+          --real-time-html \\
+          --port=7890 \\
+          --addr=0.0.0.0 \\
+          -o /srv/report/index.html
+
+  # Optional companion service: automatically discovers and tails reverse proxy containers labeled 'routewarden=true'
+  # Usage: docker compose --profile monitor up -d
+  monitor:
+    image: ghcr.io/routewarden/cli:latest
+    container_name: routewarden-monitor
+    restart: unless-stopped
+    profiles:
+      - monitor
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./data:/data
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        mkdir -p /data
+        touch /data/access.log
+        exec rwarden monitor --raw --wait --out=/data/access.log`,
 })
 
 const composeSnippets = computed(() => ({
