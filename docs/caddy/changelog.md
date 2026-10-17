@@ -58,7 +58,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   - Restricts relative redirects strictly to single-slash prefixes (`/...`) and safely falls back to `/` if protocol-relative destinations are specified, mitigating open-redirect exploitation.
 - **Security Log Schema Normalization (`level: "warn"`)**:
   - Added `"level": "warn"`, `"status_code"`, and `"matched_pattern"` across both Caddy's Zap logger and stdout JSONL logs.
-  - Ensures full schema alignment with Traefik Warden, NGINX Warden, TCP Warden, and Grafana Loki/Alloy observability stacks.
+  - Ensures full schema alignment with Traefik Warden, NGINX Warden, TCP Warden, and RouteWarden observability stacks.
 - **CI / Version Scripting Portability**:
   - Improved in-place sed editing in `scripts/update-version.sh` for reliable multi-platform execution across macOS (BSD) and Linux (GNU).
 

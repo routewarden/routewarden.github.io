@@ -303,36 +303,27 @@ const dashboardStartSnippets = computed(() => ({
 // ─── Log Replay Snippet ─────────────────────────────────────────────────────
 const replay_bash = buildSnippet({
   lang: 'bash',
-  code: `# Fetch existing RouteWarden events from Loki and replay to Alloy UDP (1514)
-curl -G -s "http://localhost:3100/loki/api/v1/query_range" \\
-  --data-urlencode 'query={app="routewarden"}' \\
-  --data-urlencode 'limit=5000' \\
-  | jq -r '.data.result[].values[][1]' \\
-  | while IFS= read -r line; do
-      echo "$line" | nc -u -w0 127.0.0.1 1514
-      sleep 0.005
-    done`,
+  code: `# Stream and inspect RouteWarden container events live
+rwarden monitor --label routewarden=true`,
 })
 
 const replay_rescrape = buildSnippet({
   lang: 'bash',
-  code: `# Clear Alloy's position cache to re-read Docker container logs from start
-docker compose stop alloy
-docker compose run --rm alloy rm -rf /var/lib/alloy/data/
-docker compose start alloy`,
+  code: `# Pipe RouteWarden logs directly into the real-time dashboard
+cat /var/log/routewarden/security.log | rwarden dashboard`,
 })
 
 const replayLogsSnippets = computed(() => ({
   replay: [
-    { filename: 'Replay to Alloy (UDP)', lang: 'bash', code: replay_bash.cleanCode, html: replay_bash.html, hasDiff: replay_bash.hasDiff },
-    { filename: 'Re-scrape Container Logs', lang: 'bash', code: replay_rescrape.cleanCode, html: replay_rescrape.html, hasDiff: replay_rescrape.hasDiff },
+    { filename: 'Live Log Monitor', lang: 'bash', code: replay_bash.cleanCode, html: replay_bash.html, hasDiff: replay_bash.hasDiff },
+    { filename: 'Replay to Dashboard', lang: 'bash', code: replay_rescrape.cleanCode, html: replay_rescrape.html, hasDiff: replay_rescrape.hasDiff },
   ],
 }))
 
 // ─── Container Opt-in Logging Snippets ──────────────────────────────────────
 const optin_compose = buildSnippet({
   lang: 'yaml',
-  code: `# docker-compose.yml: Opt-in container logging for Alloy
+  code: `# docker-compose.yml: Opt-in container logging for rwarden dashboard
 services:
   traefik:
     image: traefik:latest

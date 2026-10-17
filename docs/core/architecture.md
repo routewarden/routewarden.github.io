@@ -156,7 +156,7 @@ const arch_graph_svg = `<div class="rw-graph-container">
     <text x="489" y="485" class="rw-g-card-title">6. Security Audit Log</text>
     <text x="471" y="508" class="rw-g-desc">• Structured JSON written to stdout</text>
     <text x="471" y="524" class="rw-g-desc">• Auto-ban via CrowdSec parser</text>
-    <text x="471" y="540" class="rw-g-desc">• Loki / Alloy log ingestion</text>
+    <text x="471" y="540" class="rw-g-desc">• Real-time GoAccess dashboard</text>
 
     <!-- Upstream Backend Card (Right Destination) -->
     <rect x="720" y="165" width="260" height="200" rx="12" class="rw-g-box" fill="url(#grad-upstream)"/>

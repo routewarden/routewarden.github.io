@@ -496,7 +496,7 @@ if (process.argv[1] && (path.resolve(process.argv[1]) === currentScriptPath || p
 }
 
 /**
- * Synchronizes observability assets (like config.alloy) from the canonical CLI repository
+ * Synchronizes observability assets (like goaccess.conf) from the canonical CLI repository
  * into docs when running in a multi-repo workspace.
  * @param {string} [customDir]
  * @returns {boolean}

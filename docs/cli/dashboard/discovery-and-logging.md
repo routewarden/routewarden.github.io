@@ -155,4 +155,4 @@ When security events are ingested, RouteWarden normalizes diverse fields across 
 | `matched_pattern` | `matched_pattern` (Structured Metadata) | Specific defense signature triggered |
 | `rule_id` | `rule_id` (Structured Metadata) | Unique rule identifier |
 
-By storing high-cardinality values (`client_ip`, `path`, `matched_pattern`) as **structured metadata** rather than indexed stream labels, RouteWarden ensures Loki index performance remains blazing fast without index bloat.
+By storing high-cardinality values (`client_ip`, `path`, `matched_pattern`) as **structured fields**, RouteWarden ensures forensic parsing remains blazing fast without memory bloat.

@@ -158,7 +158,7 @@ TCP Warden v3.2.0 brings comprehensive security hardening, concurrency stability
 
 ### 🚀 Minor Release: Leveled Security Events & RouteWarden Observability Integration
 
-TCP Warden v3.1.0 introduces native log severity classification directly into the structured `SecurityEvent` pipeline, enabling seamless ingestion, filtering, and visual correlation within the RouteWarden Observability Stack (Grafana, Loki, and Alloy).
+TCP Warden v3.1.0 introduces native log severity classification directly into the structured `SecurityEvent` pipeline, enabling seamless ingestion, filtering, and visual correlation within the RouteWarden Observability Stack.
 
 #### 1. Structured Security Event Log Levels (`Level`)
 - **First-Class `Level` Field**: Added `Level` (`json:"level,omitempty"`) to `SecurityEvent` payloads emitted across all active listeners and bastions.
@@ -166,7 +166,7 @@ TCP Warden v3.1.0 introduces native log severity classification directly into th
   - `warn`: Automatically assigned to blocked requests, banned IPs (`ip_denied`, `crowdsec_ban`), and rate-limited traffic (`throttled`).
   - `error`: Assigned to pipeline or internal proxy failures.
   - `info`: Assigned to clean, allowed TCP and UDP connections.
-- **Alloy & Loki Stream Labeling**: Grafana Alloy automatically indexes `level` as a primary Loki stream label, allowing instant querying via `{app="routewarden", level="warn"}`.
+- **Stream Severity Indexing**: Log forwarders and SIEM pipelines index `level` as a primary stream label, allowing instant querying via `{app="routewarden", level="warn"}`.
 
 #### 2. Enhanced L4 Event Metadata for SIEM Correlation
 - Emits comprehensive connection metadata on all security triggers:

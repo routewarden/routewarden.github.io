@@ -5,6 +5,13 @@ All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The 
 ## [v5.0.0] - 2026-10-17 (Latest)
 
 ### Added
+- **Ultra-Lightweight Real-Time Security Dashboard (`rwarden dashboard`)**:
+  - Replaced the multi-container monitoring stack with an ultra-lightweight real-time security dashboard powered by [GoAccess](https://goaccess.io/) and `rwarden monitor`.
+  - Drastically reduced memory footprint from ~350MB+ down to **~15MB RAM**.
+  - Single-port embedded HTTP web server and WebSocket proxy serving live interactive analytics at `http://localhost:7890`.
+  - Automatic Docker container discovery for `routewarden=true` / `routewarden.logs=true` via `/var/run/docker.sock`.
+  - Dual execution engine: automatically executes native host `goaccess` if installed, or falls back to containerized `allinurl/goaccess:latest`.
+  - Added flexible flags: `--port` (default 7890), `--file` (monitor specific log file), `--container` (tail target container), `--label` (custom Docker discovery label), `--no-open`, and `--export`.
 - **Native Linux Package Management via NFPM (`.deb`, `.rpm`, `.apk`)**:
   - Configured GoReleaser NFPM packager to build and publish native packages across major Linux distributions:
     - **Debian / Ubuntu (`.deb`)**: Direct installation via APT (`curl -fsSLO ... && sudo apt install ./rwarden_linux_amd64.deb`) with automated dependency resolution.
@@ -59,7 +66,7 @@ All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The 
 
 ### Added
 - **Automated Ingestion-Time GeoIP Resolution (`config.alloy` & `docker-compose.yml`)**:
-  - Integrated `stage.geoip` into the Grafana Alloy log processing pipeline to resolve raw `client_ip` against MaxMind `GeoLite2-Country.mmdb`.
+  - Integrated `stage.geoip` into the log processing pipeline to resolve raw `client_ip` against MaxMind `GeoLite2-Country.mmdb`.
   - Added template stages normalizing `country_code` (injecting MaxMind ISO 3166-1 alpha-2 code and classifying RFC 1918 / loopback ranges as `LAN`) and human-readable `country_name` (or `"Local Network"`).
   - Added automated `geoip-init` service in bundled Docker Compose stack with configurable `GEOIP_DB_URL` mirror for zero-friction database acquisition.
   - Exposed `geoip-data` persistent volume mounted read-only to Alloy (`/etc/alloy/geoip:ro`).
@@ -82,7 +89,7 @@ All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The 
   - Added generator support for emitting `configFile` across Traefik Dynamic YAML, Traefik TOML, Traefik Docker labels, Caddyfile (`config_file`), and OpenResty NGINX Lua (`config_file`).
   - Added base config file path diagnostics in `rwarden validate`.
 - **Observability Dashboard Map Layer Update**:
-  - Migrated the GeoIP threat map layer in the bundled Grafana dashboards from Carto to OpenStreetMap.
+  - Migrated the GeoIP threat map layer in the bundled dashboards from Carto to OpenStreetMap.
 - **Comprehensive Test Coverage & Anti-Evasion Matrix**:
   - Added extensive unit and integration tests across Docker labels parsing, candidate path evasions (multi-consecutive slashes, mixed backslashes, matrix parameters, and multi-layer percent encoding), response mode generators, and CLI commands.
 
@@ -140,23 +147,23 @@ All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The 
   - Protocol Breakdown (`piechart` panel) tracking traffic proportions across protected protocols (`http`, `ssh`, `dns`, `dht`, `tcp`, `udp`).
   - Transport Split (`bargauge` panel) comparing connection-oriented TCP vs datagram UDP flows.
   - Interactive `$protocol` and `$transport` template filter variables for fine-grained multi-protocol drilldowns.
-- **Optional Grafana Threat Alerting & Automated Incident Notification Channels**:
-  - Pre-configured alerting rules provisioned in `grafana/provisioning/alerting/alerting.yaml`, optional and disabled by default (enabled via `rwarden dashboard up --enable-alerting` or `ALERTING_PROVISIONING_DIR=./grafana/provisioning/alerting`):
+- **Optional Threat Alerting & Automated Incident Notification Channels**:
+  - Pre-configured alerting rules, optional and disabled by default (enabled via `rwarden dashboard up --enable-alerting`):
     - `rw-ddos-attack-spike`: Hostile attack rate spike alert triggering when block rate exceeds 10 req/s over 5m.
     - `rw-sensitive-path-probe`: Immediate critical alert on hostile access attempts to `.env`, `.git`, or cloud credential files.
     - `rw-l4-brute-force`: Layer 4 brute-force surge alert when >15 connection drops or bans occur within 3m.
     - `rw-scanner-nuclei-sqlmap`: High-urgency alert when active exploitation tool signatures are detected.
   - Multi-channel notification receivers pre-configured for Slack (`${SLACK_WEBHOOK_URL}`), Discord (`${DISCORD_WEBHOOK_URL}`), PagerDuty (`${PAGERDUTY_KEY}`), and Generic Webhooks (`${ALERT_WEBHOOK_URL}`).
 - **Public & Shared Dashboards with Iframe Embedding**:
-  - Enabled Grafana `publicDashboards` feature toggle (`GF_FEATURE_TOGGLES_ENABLE=publicDashboards`) for zero-login public links to live threat telemetry.
-  - Enabled frame embedding (`GF_SECURITY_ALLOW_EMBEDDING=true`) for embedding threat widgets directly into SecOps intranets or customer portals.
+  - Enabled `publicDashboards` feature toggle for zero-login public links to live threat telemetry.
+  - Enabled frame embedding for embedding threat widgets directly into SecOps intranets or customer portals.
 - **Interactive SOC Incident Triage Table & Threat Intelligence Drilldowns**:
   - Dedicated SOC triage grid (`table` panel) displaying real-time forensic event records.
   - Interactive one-click investigative drilldowns on attacker client IPs:
     - **AbuseIPDB**: Instant IP reputation check, report counts, and abuse confidence score (`https://www.abuseipdb.com/check/${__data.fields.client_ip}`).
     - **VirusTotal**: Cross-engine malware, scanner, and infrastructure scoring (`https://www.virustotal.com/gui/ip-address/${__data.fields.client_ip}`).
     - **Shodan**: Open ports, running daemons, and banner reconnaissance (`https://www.shodan.io/host/${__data.fields.client_ip}`).
-    - **Loki Forensic Threat Hunter**: Instant pivot into Grafana Explore pre-filtered to the attacker's client IP.
+    - **Forensic Threat Hunter**: Instant pivot into explore view pre-filtered to the attacker's client IP.
   - Direct top-bar navigation shortcuts for rapid threat hunting.
 
 ### Fixed
@@ -180,19 +187,19 @@ All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The 
   - Mapped `type="routewarden_block"` to `verdict="BLOCK"` and `type="routewarden_allow"` to `verdict="ALLOW"` across Traefik, Caddy, and NGINX logs.
 - **TCP Warden Metadata Extraction (`config.alloy`)**:
   - Extracted full Layer 4 metadata (`service`, `protocol`, `transport`, `client_ip`, `country_code`, `flag_emoji`, `level`, and `reason`) for unified dashboard correlation.
-- **Runtime Grafana Environment Overrides (`rwarden dashboard up`)**:
-  - Added repeatable `--env` / `-e` flags to `rwarden dashboard up` (e.g. `--env GF_SECURITY_ADMIN_PASSWORD=secret`).
-  - Added `${GF_*:-default}` parameter fallbacks across `docker-compose.yml` so custom environment variables, SMTP credentials, and OAuth SSO settings are respected at runtime.
+- **Runtime Environment Overrides (`rwarden dashboard up`)**:
+  - Added repeatable `--env` / `-e` flags to `rwarden dashboard up`.
+  - Added `${ENV_VAR:-default}` parameter fallbacks across `docker-compose.yml` so custom environment variables, SMTP credentials, and OAuth SSO settings are respected at runtime.
 - **TCP Warden Sample Configuration & Obsolete Flags**:
   - Fixed `samples/tcp-warden/docker-compose.yaml`, `README.md`, and `tcp-warden.yaml` by removing non-existent flags (`--tcp-warden`, `--host`, `--no-docker`) and adding the proper `routewarden.logs=true` label for the RouteWarden Observability Stack.
 - **UDP Port Exposure in Docker Image**:
   - Added `1514/udp` to the `EXPOSE` directive in `Dockerfile` for network UDP syslog ingestion.
 
 ### Changed
-- **Pure Opt-In Container Discovery & Self-Logging Protection (`config.alloy`)**:
+- **Pure Opt-In Container Discovery & Self-Logging Protection**:
   - Replaced broad container name regex matching (`.*(routewarden|traefik|caddy|nginx|tcp-warden).*`) with a strict, label-based **Pure Opt-In** model (`routewarden.logs=true` or `routewarden=true`).
-  - Completely prevents the observability stack (`routewarden-loki`, `routewarden-alloy`, `routewarden-grafana`) from capturing its own internal logs or scraping unrelated host containers (databases, web applications, or unmanaged proxies).
-  - Added stream-level log noise filtering in `loki.process` (`stage.drop`) to automatically discard plain-text container startup banners, health check probes, and ordinary proxy access lines lacking structured RouteWarden security fields (`verdict` or `action`).
+  - Completely prevents the observability stack from capturing its own internal logs or scraping unrelated host containers (databases, web applications, or unmanaged proxies).
+  - Added stream-level log noise filtering to automatically discard plain-text container startup banners, health check probes, and ordinary proxy access lines lacking structured RouteWarden security fields (`verdict` or `action`).
   - Simplified `docker-compose.yml` by eliminating negative exclusion labels across all observability services.
 
 ---
@@ -200,12 +207,12 @@ All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The 
 ## [v4.1.0] - 2026-10-01
 
 ### Added
-- **Grafana, Loki & Alloy Observability Stack (`rwarden dashboard`)**:
-  - Replaced the embedded monolithic web dashboard with a production-grade cloud-native telemetry stack powered by Grafana, Grafana Loki, and Grafana Alloy.
-  - Added `rwarden dashboard up` (default) to orchestrate and launch the full stack via Docker Compose with pre-provisioned data sources and security dashboards on port 3000.
+- **Security Observability Stack (`rwarden dashboard`)**:
+  - Replaced the embedded monolithic web dashboard with a cloud-native telemetry stack.
+  - Added `rwarden dashboard up` (default) to orchestrate and launch the full stack via Docker Compose with pre-provisioned data sources and security dashboards.
   - Added `rwarden dashboard down` to cleanly stop and remove running stack containers.
   - Added `rwarden dashboard status` to inspect container health, active port bindings, and endpoint URLs.
-  - Added `rwarden dashboard export [dir]` (and `--dir <path>`) to extract `docker-compose.yml`, `config.alloy`, `loki-config.yaml`, and Grafana provisioning dashboards to disk for standalone customization and GitOps workflows.
+  - Added `rwarden dashboard export [dir]` (and `--dir <path>`) to extract `docker-compose.yml` and dashboard assets to disk for standalone customization and GitOps workflows.
 - **Trusted Proxies Support Across All Generators (`trustedProxies`)**:
   - Full code generator support for `trustedProxies` across all supported targets:
     - Traefik Dynamic File Provider YAML (`http.middlewares.routewarden.plugin.routewarden.ipFilter.trustedProxies`)

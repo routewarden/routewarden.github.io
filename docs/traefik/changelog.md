@@ -70,11 +70,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - **Security Log Schema Normalization (`level: "warn"`)**:
   - Embedded `"level": "warn"` directly into structured JSON `routewarden_block` log outputs.
-  - Ensures seamless compatibility with log forwarders (Grafana Alloy, Promtail, Vector, Fluentbit) and SIEM pipelines that filter and colorize security events based on log severity level.
+  - Ensures seamless compatibility with log forwarders (Promtail, Vector, Fluentbit) and SIEM pipelines that filter and colorize security events based on log severity level.
 - **HTTP Status Code Telemetry (`status_code`)**:
   - Added `"status_code"` field to security events representing the effective HTTP response status code dispatched to the client (`403` for forbidden, `429` for rate limit, `302` for redirect, or `0` for silent drop).
 - **Dashboard Telemetry Field Parity (`matched_pattern`)**:
-  - Emitted `"matched_pattern"` alongside `"pattern"` in log events to guarantee 100% out-of-the-box compatibility with Grafana Loki overview dashboards and top blocked pattern metrics.
+  - Emitted `"matched_pattern"` alongside `"pattern"` in log events to guarantee 100% out-of-the-box compatibility with security overview dashboards and top blocked pattern metrics.
 
 ---
 
