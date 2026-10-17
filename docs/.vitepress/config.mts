@@ -180,7 +180,7 @@ export default defineConfig({
       },
       {
         text: 'Docs',
-        activeMatch: '^/(core|examples|reference|tools)/',
+        activeMatch: '^/(core|examples|reference|tools|faq)/',
         items: [
           { text: 'Architecture & Threat Model', link: '/core/architecture' },
           { text: 'Anti-Evasion Normalization', link: '/core/anti-evasion' },
@@ -188,13 +188,19 @@ export default defineConfig({
           { text: 'Custom Regex Patterns', link: '/core/custom-patterns' },
           { text: 'Production Case Studies', link: '/examples/case-study-immich' },
           { text: 'Common Recipes & Compose', link: '/examples/basic-sensitive-files' },
-          { text: 'Interactive Pattern Checker', link: '/tools/pattern-checker' }
+          { text: 'Interactive Pattern Checker', link: '/tools/pattern-checker' },
+          { text: 'Frequently Asked Questions (FAQ)', link: '/faq' }
         ]
       },
       {
         text: 'CLI',
         link: '/cli/',
         activeMatch: '^/cli/'
+      },
+      {
+        text: 'FAQ',
+        link: '/faq',
+        activeMatch: '^/faq'
       },
       {
         text: versionsRegistry.current,
@@ -426,6 +432,7 @@ export default defineConfig({
             { text: 'Anti-Evasion Normalization', link: '/core/anti-evasion' },
             { text: 'Response Modes (13 Actions)', link: '/core/response-modes' },
             { text: 'Custom Regex Patterns', link: '/core/custom-patterns' },
+            { text: 'Frequently Asked Questions (FAQ)', link: '/faq' },
             { text: 'RouteWarden CLI Tool', link: '/cli/' },
             { text: 'Changelog & Migrations', link: '/core/changelog' }
           ]
@@ -578,7 +585,8 @@ export default defineConfig({
           text: 'Tools & Playground',
           collapsed: false,
           items: [
-            { text: 'Pattern & Response Playground', link: '/tools/pattern-checker' }
+            { text: 'Pattern & Response Playground', link: '/tools/pattern-checker' },
+            { text: 'Frequently Asked Questions (FAQ)', link: '/faq' }
           ]
         },
         {
@@ -613,6 +621,45 @@ export default defineConfig({
           ]
         }
       ],
+      '/faq': [
+        {
+          text: 'Frequently Asked Questions',
+          collapsed: false,
+          items: [
+            { text: 'RouteWarden FAQ', link: '/faq' },
+            { text: 'TCP Warden (L4) FAQ ➔', link: '/tcp/faq' }
+          ]
+        },
+        {
+          text: 'Core Engine',
+          collapsed: false,
+          items: [
+            { text: 'System Architecture', link: '/core/architecture' },
+            { text: 'Anti-Evasion Normalization', link: '/core/anti-evasion' },
+            { text: 'Response Modes (13 Actions)', link: '/core/response-modes' },
+            { text: 'Custom Regex Patterns', link: '/core/custom-patterns' }
+          ]
+        },
+        {
+          text: 'Tools & Dashboard',
+          collapsed: false,
+          items: [
+            { text: 'RouteWarden CLI (`rwarden`)', link: '/cli/' },
+            { text: 'Security Dashboard', link: '/cli/dashboard' },
+            { text: 'Pattern & Response Playground', link: '/tools/pattern-checker' }
+          ]
+        },
+        {
+          text: 'Gateways',
+          collapsed: false,
+          items: [
+            { text: 'Traefik Warden', link: '/traefik/' },
+            { text: 'Caddy Warden', link: '/caddy/' },
+            { text: 'NGINX Warden', link: '/nginx/' },
+            { text: 'TCP Warden (L4 Firewall)', link: '/tcp/' }
+          ]
+        }
+      ],
       '/': [
         {
           text: 'Gateways',
@@ -627,6 +674,7 @@ export default defineConfig({
           text: 'References',
           collapsed: false,
           items: [
+            { text: 'Frequently Asked Questions (FAQ)', link: '/faq' },
             { text: 'Custom Paths & Regex Guide', link: '/reference/custom-paths' },
             { text: 'Response Modes Reference', link: '/reference/response-modes' },
             { text: 'Anti-Evasion Engine', link: '/reference/anti-evasion' }

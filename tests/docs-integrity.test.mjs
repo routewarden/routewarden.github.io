@@ -16,6 +16,7 @@ test('documentation structure and integrity', async (t) => {
       'core/changelog.md',
       'core/response-modes.md',
       'core/architecture.md',
+      'faq.md',
       'index.md'
     ]
 
