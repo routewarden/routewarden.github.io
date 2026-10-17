@@ -117,18 +117,18 @@ const validateSnippets = computed(() => ({
 // ─── 4. Launch Dashboard ────────────────────────────────────────────────────
 const dashboard_cmd = buildSnippet({
   lang: 'bash',
-  code: `# Launch Grafana, Loki, and Alloy stack via Docker Compose
+  code: `# Launch real-time GoAccess dashboard (opens http://localhost:7890)
 rwarden dashboard
 
-# Or export stack files for standalone customization
-rwarden dashboard export ./observability`,
+# Or export standalone GoAccess compose files
+rwarden dashboard export ./dashboard`,
 })
 
 const dashboard_docker = buildSnippet({
   lang: 'bash',
-  code: `# Export and launch observability stack using container
-docker run --rm -v $(pwd):/work -w /work ghcr.io/routewarden/cli:latest dashboard export ./observability
-cd ./observability && docker compose up -d`,
+  code: `# Export and launch GoAccess dashboard using container
+docker run --rm -v $(pwd):/work -w /work ghcr.io/routewarden/cli:latest dashboard export ./dashboard
+cd ./dashboard && docker compose up -d`,
 })
 
 const dashboardSnippets = computed(() => ({
@@ -162,8 +162,8 @@ It enables security and platform teams to evaluate path rules offline, validate 
   - TCP Warden YAML configuration
 - **Ephemeral Gateway Sandbox (`sandbox`)**:
   Launch isolated, pre-configured Traefik, Caddy, or NGINX containers in Docker to verify your rules and response modes live against automated attack test suites.
-- **Cloud-Native Observability Stack (`dashboard`)**:
-  Turnkey Docker Compose monitoring stack powered by Grafana, Grafana Loki, and Grafana Alloy. Includes pre-provisioned dashboards for live blocked threat telemetry, LogQL analytics, top probed endpoints, and offender IP risk scoring.
+- **Real-Time Security Dashboard (`dashboard`)**:
+  Turnkey, ultra-lightweight real-time security dashboard powered by GoAccess (~15MB RAM). Auto-discovers containers labeled `routewarden=true`, multiplexes logs live, and serves a streaming web UI at `http://localhost:7890`.
 - **Official JSON Schema Export (`schema`)**:
   Export official JSON Schemas for instant IDE autocomplete (VS Code, JetBrains, Neovim) and CI/CD automated linting.
 
@@ -195,13 +195,13 @@ Verify your policy before committing or deploying:
 
 <CodeViewer :snippets="validateSnippets" />
 
-### 4. Launch the Security Observability Stack
+### 4. Launch the Security Dashboard
 
-Start the Grafana, Loki, and Alloy stack with automated gateway container log discovery:
+Start the live GoAccess dashboard with automated gateway container log discovery:
 
 <CodeViewer :snippets="dashboardSnippets" />
 
-Open `http://localhost:3000` to observe live blocked probes, attack analytics, and threat intelligence in Grafana.
+Open `http://localhost:7890` to observe live blocked probes, attack analytics, and threat intelligence in GoAccess.
 
 
 ---

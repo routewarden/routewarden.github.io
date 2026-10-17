@@ -251,18 +251,24 @@ const versionSnippets = computed(() => ({
 // ─── 8. Dashboard Command ───────────────────────────────────────────────────
 const dashboard_cmd = buildSnippet({
   lang: 'bash',
-  code: `# Launch Grafana, Loki, and Alloy stack via Docker Compose (default: port 3000)
+  code: `# Launch GoAccess real-time security dashboard (opens http://localhost:7890)
 rwarden dashboard
 rwarden dashboard up
 
-# Check status of running observability stack containers
+# Launch on a custom port without auto-opening browser
+rwarden dashboard up --port 8080 --no-open
+
+# Monitor a specific container by name
+rwarden dashboard --container traefik
+
+# Check status of running dashboard
 rwarden dashboard status
 
-# Stop and tear down the observability stack
+# Stop background dashboard containers
 rwarden dashboard down
 
-# Export Docker Compose, Alloy, and Grafana config files to disk
-rwarden dashboard export ./observability`,
+# Export standalone Docker Compose and GoAccess config files to disk
+rwarden dashboard export ./dashboard`,
 })
 
 const dashboardSnippets = computed(() => ({
@@ -517,9 +523,9 @@ Check installed binary version:
 
 ---
 
-## 8. Observability Stack (`dashboard`)
+## 8. Security Dashboard (`dashboard`)
 
-Launch and manage a turnkey cloud-native observability stack (Grafana, Grafana Loki, and Grafana Alloy) using Docker Compose to visualize real-time blocked threats, attack rates, and top offender IPs:
+Launch and manage an ultra-lightweight, real-time security dashboard powered by [GoAccess](https://goaccess.io/) and `rwarden monitor`. It replaces heavy multi-container monitoring stacks with an in-memory dashboard consuming only **~15MB of RAM**:
 
 <CodeViewer :snippets="dashboardSnippets" />
 
@@ -527,16 +533,16 @@ Launch and manage a turnkey cloud-native observability stack (Grafana, Grafana L
 
 | Subcommand / Flag | Type | Default | Description |
 |:---|:---|:---|:---|
-| `up`, `start` | subcommand | — | Spin up Grafana, Loki, and Alloy stack (default) |
-| `down`, `stop` | subcommand | — | Stop and tear down running stack containers |
+| `up`, `start` | subcommand | — | Spin up GoAccess security dashboard (default) |
+| `down`, `stop` | subcommand | — | Stop running dashboard containers |
 | `status`, `ps` | subcommand | — | Check container health and service URLs |
-| `export [dir]` | subcommand | `./observability` | Export compose, Alloy, and Grafana assets to disk |
-| `--port` | int | `3000` | Port for Grafana dashboard UI |
-| `--loki-port` | int | `3100` | Port for Loki log engine |
-| `--dir` | string | `~/.routewarden/observability` | Working directory storing stack files |
+| `export [dir]` | subcommand | `./dashboard` | Export compose and GoAccess assets to disk |
+| `--port` | int | `7890` | Port for GoAccess dashboard UI and WebSocket |
+| `-f`, `--file` | string | `""` | Log file to monitor (default: auto-discovered Docker containers) |
+| `-c`, `--container` | string | `""` | Tail a specific Docker container by name or ID |
+| `-l`, `--label` | string | `"routewarden=true"` | Docker label to filter containers |
+| `--dir` | string | `~/.routewarden/dashboard` | Working directory storing dashboard files |
 | `--no-open` | bool | `false` | Do not launch system default browser |
-
-👉 For full configuration, LogQL query cheat sheets, and custom alerts, see the [Security Observability Stack Guide](/cli/dashboard).
 
 ---
 

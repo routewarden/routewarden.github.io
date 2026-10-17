@@ -509,13 +509,14 @@ export function syncObservabilityAssets(customDir) {
     path.join(process.cwd(), 'cli/observability')
   ]
 
+  let synced = false
   for (const cliObsDir of candidateCliDirs) {
-    const srcAlloy = path.join(cliObsDir, 'config.alloy')
-    if (fs.existsSync(srcAlloy)) {
-      const alloyContent = fs.readFileSync(srcAlloy, 'utf8')
+    const srcGoaccess = path.join(cliObsDir, 'goaccess.conf')
+    if (fs.existsSync(srcGoaccess)) {
+      const goaccessContent = fs.readFileSync(srcGoaccess, 'utf8')
       const targetLocations = [
-        path.join(docsRoot, 'docs/cli/dashboard/config.alloy'),
-        path.join(docsRoot, 'docs/public/config.alloy')
+        path.join(docsRoot, 'docs/cli/dashboard/goaccess.conf'),
+        path.join(docsRoot, 'docs/public/goaccess.conf')
       ]
 
       for (const targetLoc of targetLocations) {
@@ -524,12 +525,12 @@ export function syncObservabilityAssets(customDir) {
           fs.mkdirSync(targetDir, { recursive: true })
         }
         const existing = fs.existsSync(targetLoc) ? fs.readFileSync(targetLoc, 'utf8') : ''
-        if (existing !== alloyContent) {
-          fs.writeFileSync(targetLoc, alloyContent, 'utf8')
+        if (existing !== goaccessContent) {
+          fs.writeFileSync(targetLoc, goaccessContent, 'utf8')
         }
       }
-      return true
+      synced = true
     }
   }
-  return false
+  return synced
 }
