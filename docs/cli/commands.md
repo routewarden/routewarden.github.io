@@ -316,24 +316,45 @@ const diffSnippets = computed(() => ({
 }))
 
 // ─── 11. Monitor Command ─────────────────────────────────────────────────────
+const monitor_compose = buildSnippet({
+  lang: 'yaml',
+  code: `services:
+  traefik:
+    image: traefik:v3.1
+    labels:
+      - "routewarden=true"
+  nginx:
+    image: openresty/openresty:alpine
+    labels:
+      - "routewarden=true"`,
+})
+
 const monitor_cmd = buildSnippet({
   lang: 'bash',
-  code: `# Stream from live Docker container
-docker logs -f traefik | rwarden monitor
+  code: `# Auto-discover & multiplex all containers labeled routewarden=true
+rwarden monitor
+
+# Tail a specific container by name or ID
+rwarden monitor --container traefik
+
+# Filter by custom Docker label
+rwarden monitor --label "env=production"
+
+# Pipe into GoAccess for a lightweight, real-time HTML dashboard
+rwarden monitor --raw | goaccess -o /var/www/html/security.html --real-time-html --port=7890 -
 
 # Tail an NGINX or Apache access log file
 rwarden monitor --file /var/log/nginx/access.log
 
-# Filter exclusively for blocked threats
+# Filter exclusively for blocked threats or specific IP / path
 rwarden monitor --verdict BLOCK
-
-# Filter by target path or offender IP
 rwarden monitor --path "/.env" --ip "192.168.1."`,
 })
 
 const monitorSnippets = computed(() => ({
   cli: [
     { filename: 'rwarden monitor', lang: 'bash', code: monitor_cmd.cleanCode, html: monitor_cmd.html, hasDiff: false },
+    { filename: 'docker-compose.yaml', lang: 'yaml', code: monitor_compose.cleanCode, html: monitor_compose.html, hasDiff: false },
   ],
 }))
 
@@ -554,7 +575,16 @@ Compare two RouteWarden policy files and evaluate the security posture delta (e.
 
 ## 11. Live Terminal Threat Monitoring (`monitor`)
 
-Tail and colorize live reverse proxy security events directly in the terminal from Docker logs, NGINX access logs, or standard input:
+Tail, multiplex, and colorize live reverse proxy security events directly in the terminal from Docker containers, log files, or standard input.
+
+When invoked without `--file` or a pipe, `rwarden monitor` automatically discovers running Docker containers tagged with `routewarden=true` (or `routewarden.logs=true`) and streams them simultaneously with container attribution tags (`[traefik]`, `[nginx]`, etc.).
+
+::: tip Lightweight Web UI with GoAccess
+For homelabs or single-node deployments where deploying Grafana and Loki is too resource-heavy, run `rwarden monitor --raw` and pipe cleanly into [GoAccess](https://goaccess.io/) for a live, real-time web dashboard:
+```bash
+rwarden monitor --raw | goaccess -o /var/www/html/security.html --real-time-html --port=7890 -
+```
+:::
 
 <CodeViewer :snippets="monitorSnippets" />
 
@@ -562,7 +592,12 @@ Tail and colorize live reverse proxy security events directly in the terminal fr
 
 | Flag | Type | Default | Description |
 |:---|:---|:---|:---|
-| `-f`, `--file` | string | `""` | Log file to read from (default: stdin) |
+| `-f`, `--file` | string | `""` | Log file to read from (default: stdin or auto-discovered docker) |
+| `--docker` | bool | `false` | Explicitly enable Docker container auto-discovery |
+| `-c`, `--container` | string | `""` | Tail a specific Docker container by name or ID |
+| `-l`, `--label` | string | `""` | Docker label to filter containers (default: `routewarden=true`) |
+| `--tail` | string | `"50"` | Initial lines to tail from Docker container(s) |
+| `--raw` | bool | `false` | Output raw unformatted log lines (ideal for piping into GoAccess or jq) |
 | `--verdict` | string | `""` | Filter events by verdict (`BLOCK`, `ALLOW`, `TARPIT`) |
 | `--ip` | string | `""` | Filter events by client IP substring |
 | `--path` | string | `""` | Filter events by request path substring |
