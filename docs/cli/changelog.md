@@ -2,7 +2,16 @@
 
 All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and the CLI adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v4.5.2] - 2026-10-17 (Latest)
+## [v4.5.3] - 2026-10-17 (Latest)
+
+### Added
+- **Official Homebrew Tap Integration (`routewarden/homebrew-tap`)**:
+  - Published official Homebrew formula `Formula/rwarden.rb` supporting installation via `brew install routewarden/tap/rwarden`.
+  - Added GoReleaser v2 `brews` automated formula publishing configuration in `.goreleaser.yaml` and release workflow.
+
+---
+
+## [v4.5.2] - 2026-10-17
 
 ### Fixed
 - **Duplicate Time Column in Incident Triage Table (`routewarden-overview.json`)**:
