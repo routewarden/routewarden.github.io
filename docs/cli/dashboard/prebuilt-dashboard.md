@@ -1,6 +1,6 @@
 ---
 title: Pre-Configured Security Dashboard & Panels — RouteWarden Dashboard
-description: Real-time threat telemetry panels, GeoIP origins, top probed paths, and attack analytics in the RouteWarden GoAccess dashboard.
+description: Real-time threat telemetry panels, live SOC audit stream, SQLite persistence, GeoIP origins, top probed paths, and attack analytics in the RouteWarden Native SOC dashboard.
 ---
 
 <script setup>
@@ -21,33 +21,60 @@ const launchSnippets = computed(() => ({
 }))
 </script>
 
-# Pre-Configured Security Dashboard & Panels
+# Pre-Configured SOC Dashboard & Telemetry Panels
 
-The RouteWarden GoAccess dashboard comes pre-configured with a comprehensive set of real-time security panels designed to give instant visibility into scanner activity, credential stuffing, and perimeter blocks.
+The RouteWarden Native SOC Dashboard comes pre-configured with a comprehensive set of real-time security panels designed to give instant visibility into scanner activity, credential stuffing, perimeter blocks, and geographical threat distributions.
 
 <CodeViewer :snippets="launchSnippets" />
 
 ---
 
-## Real-Time Security Panels
+## Real-Time SOC Panels & Sections
 
-### 1. Top Target Paths & Probed Endpoints
-Tracks the most frequently scanned URLs across your gateways in real time:
-- Sensitive secrets: `/.env`, `/config.json`, `/wp-config.php`, `/settings.py`
-- Version control metadata: `/.git/config`, `/.git/HEAD`, `/.svn/entries`
-- Admin bastions: `/wp-login.php`, `/phpmyadmin`, `/admin/dashboard`
+### Section 01 // Executive KPI Telemetry & Live Status
+Provides instant high-level situational awareness across all connected gateway instances:
+- **Total Requests**: Cumulative requests inspected.
+- **Blocked Requests (🛑)**: Malicious probes blocked by perimeter rules (HTTP 403).
+- **Tarpitted Requests (⏳)**: High-frequency scanners slow-fed artificial delay (HTTP 429).
+- **Clean Ingress (🛡️)**: Legitimate allowed application traffic.
+- **Block Rate %**: Percentage of total ingress identified and stopped as hostile.
+- **Ingestion Velocity**: Live events processed per second (EPS).
 
-### 2. HTTP Status Code Breakdown
-Visual distribution of response verdicts:
-- **403 Forbidden**: Blocked attacker probes.
-- **429 Too Many Requests**: Tarpitted scanner IPs.
-- **200 OK**: Legitimate allowed traffic.
+### Section 02 // Security Operations Log Stream (`stream.audit.live`)
+The primary operational workhorse for live log inspection:
+- **Verdict Filter Tabs**: Single-click toggles for `ALL`, `BLOCK`, `TARPIT`, and `ALLOW` with live badge counts.
+- **Time Range Selector**: Rolling historical filters (`1m`, `5m`, `15m`, `30m`, or custom date/time range) backed by indexed SQLite SQL queries.
+- **Search & Grep**: Real-time filtering across client IPs, requested paths, triggered rules, and countries.
+- **Stream Pause & Buffered Counter**: Click **⏸ Pause** or press <kbd>Space</kbd> to freeze live updates for log inspection. Incoming events are safely queued and indicated by a counter badge (`⏸ PAUSED (+N new)`). Resuming instantly flushes and catches up.
 
-### 3. Client IP Addresses & GeoIP Host Intelligence
-Lists unique client IP addresses attempting reconnaissance, resolved against MaxMind GeoIP databases to show origin country, ASN, and request volume.
+### Section 03 // 30-Minute Threat Activity Matrix
+Rolling time-series chart showing 1-minute interval activity over the past 30 minutes:
+- Visual stacking of Clean, Blocked, and Tarpitted events.
+- Interactive legend toggles to isolate specific verdict trends.
 
-### 4. HTTP Verbs & Protocol Analysis
-Breakdown of methods inspected: `GET`, `POST`, `PUT`, `DELETE`, `PATCH`, `HEAD`, `OPTIONS`. Highlights scanners using non-standard verbs to bypass perimeter filters.
+### Section 04 // Global Threat Hotspots & Ingress Geography
+Interactive world map powered by Leaflet:
+- Displays coordinates and attack density heat for offending client IPs.
+- Resolved via RouteWarden's autonomous country engine combining offline CIDR/RIR databases with automatic MaxMind GeoLite2 discovery.
 
-### 5. Bandwidth & Response Latency
-Monitors traffic volume and reverse proxy inspection latency in milliseconds.
+### Section 05 // Intelligence Vectors & Hotspots
+Detailed threat intelligence panels:
+- **Top Attacking Client IPs**: Highlights repeated offenders with hit counts, origin country flag, and threat breakdown bars. Clicking any client IP opens a full threat intelligence dossier modal with reverse DNS, ASN, CIDR prefix, and one-click AbuseIPDB lookup.
+- **Top Probed Target Paths**: Real-time ranking of attacked endpoints (`/.env`, `/.git`, `/wp-login.php`, `/actuator/env`).
+- **HTTP Status Code Breakdown**: Distribution of response statuses (200, 403, 429, 5xx).
+
+---
+
+## Terminal Keyboard Shortcuts
+
+Navigate and operate the dashboard with single-key shortcuts:
+
+| Key | Function |
+|:---|:---|
+| <kbd>Space</kbd> | Toggle Stream Pause / Resume |
+| <kbd>T</kbd> | Switch Theme (Auto / Light / Dark) |
+| <kbd>W</kbd> | Jump to Time Range selector |
+| <kbd>/</kbd> | Jump to Search / Grep filter |
+| <kbd>F</kbd> | Jump to Country filter dropdown |
+| <kbd>R</kbd> | Reset all active query filters |
+| <kbd>ESC</kbd> | Dismiss active modal or dossier dialog |

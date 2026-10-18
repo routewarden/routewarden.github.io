@@ -123,21 +123,21 @@ const composeSnippets = computed(() => ({
 
 # Real-Time Security Dashboard (`dashboard`)
 
-RouteWarden includes a turnkey, ultra-lightweight real-time security dashboard powered by [GoAccess](https://goaccess.io/) and `rwarden monitor`.
+RouteWarden includes a turnkey, ultra-lightweight real-time security dashboard powered by RouteWarden's embedded Go server and SQLite persistence.
 
-It provides an ultra-fast, in-memory dashboard consuming only **~15MB of RAM**.
+It provides an ultra-fast, live executive SOC dashboard consuming only **~8MB of RAM** with zero external dependencies.
 
 ---
 
 ## Performance & Resource Efficiency
 
-| Metric | Traditional Monitoring Stacks | RouteWarden GoAccess Dashboard |
+| Metric | Traditional Monitoring Stacks | RouteWarden SOC Dashboard |
 |:---|:---|:---|
-| **Memory Footprint** | ~500 MB – 1.2 GB RAM | **~15 MB – 25 MB RAM** |
-| **Containers Required** | Multiple heavy containers | **0 containers** (or 1 optional 10MB container) |
-| **Startup Time** | 15–30 seconds | **Instant (< 100ms)** |
-| **Real-time Updates** | Polling intervals (5s–10s) | **Real-time WebSockets (< 50ms)** |
-| **Storage Overhead** | Persistent chunks & index volumes | **In-memory** / zero disk clutter |
+| **Memory Footprint** | ~500 MB – 1.2 GB RAM | **~8 MB RAM** |
+| **Containers Required** | Multiple heavy containers | **0 containers** (runs in single binary) |
+| **Startup Time** | 15–30 seconds | **Instant (< 50ms)** |
+| **Real-time Updates** | Polling intervals (5s–10s) | **Real-time SSE (< 10ms)** |
+| **Storage Overhead** | Heavy time-series volumes | **Embedded SQLite WAL** (with 30-day auto-prune) |
 | **Configuration** | Complex multi-file configs | **Zero configuration** |
 
 ---
@@ -148,13 +148,39 @@ It provides an ultra-fast, in-memory dashboard consuming only **~15MB of RAM**.
 
 ---
 
+## Key SOC Capabilities
+
+### 1. Embedded SQLite Telemetry Persistence
+- Logs and security events are buffered and asynchronously written to `~/.routewarden/dashboard/events.db` in WAL mode every 200ms or 100 events.
+- **Restart Survival**: Historical metrics, threat breakdown ratios, and top attacking IPs persist across dashboard restarts.
+- **Auto-Pruning**: Telemetry older than 30 days is automatically pruned to keep disk usage lean (~10–30 MB).
+
+### 2. Live SOC Stream & Stream Controls
+- **Verdict Tabs**: Filter stream instantly by `ALL`, `BLOCK` (🛑), `TARPIT` (⏳), or `ALLOW` (🛡️).
+- **Time Range Selector**: Rolling time windows (`1m`, `5m`, `15m`, `30m`, `Custom Date Range`) querying SQLite directly via `GET /api/logs`.
+- **Stream Pause / Resume**: Freeze table updates with **⏸ Pause** or <kbd>Space</kbd> to inspect active security events; incoming logs are buffered with a counter badge (`⏸ PAUSED (+N new)`).
+
+### 3. Threat Intelligence Dossier
+- Inspect top attacking client IPs and click any row to reveal autonomous systems (ASN), reverse DNS, origin country, CIDR prefix, and one-click AbuseIPDB lookup.
+
+### 4. Keyboard Shortcuts
+- <kbd>Space</kbd> — Stream Pause / Resume
+- <kbd>T</kbd> — Toggle Theme (Auto / Light / Dark)
+- <kbd>W</kbd> — Focus Time Range filter
+- <kbd>/</kbd> — Focus Search / Grep filter
+- <kbd>F</kbd> — Focus Country filter
+- <kbd>R</kbd> — Reset all active filters
+- <kbd>ESC</kbd> — Close active modal dialog
+
+---
+
 ## Quick Start CLI Management (`rwarden dashboard`)
 
-The RouteWarden CLI embeds all GoAccess configuration and Docker Compose templates directly in the binary. You can launch, inspect, and stop the dashboard with single commands:
+The RouteWarden CLI embeds all dashboard assets, SQLite migrations, and templates directly in the binary. You can launch, inspect, and stop the dashboard with single commands:
 
 <CodeViewer :snippets="cliSnippets" />
 
-When launched, `rwarden dashboard` starts an internal HTTP server and WebSocket proxy on:
+When launched, `rwarden dashboard` starts an internal HTTP server and SSE stream on:
 👉 **`http://localhost:7890`**
 
 ---
