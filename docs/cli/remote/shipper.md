@@ -71,7 +71,11 @@ const mode_b_cmd = buildSnippet({
 rwarden push --container traefik
 
 # Or using shorthand alias (-c)
-rwarden push -c edge-gateway`,
+rwarden push -c edge-gateway
+
+# Tail multiple specific containers (repeatable or comma-separated)
+rwarden push -c traefik -c api-gateway
+rwarden push -c "traefik,api-gateway,auth-service"`,
 })
 
 const modeBSnippets = computed(() => ({
@@ -82,16 +86,61 @@ const modeBSnippets = computed(() => ({
 
 const mode_c_cmd = buildSnippet({
   lang: 'bash',
-  code: `# Stream events from an access log file on disk
+  code: `# Stream events from a single access log file
 rwarden push --file /var/log/nginx/access.log
 
-# Or using shorthand alias (-f)
-rwarden push -f /var/log/caddy/access.log`,
+# Stream multiple files using repeatable flags (-f / --file)
+rwarden push -f /var/log/nginx/access.log -f /var/log/caddy/access.log
+
+# Comma-separated paths
+rwarden push --file /var/log/nginx/access.log,/var/log/traefik/access.log
+
+# Glob pattern wildcard expansion (all matching files)
+rwarden push --file "/var/log/nginx/*.log"
+
+# Positional file arguments
+rwarden push /var/log/nginx/access.log /var/log/auth.log`,
 })
 
 const modeCSnippets = computed(() => ({
   cli: [
     { filename: 'rwarden push --file', lang: 'bash', code: mode_c_cmd.cleanCode, html: mode_c_cmd.html, hasDiff: false },
+  ],
+}))
+
+const mode_d_cmd = buildSnippet({
+  lang: 'bash',
+  code: `# Monitor multiple log files AND auto-discover Docker containers concurrently
+rwarden push --docker -f /var/log/nginx/access.log -f /var/log/syslog
+
+# Tail specific container(s) AND multiple log files simultaneously
+rwarden push -c custom-gateway,api-proxy -f /var/log/auth.log
+
+# Full hybrid: labeled Docker auto-discovery + specific container + wildcard files
+rwarden push --docker -c auth-service -f "/var/log/nginx/*.log"`,
+})
+
+const mode_d_output = buildSnippet({
+  lang: 'plaintext',
+  code: `🚀 RouteWarden Remote Shipper Starting...
+─────────────────────────────────────────────────────────────
+  Dashboard URL:   http://198.51.100.10:7890
+  Agent Name:      edge-frankfurt-01
+  Encryption:      🔒 End-to-End Encrypted (X25519 + AES-256-GCM)
+  Monitoring File: /var/log/nginx/access.log
+  Monitoring File: /var/log/syslog
+  Container:       custom-gateway
+  Auto-Discovery:  Watching Docker containers with label 'routewarden=true'
+─────────────────────────────────────────────────────────────
+Press Ctrl+C to stop.
+🐳 [Docker] Attached to container: custom-gateway (9f8e7d6c5b4a)
+🐳 [Docker] Attached to container: edge-traefik (4b7e89a1c2d3)`,
+})
+
+const modeDSnippets = computed(() => ({
+  cli: [
+    { filename: 'Hybrid Push Command', lang: 'bash', code: mode_d_cmd.cleanCode, html: mode_d_cmd.html, hasDiff: false },
+    { filename: 'Shipper Startup Output', lang: 'plaintext', code: mode_d_output.cleanCode, html: mode_d_output.html, hasDiff: false },
   ],
 }))
 
@@ -118,7 +167,7 @@ const one_off_cmd = buildSnippet({
 rwarden push \\
   --url http://198.51.100.10:7890 \\
   --key rw_sec_8f9a2b4c1e0d3f7a... \\
-  --docker`,
+  --docker -f /var/log/nginx/access.log`,
 })
 
 const oneOffSnippets = computed(() => ({
@@ -159,17 +208,22 @@ Tails all gateway containers dynamically as they start and stop:
 
 <CodeViewer :snippets="modeASnippets" />
 
-### Mode B: Tail a Specific Container
-Tail a single target container by name or ID:
+### Mode B: Tail Specific Container(s)
+Tail one or more target containers by name or ID using repeatable `-c` or comma-separated names:
 
 <CodeViewer :snippets="modeBSnippets" />
 
-### Mode C: Monitor a Log File
-Stream events from an access log file on the host filesystem:
+### Mode C: Monitor Multiple Log Files
+Stream events from host log files using repeatable flags (`-f`), comma-separated paths, glob patterns (`*.log`), or positional arguments:
 
 <CodeViewer :snippets="modeCSnippets" />
 
-`rwarden push` uses non-blocking tailing (`tail -F`), ensuring that log rotations (`logrotate`) are handled seamlessly without losing telemetry.
+`rwarden push` uses non-blocking tailing (`tail -F`), ensuring that log rotations (`logrotate`) are handled seamlessly without losing telemetry across multiple log files.
+
+### Mode D: Concurrent Hybrid Streaming (Files + Docker)
+Stream multiple log files and Docker containers simultaneously. Both files and Docker streams feed into the unified in-memory ring buffer for encrypted shipping:
+
+<CodeViewer :snippets="modeDSnippets" />
 
 ---
 

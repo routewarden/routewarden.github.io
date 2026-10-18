@@ -472,11 +472,15 @@ rwarden push
 # Auto-discover and stream all containers with label 'routewarden=true'
 rwarden push --docker
 
-# Monitor and push a specific log file
-rwarden push --file /var/log/nginx/access.log
+# Stream multiple log files concurrently (repeatable -f, comma-separated, or globs)
+rwarden push -f /var/log/nginx/access.log -f /var/log/caddy/access.log
+rwarden push --file "/var/log/nginx/*.log"
 
-# Stream logs from a specific Docker container
-rwarden push --container traefik
+# Concurrent hybrid streaming: monitor files AND auto-discover Docker containers
+rwarden push --docker -f /var/log/nginx/access.log -f /var/log/syslog
+
+# Tail multiple specific containers and files concurrently
+rwarden push -c traefik,api-gateway -f /var/log/nginx/access.log
 
 # Push directly with URL and key flags (skipping registration)
 rwarden push --url http://198.51.100.10:7890 --key rw_sec_... --docker
@@ -774,11 +778,11 @@ Stream live security events and gateway access logs from remote edge nodes, clou
 
 | Flag | Shorthand | Type | Default | Description |
 |:---|:---|:---|:---|:---|
-| `--docker` | — | bool | `false` | Auto-discover and tail Docker containers with label `routewarden=true` |
-| `--container` | `-c` | string | `""` | Tail a specific Docker container by name or ID |
-| `--file` | `-f` | string | `""` | Tail and ship events from a specific log file |
+| `--docker` | `-d` | bool | `false` | Auto-discover and tail Docker containers. Can run concurrently with `--file` and `--container` |
+| `--container` | `-c` | string | `""` | Tail specific Docker container(s) by name or ID (repeatable or comma-separated) |
+| `--file` | `-f` | string | `""` | Tail and ship events from log file(s) (repeatable, comma-separated, or glob pattern `*.log`) |
 | `--label` | `-l` | string | `"routewarden=true"` | Custom Docker label filter |
-| `--tail` | — | string | `"50"` | Initial lines to tail from Docker container(s) |
+| `--tail` | — | string | `"50"` | Initial lines to tail from Docker container(s) and log file(s) |
 | `--batch-size` | — | int | `50` | Maximum events to buffer in memory before flushing |
 | `--flush-interval` | — | duration | `1s` | Maximum duration before flushing partial buffer |
 | `--url` | `-u` | string | `""` | Override central dashboard URL from registered config |
