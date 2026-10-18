@@ -7,6 +7,9 @@ description: Ship encrypted security events from multiple remote edge and cloud 
 
 RouteWarden supports a distributed agent model inspired by CrowdSec. You can deploy reverse proxies (Traefik, Caddy, NGINX) across multiple edge nodes, cloud virtual machines, and Kubernetes clusters, and stream their live security telemetry to a central RouteWarden dashboard.
 
+> [!TIP]
+> **Dedicated Guide Available**: For the comprehensive multi-page guide covering architecture, key generation, enrollment, daemons, and cryptography, visit the [Remote Monitoring & Log Streaming Guide](/cli/remote/).
+
 ---
 
 ## Architecture Overview

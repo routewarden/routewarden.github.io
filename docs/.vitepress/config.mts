@@ -570,6 +570,18 @@ export default defineConfig({
           ]
         },
         {
+          text: 'Remote Monitoring & Streaming',
+          collapsed: false,
+          items: [
+            { text: 'Architecture & Overview', link: '/cli/remote/' },
+            { text: 'Key Management (rwarden keys)', link: '/cli/remote/keys' },
+            { text: 'Agent Enrollment (rwarden register)', link: '/cli/remote/registration' },
+            { text: 'Log Shipper (rwarden push)', link: '/cli/remote/shipper' },
+            { text: 'End-to-End Cryptography', link: '/cli/remote/encryption' },
+            { text: 'Multi-Node & Docker Compose', link: '/cli/remote/multi-node' }
+          ]
+        },
+        {
           text: 'Security Dashboard',
           collapsed: false,
           items: [
