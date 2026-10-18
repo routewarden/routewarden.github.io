@@ -24,6 +24,9 @@ hero:
     - theme: alt
       text: CLI & Dashboard ➔
       link: /cli/
+    - theme: alt
+      text: FAQs ➔
+      link: /faq
 
 features:
   - title: Layer 4 Defense (TCP Warden)

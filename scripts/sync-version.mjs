@@ -496,7 +496,7 @@ if (process.argv[1] && (path.resolve(process.argv[1]) === currentScriptPath || p
 }
 
 /**
- * Synchronizes observability assets (like config.alloy) from the canonical CLI repository
+ * Synchronizes observability assets (like docker-compose.yml) from the canonical CLI repository
  * into docs when running in a multi-repo workspace.
  * @param {string} [customDir]
  * @returns {boolean}
@@ -509,13 +509,14 @@ export function syncObservabilityAssets(customDir) {
     path.join(process.cwd(), 'cli/observability')
   ]
 
+  let synced = false
   for (const cliObsDir of candidateCliDirs) {
-    const srcAlloy = path.join(cliObsDir, 'config.alloy')
-    if (fs.existsSync(srcAlloy)) {
-      const alloyContent = fs.readFileSync(srcAlloy, 'utf8')
+    const srcCompose = path.join(cliObsDir, 'docker-compose.yml')
+    if (fs.existsSync(srcCompose)) {
+      const composeContent = fs.readFileSync(srcCompose, 'utf8')
       const targetLocations = [
-        path.join(docsRoot, 'docs/cli/dashboard/config.alloy'),
-        path.join(docsRoot, 'docs/public/config.alloy')
+        path.join(docsRoot, 'docs/cli/dashboard/docker-compose.yml'),
+        path.join(docsRoot, 'docs/public/docker-compose.yml')
       ]
 
       for (const targetLoc of targetLocations) {
@@ -524,12 +525,12 @@ export function syncObservabilityAssets(customDir) {
           fs.mkdirSync(targetDir, { recursive: true })
         }
         const existing = fs.existsSync(targetLoc) ? fs.readFileSync(targetLoc, 'utf8') : ''
-        if (existing !== alloyContent) {
-          fs.writeFileSync(targetLoc, alloyContent, 'utf8')
+        if (existing !== composeContent) {
+          fs.writeFileSync(targetLoc, composeContent, 'utf8')
         }
       }
-      return true
+      synced = true
     }
   }
-  return false
+  return synced
 }

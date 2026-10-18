@@ -91,28 +91,28 @@ const udpSnippets = computed(() => ({
 
 # Container Discovery & Opt-In Logging
 
-RouteWarden Observability uses **Grafana Alloy** to discover Docker containers via `/var/run/docker.sock`. It operates on a **pure opt-in model** to eliminate log noise, avoid guessing based on container names, and ensure the observability stack never logs itself or unrelated containers on your host.
+RouteWarden automatically discovers Docker containers via `/var/run/docker.sock`. It operates on a **pure opt-in model** to eliminate log noise, avoid guessing based on container names, and ensure the dashboard never logs unrelated containers on your host.
 
 ---
 
 ## How to Enable Logging for a Container
 
-To send security logs from any gateway container (**Traefik**, **Caddy**, **NGINX**, or **TCP Warden**) to RouteWarden's dashboard, add the label `routewarden.logs=true` (or `routewarden=true`) to the container:
+To send security logs from any gateway container (**Traefik**, **Caddy**, **NGINX**, or **TCP Warden**) to RouteWarden's dashboard, add the label `routewarden=true` (or `routewarden.logs=true`) to the container:
 
 <CodeViewer :snippets="optinSnippets" />
 
-Whenever a container carries `routewarden.logs=true`, Alloy's `discovery.relabel` pipeline attaches the container target to `loki.source.docker`, immediately streaming stdout/stderr logs into RouteWarden's normalization engine.
+Whenever a container carries `routewarden=true` or `routewarden.logs=true`, `rwarden dashboard` and `rwarden monitor` automatically discover the container and stream its stdout/stderr logs into the real-time visualization engine.
 
 ---
 
 ## Why Pure Opt-In?
 
-Relying on container name patterns (e.g. `traefik*`, `nginx*`) is fragile in real-world deployments where containers are dynamically provisioned, clustered, or renamed. The pure opt-in label approach provides four distinct advantages:
+Relying on container name patterns (e.g. `traefik*`, `nginx*`) is fragile in real-world deployments where containers are dynamically provisioned, clustered, or renamed. The pure opt-in label approach provides distinct advantages:
 
-1. **Zero Self-Logging**: Observability stack containers (`routewarden-loki`, `routewarden-alloy`, `routewarden-grafana`) are never scraped because they do not carry the opt-in label.
+1. **Zero Self-Logging**: Dashboard containers are never scraped because they do not carry the opt-in label.
 2. **Zero Host Pollution**: Other containers running on the Docker host (PostgreSQL, Redis, background workers, or unrelated web services) are completely ignored by default.
-3. **No Brittle Name Pattern Matching**: Container naming conventions (`my-nginx`, `staging-proxy`, `prod-traefik`) do not matter—only containers you explicitly designate with `routewarden.logs=true` are ingested.
-4. **Secondary Security Log Filter (`stage.drop`)**: Even within opted-in containers, non-security noise (such as container startup banners or plain-text health probes) that lacks structured RouteWarden security fields (`verdict` or `action`) is safely discarded before reaching Loki.
+3. **No Brittle Name Pattern Matching**: Container naming conventions (`my-nginx`, `staging-proxy`, `prod-traefik`) do not matter—only containers you explicitly designate with `routewarden=true` are ingested.
+4. **Clean Log Extraction**: Log streams are cleanly parsed, multiplexed, and translated into standard Combined log format.
 
 ---
 
@@ -127,11 +127,11 @@ RouteWarden handles UDP logs across two key dimensions:
 - **BitTorrent DHT/uTP**
 - **Custom UDP services**
 
-When a datagram is dropped, rate-limited, or blocked, TCP Warden emits a structured JSON event. Alloy automatically extracts `transport="udp"`, `protocol="dns"`, and normalizes `action="blocked"` into `verdict="BLOCK"`, seamlessly integrating Layer 4 UDP defenses into your Grafana security panels alongside Layer 7 HTTP events.
+When a datagram is dropped, rate-limited, or blocked, TCP Warden emits a structured JSON event. The pipeline automatically extracts `transport="udp"`, `protocol="dns"`, and normalizes `action="blocked"` into `verdict="BLOCK"`, seamlessly integrating Layer 4 UDP defenses into your real-time security dashboard alongside Layer 7 HTTP events.
 
 ### 2. Network UDP Syslog Ingestion
 
-Grafana Alloy listens on **UDP port 1514** (`0.0.0.0:1514/udp`) via `loki.source.syslog`. You can stream raw syslog or JSON events directly over network UDP from external proxies, routers, and firewalls into Loki:
+You can stream raw syslog or JSON events directly over network UDP (`127.0.0.1:1514`) from external proxies, routers, and firewalls:
 
 <CodeViewer :snippets="udpSnippets" />
 
@@ -139,7 +139,7 @@ Grafana Alloy listens on **UDP port 1514** (`0.0.0.0:1514/udp`) via `loki.source
 
 ## Structured Log Normalization
 
-When security events are ingested, Alloy's `loki.process` pipeline normalizes diverse fields across different gateways into a unified schema:
+When security events are ingested, RouteWarden normalizes diverse fields across different gateways into a unified schema:
 
 | Ingested Field | Normalized Stream Label | Description |
 |:---|:---|:---|
@@ -155,4 +155,4 @@ When security events are ingested, Alloy's `loki.process` pipeline normalizes di
 | `matched_pattern` | `matched_pattern` (Structured Metadata) | Specific defense signature triggered |
 | `rule_id` | `rule_id` (Structured Metadata) | Unique rule identifier |
 
-By storing high-cardinality values (`client_ip`, `path`, `matched_pattern`) as **structured metadata** rather than indexed stream labels, RouteWarden ensures Loki index performance remains blazing fast without index bloat.
+By storing high-cardinality values (`client_ip`, `path`, `matched_pattern`) as **structured fields**, RouteWarden ensures forensic parsing remains blazing fast without memory bloat.

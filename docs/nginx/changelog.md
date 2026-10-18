@@ -57,7 +57,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   - Protocol-relative destinations are safely detected, discarded, and fallback to root `/`, preventing open-redirect exploitation.
 - **Security Log Schema Normalization (`level: "warn"`)**:
   - Added `"level": "warn"`, `"status_code"`, and `"matched_pattern"` across both standard JSON logger (`logger.lua`) and emergency fallback logging (`init.lua`).
-  - Ensures field parity with Grafana Loki and Alloy observability stacks.
+  - Ensures field parity with RouteWarden observability and SIEM pipelines.
 - **CI / Version Scripting Portability**:
   - Improved in-place sed editing in `scripts/update-version.sh` for reliable multi-platform execution across macOS (BSD) and Linux (GNU).
 

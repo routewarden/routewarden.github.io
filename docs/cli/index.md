@@ -8,9 +8,41 @@ import { computed } from 'vue'
 import { buildSnippet } from '../.vitepress/theme/composables/useCodeSnippet'
 
 // ─── 1. Installation ────────────────────────────────────────────────────────
+const install_mac = buildSnippet({
+  lang: 'bash',
+  code: `# Homebrew (macOS)
+brew install routewarden/tap/rwarden
+
+# Or automated installer:
+curl -fsSL https://routewarden.github.io/install.sh | bash
+
+# Verify installation
+rwarden version`,
+})
+
+const install_linux = buildSnippet({
+  lang: 'bash',
+  code: `# Debian / Ubuntu (APT)
+curl -fsSLO https://github.com/routewarden/cli/releases/latest/download/rwarden_linux_amd64.deb
+sudo apt install ./rwarden_linux_amd64.deb
+
+# Or Homebrew on Linux:
+# brew install routewarden/tap/rwarden
+
+# Or automated installer:
+# curl -fsSL https://routewarden.github.io/install.sh | bash
+
+# Verify installation
+rwarden version`,
+})
+
 const install_script = buildSnippet({
   lang: 'bash',
-  code: `curl -fsSL https://routewarden.github.io/install.sh | bash`,
+  code: `# Universal one-liner (macOS & Linux)
+curl -fsSL https://routewarden.github.io/install.sh | bash
+
+# Custom directory (~/.local/bin)
+curl -fsSL https://routewarden.github.io/install.sh | INSTALL_DIR=$HOME/.local/bin bash`,
 })
 
 const install_docker = buildSnippet({
@@ -20,7 +52,9 @@ const install_docker = buildSnippet({
 
 const installSnippets = computed(() => ({
   cli: [
-    { filename: 'Universal Script (curl)', lang: 'bash', code: install_script.cleanCode, html: install_script.html, hasDiff: false },
+    { filename: 'macOS (Homebrew / curl)', lang: 'bash', code: install_mac.cleanCode, html: install_mac.html, hasDiff: false },
+    { filename: 'Linux (APT / Homebrew / curl)', lang: 'bash', code: install_linux.cleanCode, html: install_linux.html, hasDiff: false },
+    { filename: 'Universal Script', lang: 'bash', code: install_script.cleanCode, html: install_script.html, hasDiff: false },
     { filename: 'Docker', lang: 'bash', code: install_docker.cleanCode, html: install_docker.html, hasDiff: false },
   ],
 }))
@@ -83,24 +117,43 @@ const validateSnippets = computed(() => ({
 // ─── 4. Launch Dashboard ────────────────────────────────────────────────────
 const dashboard_cmd = buildSnippet({
   lang: 'bash',
-  code: `# Launch Grafana, Loki, and Alloy stack via Docker Compose
+  code: `# Launch real-time SOC security dashboard (opens http://localhost:7890)
 rwarden dashboard
 
-# Or export stack files for standalone customization
-rwarden dashboard export ./observability`,
+# Or export standalone compose files
+rwarden dashboard export ./dashboard`,
 })
 
 const dashboard_docker = buildSnippet({
   lang: 'bash',
-  code: `# Export and launch observability stack using container
-docker run --rm -v $(pwd):/work -w /work ghcr.io/routewarden/cli:latest dashboard export ./observability
-cd ./observability && docker compose up -d`,
+  code: `# Export and launch dashboard using container
+docker run --rm -v $(pwd):/work -w /work ghcr.io/routewarden/cli:latest dashboard export ./dashboard
+cd ./dashboard && docker compose up -d`,
 })
 
 const dashboardSnippets = computed(() => ({
   cli: [
     { filename: 'rwarden dashboard', lang: 'bash', code: dashboard_cmd.cleanCode, html: dashboard_cmd.html, hasDiff: false },
     { filename: 'Docker', lang: 'bash', code: dashboard_docker.cleanCode, html: dashboard_docker.html, hasDiff: false },
+  ],
+}))
+
+// ─── 5. Remote Log Shipping ──────────────────────────────────────────────────
+const remote_cmd = buildSnippet({
+  lang: 'bash',
+  code: `# 1. On Central Server: Create an enrollment key
+rwarden keys create edge-gateway-01
+
+# 2. On Remote Server: Register once with the central dashboard
+rwarden register --url http://198.51.100.10:7890 --key rw_sec_8f9a2b4c1e0d...
+
+# 3. On Remote Server: Stream encrypted logs (reads ~/.routewarden/agent.json)
+rwarden push`,
+})
+
+const remoteSnippets = computed(() => ({
+  cli: [
+    { filename: 'Remote Streaming', lang: 'bash', code: remote_cmd.cleanCode, html: remote_cmd.html, hasDiff: false },
   ],
 }))
 </script>
@@ -128,8 +181,10 @@ It enables security and platform teams to evaluate path rules offline, validate 
   - TCP Warden YAML configuration
 - **Ephemeral Gateway Sandbox (`sandbox`)**:
   Launch isolated, pre-configured Traefik, Caddy, or NGINX containers in Docker to verify your rules and response modes live against automated attack test suites.
-- **Cloud-Native Observability Stack (`dashboard`)**:
-  Turnkey Docker Compose monitoring stack powered by Grafana, Grafana Loki, and Grafana Alloy. Includes pre-provisioned dashboards for live blocked threat telemetry, LogQL analytics, top probed endpoints, and offender IP risk scoring.
+- **Real-Time Security Dashboard (`dashboard`)**:
+  Turnkey, ultra-lightweight real-time security dashboard powered by RouteWarden's embedded SOC engine and SQLite persistence (~8MB RAM). Auto-discovers containers labeled `routewarden=true`, multiplexes logs live, and serves a streaming web UI at `http://localhost:7890`.
+- **Distributed Remote Log Shipping (`push`, `keys`, `register`)**:
+  CrowdSec-style distributed log shipping with end-to-end asymmetric encryption (X25519 ECDH + AES-256-GCM), 2,000-event in-memory ring buffers, zero edge disk writes, and central dashboard ingestion.
 - **Official JSON Schema Export (`schema`)**:
   Export official JSON Schemas for instant IDE autocomplete (VS Code, JetBrains, Neovim) and CI/CD automated linting.
 
@@ -139,9 +194,11 @@ It enables security and platform teams to evaluate path rules offline, validate 
 
 ### 1. Install `rwarden`
 
-Install the latest pre-compiled binary via the universal one-liner script, or run without installation using Docker:
+Install the official pre-compiled CLI binary for **macOS** or **Linux**, or run without installation via Docker:
 
 <CodeViewer :snippets="installSnippets" />
+
+> 📖 **Complete Installation Guide**: Need `.deb`, `.rpm`, `.apk` package managers, standalone binary downloads for Linux/macOS/Windows, or source builds? See the [CLI Installation Guide](/cli/installation).
 
 ### 2. Test a Sensitive Path
 
@@ -159,13 +216,21 @@ Verify your policy before committing or deploying:
 
 <CodeViewer :snippets="validateSnippets" />
 
-### 4. Launch the Security Observability Stack
+### 4. Launch the Security Dashboard
 
-Start the Grafana, Loki, and Alloy stack with automated gateway container log discovery:
+Start the live security dashboard with automated gateway container log discovery:
 
 <CodeViewer :snippets="dashboardSnippets" />
 
-Open `http://localhost:3000` to observe live blocked probes, attack analytics, and threat intelligence in Grafana.
+Open `http://localhost:7890` to observe live blocked probes, attack analytics, and threat intelligence.
+
+### 5. Stream Logs from Remote Edge Nodes
+
+Connect distributed reverse proxies and servers to your central dashboard with asymmetric end-to-end encryption:
+
+<CodeViewer :snippets="remoteSnippets" />
+
+The central dashboard will automatically display remote agents in its live status ribbon with real-time event counters and health pings.
 
 
 ---
@@ -175,7 +240,9 @@ Open `http://localhost:3000` to observe live blocked probes, attack analytics, a
 | Section | Description |
 |:---|:---|
 | [**Installation**](/cli/installation) | Install script, pre-built binary archives, Docker container, and source build |
-| [**Commands Reference**](/cli/commands) | Complete CLI syntax and options for `test`, `validate`, `schema`, `generate`, and `sandbox` |
+| [**Commands Reference**](/cli/commands) | Complete CLI syntax and options for `test`, `validate`, `schema`, `generate`, `sandbox`, `dashboard`, `keys`, `register`, and `push` |
 | [**Security Dashboard**](/cli/dashboard) | Live event streaming, Docker discovery, analytics, IP threat scoring, and REST API |
+| [**Distributed Remote Streaming**](/cli/dashboard/remote-streaming) | Multi-node log shipping with X25519 asymmetric encryption and in-memory ring buffer |
 | [**JSON Schema & CI/CD**](/cli/schema) | IDE integration (VS Code, JetBrains, Neovim), `routewarden.json` workflows, and CI/CD pipelines |
 | [**Changelog & Releases**](/cli/changelog) | Release notes and version history for `rwarden` |
+

@@ -1,186 +1,80 @@
 ---
-title: Pre-Configured Dashboard & Panels — RouteWarden Dashboard
-description: Comprehensive breakdown of the pre-configured Grafana threat intelligence dashboard, visualization panels, metric widgets, and interactive filters.
+title: Pre-Configured Security Dashboard & Panels — RouteWarden Dashboard
+description: Real-time threat telemetry panels, live SOC audit stream, SQLite persistence, GeoIP origins, top probed paths, and attack analytics in the RouteWarden Native SOC dashboard.
 ---
 
-# Pre-Configured Dashboard & Panels
+<script setup>
+import { computed } from 'vue'
+import { buildSnippet } from '../../.vitepress/theme/composables/useCodeSnippet'
 
-RouteWarden comes with an out-of-the-box, professionally crafted Grafana dashboard (**"RouteWarden — Threat & Security Intelligence"**, embedded in `routewarden-overview.json`). It provisions automatically when launching the stack via `rwarden dashboard` or Docker Compose.
+// ─── Launch Snippet ─────────────────────────────────────────────────────────
+const launch_cmd = buildSnippet({
+  lang: 'bash',
+  code: `# Launch RouteWarden security dashboard (auto-opens http://localhost:7890)
+rwarden dashboard`,
+})
 
----
+const launchSnippets = computed(() => ({
+  cli: [
+    { filename: 'rwarden dashboard', lang: 'bash', code: launch_cmd.cleanCode, html: launch_cmd.html, hasDiff: false },
+  ],
+}))
+</script>
 
-## Key Dashboard Panels
+# Pre-Configured SOC Dashboard & Telemetry Panels
 
-### 1. Key Security Counters (KPI Widgets)
+The RouteWarden Native SOC Dashboard comes pre-configured with a comprehensive set of real-time security panels designed to give instant visibility into scanner activity, credential stuffing, perimeter blocks, and geographical threat distributions.
 
-At the top of the dashboard, four high-visibility stat panels provide an immediate posture overview:
-
-- **Blocked Attacks**: Total number of malicious requests or probes intercepted by RouteWarden within the selected time window. Rendered in vivid threat red.
-- **Total Inspected Events**: Complete volume of gateway traffic evaluated against RouteWarden security rules.
-- **Whitelist Bypasses**: Legitimate traffic successfully bypassing checks via trusted IP CIDRs or bypass headers.
-- **Attack Ratio (%)**: Percentage calculation of hostile requests relative to total traffic (`(Blocked / Total) * 100`). Gives immediate insight into active DDoS or brute-force campaigns.
-
----
-
-### 2. Attack Timelines (Multi-Series Time Graph)
-
-Visualizes threat activity across time:
-- **`BLOCK` Series (Red)**: Attacks blocked by sensitive path detection, regex signatures, anti-evasion traps, or IP denies.
-- **`ALLOW` Series (Green)**: Clean traffic permitted to reach backend application services.
-- **`THROTTLED` Series (Amber)**: Requests delayed via tarpit or rate-limited before downstream forwarding.
-- **`BYPASS` Series (Blue)**: Requests originating from trusted internal CIDRs or verified reverse proxy hops.
-
-Spikes in red indicate port scanning, credential stuffing, or vulnerability scanner activity (such as Nuclei, Nikto, or sqlmap).
+<CodeViewer :snippets="launchSnippets" />
 
 ---
 
-### 3. Verdict & Status Code Distribution
+## Real-Time SOC Panels & Sections
 
-Two donut graphs illustrate your traffic breakdown:
-- **Verdict Distribution**: Quick proportion breakdown of `BLOCK` vs `ALLOW` vs `THROTTLED`.
-- **Status Code Distribution**: Shows HTTP status codes returned by the gateway (e.g. `403 Forbidden`, `404 Not Found`, `429 Too Many Requests`, `200 OK`).
+### Section 01 // Executive KPI Telemetry & Live Status
+Provides instant high-level situational awareness across all connected gateway instances:
+- **Total Requests**: Cumulative requests inspected.
+- **Blocked Requests (🛑)**: Malicious probes blocked by perimeter rules (HTTP 403).
+- **Tarpitted Requests (⏳)**: High-frequency scanners slow-fed artificial delay (HTTP 429).
+- **Clean Ingress (🛡️)**: Legitimate allowed application traffic.
+- **Block Rate %**: Percentage of total ingress identified and stopped as hostile.
+- **Ingestion Velocity**: Live events processed per second (EPS).
 
----
+### Section 02 // Security Operations Log Stream (`stream.audit.live`)
+The primary operational workhorse for live log inspection:
+- **Verdict Filter Tabs**: Single-click toggles for `ALL`, `BLOCK`, `TARPIT`, and `ALLOW` with live badge counts.
+- **Time Range Selector**: Rolling historical filters (`1m`, `5m`, `15m`, `30m`, or custom date/time range) backed by indexed SQLite SQL queries.
+- **Search & Grep**: Real-time filtering across client IPs, requested paths, triggered rules, and countries.
+- **Stream Pause & Buffered Counter**: Click **⏸ Pause** or press <kbd>Space</kbd> to freeze live updates for log inspection. Incoming events are safely queued and indicated by a counter badge (`⏸ PAUSED (+N new)`). Resuming instantly flushes and catches up.
 
----
+### Section 03 // 30-Minute Threat Activity Matrix
+Rolling time-series chart showing 1-minute interval activity over the past 30 minutes:
+- Visual stacking of Clean, Blocked, and Tarpitted events.
+- Interactive legend toggles to isolate specific verdict trends.
 
-### 4. Threat Geography & GeoIP Intelligence
+### Section 04 // Global Threat Hotspots & Ingress Geography
+Interactive world map powered by Leaflet:
+- Displays coordinates and attack density heat for offending client IPs.
+- Resolved via RouteWarden's autonomous country engine combining offline CIDR/RIR databases with automatic MaxMind GeoLite2 discovery.
 
-A comprehensive geographic intelligence suite providing real-time visibility into attacking nation states and geographic concentrations:
-- **Global Attack Origins Map (Geomap)**: Interactive world map plotting attack origins by ISO 3166-1 alpha-2 country codes. Marker sizes and colors scale dynamically with attack intensity. Defaults to **OpenStreetMap** (`osm-standard`) for out-of-the-box operation without requiring external API keys.
-  > [!TIP]
-  > **Using CARTO Basemaps with an API Key**:
-  > As of late 2026, CARTO requires an API key for its raster tile server (`basemaps.cartocdn.com`). If you prefer CARTO's dark basemap styling instead of OpenStreetMap:
-  > 1. Obtain a free key at [carto.com/basemaps/apikey](https://carto.com/basemaps/apikey/).
-  > 2. In Grafana, edit the **Global Attack Origins Map** panel.
-  > 3. Under **Basemap layer**, set the type to **XYZ**.
-  > 4. Enter the URL: `https://basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}.png?key=YOUR_CARTO_API_KEY`
-  > 5. Set Attribution to `© CARTO © OpenStreetMap contributors`.
-- **Top Attacking Countries**: Ranked bar gauge showing the top 10 nation-state origins of blocked probes and hostile requests.
-- **Country Threat Share**: Donut chart displaying the percentage breakdown of global threat traffic by origin country.
-
----
-
-### 5. Layer 4 & Layer 7 Multi-Protocol Convergence
-
-Provides unified visibility across application-layer HTTP gateways and network-layer TCP/UDP bastions:
-- **L4 vs L7 Threat Convergence Over Time**: Multi-series timeseries tracking HTTP reverse proxy blocks (Traefik, Caddy, NGINX) alongside Layer 4 TCP connection bans (SSH bastion) and UDP packet drops (DNS/DHT).
-- **Protocol Breakdown**: Donut chart illustrating distribution across protected protocols (`http`, `ssh`, `dns`, `dht`, `tcp`, `udp`).
-- **Transport Split (TCP vs UDP)**: Bar gauge comparing transport-layer traffic volume.
-
----
-
-### 6. Threat Analysis & Attack Vector Profiling
-
-Pinpoints targets, repeat offenders, and offensive toolkits:
-- **Top Target Paths**: Heavily probed endpoints and target paths (`/.env`, `/.git/config`, `/wp-login.php`, `/actuator/env`).
-- **Top Offender IPs & GeoIP**: Ranked client IP addresses annotated with resolved country codes (`[US]`, `[DE]`, `[LAN]`).
-- **Top Triggered Rules / Signatures**: Identifies which defense rules are firing most frequently (sensitive files, path traversal, SQLi, protocol anomalies).
-- **Malicious User-Agents & Security Scanners**: Automated scanner detection ranking offensive toolkits (`Nuclei`, `Nikto`, `sqlmap`, `Masscan`, `Go-http-client`, `python-requests`, `curl`, `ZGrab`).
-- **Attacked HTTP Methods & Verbs**: Donut chart illustrating HTTP verbs utilized in attacks (`GET`, `POST`, `HEAD`, `CONNECT`, `OPTIONS`).
-- **Defense Action Breakdown**: Donut chart tracking enforcement modes executed across gateways (`silentDrop`, `text`, `json`, `custom`, `default`).
-- **Top Protected Virtual Hosts & Services**: Ranked bar gauge illustrating protected services and backend routing hosts receiving threats.
-- **Threat Inspection Latency & Tarpit Timing**: Timeseries tracking p95 and average inspection duration (`duration_ms` / `latency_ms`) to detect tarpit efficacy and latency impact.
+### Section 05 // Intelligence Vectors & Hotspots
+Detailed threat intelligence panels:
+- **Top Attacking Client IPs**: Highlights repeated offenders with hit counts, origin country flag, and threat breakdown bars. Clicking any client IP opens a full threat intelligence dossier modal with reverse DNS, ASN, CIDR prefix, and one-click AbuseIPDB lookup.
+- **Top Probed Target Paths**: Real-time ranking of attacked endpoints (`/.env`, `/.git`, `/wp-login.php`, `/actuator/env`).
+- **HTTP Status Code Breakdown**: Distribution of response statuses (200, 403, 429, 5xx).
 
 ---
 
----
+## Terminal Keyboard Shortcuts
 
-### 7. Interactive Incident Triage & Live Security Feed
+Navigate and operate the dashboard with single-key shortcuts:
 
-A dual-mode operational pane designed for Security Operations Center (SOC) analysts:
-
-- **🚨 Interactive Threat Incident Triage Table**:
-  - Structured forensic grid of blocked hostile events.
-  - **One-Click Threat Intelligence Drilldowns**: Clicking any IP in the table or offender gauge reveals instant investigative lookups:
-    - **AbuseIPDB**: Comprehensive IP reputation, report counts, and abuse history (`https://www.abuseipdb.com/check/<IP>`).
-    - **VirusTotal**: Cross-engine malware, scanner, and infrastructure scoring (`https://www.virustotal.com/gui/ip-address/<IP>`).
-    - **Shodan**: Open ports, running daemons, and banner reconnaissance (`https://www.shodan.io/host/<IP>`).
-    - **Loki Forensic Threat Hunter**: Drills directly into Grafana Explore pre-filtered to the attacker's client IP.
-  - **Color-Coded Verdict Badges**: High-contrast indicators for `BLOCK` (red), `ALLOW` (green), and `THROTTLED` (amber).
-
-- **📜 Real-Time Attack Log Stream**:
-  - Low-latency log viewer streaming security events with zero latency.
-  - Expands to show full structured JSON metadata for any event (nanosecond timestamps, headers, response modes, and rule IDs).
-
----
-
-## Interactive Filters & Template Variables
-
-The dashboard includes top-bar interactive dropdowns that dynamically alter all queries without editing panels:
-
-| Filter Variable | Options | Description |
-|:---|:---|:---|
-| **Gateway** | `All`, `traefik`, `caddy`, `nginx`, `tcp-warden` | Filter logs to a specific reverse proxy or Layer 4 daemon |
-| **Verdict** | `All`, `BLOCK`, `ALLOW`, `THROTTLED` | Focus exclusively on hostile attacks or audit permitted flows |
-| **Country** | `All`, `US`, `DE`, `CN`, `RU`, `LAN`, ... | Filter attacks, events, and metrics by geographic origin code |
-| **Protocol** | `All`, `http`, `ssh`, `dns`, `dht`, `tcp`, `udp` | Isolate specific application layer or network protocols |
-| **Transport** | `All`, `tcp`, `udp` | Toggle between connection-oriented and datagram traffic |
-| **Time Range** | Last 5m, 15m, 1h, 6h, 24h, 7d | Adjust time resolution for real-time triage or historical audits |
-| **Auto-Refresh** | Off, 5s, 10s, 30s, 1m | Real-time monitoring mode for Security Operations Centers (SOC) |
-
----
-
-## Public & Shared Dashboards
-
-RouteWarden's observability stack is pre-configured for public status pages, executive dashboards, and secure iframe embedding:
-
-### 1. Zero-Login Anonymous Viewer Access
-The stack enables anonymous read-only access by default:
-- Users accessing `http://localhost:3000` or public proxy endpoints immediately view the RouteWarden Threat Intelligence dashboard without requiring login credentials.
-- Anonymous users receive the `Viewer` role, preventing unauthorized configuration edits.
-
-### 2. Public Dashboards Feature
-Grafana's `publicDashboards` feature toggle is enabled (`GF_FEATURE_TOGGLES_ENABLE=publicDashboards`):
-- Click **Share** $\rightarrow$ **Public dashboard** in the top navigation bar.
-- Generate a standalone, secure public link to share live threat telemetry with clients or leadership.
-
-### 3. Portal & Iframe Embedding
-Grafana frame-ancestors restrictions are relaxed (`GF_SECURITY_ALLOW_EMBEDDING=true`):
-- Embed the entire RouteWarden dashboard or individual attack panels directly into company intranets, SecOps portals, or status pages:
-  ```html
-  <iframe
-    src="http://grafana.example.com/d/routewarden-overview?kiosk"
-    width="100%"
-    height="800"
-    frameborder="0">
-  </iframe>
-  ```
-
-
----
-
-## Optional Automated Alerting & Incident Notification Channels
-
-RouteWarden ships with pre-configured Grafana Alerting rules provisioned in `grafana/provisioning/alerting/alerting.yaml`. **Alerting is optional and disabled by default** to ensure instant, zero-configuration dashboard startup without requiring external webhook destinations or credentials.
-
-### Enabling Threat Alerting
-- **With RouteWarden CLI**: Run `rwarden dashboard up --enable-alerting` (or `rwarden dashboard up --alerting`).
-- **With Docker Compose**: 
-  - Using `routewarden.env`: Uncomment `ALERTING_PROVISIONING_DIR=./grafana/provisioning/alerting` in `routewarden.env` and run `docker compose --env-file routewarden.env up -d`.
-  - Or via inline environment variable: `ALERTING_PROVISIONING_DIR=./grafana/provisioning/alerting docker compose up -d`.
-- **Custom Webhook Destination**: Set `ALERT_WEBHOOK_URL="https://your-soc-webhook.example.com/alerts"` (defaults to `http://host.docker.internal:8080/alerts`).
-
-### Out-of-the-Box Alert Rules
-
-1. **Hostile Attack Rate Spike (DDoS)**:
-   - Triggers when blocked attack traffic exceeds $10\,\text{req/s}$ over a 5-minute sliding window.
-   - Severity: `warning`
-2. **Critical Sensitive File Probing (`.env` / `.git` / `.aws`)**:
-   - Triggers immediately ($0\,\text{s}$ latency) when hostile attempts access environment files, Git repositories, or cloud credentials.
-   - Severity: `critical`
-3. **Layer 4 Brute-Force & SSH Bastion Attack Surge**:
-   - Triggers when $>15$ connection drops or IP bans occur within 3 minutes on Layer 4 TCP/UDP listeners.
-   - Severity: `high`
-4. **Active Exploitation Tool Detected (`sqlmap` / `Nuclei` / `Nikto`)**:
-   - Triggers immediately when automated penetration testing or vulnerability scanner signatures are detected.
-   - Severity: `high`
-
-### Pre-Configured Contact Points
-
-- **Webhook**: Posts structured JSON payloads to `${ALERT_WEBHOOK_URL}` for custom firewalls or automated SOAR runbooks.
-- **Slack**: Formatted alert messages sent to `#security-alerts` via `${SLACK_WEBHOOK_URL}`.
-- **Discord**: Real-time embed cards dispatched to `${DISCORD_WEBHOOK_URL}`.
-- **PagerDuty**: High-urgency incident escalation via `${PAGERDUTY_KEY}`.
-
-
+| Key | Function |
+|:---|:---|
+| <kbd>Space</kbd> | Toggle Stream Pause / Resume |
+| <kbd>T</kbd> | Switch Theme (Auto / Light / Dark) |
+| <kbd>W</kbd> | Jump to Time Range selector |
+| <kbd>/</kbd> | Jump to Search / Grep filter |
+| <kbd>F</kbd> | Jump to Country filter dropdown |
+| <kbd>R</kbd> | Reset all active query filters |
+| <kbd>ESC</kbd> | Dismiss active modal or dossier dialog |
