@@ -102,6 +102,16 @@ const cliSnippets = computed(() => ({
 }))
 
 // ─── 2. Compose Snippet ─────────────────────────────────────────────────────
+const export_cmd = buildSnippet({
+  lang: 'bash',
+  code: `# Export dashboard configuration to local directory
+rwarden dashboard export ./dashboard
+cd ./dashboard
+
+# Launch standalone SOC dashboard with Docker Compose
+docker compose up -d`,
+})
+
 const compose_yaml = buildSnippet({
   lang: 'yaml',
   code: `services:
@@ -120,7 +130,49 @@ const compose_yaml = buildSnippet({
 
 const composeSnippets = computed(() => ({
   cli: [
+    { filename: 'Export & Launch Commands', lang: 'bash', code: export_cmd.cleanCode, html: export_cmd.html, hasDiff: false },
     { filename: 'docker-compose.yml', lang: 'yaml', code: compose_yaml.cleanCode, html: compose_yaml.html, hasDiff: false },
+  ],
+}))
+
+// ─── 3. Container Discovery Snippets ─────────────────────────────────────────
+const discovery_compose = buildSnippet({
+  lang: 'yaml',
+  code: `services:
+  traefik:
+    image: traefik:v3.1
+    labels:
+      # Opt-in for RouteWarden auto-discovery
+      - "routewarden=true"
+
+  caddy:
+    image: caddy:2-alpine
+    labels:
+      - "routewarden.logs=true"
+
+  nginx:
+    image: openresty/openresty:alpine
+    labels:
+      - "routewarden=true"`,
+})
+
+const discovery_cli = buildSnippet({
+  lang: 'bash',
+  code: `# Tag container on creation with Docker CLI
+docker run -d \\
+  --name traefik-edge \\
+  --label routewarden=true \\
+  -p 80:80 -p 443:443 \\
+  traefik:v3.1
+
+# Or tail a container directly without labels
+rwarden dashboard --container traefik-edge`,
+})
+
+const discoverySnippets = computed(() => ({
+  cli: [
+    { filename: 'Docker Compose (Opt-In Labels)', lang: 'yaml', code: discovery_compose.cleanCode, html: discovery_compose.html, hasDiff: false },
+    { filename: 'Docker CLI & Direct Target', lang: 'bash', code: discovery_cli.cleanCode, html: discovery_cli.html, hasDiff: false },
   ],
 }))
 </script>
@@ -210,26 +262,17 @@ When launched, `rwarden dashboard` starts an internal HTTP server and SSE stream
 
 ## How Container Discovery Works
 
-`rwarden dashboard` automatically inspects running Docker containers via `/var/run/docker.sock` and auto-tails any container labeled with:
+`rwarden dashboard` automatically inspects running Docker containers via `/var/run/docker.sock` and auto-tails any container labeled with `routewarden=true` or `routewarden.logs=true`:
 
-```yaml
-labels:
-  - "routewarden=true"
-```
+<CodeViewer :snippets="discoverySnippets" />
 
-Containers with `routewarden.logs=true` are also automatically recognized. If multiple containers are discovered (e.g. `traefik`, `caddy`, and `nginx`), their log streams are multiplexed concurrently into the dashboard in real time.
+Containers with `routewarden.logs=true` are also automatically recognized. If multiple containers are discovered (e.g. `traefik`, `caddy`, and `nginx`), their log streams are multiplexed concurrently into the dashboard in real time with individual node attribution.
 
 ---
 
 ## Standalone Docker Compose Deployment
 
-If you prefer deploying the dashboard without the CLI binary, export the configuration:
-
-```bash
-rwarden dashboard export ./dashboard
-cd ./dashboard
-docker compose up -d
-```
+If you prefer deploying the dashboard without the CLI binary, export the configuration and run with Docker Compose:
 
 <CodeViewer :snippets="composeSnippets" />
 
