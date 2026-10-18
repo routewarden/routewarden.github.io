@@ -3,6 +3,45 @@ title: End-to-End Cryptography & Security Model
 description: Deep dive into RouteWarden's asymmetric X25519 ECDH + AES-256-GCM encryption architecture for remote log shipping.
 ---
 
+<script setup>
+import { computed } from 'vue'
+import { buildSnippet } from '../../.vitepress/theme/composables/useCodeSnippet'
+
+// ─── Wire Schemas ────────────────────────────────────────────────────────────
+const encrypted_wire = buildSnippet({
+  lang: 'json',
+  code: `{
+  "ephemeral_pub": "T6kR8n... (Base64-encoded 32-byte X25519 public key)",
+  "nonce": "kM9+1x... (Base64-encoded 12-byte GCM nonce)",
+  "ciphertext": "aB3/8z... (Base64-encoded AES-256-GCM ciphertext + 16-byte tag)"
+}`,
+})
+
+const encryptedWireSnippets = computed(() => ({
+  cli: [
+    { filename: 'Encrypted Wire JSON (POST /api/v1/events)', lang: 'json', code: encrypted_wire.cleanCode, html: encrypted_wire.html, hasDiff: false },
+  ],
+}))
+
+const decrypted_batch = buildSnippet({
+  lang: 'json',
+  code: `{
+  "agent_id": "agent_8f9a2b4c1e0d3f7a",
+  "hostname": "edge-frankfurt-01",
+  "events": [
+    "{\\"time\\":\\"2026-10-18T12:00:00Z\\",\\"client_ip\\":\\"198.51.100.25\\",\\"method\\":\\"GET\\",\\"path\\":\\"/.env\\",\\"verdict\\":\\"BLOCK\\",\\"rule\\":\\"traversal\\"}",
+    "{\\"time\\":\\"2026-10-18T12:00:01Z\\",\\"client_ip\\":\\"203.0.113.88\\",\\"method\\":\\"POST\\",\\"path\\":\\"/xmlrpc.php\\",\\"verdict\\":\\"TARPIT\\",\\"rule\\":\\"bruteforce\\"}"
+  ]
+}`,
+})
+
+const decryptedBatchSnippets = computed(() => ({
+  cli: [
+    { filename: 'Decrypted Event Batch Schema', lang: 'json', code: decrypted_batch.cleanCode, html: decrypted_batch.html, hasDiff: false },
+  ],
+}))
+</script>
+
 # End-to-End Cryptography & Security Model
 
 Security logs often contain sensitive operational data: customer IP addresses, authorization tokens in query strings, user agents, and internal API paths.
@@ -56,26 +95,11 @@ Each batch of security events is encrypted independently with an ephemeral keypa
 
 The encrypted JSON payload sent to `POST /api/v1/events` has the following schema:
 
-```json
-{
-  "ephemeral_pub": "T6kR8n... (Base64-encoded 32-byte X25519 public key)",
-  "nonce": "kM9+1x... (Base64-encoded 12-byte GCM nonce)",
-  "ciphertext": "aB3/8z... (Base64-encoded AES-256-GCM ciphertext + 16-byte tag)"
-}
-```
+<CodeViewer :snippets="encryptedWireSnippets" />
 
 Once decrypted by the central server, the plaintext matches RouteWarden's internal batch schema:
 
-```json
-{
-  "agent_id": "agent_8f9a2b4c1e0d3f7a",
-  "hostname": "edge-frankfurt-01",
-  "events": [
-    "{\"time\":\"2026-10-18T12:00:00Z\",\"client_ip\":\"198.51.100.25\",\"method\":\"GET\",\"path\":\"/.env\",\"verdict\":\"BLOCK\",\"rule\":\"traversal\"}",
-    "{\"time\":\"2026-10-18T12:00:01Z\",\"client_ip\":\"203.0.113.88\",\"method\":\"POST\",\"path\":\"/xmlrpc.php\",\"verdict\":\"TARPIT\",\"rule\":\"bruteforce\"}"
-  ]
-}
-```
+<CodeViewer :snippets="decryptedBatchSnippets" />
 
 ---
 

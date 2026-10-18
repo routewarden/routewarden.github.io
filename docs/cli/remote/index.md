@@ -3,6 +3,62 @@ title: Remote Monitoring & Log Streaming
 description: Centralized, encrypted multi-node security event shipping from remote edge nodes, cloud VMs, and container clusters to RouteWarden.
 ---
 
+<script setup>
+import { computed } from 'vue'
+import { buildSnippet } from '../../.vitepress/theme/composables/useCodeSnippet'
+
+// ─── Quickstart Snippets ──────────────────────────────────────────────────────
+const step1_cmd = buildSnippet({
+  lang: 'bash',
+  code: `rwarden keys create prod-edge-01`,
+})
+
+const step1Snippets = computed(() => ({
+  cli: [
+    { filename: 'Central Server', lang: 'bash', code: step1_cmd.cleanCode, html: step1_cmd.html, hasDiff: false },
+  ],
+}))
+
+const step1_output = buildSnippet({
+  lang: 'plaintext',
+  code: `🔑 Agent Key Created Successfully!
+─────────────────────────────────────────────────────────────
+  Agent Name:   prod-edge-01
+  Agent ID:     agent_8f9a2b4c1e0d3f7a
+  Token:        rw_sec_8f9a2b4c1e0d3f7a9b2c4e6f8a0d1c3e4f5a6b7c8d9e0f1a
+─────────────────────────────────────────────────────────────`,
+})
+
+const step1OutputSnippets = computed(() => ({
+  cli: [
+    { filename: 'Generated Credentials', lang: 'plaintext', code: step1_output.cleanCode, html: step1_output.html, hasDiff: false },
+  ],
+}))
+
+const step2_cmd = buildSnippet({
+  lang: 'bash',
+  code: `rwarden register --url http://<central-ip>:7890 --key rw_sec_8f9a2b4c1e0d...`,
+})
+
+const step2Snippets = computed(() => ({
+  cli: [
+    { filename: 'Remote Node Handshake', lang: 'bash', code: step2_cmd.cleanCode, html: step2_cmd.html, hasDiff: false },
+  ],
+}))
+
+const step3_cmd = buildSnippet({
+  lang: 'bash',
+  code: `# Start background log shipping (reads ~/.routewarden/agent.json)
+rwarden push`,
+})
+
+const step3Snippets = computed(() => ({
+  cli: [
+    { filename: 'Remote Node Shipper', lang: 'bash', code: step3_cmd.cleanCode, html: step3_cmd.html, hasDiff: false },
+  ],
+}))
+</script>
+
 # Remote Monitoring & Log Streaming
 
 RouteWarden features a distributed agent model inspired by CrowdSec. Rather than requiring heavy collectors (like Fluentd, Vector, or Logstash) that consume 200MB+ RAM and wear out edge flash storage, `rwarden` provides a native, ultra-lightweight distributed telemetry pipeline:
@@ -68,34 +124,21 @@ The central GoAccess dashboard automatically injects a real-time status ribbon i
 ### Step 1: Create an Agent Key (on Central Server)
 On the machine running `rwarden dashboard`:
 
-```bash
-rwarden keys create prod-edge-01
-```
+<CodeViewer :snippets="step1Snippets" />
 
-```text
-🔑 Agent Key Created Successfully!
-─────────────────────────────────────────────────────────────
-  Agent Name:   prod-edge-01
-  Agent ID:     agent_8f9a2b4c1e0d3f7a
-  Token:        rw_sec_8f9a2b4c1e0d3f7a9b2c4e6f8a0d1c3e4f5a6b7c8d9e0f1a
-─────────────────────────────────────────────────────────────
-```
+<CodeViewer :snippets="step1OutputSnippets" />
 
 ### Step 2: Register the Remote Node (One-Time Handshake)
 On your remote edge or cloud server:
 
-```bash
-rwarden register --url http://<central-ip>:7890 --key rw_sec_8f9a2b4c1e0d...
-```
+<CodeViewer :snippets="step2Snippets" />
 
 The agent connects to the central dashboard, retrieves the server's X25519 public key, and persists its configuration to `~/.routewarden/agent.json` with strict `0600` permissions.
 
 ### Step 3: Start the Shipper
 On the remote server, simply run:
 
-```bash
-rwarden push
-```
+<CodeViewer :snippets="step3Snippets" />
 
 `rwarden push` reads the registered configuration, auto-discovers your reverse proxy containers, and streams encrypted security logs directly to your central dashboard.
 

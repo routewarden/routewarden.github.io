@@ -3,6 +3,143 @@ title: Distributed Remote Streaming
 description: Ship encrypted security events from multiple remote edge and cloud nodes to a central RouteWarden dashboard.
 ---
 
+<script setup>
+import { computed } from 'vue'
+import { buildSnippet } from '../../.vitepress/theme/composables/useCodeSnippet'
+
+// ─── Step 1 Snippets ─────────────────────────────────────────────────────────
+const step1_cmd = buildSnippet({
+  lang: 'bash',
+  code: `rwarden keys create prod-edge-01`,
+})
+
+const step1Snippets = computed(() => ({
+  cli: [
+    { filename: 'rwarden keys create', lang: 'bash', code: step1_cmd.cleanCode, html: step1_cmd.html, hasDiff: false },
+  ],
+}))
+
+const step1_output = buildSnippet({
+  lang: 'plaintext',
+  code: `🔑 Agent Key Created Successfully!
+─────────────────────────────────────────────────────────────
+  Agent Name:   prod-edge-01
+  Agent ID:     agent_8f9a2b4c1e0d3f7a
+  Token:        rw_sec_8f9a2b4c1e0d3f7a9b2c4e6f8a0d1c3e4f5a6b7c8d9e0f1a
+─────────────────────────────────────────────────────────────
+💡 To connect a remote server, run this on the remote host:
+   rwarden register --url http://<dashboard-ip>:7890 --key rw_sec_8f9a...
+
+   rwarden push`,
+})
+
+const step1OutputSnippets = computed(() => ({
+  cli: [
+    { filename: 'Generated Token Output', lang: 'plaintext', code: step1_output.cleanCode, html: step1_output.html, hasDiff: false },
+  ],
+}))
+
+const step1_mgmt_cmd = buildSnippet({
+  lang: 'bash',
+  code: `# List registered agents
+rwarden keys list
+
+# Revoke an agent key
+rwarden keys revoke prod-edge-01`,
+})
+
+const step1MgmtSnippets = computed(() => ({
+  cli: [
+    { filename: 'Manage Keys', lang: 'bash', code: step1_mgmt_cmd.cleanCode, html: step1_mgmt_cmd.html, hasDiff: false },
+  ],
+}))
+
+// ─── Step 2 Snippets ─────────────────────────────────────────────────────────
+const step2_cmd = buildSnippet({
+  lang: 'bash',
+  code: `rwarden register --url http://<dashboard-ip>:7890 --key rw_sec_8f9a2b4c1e0d...`,
+})
+
+const step2Snippets = computed(() => ({
+  cli: [
+    { filename: 'rwarden register', lang: 'bash', code: step2_cmd.cleanCode, html: step2_cmd.html, hasDiff: false },
+  ],
+}))
+
+const step2_output = buildSnippet({
+  lang: 'plaintext',
+  code: `⏳ Connecting to RouteWarden Central Dashboard at http://198.51.100.10:7890...
+✅ Successfully registered with RouteWarden Central Dashboard!
+─────────────────────────────────────────────────────────────
+  Dashboard URL:     http://198.51.100.10:7890
+  Agent Name:        prod-edge-01
+  Agent ID:          agent_8f9a2b4c1e0d3f7a
+  Server Public Key: xJ9+4kL2vM8...
+  Config Saved:      ~/.routewarden/agent.json
+─────────────────────────────────────────────────────────────
+🚀 You are ready to stream! Start pushing logs with:
+   rwarden push`,
+})
+
+const step2OutputSnippets = computed(() => ({
+  cli: [
+    { filename: 'Registration Output', lang: 'plaintext', code: step2_output.cleanCode, html: step2_output.html, hasDiff: false },
+  ],
+}))
+
+// ─── Step 3 Snippets ─────────────────────────────────────────────────────────
+const push_auto = buildSnippet({
+  lang: 'bash',
+  code: `# Auto-discover all local gateway containers labeled routewarden=true
+rwarden push`,
+})
+
+const push_container = buildSnippet({
+  lang: 'bash',
+  code: `# Tail a specific container by name
+rwarden push --container traefik`,
+})
+
+const push_file = buildSnippet({
+  lang: 'bash',
+  code: `# Stream from an existing access log file
+rwarden push --file /var/log/nginx/access.log`,
+})
+
+const pushSnippets = computed(() => ({
+  cli: [
+    { filename: 'Auto-Discovery (Default)', lang: 'bash', code: push_auto.cleanCode, html: push_auto.html, hasDiff: false },
+    { filename: 'Specific Container', lang: 'bash', code: push_container.cleanCode, html: push_container.html, hasDiff: false },
+    { filename: 'Log File', lang: 'bash', code: push_file.cleanCode, html: push_file.html, hasDiff: false },
+  ],
+}))
+
+// ─── Step 4 Compose Snippet ──────────────────────────────────────────────────
+const compose_companion = buildSnippet({
+  lang: 'yaml',
+  code: `services:
+  traefik:
+    image: traefik:v3.1
+    labels:
+      - "routewarden=true"
+    # ... your existing traefik config ...
+
+  routewarden-shipper:
+    image: ghcr.io/routewarden/cli:latest
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ~/.routewarden:/root/.routewarden:ro
+    command: ["push", "--docker"]`,
+})
+
+const composeCompanionSnippets = computed(() => ({
+  cli: [
+    { filename: 'docker-compose.yml (Remote Edge Companion)', lang: 'yaml', code: compose_companion.cleanCode, html: compose_companion.html, hasDiff: false },
+  ],
+}))
+</script>
+
 # Distributed Remote Streaming
 
 RouteWarden supports a distributed agent model inspired by CrowdSec. You can deploy reverse proxies (Traefik, Caddy, NGINX) across multiple edge nodes, cloud virtual machines, and Kubernetes clusters, and stream their live security telemetry to a central RouteWarden dashboard.
@@ -48,32 +185,15 @@ RouteWarden supports a distributed agent model inspired by CrowdSec. You can dep
 
 On your central server running `rwarden dashboard`:
 
-```bash
-rwarden keys create prod-edge-01
-```
+<CodeViewer :snippets="step1Snippets" />
 
-**Output**:
-```text
-🔑 Agent Key Created Successfully!
-─────────────────────────────────────────────────────────────
-  Agent Name:   prod-edge-01
-  Agent ID:     agent_8f9a2b4c1e0d3f7a
-  Token:        rw_sec_8f9a2b4c1e0d3f7a9b2c4e6f8a0d1c3e4f5a6b7c8d9e0f1a
-─────────────────────────────────────────────────────────────
-💡 To connect a remote server, run this on the remote host:
-   rwarden register --url http://<dashboard-ip>:7890 --key rw_sec_8f9a...
+Output:
 
-   rwarden push
-```
+<CodeViewer :snippets="step1OutputSnippets" />
 
 You can view or revoke keys at any time:
-```bash
-# List registered agents
-rwarden keys list
 
-# Revoke an agent key
-rwarden keys revoke prod-edge-01
-```
+<CodeViewer :snippets="step1MgmtSnippets" />
 
 ---
 
@@ -81,45 +201,19 @@ rwarden keys revoke prod-edge-01
 
 On the remote edge or cloud server, register with the central dashboard:
 
-```bash
-rwarden register --url http://<dashboard-ip>:7890 --key rw_sec_8f9a2b4c1e0d...
-```
+<CodeViewer :snippets="step2Snippets" />
 
-**Output**:
-```text
-⏳ Connecting to RouteWarden Central Dashboard at http://198.51.100.10:7890...
-✅ Successfully registered with RouteWarden Central Dashboard!
-─────────────────────────────────────────────────────────────
-  Dashboard URL:     http://198.51.100.10:7890
-  Agent Name:        prod-edge-01
-  Agent ID:          agent_8f9a2b4c1e0d3f7a
-  Server Public Key: xJ9+4kL2vM8...
-  Config Saved:      ~/.routewarden/agent.json
-─────────────────────────────────────────────────────────────
-🚀 You are ready to stream! Start pushing logs with:
-   rwarden push
-```
+Output:
+
+<CodeViewer :snippets="step2OutputSnippets" />
 
 ---
 
 ## Step 3: Stream Logs (`rwarden push`)
 
-### Option A: Auto-Discover Local Docker Containers
-To auto-tail all local gateway containers with label `routewarden=true`:
+Stream live logs using container auto-discovery, targeted containers, or local log files:
 
-```bash
-rwarden push
-```
-
-### Option B: Tail a Specific Container
-```bash
-rwarden push --container traefik
-```
-
-### Option C: Monitor a Log File
-```bash
-rwarden push --file /var/log/nginx/access.log
-```
+<CodeViewer :snippets="pushSnippets" />
 
 ---
 
@@ -127,19 +221,4 @@ rwarden push --file /var/log/nginx/access.log
 
 You can run `rwarden push` as a lightweight background companion service in your remote `docker-compose.yml`:
 
-```yaml
-services:
-  traefik:
-    image: traefik:v3.1
-    labels:
-      - "routewarden=true"
-    # ... your existing traefik config ...
-
-  routewarden-shipper:
-    image: ghcr.io/routewarden/cli:latest
-    restart: unless-stopped
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ~/.routewarden:/root/.routewarden:ro
-    command: ["push", "--docker"]
-```
+<CodeViewer :snippets="composeCompanionSnippets" />
