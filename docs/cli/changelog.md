@@ -5,6 +5,21 @@ All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The 
 ## [v5.0.0] - 2026-10-17 (Latest)
 
 ### Added
+- **Distributed Remote Log Shipping & Enrollment (`rwarden push`, `keys`, `register`)**:
+  - Introduced a CrowdSec-style distributed log shipping model allowing multiple remote edge servers, cloud VMs, and Kubernetes clusters to stream live telemetry to a central RouteWarden dashboard.
+  - **`rwarden keys`**: Generate (`keys create <name>`), list (`keys list`), and revoke (`keys revoke <id>`) 24-byte cryptographically secure agent authentication tokens (`rw_sec_...`).
+  - **`rwarden register`**: One-time registration handshake connecting remote nodes to the central dashboard, automatically fetching the server's public key, and persisting configuration in `~/.routewarden/agent.json` with strict `0600` permissions.
+  - **`rwarden push`**: Zero-flag background log shipper reading saved credentials, auto-discovering labeled Docker containers (`routewarden=true`) or tailing local log files (`--file`), and streaming encrypted batches.
+  - **In-Memory Ring Buffer**: Implemented a 2,000-event in-memory ring buffer (~2MB max RAM) ensuring zero disk wear on edge SSDs.
+  - **Resilience & Backoff**: Added automated 30-second heartbeat pings and 3-stage exponential backoff retry on network drops.
+- **End-to-End Asymmetric Cryptography (X25519 ECDH + AES-256-GCM)**:
+  - Central server maintains a master X25519 keypair (`server.key` / `server.pub`).
+  - Remote agents derive ephemeral shared secrets via X25519 ECDH with SHA-256 HKDF and encrypt log batches with AES-256-GCM.
+  - Intermediate proxies or network observers cannot inspect or tamper with log payloads in transit.
+- **Real-Time Central Dashboard Status Ribbon & Sources API**:
+  - Injected real-time status ribbon into GoAccess HTML interface displaying both local containers and remote nodes with dynamic online/idle/offline health pulses.
+  - Extended `/api/sources` to return live telemetry and event counters for all connected remote agents.
+  - Added automated log translation from Traefik JSON, Nginx text, Caddy JSON, and RouteWarden security verdicts into unified NCSA/Combined log format.
 - **Ultra-Lightweight Real-Time Security Dashboard (`rwarden dashboard`)**:
   - Replaced the multi-container monitoring stack with an ultra-lightweight real-time security dashboard powered by [GoAccess](https://goaccess.io/) and `rwarden monitor`.
   - Drastically reduced memory footprint from ~350MB+ down to **~15MB RAM**.
@@ -12,6 +27,8 @@ All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The 
   - Automatic Docker container discovery for `routewarden=true` / `routewarden.logs=true` via `/var/run/docker.sock`.
   - Dual execution engine: automatically executes native host `goaccess` if installed, or falls back to containerized `allinurl/goaccess:latest`.
   - Added flexible flags: `--port` (default 7890), `--file` (monitor specific log file), `--container` (tail target container), `--label` (custom Docker discovery label), `--no-open`, and `--export`.
+- **Comprehensive Unit & Integration Test Suites**:
+  - Added zero-socket integration and unit tests covering cryptographic edge cases (`crypto_test.go`), keystore management (`keys_test.go`), ingestion endpoints (`ingest_test.go`), registration & flusher retries (`register_test.go`, `push_flusher_test.go`), and concurrent multi-agent streaming (`integration_test.go`).
 - **Native Linux Package Management via NFPM (`.deb`, `.rpm`, `.apk`)**:
   - Configured GoReleaser NFPM packager to build and publish native packages across major Linux distributions:
     - **Debian / Ubuntu (`.deb`)**: Direct installation via APT (`curl -fsSLO ... && sudo apt install ./rwarden_linux_amd64.deb`) with automated dependency resolution.

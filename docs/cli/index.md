@@ -137,6 +137,25 @@ const dashboardSnippets = computed(() => ({
     { filename: 'Docker', lang: 'bash', code: dashboard_docker.cleanCode, html: dashboard_docker.html, hasDiff: false },
   ],
 }))
+
+// ─── 5. Remote Log Shipping ──────────────────────────────────────────────────
+const remote_cmd = buildSnippet({
+  lang: 'bash',
+  code: `# 1. On Central Server: Create an enrollment key
+rwarden keys create edge-gateway-01
+
+# 2. On Remote Server: Register once with the central dashboard
+rwarden register --url http://198.51.100.10:7890 --key rw_sec_8f9a2b4c1e0d...
+
+# 3. On Remote Server: Stream encrypted logs (reads ~/.routewarden/agent.json)
+rwarden push`,
+})
+
+const remoteSnippets = computed(() => ({
+  cli: [
+    { filename: 'Remote Streaming', lang: 'bash', code: remote_cmd.cleanCode, html: remote_cmd.html, hasDiff: false },
+  ],
+}))
 </script>
 
 # RouteWarden CLI (`rwarden`)
@@ -164,6 +183,8 @@ It enables security and platform teams to evaluate path rules offline, validate 
   Launch isolated, pre-configured Traefik, Caddy, or NGINX containers in Docker to verify your rules and response modes live against automated attack test suites.
 - **Real-Time Security Dashboard (`dashboard`)**:
   Turnkey, ultra-lightweight real-time security dashboard powered by GoAccess (~15MB RAM). Auto-discovers containers labeled `routewarden=true`, multiplexes logs live, and serves a streaming web UI at `http://localhost:7890`.
+- **Distributed Remote Log Shipping (`push`, `keys`, `register`)**:
+  CrowdSec-style distributed log shipping with end-to-end asymmetric encryption (X25519 ECDH + AES-256-GCM), 2,000-event in-memory ring buffers, zero edge disk writes, and central dashboard ingestion.
 - **Official JSON Schema Export (`schema`)**:
   Export official JSON Schemas for instant IDE autocomplete (VS Code, JetBrains, Neovim) and CI/CD automated linting.
 
@@ -203,6 +224,14 @@ Start the live GoAccess dashboard with automated gateway container log discovery
 
 Open `http://localhost:7890` to observe live blocked probes, attack analytics, and threat intelligence in GoAccess.
 
+### 5. Stream Logs from Remote Edge Nodes
+
+Connect distributed reverse proxies and servers to your central dashboard with asymmetric end-to-end encryption:
+
+<CodeViewer :snippets="remoteSnippets" />
+
+The central dashboard will automatically display remote agents in its live status ribbon with real-time event counters and health pings.
+
 
 ---
 
@@ -211,7 +240,9 @@ Open `http://localhost:7890` to observe live blocked probes, attack analytics, a
 | Section | Description |
 |:---|:---|
 | [**Installation**](/cli/installation) | Install script, pre-built binary archives, Docker container, and source build |
-| [**Commands Reference**](/cli/commands) | Complete CLI syntax and options for `test`, `validate`, `schema`, `generate`, and `sandbox` |
+| [**Commands Reference**](/cli/commands) | Complete CLI syntax and options for `test`, `validate`, `schema`, `generate`, `sandbox`, `dashboard`, `keys`, `register`, and `push` |
 | [**Security Dashboard**](/cli/dashboard) | Live event streaming, Docker discovery, analytics, IP threat scoring, and REST API |
+| [**Distributed Remote Streaming**](/cli/dashboard/remote-streaming) | Multi-node log shipping with X25519 asymmetric encryption and in-memory ring buffer |
 | [**JSON Schema & CI/CD**](/cli/schema) | IDE integration (VS Code, JetBrains, Neovim), `routewarden.json` workflows, and CI/CD pipelines |
 | [**Changelog & Releases**](/cli/changelog) | Release notes and version history for `rwarden` |
+

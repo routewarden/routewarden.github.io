@@ -420,6 +420,76 @@ const manSnippets = computed(() => ({
     { filename: 'rwarden man', lang: 'bash', code: man_cmd.cleanCode, html: man_cmd.html, hasDiff: false },
   ],
 }))
+
+// ─── 15. Keys Command ────────────────────────────────────────────────────────
+const keys_cmd = buildSnippet({
+  lang: 'bash',
+  code: `# Generate a new remote agent authentication key
+rwarden keys create edge-node-01
+
+# List all registered remote agent keys and their status
+rwarden keys list
+
+# Revoke an agent key by name or ID
+rwarden keys revoke edge-node-01
+rwarden keys revoke agent_8f9a2b4c1e0d3f7a
+
+# Specify a custom dashboard storage directory
+rwarden keys list --dir /data/routewarden`,
+})
+
+const keysSnippets = computed(() => ({
+  cli: [
+    { filename: 'rwarden keys', lang: 'bash', code: keys_cmd.cleanCode, html: keys_cmd.html, hasDiff: false },
+  ],
+}))
+
+// ─── 16. Register Command ────────────────────────────────────────────────────
+const register_cmd = buildSnippet({
+  lang: 'bash',
+  code: `# One-time registration with RouteWarden Central Dashboard
+rwarden register --url http://198.51.100.10:7890 --key rw_sec_8f9a2b4c1e0d3f7a...
+
+# Register with flag aliases (-u and -k)
+rwarden register -u http://dashboard.internal:7890 -k rw_sec_8f9a...
+
+# Store configuration in a custom file
+rwarden register --url http://dashboard.internal:7890 --key rw_sec_... --config /etc/routewarden/agent.json`,
+})
+
+const registerSnippets = computed(() => ({
+  cli: [
+    { filename: 'rwarden register', lang: 'bash', code: register_cmd.cleanCode, html: register_cmd.html, hasDiff: false },
+  ],
+}))
+
+// ─── 17. Push Command ────────────────────────────────────────────────────────
+const push_cmd = buildSnippet({
+  lang: 'bash',
+  code: `# Zero-flag push: reads ~/.routewarden/agent.json and auto-discovers containers
+rwarden push
+
+# Auto-discover and stream all containers with label 'routewarden=true'
+rwarden push --docker
+
+# Monitor and push a specific log file
+rwarden push --file /var/log/nginx/access.log
+
+# Stream logs from a specific Docker container
+rwarden push --container traefik
+
+# Push directly with URL and key flags (skipping registration)
+rwarden push --url http://198.51.100.10:7890 --key rw_sec_... --docker
+
+# Tune in-memory batching buffer and flush interval
+rwarden push --batch-size 100 --flush-interval 2s`,
+})
+
+const pushSnippets = computed(() => ({
+  cli: [
+    { filename: 'rwarden push', lang: 'bash', code: push_cmd.cleanCode, html: push_cmd.html, hasDiff: false },
+  ],
+}))
 </script>
 
 # Commands Reference
@@ -653,4 +723,66 @@ Generate autocompletion scripts for subcommands, flags, and targets:
 Output the standard system manual page formatted in roff/troff:
 
 <CodeViewer :snippets="manSnippets" />
+
+---
+
+## 15. Manage Remote Agent API Keys (`keys`)
+
+Manage distributed enrollment keys for remote log shippers. When running a central RouteWarden security dashboard, use `rwarden keys` to create and revoke credentials:
+
+<CodeViewer :snippets="keysSnippets" />
+
+### Subcommands
+
+| Subcommand | Aliases | Description |
+|:---|:---|:---|
+| `create <name>` | `new`, `add` | Generate a new remote agent authentication token (`rw_sec_...`) |
+| `list` | `ls` | List all registered agent keys, token prefixes, status, and last seen |
+| `revoke <id>` | `rm`, `delete` | Revoke access for a specific agent by ID or name |
+
+### Flags
+
+| Flag | Type | Default | Description |
+|:---|:---|:---|:---|
+| `--dir` | string | `~/.routewarden/dashboard` | Dashboard storage directory holding `server.key` and `api_keys.json` |
+
+---
+
+## 16. Remote Agent Enrollment (`register`)
+
+Enroll a remote node with a central RouteWarden dashboard. This one-time handshake validates the agent token, downloads the central server's X25519 public key, and saves configuration to `~/.routewarden/agent.json`:
+
+<CodeViewer :snippets="registerSnippets" />
+
+### Flags
+
+| Flag | Shorthand | Type | Required | Description |
+|:---|:---|:---|:---|:---|
+| `--url` | `-u` | string | **Yes** | RouteWarden Central Dashboard URL (e.g. `http://dashboard.internal:7890`) |
+| `--key` | `-k` | string | **Yes** | Remote agent authentication key (`rw_sec_...`) |
+| `--config` | — | string | No | Custom path to store agent configuration (default: `~/.routewarden/agent.json`) |
+
+---
+
+## 17. Distributed Log Shipper (`push`)
+
+Stream live security events and gateway access logs from remote edge nodes, cloud servers, or local containers to the central RouteWarden dashboard with end-to-end asymmetric encryption (X25519 ECDH + AES-256-GCM):
+
+<CodeViewer :snippets="pushSnippets" />
+
+### Flags & Options
+
+| Flag | Shorthand | Type | Default | Description |
+|:---|:---|:---|:---|:---|
+| `--docker` | — | bool | `false` | Auto-discover and tail Docker containers with label `routewarden=true` |
+| `--container` | `-c` | string | `""` | Tail a specific Docker container by name or ID |
+| `--file` | `-f` | string | `""` | Tail and ship events from a specific log file |
+| `--label` | `-l` | string | `"routewarden=true"` | Custom Docker label filter |
+| `--tail` | — | string | `"50"` | Initial lines to tail from Docker container(s) |
+| `--batch-size` | — | int | `50` | Maximum events to buffer in memory before flushing |
+| `--flush-interval` | — | duration | `1s` | Maximum duration before flushing partial buffer |
+| `--url` | `-u` | string | `""` | Override central dashboard URL from registered config |
+| `--key` | `-k` | string | `""` | Override agent authentication key from registered config |
+| `--config` | — | string | `~/.routewarden/agent.json` | Custom path to agent configuration file |
+
 
