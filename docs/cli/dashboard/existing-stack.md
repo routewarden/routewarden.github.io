@@ -1,6 +1,6 @@
 ---
 title: Reusing an Existing Logging Infrastructure — RouteWarden Dashboard
-description: How to pipe RouteWarden security analytics into your existing GoAccess instance, syslog forwarder, or monitoring pipeline without deploying redundant containers.
+description: How to pipe RouteWarden security analytics into your existing log forwarder, SIEM, or monitoring pipeline without deploying redundant containers.
 ---
 
 <script setup>
@@ -10,16 +10,11 @@ import { buildSnippet } from '../../.vitepress/theme/composables/useCodeSnippet'
 // ─── Reusing an Existing Stack Snippets ─────────────────────────────────────
 const existing_pipe = buildSnippet({
   lang: 'bash',
-  code: `# 1. Stream raw Combined logs from auto-discovered containers into local GoAccess
-rwarden monitor --raw | goaccess --log-format=COMBINED -
+  code: `# 1. Stream raw Combined logs from auto-discovered containers into stdout or jq
+rwarden monitor --raw | jq .
 
-# 2. Pipe into existing GoAccess with real-time HTML report
-rwarden monitor --raw | goaccess \\
-  --log-format=COMBINED \\
-  --real-time-html \\
-  --port=7890 \\
-  --addr=0.0.0.0 \\
-  -o /var/www/html/security.html -`,
+# 2. Forward stream to an existing file or log pipeline
+rwarden monitor --raw >> /var/log/central-security.log`,
 })
 
 const existing_file = buildSnippet({
@@ -30,7 +25,7 @@ rwarden dashboard --file /var/log/nginx/access.log`,
 
 const existingSnippets = computed(() => ({
   cli: [
-    { filename: 'Piping to GoAccess', lang: 'bash', code: existing_pipe.cleanCode, html: existing_pipe.html, hasDiff: false },
+    { filename: 'Piping to External Tools', lang: 'bash', code: existing_pipe.cleanCode, html: existing_pipe.html, hasDiff: false },
     { filename: 'Tailing Existing Log File', lang: 'bash', code: existing_file.cleanCode, html: existing_file.html, hasDiff: false },
   ],
 }))
@@ -38,7 +33,7 @@ const existingSnippets = computed(() => ({
 
 # Reusing an Existing Logging Infrastructure
 
-If you already have a log forwarder, web server, or GoAccess instance running on your server, you **do not need** to deploy duplicate monitoring services.
+If you already have a log forwarder, web server, or SIEM pipeline running on your server, you **do not need** to deploy duplicate monitoring services.
 
 ---
 
@@ -55,5 +50,5 @@ You can pipe this stream directly into your existing tools:
 ## 2. Advantages of the Pipeline Model
 
 - **No New Daemons**: Multiplexes existing Docker container logs without launching new background containers.
-- **Zero Disk Footprint**: Pipes directly in memory through Unix pipes into GoAccess.
+- **Zero Disk Footprint**: Pipes directly in memory through Unix pipes into external analyzers.
 - **Instant Triage**: You can stop and restart the stream anytime with `Ctrl+C`.

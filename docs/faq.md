@@ -287,11 +287,11 @@ const trustedProxiesSnippets = computed(() => ({
 // ─── Dashboard Management Snippet ───────────────────────────────────────────
 const dash_start = buildSnippet({
   lang: 'bash',
-  code: `# Launch RouteWarden Security Dashboard (GoAccess)
+  code: `# Launch RouteWarden Security Dashboard
 rwarden dashboard
 
-# Launch on custom port
-rwarden dashboard up --port 7890`,
+# Launch with password protection & custom host/port
+rwarden dashboard up --host 127.0.0.1 --port 7890 --auth admin:supersecret`,
 })
 
 const dashboardStartSnippets = computed(() => ({
@@ -494,7 +494,7 @@ Everything you need to know about RouteWarden architecture, threat mitigation, p
   </div>
   <div class="attack-card">
     <div style="font-size: 15px; font-weight: 700; margin-bottom: 8px;">📊 <a href="#observability-dashboard">Security Dashboard & CLI</a></div>
-    <p>Real-time GoAccess dashboard, GeoIP country resolution, and rwarden linting.</p>
+    <p>Real-time SOC dashboard, GeoIP country resolution, and rwarden linting.</p>
   </div>
 </div>
 
@@ -708,10 +708,11 @@ Because bots and brute-force tools (like `hydra`, `nmap`, or SSH scanners) alloc
 
 ### How does the RouteWarden Security Dashboard work?
 
-RouteWarden provides a turnkey real-time security dashboard powered by **GoAccess** and `rwarden monitor`:
-1. **Container Auto-Discovery**: Automatically queries `/var/run/docker.sock` for running containers labeled with `routewarden=true` and multiplexes their logs concurrently.
-2. **In-Memory Analytics**: High-performance streaming parser tracking 403 blocks, 429 tarpits, unique IPs, and top target attack paths consuming only **~15MB RAM**.
-3. **Real-Time Web UI**: Built-in HTTP and WebSocket server accessible at `http://localhost:7890`.
+RouteWarden provides a turnkey real-time SOC security dashboard powered by RouteWarden's embedded Go server and SQLite persistence:
+1. **Container Auto-Discovery & Filtering**: Automatically queries `/var/run/docker.sock` for running containers labeled with `routewarden=true`, multiplexes their logs concurrently, and allows filtering the SOC stream by individual nodes or containers.
+2. **In-Memory Analytics & SQLite Store**: High-performance streaming parser tracking 403 blocks, 429 tarpits, unique IPs, and top target attack paths consuming only **~8MB RAM**, backed by persistent SQLite storage with server-side pagination.
+3. **Password Protection & Access Control**: Protect the dashboard UI and sensitive log streams with optional HTTP Basic Auth (`--auth admin:secret`).
+4. **Real-Time SOC Feed**: Built-in HTTP and SSE server accessible at `http://localhost:7890` featuring live pause/resume, keyboard navigation (<kbd>[</kbd> / <kbd>]</kbd>), and real-time threat charts.
 
 Start the dashboard with a single command:
 

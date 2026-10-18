@@ -1,6 +1,6 @@
 ---
 title: Standalone Docker Compose Deployment — RouteWarden Dashboard
-description: Deploy RouteWarden's GoAccess real-time security dashboard in production using standalone Docker Compose.
+description: Deploy RouteWarden's native SOC security dashboard in production using standalone Docker Compose.
 ---
 
 <script setup>
@@ -14,11 +14,11 @@ const export_cmd = buildSnippet({
 rwarden dashboard export ./dashboard
 cd ./dashboard
 
-# 2. Option A: Launch dashboard reading an existing log file
+# 2. Launch native SOC dashboard with Docker Compose
 docker compose up -d
 
-# 2. Option B: Launch dashboard AND auto-fetch logs from Docker containers
-docker compose --profile monitor up -d`,
+# 3. View live dashboard in browser
+# 👉 http://localhost:7890`,
 })
 
 const export_cmd_docker = buildSnippet({
@@ -33,12 +33,11 @@ docker run --rm \\
 # The exported directory contains:
 #  dashboard/
 #  ├── docker-compose.yml
-#  ├── goaccess.conf
 #  └── README.md
 
-# Bring the dashboard up with Docker Compose (auto-fetching Docker logs)
+# Bring the dashboard up with Docker Compose
 cd dashboard
-docker compose --profile monitor up -d
+docker compose up -d
 
 # Check live logs
 docker compose logs -f
@@ -58,49 +57,24 @@ const exportSnippets = computed(() => ({
 const compose_full = buildSnippet({
   lang: 'yaml',
   code: `services:
-  goaccess:
-    image: allinurl/goaccess:latest
+  dashboard:
+    image: ghcr.io/routewarden/cli:latest
     container_name: routewarden-dashboard
     restart: unless-stopped
+    command: dashboard --port 7890 --no-open
     ports:
       - "\${PORT:-7890}:7890"
+    volumes:
+      # Mount Docker socket for automatic reverse proxy log discovery
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # Persist SQLite telemetry database across container restarts
+      - routewarden-data:/root/.routewarden/dashboard
     environment:
       - TZ=UTC
-    volumes:
-      - ./goaccess.conf:/etc/goaccess/goaccess.conf:ro
-      - ./data:/srv/data
-      - ./report:/srv/report
-    entrypoint:
-      - /bin/sh
-      - -c
-      - |
-        mkdir -p /srv/data
-        touch /srv/data/access.log
-        exec goaccess /srv/data/access.log \\
-          --config-file=/etc/goaccess/goaccess.conf \\
-          --real-time-html \\
-          --port=7890 \\
-          --addr=0.0.0.0 \\
-          -o /srv/report/index.html
 
-  # Optional companion service: automatically discovers and tails reverse proxy containers labeled 'routewarden=true'
-  # Usage: docker compose --profile monitor up -d
-  monitor:
-    image: ghcr.io/routewarden/cli:latest
-    container_name: routewarden-monitor
-    restart: unless-stopped
-    profiles:
-      - monitor
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./data:/data
-    entrypoint:
-      - /bin/sh
-      - -c
-      - |
-        mkdir -p /data
-        touch /data/access.log
-        exec rwarden monitor --raw --wait --out=/data/access.log`,
+volumes:
+  routewarden-data:
+    name: routewarden-dashboard-data`,
 })
 
 const composeSnippets = computed(() => ({
@@ -109,38 +83,49 @@ const composeSnippets = computed(() => ({
   ],
 }))
 
-// ─── 3. GoAccess Config Snippet ─────────────────────────────────────────────
-const conf_snippet = buildSnippet({
-  lang: 'properties',
-  code: `# RouteWarden — GoAccess Security Dashboard Configuration
-log-format COMBINED
-date-format %d/%b/%Y
-time-format %H:%M:%S
+// ─── 3. Multi-Node Compose Snippet ──────────────────────────────────────────
+const compose_multi = buildSnippet({
+  lang: 'yaml',
+  code: `services:
+  # Central SOC Dashboard
+  dashboard:
+    image: ghcr.io/routewarden/cli:latest
+    container_name: routewarden-dashboard
+    restart: unless-stopped
+    command: dashboard --port 7890 --no-open
+    ports:
+      - "\${PORT:-7890}:7890"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - routewarden-data:/root/.routewarden/dashboard
+    environment:
+      - TZ=UTC
 
-real-time-html true
-port 7890
-addr 0.0.0.0
-ws-url ws://localhost:7890/ws
+  # Edge Node / Remote Proxy Streamer (Optional Companion)
+  streamer:
+    image: ghcr.io/routewarden/cli:latest
+    container_name: routewarden-streamer
+    restart: unless-stopped
+    command: monitor --raw --stream-to http://dashboard:7890 --agent-id edge-us-east
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    depends_on:
+      - dashboard
 
-agent-list false
-with-output-resolver true
-keep-last 10000
-
-html-report-title RouteWarden — Threat & Security Intelligence
-html-refresh 2
-html-prefs {"theme":"darkGray","perPage":25,"autoHideTables":true}`,
+volumes:
+  routewarden-data:`,
 })
 
-const confSnippets = computed(() => ({
+const multiSnippets = computed(() => ({
   cli: [
-    { filename: 'goaccess.conf', lang: 'properties', code: conf_snippet.cleanCode, html: conf_snippet.html, hasDiff: false },
+    { filename: 'docker-compose.yml', lang: 'yaml', code: compose_multi.cleanCode, html: compose_multi.html, hasDiff: false },
   ],
 }))
 </script>
 
 # Standalone Docker Compose Deployment
 
-RouteWarden allows you to export and deploy the GoAccess security dashboard as a standalone **Docker Compose** service without needing the `rwarden` binary installed on your production servers.
+RouteWarden allows you to export and deploy the native real-time security dashboard as a standalone **Docker Compose** service without needing the `rwarden` binary installed on your production servers.
 
 ---
 
@@ -154,23 +139,36 @@ Export the embedded configuration files to any target directory:
 
 ## 2. Docker Compose Configuration
 
-The exported `docker-compose.yml` runs the official `allinurl/goaccess` image consuming **~15MB of RAM**:
+The exported `docker-compose.yml` runs RouteWarden's native SOC dashboard consuming **~8MB of RAM** with zero external dependencies:
 
 <CodeViewer :snippets="composeSnippets" />
 
 ---
 
-## 3. GoAccess Configuration
+## 3. Distributed / Multi-Container Setup
 
-The `goaccess.conf` file pre-configures real-time WebSocket streaming, dark mode theme, and Apache/Nginx Combined log parsing:
+For environments where proxy ingress logs originate across multiple microservice containers or edge instances, stream telemetry directly into the central dashboard:
 
-<CodeViewer :snippets="confSnippets" />
+<CodeViewer :snippets="multiSnippets" />
 
 ---
 
-## 4. Environment Variables
+## 4. Telemetry Persistence & Storage
 
-| Variable | Default | Description |
+The native dashboard automatically initializes an embedded **SQLite** database (`events.db`) with Write-Ahead Logging (WAL) enabled:
+
+- **Storage Location**: Inside the container at `/root/.routewarden/dashboard/events.db` (persisted via the `routewarden-data` Docker volume).
+- **Zero-Latency Ingestion**: Asynchronous batch writes flushed every 200ms or 100 events.
+- **30-Day Auto-Pruning**: Built-in pruning engine automatically removes events older than 30 days, capping disk usage to ~10–30 MB.
+- **Restart Survival**: On container restart, all historical metrics, threat classifications, and active attacker hotspots are preserved.
+
+---
+
+## 5. Environment Variables & Options
+
+| Variable / Flag | Default | Description |
 |:---|:---|:---|
-| `PORT` | `7890` | Port exposed on the host for the web UI and WebSocket |
+| `PORT` / `--port` | `7890` | Host port exposed for web UI, SSE streams, and REST API |
 | `TZ` | `UTC` | Timezone for log timestamps and reporting |
+| `GEOIP_DB` / `--geoip-db` | `Auto` | Optional path to custom MaxMind `GeoLite2-City.mmdb` or `GeoLite2-Country.mmdb` |
+| `--no-open` | `false` | Disable automatic local browser launch (always set in Docker) |

@@ -251,23 +251,35 @@ const versionSnippets = computed(() => ({
 // ─── 8. Dashboard Command ───────────────────────────────────────────────────
 const dashboard_cmd = buildSnippet({
   lang: 'bash',
-  code: `# Launch GoAccess real-time security dashboard (opens http://localhost:7890)
+  code: `# Launch real-time SOC security dashboard (opens http://localhost:7890)
 rwarden dashboard
 rwarden dashboard up
 
-# Launch on a custom port without auto-opening browser
-rwarden dashboard up --port 8080 --no-open
+# Launch in background (detached daemon mode)
+rwarden dashboard -d
+# or
+rwarden dashboard up --detach
+
+# Launch with password protection (HTTP Basic Auth)
+rwarden dashboard up --auth admin:supersecret
+
+# Launch on a custom host/port without auto-opening browser
+rwarden dashboard up --host 127.0.0.1 --port 8080 --no-open
 
 # Monitor a specific container by name
 rwarden dashboard --container traefik
 
 # Check status of running dashboard
 rwarden dashboard status
+# or
+rwarden status dashboard
 
-# Stop background dashboard containers
-rwarden dashboard down
+# Stop background dashboard daemon
+rwarden dashboard stop
+# or
+rwarden stop dashboard
 
-# Export standalone Docker Compose and GoAccess config files to disk
+# Export standalone Docker Compose and configuration files to disk
 rwarden dashboard export ./dashboard`,
 })
 
@@ -346,8 +358,8 @@ rwarden monitor --container traefik
 # Filter by custom Docker label
 rwarden monitor --label "env=production"
 
-# Pipe into GoAccess for a lightweight, real-time HTML dashboard
-rwarden monitor --raw | goaccess -o /var/www/html/security.html --real-time-html --port=7890 -
+# Stream raw unformatted logs for external processing or jq
+rwarden monitor --raw | jq .
 
 # Tail an NGINX or Apache access log file
 rwarden monitor --file /var/log/nginx/access.log
@@ -469,6 +481,21 @@ const push_cmd = buildSnippet({
   code: `# Zero-flag push: reads ~/.routewarden/agent.json and auto-discovers containers
 rwarden push
 
+# Run in background (detached daemon mode)
+rwarden push -d
+# or
+rwarden push --detach
+
+# Check status of running background shipper
+rwarden push status
+# or
+rwarden status push
+
+# Stop background shipper daemon
+rwarden push stop
+# or
+rwarden stop push
+
 # Auto-discover and stream all containers with label 'routewarden=true'
 rwarden push --docker
 
@@ -492,6 +519,30 @@ rwarden push --batch-size 100 --flush-interval 2s`,
 const pushSnippets = computed(() => ({
   cli: [
     { filename: 'rwarden push', lang: 'bash', code: push_cmd.cleanCode, html: push_cmd.html, hasDiff: false },
+  ],
+}))
+
+// ─── 18. Daemon Management (status, stop) ────────────────────────────────────
+const daemon_cmd = buildSnippet({
+  lang: 'bash',
+  code: `# Check status of all running daemons (dashboard and shipper)
+rwarden status
+
+# Check status of a specific daemon
+rwarden status dashboard
+rwarden status push
+
+# Stop all running background daemons
+rwarden stop
+
+# Stop a specific background daemon
+rwarden stop dashboard
+rwarden stop push`,
+})
+
+const daemonSnippets = computed(() => ({
+  cli: [
+    { filename: 'rwarden status / stop', lang: 'bash', code: daemon_cmd.cleanCode, html: daemon_cmd.html, hasDiff: false },
   ],
 }))
 </script>
@@ -599,7 +650,7 @@ Check installed binary version:
 
 ## 8. Security Dashboard (`dashboard`)
 
-Launch and manage an ultra-lightweight, real-time security dashboard powered by [GoAccess](https://goaccess.io/) and `rwarden monitor`. It replaces heavy multi-container monitoring stacks with an in-memory dashboard consuming only **~15MB of RAM**:
+Launch and manage an ultra-lightweight, real-time security dashboard powered by RouteWarden's embedded SOC engine and SQLite persistence. It replaces heavy multi-container monitoring stacks with an in-memory dashboard consuming only **~8MB of RAM**:
 
 <CodeViewer :snippets="dashboardSnippets" />
 
@@ -607,15 +658,20 @@ Launch and manage an ultra-lightweight, real-time security dashboard powered by 
 
 | Subcommand / Flag | Type | Default | Description |
 |:---|:---|:---|:---|
-| `up`, `start` | subcommand | — | Spin up GoAccess security dashboard (default) |
-| `down`, `stop` | subcommand | — | Stop running dashboard containers |
-| `status`, `ps` | subcommand | — | Check container health and service URLs |
-| `export [dir]` | subcommand | `./dashboard` | Export compose and GoAccess assets to disk |
-| `--port` | int | `7890` | Port for GoAccess dashboard UI and WebSocket |
+| `up`, `start` | subcommand | — | Spin up real-time SOC security dashboard (default) |
+| `down`, `stop` | subcommand | — | Stop running background dashboard daemon |
+| `status`, `ps` | subcommand | — | Check running status, PID, and dashboard URL |
+| `export [dir]` | subcommand | `./dashboard` | Export compose and configuration assets to disk |
+| `-d`, `--detach` | bool | `false` | Run dashboard in background (detached) daemon mode |
+| `-a`, `--auth` | string | `""` | Require HTTP Basic Auth (`user:pass`) for dashboard UI and APIs |
+| `--user` | string | `""` | Dashboard authentication username |
+| `--password` | string | `""` | Dashboard authentication password |
+| `--host` | string | `""` | Host interface to bind server (`127.0.0.1`, `0.0.0.0`) |
+| `--port` | int | `7890` | Port for SOC dashboard UI and SSE stream |
 | `-f`, `--file` | string | `""` | Log file to monitor (default: auto-discovered Docker containers) |
 | `-c`, `--container` | string | `""` | Tail a specific Docker container by name or ID |
 | `-l`, `--label` | string | `"routewarden=true"` | Docker label to filter containers |
-| `--dir` | string | `~/.routewarden/dashboard` | Working directory storing dashboard files |
+| `--dir` | string | `~/.routewarden/dashboard` | Working directory storing SQLite `events.db` and keys |
 | `--no-open` | bool | `false` | Do not launch system default browser |
 
 ---
@@ -659,11 +715,8 @@ Tail, multiplex, and colorize live reverse proxy security events directly in the
 
 When invoked without `--file` or a pipe, `rwarden monitor` automatically discovers running Docker containers tagged with `routewarden=true` (or `routewarden.logs=true`) and streams them simultaneously with container attribution tags (`[traefik]`, `[nginx]`, etc.).
 
-::: tip Lightweight Web UI with GoAccess
-For live terminal visualization or real-time web graphs, run `rwarden monitor --raw` and pipe cleanly into [GoAccess](https://goaccess.io/) for a live web dashboard:
-```bash
-rwarden monitor --raw | goaccess -o /var/www/html/security.html --real-time-html --port=7890 -
-```
+::: tip Turnkey Live Web Dashboard
+To view live reverse proxy telemetry with a real-time web UI, world map, and threat intelligence, run `rwarden dashboard` directly.
 :::
 
 <CodeViewer :snippets="monitorSnippets" />
@@ -677,7 +730,7 @@ rwarden monitor --raw | goaccess -o /var/www/html/security.html --real-time-html
 | `-c`, `--container` | string | `""` | Tail a specific Docker container by name or ID |
 | `-l`, `--label` | string | `""` | Docker label to filter containers (default: `routewarden=true`) |
 | `--tail` | string | `"50"` | Initial lines to tail from Docker container(s) |
-| `--raw` | bool | `false` | Output raw unformatted log lines (ideal for piping into GoAccess or jq) |
+| `--raw` | bool | `false` | Output raw unformatted log lines (ideal for piping into analyzers or jq) |
 | `--verdict` | string | `""` | Filter events by verdict (`BLOCK`, `ALLOW`, `TARPIT`) |
 | `--ip` | string | `""` | Filter events by client IP substring |
 | `--path` | string | `""` | Filter events by request path substring |
@@ -774,11 +827,14 @@ Stream live security events and gateway access logs from remote edge nodes, clou
 
 <CodeViewer :snippets="pushSnippets" />
 
-### Flags & Options
+### Subcommands & Flags
 
-| Flag | Shorthand | Type | Default | Description |
+| Command / Flag | Shorthand | Type | Default | Description |
 |:---|:---|:---|:---|:---|
-| `--docker` | `-d` | bool | `false` | Auto-discover and tail Docker containers. Can run concurrently with `--file` and `--container` |
+| `status`, `ps` | — | subcommand | — | Check running status, PID, and target URL of background shipper |
+| `stop`, `down` | — | subcommand | — | Gracefully stop running background shipper daemon |
+| `--detach` | `-d` | bool | `false` | Run shipper in background (detached) daemon mode |
+| `--docker` | — | bool | `false` | Auto-discover and tail Docker containers. Can run concurrently with `--file` and `--container` |
 | `--container` | `-c` | string | `""` | Tail specific Docker container(s) by name or ID (repeatable or comma-separated) |
 | `--file` | `-f` | string | `""` | Tail and ship events from log file(s) (repeatable, comma-separated, or glob pattern `*.log`) |
 | `--label` | `-l` | string | `"routewarden=true"` | Custom Docker label filter |
@@ -788,5 +844,21 @@ Stream live security events and gateway access logs from remote edge nodes, clou
 | `--url` | `-u` | string | `""` | Override central dashboard URL from registered config |
 | `--key` | `-k` | string | `""` | Override agent authentication key from registered config |
 | `--config` | — | string | `~/.routewarden/agent.json` | Custom path to agent configuration file |
+
+---
+
+## 18. Daemon Process Management (`status`, `stop`)
+
+Manage background daemons spawned with `--detach` (`-d`). RouteWarden manages daemon state via PID files in `~/.routewarden/*.pid` and redirects detached logs to `~/.routewarden/*.log`:
+
+<CodeViewer :snippets="daemonSnippets" />
+
+### Daemon Subsystems & Files
+
+| Subsystem | PID File | Detached Log File | Description |
+|:---|:---|:---|:---|
+| `dashboard` | `~/.routewarden/dashboard.pid` | `~/.routewarden/dashboard.log` | Central SOC Security Dashboard web server and SSE stream |
+| `push` | `~/.routewarden/push.pid` | `~/.routewarden/push.log` | Background remote log shipper daemon |
+
 
 

@@ -2,7 +2,7 @@
 
 All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and the CLI adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v5.0.0] - 2026-10-17 (Latest)
+## [v5.0.0] - 2026-10-18 (Latest)
 
 ### Added
 - **Distributed Remote Log Shipping & Enrollment (`rwarden push`, `keys`, `register`)**:
@@ -16,17 +16,36 @@ All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The 
   - Central server maintains a master X25519 keypair (`server.key` / `server.pub`).
   - Remote agents derive ephemeral shared secrets via X25519 ECDH with SHA-256 HKDF and encrypt log batches with AES-256-GCM.
   - Intermediate proxies or network observers cannot inspect or tamper with log payloads in transit.
+- **Native Detached Background Daemon Execution (`--detach` / `-d`, `status`, `stop`)**:
+  - Added native background process detachment for both `rwarden dashboard` and `rwarden push` via `--detach` (or `-d`).
+  - Implemented cross-platform PID tracking (`~/.routewarden/*.pid`) and persistent background log redirection (`~/.routewarden/*.log`).
+  - Added global and subsystem-scoped management commands: `rwarden status [dashboard|push]` and `rwarden stop [dashboard|push]`.
+- **Standalone Micro-Binaries (`cmd/shipper` & `cmd/dashboard`)**:
+  - **`rwarden-shipper` (`cmd/shipper`)**: Ultra-lean micro-binary (**~6.2 MB**) stripped of SQLite, embedded Web UI assets, HTML/JS/CSS, and GeoIP code. Dedicated for edge nodes and low-RAM VPS instances.
+  - **`rwarden-dashboard` (`cmd/dashboard`)**: Standalone SOC dashboard server binary (**~11 MB**) dedicated to web serving, SQLite persistence, and SSE event streaming.
+  - **Monolithic Host CLI (`rwarden`)**: Unified full toolkit maintained at ~12 MB with zero external runtime dependencies.
+- **Dedicated Container Distribution Images (`cli`, `shipper`, `dashboard`)**:
+  - Published three targeted images to GitHub Container Registry (`ghcr.io/routewarden`):
+    - **`ghcr.io/routewarden/cli:latest`**: Unified full toolkit (~12 MB binary) with Docker CLI for container tailing.
+    - **`ghcr.io/routewarden/shipper:latest`**: Ultra-lean micro-image (**~6.2 MB binary**) with zero SQLite and zero UI assets, supporting Docker socket tailing, multiple access log files, and hybrid ingestion.
+    - **`ghcr.io/routewarden/dashboard:latest`**: Standalone SOC security dashboard image (~11 MB binary) serving port `7890`.
+- **Concurrent Multi-Source & Multiple File Ingestion**:
+  - Added support for concurrent multiple log file tailing via repeatable `-f`, comma-separated paths, glob patterns (`*.log`), and positional arguments alongside Docker container discovery.
 - **Real-Time Central Dashboard Status Ribbon & Sources API**:
-  - Injected real-time status ribbon into GoAccess HTML interface displaying both local containers and remote nodes with dynamic online/idle/offline health pulses.
+  - Injected real-time status ribbon into SOC dashboard interface displaying both local containers and remote nodes with dynamic online/idle/offline health pulses.
   - Extended `/api/sources` to return live telemetry and event counters for all connected remote agents.
   - Added automated log translation from Traefik JSON, Nginx text, Caddy JSON, and RouteWarden security verdicts into unified NCSA/Combined log format.
 - **Ultra-Lightweight Real-Time Security Dashboard (`rwarden dashboard`)**:
-  - Replaced the multi-container monitoring stack with an ultra-lightweight real-time security dashboard powered by [GoAccess](https://goaccess.io/) and `rwarden monitor`.
-  - Drastically reduced memory footprint from ~350MB+ down to **~15MB RAM**.
-  - Single-port embedded HTTP web server and WebSocket proxy serving live interactive analytics at `http://localhost:7890`.
+  - Replaced the multi-container monitoring stack with an ultra-lightweight real-time security dashboard powered by RouteWarden's embedded SOC engine and SQLite persistence.
+  - Drastically reduced memory footprint from ~350MB+ down to **~8MB RAM**.
+  - Single-port embedded HTTP web server and SSE stream serving live interactive analytics at `http://localhost:7890`.
   - Automatic Docker container discovery for `routewarden=true` / `routewarden.logs=true` via `/var/run/docker.sock`.
-  - Dual execution engine: automatically executes native host `goaccess` if installed, or falls back to containerized `allinurl/goaccess:latest`.
+  - Native execution engine: serves self-contained SOC dashboard and real-time SSE stream with zero external dependencies.
   - Added flexible flags: `--port` (default 7890), `--file` (monitor specific log file), `--container` (tail target container), `--label` (custom Docker discovery label), `--no-open`, and `--export`.
+- **Built-in Roff Man Page Generator (`rwarden man`)**:
+  - Expanded `man.go` generator to cover `keys`, `register`, `push`, `status`, and `stop` subcommands and flags.
+- **Shell Autocompletion Scripts (`rwarden completion`)**:
+  - Added completion for `-d` / `--detach`, `status`, `stop`, `dashboard_cmds`, and `push_cmds` across Bash, Zsh, Fish, and PowerShell.
 - **Comprehensive Unit & Integration Test Suites**:
   - Added zero-socket integration and unit tests covering cryptographic edge cases (`crypto_test.go`), keystore management (`keys_test.go`), ingestion endpoints (`ingest_test.go`), registration & flusher retries (`register_test.go`, `push_flusher_test.go`), and concurrent multi-agent streaming (`integration_test.go`).
 - **Native Linux Package Management via NFPM (`.deb`, `.rpm`, `.apk`)**:
@@ -43,6 +62,10 @@ All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The 
   - Added comprehensive uninstallation commands covering Homebrew, APT, RPM, APK, and standalone binaries.
 
 ### Changed
+- **Multi-Image CI/CD Workflows**:
+  - Updated GitHub Actions workflows (`ci.yml` and `release.yml`) to build, test, and publish `cli`, `shipper`, and `dashboard` container images.
+- **Synchronized Versioning Script (`scripts/update-version.sh`)**:
+  - Synchronizes versions across root `main.go`, `cmd/shipper/main.go`, and `cmd/dashboard/main.go`.
 - **Version Alignment & Installer Script Synchronization**:
   - Upgraded universal installer script (`install.sh`) fallback and default tag to `v5.0.0`.
   - Synced documentation version registry (`version.json`) and release download artifacts to `v5.0.0`.

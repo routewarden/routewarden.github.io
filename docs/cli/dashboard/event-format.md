@@ -30,7 +30,7 @@ rwarden monitor --verdict BLOCK
 # Filter by target path and client IP substring
 rwarden monitor --path "/.env" --ip "203.0.113."
 
-# Output raw lines for piping into GoAccess or jq
+# Output raw lines for piping into analyzers or jq
 rwarden monitor --raw | jq 'select(.verdict=="BLOCK")'`,
 })
 

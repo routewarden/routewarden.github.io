@@ -79,7 +79,7 @@ RouteWarden features a distributed agent model inspired by CrowdSec. Rather than
     │                                                                             │
     │  • Validates API Keys from ~/.routewarden/dashboard/api_keys.json           │
     │  • Decrypts payloads using master X25519 server private key                 │
-    │  • Appends events to GoAccess real-time engine & WebSocket stream           │
+    │  • Appends events to RouteWarden SOC engine & SSE stream                    │
     │  • Live Header Status Ribbon:                                               │
     │    🟢 [🐳 local-gateway] [🌐 edge-prod-01 (198.51.100.4)] [🌐 cloud-node]  │
     └─────────────────────────────────────────────────────────────────────────────┘
@@ -112,7 +112,7 @@ Remote agents buffer up to **2,000 security events** in memory. On low-cost edge
 `rwarden push` monitors Docker sockets for containers with the label `routewarden=true` or `routewarden.logs=true`. When new containers spin up or restart, `rwarden` attaches and streams their logs automatically. You can also tail standard log files (`--file /var/log/nginx/access.log`).
 
 ### 4. Live Multi-Agent Status Ribbon
-The central GoAccess dashboard automatically injects a real-time status ribbon into the HTML view. Connected remote agents appear with animated status pulses:
+The central SOC dashboard automatically displays a real-time status ribbon in the view. Connected remote agents appear with animated status pulses:
 - 🟢 **Online** (Pulsing green dot, active in the last 60 seconds)
 - 🟡 **Idle** (Amber dot, active between 1 and 5 minutes ago)
 - ⚪ **Offline** (Gray dot, no heartbeat received in >5 minutes)

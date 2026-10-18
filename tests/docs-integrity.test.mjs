@@ -241,19 +241,19 @@ test('documentation structure and integrity', async (t) => {
     )
   })
 
-  await t.test('cli goaccess.conf is synchronized and imported as single source of truth', () => {
-    const docsConf = path.join(docsDir, 'cli', 'dashboard', 'goaccess.conf')
-    assert.ok(fs.existsSync(docsConf), 'Expected docs/cli/dashboard/goaccess.conf to exist')
-    const confContent = fs.readFileSync(docsConf, 'utf8')
-    assert.ok(confContent.length > 0, 'goaccess.conf must not be empty')
-    assert.ok(confContent.includes('real-time-html true'), 'must include real-time-html directive')
-    assert.ok(confContent.includes('log-format COMBINED'), 'must include log-format directive')
+  await t.test('cli docker-compose.yml is synchronized and imported as single source of truth', () => {
+    const docsCompose = path.join(docsDir, 'cli', 'dashboard', 'docker-compose.yml')
+    assert.ok(fs.existsSync(docsCompose), 'Expected docs/cli/dashboard/docker-compose.yml to exist')
+    const composeContent = fs.readFileSync(docsCompose, 'utf8')
+    assert.ok(composeContent.length > 0, 'docker-compose.yml must not be empty')
+    assert.ok(composeContent.includes('ghcr.io/routewarden/cli'), 'must include routewarden cli image directive')
+    assert.ok(composeContent.includes('dashboard --port 7890'), 'must include dashboard command')
 
     // When running inside monorepo, verify it exactly matches canonical cli repo file
-    const canonicalCliConf = path.join(rootDir, '../cli/observability/goaccess.conf')
-    if (fs.existsSync(canonicalCliConf)) {
-      const canonicalContent = fs.readFileSync(canonicalCliConf, 'utf8')
-      assert.equal(confContent, canonicalContent, 'docs/cli/dashboard/goaccess.conf must match cli/observability/goaccess.conf byte-for-byte')
+    const canonicalCliCompose = path.join(rootDir, '../cli/observability/docker-compose.yml')
+    if (fs.existsSync(canonicalCliCompose)) {
+      const canonicalContent = fs.readFileSync(canonicalCliCompose, 'utf8')
+      assert.equal(composeContent, canonicalContent, 'docs/cli/dashboard/docker-compose.yml must match cli/observability/docker-compose.yml byte-for-byte')
     }
   })
 })

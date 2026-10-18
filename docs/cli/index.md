@@ -117,16 +117,16 @@ const validateSnippets = computed(() => ({
 // ─── 4. Launch Dashboard ────────────────────────────────────────────────────
 const dashboard_cmd = buildSnippet({
   lang: 'bash',
-  code: `# Launch real-time GoAccess dashboard (opens http://localhost:7890)
+  code: `# Launch real-time SOC security dashboard (opens http://localhost:7890)
 rwarden dashboard
 
-# Or export standalone GoAccess compose files
+# Or export standalone compose files
 rwarden dashboard export ./dashboard`,
 })
 
 const dashboard_docker = buildSnippet({
   lang: 'bash',
-  code: `# Export and launch GoAccess dashboard using container
+  code: `# Export and launch dashboard using container
 docker run --rm -v $(pwd):/work -w /work ghcr.io/routewarden/cli:latest dashboard export ./dashboard
 cd ./dashboard && docker compose up -d`,
 })
@@ -182,7 +182,7 @@ It enables security and platform teams to evaluate path rules offline, validate 
 - **Ephemeral Gateway Sandbox (`sandbox`)**:
   Launch isolated, pre-configured Traefik, Caddy, or NGINX containers in Docker to verify your rules and response modes live against automated attack test suites.
 - **Real-Time Security Dashboard (`dashboard`)**:
-  Turnkey, ultra-lightweight real-time security dashboard powered by GoAccess (~15MB RAM). Auto-discovers containers labeled `routewarden=true`, multiplexes logs live, and serves a streaming web UI at `http://localhost:7890`.
+  Turnkey, ultra-lightweight real-time security dashboard powered by RouteWarden's embedded SOC engine and SQLite persistence (~8MB RAM). Auto-discovers containers labeled `routewarden=true`, multiplexes logs live, and serves a streaming web UI at `http://localhost:7890`.
 - **Distributed Remote Log Shipping (`push`, `keys`, `register`)**:
   CrowdSec-style distributed log shipping with end-to-end asymmetric encryption (X25519 ECDH + AES-256-GCM), 2,000-event in-memory ring buffers, zero edge disk writes, and central dashboard ingestion.
 - **Official JSON Schema Export (`schema`)**:
@@ -218,11 +218,11 @@ Verify your policy before committing or deploying:
 
 ### 4. Launch the Security Dashboard
 
-Start the live GoAccess dashboard with automated gateway container log discovery:
+Start the live security dashboard with automated gateway container log discovery:
 
 <CodeViewer :snippets="dashboardSnippets" />
 
-Open `http://localhost:7890` to observe live blocked probes, attack analytics, and threat intelligence in GoAccess.
+Open `http://localhost:7890` to observe live blocked probes, attack analytics, and threat intelligence.
 
 ### 5. Stream Logs from Remote Edge Nodes
 

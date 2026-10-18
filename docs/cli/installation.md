@@ -133,19 +133,44 @@ const gatekeeperSnippets = computed(() => ({
   ],
 }))
 
-// ─── 4. Docker Image ────────────────────────────────────────────────────────
-const docker_validate = buildSnippet({
+// ─── 4. Docker Images ───────────────────────────────────────────────────────
+const docker_cli = buildSnippet({
   lang: 'bash',
-  code: `# Validate configuration file directly
+  code: `# Full CLI toolkit: validate, audit, test, or run sandbox
 docker run --rm -v $(pwd)/routewarden.json:/routewarden.json ghcr.io/routewarden/cli:latest validate --config /routewarden.json
 
 # Test path interactively
 docker run --rm ghcr.io/routewarden/cli:latest test --path "/.env"`,
 })
 
+const docker_shipper = buildSnippet({
+  lang: 'bash',
+  code: `# Run ultra-lean remote log shipper (~6MB binary, no SQLite/UI)
+docker run -d \\
+  --name routewarden-shipper \\
+  --restart unless-stopped \\
+  -v /var/run/docker.sock:/var/run/docker.sock:ro \\
+  -v ~/.routewarden:/root/.routewarden:ro \\
+  ghcr.io/routewarden/shipper:latest`,
+})
+
+const docker_dashboard = buildSnippet({
+  lang: 'bash',
+  code: `# Run standalone SOC security dashboard (~11MB binary on port 7890)
+docker run -d \\
+  --name routewarden-dashboard \\
+  --restart unless-stopped \\
+  -p 7890:7890 \\
+  -v /var/run/docker.sock:/var/run/docker.sock:ro \\
+  -v ~/.routewarden/dashboard:/root/.routewarden/dashboard \\
+  ghcr.io/routewarden/dashboard:latest`,
+})
+
 const dockerSnippets = computed(() => ({
   cli: [
-    { filename: 'Docker CLI', lang: 'bash', code: docker_validate.cleanCode, html: docker_validate.html, hasDiff: false },
+    { filename: 'CLI Toolkit', lang: 'bash', code: docker_cli.cleanCode, html: docker_cli.html, hasDiff: false },
+    { filename: 'Edge Shipper', lang: 'bash', code: docker_shipper.cleanCode, html: docker_shipper.html, hasDiff: false },
+    { filename: 'SOC Dashboard', lang: 'bash', code: docker_dashboard.cleanCode, html: docker_dashboard.html, hasDiff: false },
   ],
 }))
 
@@ -262,11 +287,20 @@ All downloads and SHA256 checksums are published on the [GitHub Releases Page](h
 
 ---
 
-## Container Image (Docker / CI/CD)
+## Container Images (Docker / CI/CD)
 
-Run `rwarden` inside a container without installing local binaries:
+RouteWarden publishes three official, security-hardened container images on GitHub Container Registry (`ghcr.io`):
 
 <CodeViewer :snippets="dockerSnippets" />
+
+### Official Container Distributions
+
+| Image | Tag | Binary Size | Intended Workload |
+|:---|:---|:---|:---|
+| `ghcr.io/routewarden/cli` | `:latest`, `:5.0.0` | ~12 MB | **Full Toolkit**: Verification, audits, tests, path simulators, code generation, sandboxes, and Docker CLI container tailing |
+| `ghcr.io/routewarden/shipper` | `:latest`, `:5.0.0` | **~6.2 MB** | **Ultra-Lean Remote Shipper**: Zero SQLite, zero UI assets. Dedicated to `rwarden push --docker` for edge nodes, IoT gateways, and low-RAM VPS instances |
+| `ghcr.io/routewarden/dashboard` | `:latest`, `:5.0.0` | ~11 MB | **Standalone SOC Dashboard**: Turnkey web dashboard server on port `7890` with embedded SQLite persistence and SSE event stream |
+
 
 ---
 

@@ -11,7 +11,12 @@ import { buildSnippet } from '../../.vitepress/theme/composables/useCodeSnippet'
 const push_cmd = buildSnippet({
   lang: 'bash',
   code: `# Zero-flag execution (reads ~/.routewarden/agent.json and auto-discovers containers)
-rwarden push`,
+rwarden push
+
+# Run in background (detached daemon mode)
+rwarden push -d
+# or
+rwarden push --detach`,
 })
 
 const pushSnippets = computed(() => ({
@@ -160,19 +165,123 @@ const tuningSnippets = computed(() => ({
   ],
 }))
 
-// ─── 4. One-Off Snippet ──────────────────────────────────────────────────────
 const one_off_cmd = buildSnippet({
   lang: 'bash',
   code: `# Push directly without pre-saving config
-rwarden push \\
-  --url http://198.51.100.10:7890 \\
-  --key rw_sec_8f9a2b4c1e0d3f7a... \\
+rwarden push \
+  --url http://198.51.100.10:7890 \
+  --key rw_sec_8f9a2b4c1e0d3f7a... \
   --docker -f /var/log/nginx/access.log`,
 })
 
 const oneOffSnippets = computed(() => ({
   cli: [
     { filename: 'Direct Push Flags', lang: 'bash', code: one_off_cmd.cleanCode, html: one_off_cmd.html, hasDiff: false },
+  ],
+}))
+
+// ─── 5. Daemon Management Snippets ───────────────────────────────────────────
+const daemon_push_cmd = buildSnippet({
+  lang: 'bash',
+  code: `# Launch shipper in detached background mode
+rwarden push -d
+
+# Inspect status of running shipper daemon
+rwarden push status
+# or
+rwarden status push
+
+# Stop running background shipper daemon
+rwarden push stop
+# or
+rwarden stop push`,
+})
+
+const daemonPushSnippets = computed(() => ({
+  cli: [
+    { filename: 'Daemon Management', lang: 'bash', code: daemon_push_cmd.cleanCode, html: daemon_push_cmd.html, hasDiff: false },
+  ],
+}))
+
+// ─── 6. Lean Micro-Docker Image ──────────────────────────────────────────────
+const shipper_compose_files = buildSnippet({
+  lang: 'yaml',
+  code: `services:
+  routewarden-shipper:
+    image: ghcr.io/routewarden/shipper:latest
+    container_name: routewarden-shipper
+    restart: unless-stopped
+    volumes:
+      # Mount host log directories read-only
+      - /var/log/nginx:/var/log/nginx:ro
+      - /var/log/caddy:/var/log/caddy:ro
+      # Mount registered agent configuration
+      - ~/.routewarden:/root/.routewarden:ro
+    # Stream multiple access log files concurrently
+    command:
+      - "-f"
+      - "/var/log/nginx/access.log"
+      - "-f"
+      - "/var/log/caddy/access.log"`,
+})
+
+const shipper_compose_docker = buildSnippet({
+  lang: 'yaml',
+  code: `services:
+  routewarden-shipper:
+    image: ghcr.io/routewarden/shipper:latest
+    container_name: routewarden-shipper
+    restart: unless-stopped
+    volumes:
+      # Auto-discover Docker containers
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # Mount registered agent configuration
+      - ~/.routewarden:/root/.routewarden:ro
+    command: ["--docker"]`,
+})
+
+const shipper_compose_hybrid = buildSnippet({
+  lang: 'yaml',
+  code: `services:
+  routewarden-shipper:
+    image: ghcr.io/routewarden/shipper:latest
+    container_name: routewarden-shipper
+    restart: unless-stopped
+    volumes:
+      # Watch Docker containers
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # Mount host log directory
+      - /var/log:/var/log:ro
+      # Mount registered agent configuration
+      - ~/.routewarden:/root/.routewarden:ro
+    # Concurrently auto-discover containers AND tail multiple log files
+    command:
+      - "--docker"
+      - "-f"
+      - "/var/log/nginx/access.log"
+      - "-f"
+      - "/var/log/syslog"`,
+})
+
+const shipper_run_cmd = buildSnippet({
+  lang: 'bash',
+  code: `# Stream multiple access log files using docker run
+docker run -d \\
+  --name routewarden-shipper \\
+  --restart unless-stopped \\
+  -v /var/log/nginx:/var/log/nginx:ro \\
+  -v /var/log/caddy:/var/log/caddy:ro \\
+  -v ~/.routewarden:/root/.routewarden:ro \\
+  ghcr.io/routewarden/shipper:latest \\
+  -f /var/log/nginx/access.log -f /var/log/caddy/access.log`,
+})
+
+const shipperComposeSnippets = computed(() => ({
+  cli: [
+    { filename: 'Multiple Log Files (Compose)', lang: 'yaml', code: shipper_compose_files.cleanCode, html: shipper_compose_files.html, hasDiff: false },
+    { filename: 'Docker Auto-Discovery', lang: 'yaml', code: shipper_compose_docker.cleanCode, html: shipper_compose_docker.html, hasDiff: false },
+    { filename: 'Hybrid (Docker + Files)', lang: 'yaml', code: shipper_compose_hybrid.cleanCode, html: shipper_compose_hybrid.html, hasDiff: false },
+    { filename: 'Docker Run (CLI)', lang: 'bash', code: shipper_run_cmd.cleanCode, html: shipper_run_cmd.html, hasDiff: false },
   ],
 }))
 </script>
@@ -268,3 +377,32 @@ You can tune batching parameters to match high-traffic or low-latency environmen
 For ephemeral test environments or CI/CD pipelines, you can push directly by supplying flags without running `rwarden register`:
 
 <CodeViewer :snippets="oneOffSnippets" />
+
+---
+
+## 7. Background Daemon Execution (`-d`, `status`, `stop`)
+
+Run the shipper as an unprivileged, detached background daemon without needing systemd or nohup:
+
+<CodeViewer :snippets="daemonPushSnippets" />
+
+### How Background Mode Operates:
+- **Process ID Tracking**: The daemon writes its process ID to `~/.routewarden/push.pid`.
+- **Detached Log Redirection**: All diagnostic outputs, gateway attachments, and connection logs are safely redirected to `~/.routewarden/push.log`.
+- **Status & Health**: Running `rwarden push status` (or `rwarden status push`) reads the PID file and confirms that the background process is alive and active.
+- **Graceful Teardown**: Running `rwarden push stop` (or `rwarden stop push`) delivers a graceful termination signal, flushes remaining telemetry in memory, and cleans up the PID file.
+
+---
+
+## 8. Ultra-Lean Micro-Container (`ghcr.io/routewarden/shipper:latest`)
+
+For Docker and containerized edge hosts, RouteWarden publishes a dedicated, stripped-down shipper container image:
+
+<CodeViewer :snippets="shipperComposeSnippets" />
+
+### Container Highlights:
+- **Binary Size**: Only **~6.2 MB** (stripped of all SQLite, embedded Web UI assets, HTML/JS/CSS, and MaxMind GeoIP code).
+- **Multiple Ingestion Modes**: Stream multiple host access log files (`-f /var/log/nginx/access.log -f /var/log/caddy/access.log`), auto-discover labeled Docker containers (`--docker`), or run both concurrently in hybrid mode.
+- **Zero Configuration**: Defaults to `rwarden push --docker` out-of-the-box when run without command flags.
+- **Memory Footprint**: Consumes under **~10 MB RAM** on low-cost VPS instances and IoT edge gateways.
+

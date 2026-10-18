@@ -91,7 +91,14 @@ const step2OutputSnippets = computed(() => ({
 const push_auto = buildSnippet({
   lang: 'bash',
   code: `# Auto-discover all local gateway containers labeled routewarden=true
-rwarden push`,
+rwarden push
+
+# Run in background (detached daemon mode)
+rwarden push -d
+
+# Check daemon status or stop
+rwarden push status
+rwarden push stop`,
 })
 
 const push_container = buildSnippet({
@@ -108,7 +115,7 @@ rwarden push --file /var/log/nginx/access.log`,
 
 const pushSnippets = computed(() => ({
   cli: [
-    { filename: 'Auto-Discovery (Default)', lang: 'bash', code: push_auto.cleanCode, html: push_auto.html, hasDiff: false },
+    { filename: 'Auto-Discovery & Daemon', lang: 'bash', code: push_auto.cleanCode, html: push_auto.html, hasDiff: false },
     { filename: 'Specific Container', lang: 'bash', code: push_container.cleanCode, html: push_container.html, hasDiff: false },
     { filename: 'Log File', lang: 'bash', code: push_file.cleanCode, html: push_file.html, hasDiff: false },
   ],
@@ -125,12 +132,14 @@ const compose_companion = buildSnippet({
     # ... your existing traefik config ...
 
   routewarden-shipper:
-    image: ghcr.io/routewarden/cli:latest
+    # Dedicated lean shipper micro-image (~6MB) or full toolkit ghcr.io/routewarden/cli:latest
+    image: ghcr.io/routewarden/shipper:latest
+    container_name: routewarden-shipper
     restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ~/.routewarden:/root/.routewarden:ro
-    command: ["push", "--docker"]`,
+    command: ["--docker"]`,
 })
 
 const composeCompanionSnippets = computed(() => ({
@@ -167,7 +176,7 @@ RouteWarden supports a distributed agent model inspired by CrowdSec. You can dep
     │                                                                             │
     │  • Validates API Keys from ~/.routewarden/dashboard/api_keys.json           │
     │  • Decrypts payloads using master X25519 server private key                 │
-    │  • Appends events to GoAccess real-time engine & WebSocket stream           │
+    │  • Appends events to RouteWarden SOC engine & SSE stream                    │
     │  • Live Header Status Ribbon:                                               │
     │    🟢 [🐳 local-gateway] [🌐 edge-prod-01 (198.51.100.4)] [🌐 cloud-node]  │
     └─────────────────────────────────────────────────────────────────────────────┘

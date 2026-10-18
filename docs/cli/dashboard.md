@@ -1,6 +1,6 @@
 ---
-title: Real-Time Security Dashboard (GoAccess) — RouteWarden CLI
-description: Ultra-lightweight real-time security dashboard powered by GoAccess (~15MB RAM) with WebSocket streaming for Traefik, Caddy, NGINX, and TCP Warden.
+title: Real-Time Security Dashboard — RouteWarden CLI
+description: Ultra-lightweight real-time SOC security dashboard powered by embedded SQLite (~8MB RAM) with SSE streaming for Traefik, Caddy, NGINX, and TCP Warden.
 ---
 
 <script setup>
@@ -20,12 +20,12 @@ const mermaid_raw = `flowchart LR
         M["rwarden monitor\\n(Docker Socket Discovery)"]
     end
 
-    subgraph Engine ["Live Analytics & WebSocket"]
-        G["GoAccess Engine\\n(In-Memory Threat Matrix)"]
+    subgraph Engine ["Live Analytics & SQLite Engine"]
+        G["RouteWarden SOC Engine\\n(Embedded SQLite + SSE Stream)"]
     end
 
     subgraph UI ["Real-Time Dashboard"]
-        W["Web UI (http://localhost:7890)\\n(Real-Time WebSocket Stream)"]
+        W["Web UI (http://localhost:7890)\\n(Live SSE Telemetry Stream)"]
     end
 
     T -->|stdout/stderr| M
@@ -33,11 +33,11 @@ const mermaid_raw = `flowchart LR
     N -->|stdout/stderr| M
     TCP -->|stdout/stderr| M
 
-    M -->|Combined Log Stream| G
-    G -->|WebSocket & HTML| W`
+    M -->|Structured Log Stream| G
+    G -->|SSE & HTML| W`
 
 const arch_graph_svg = `<div class="rw-graph-container" style="padding:20px;text-align:center;">
-  <p style="color:#a1a1aa;">Real-time GoAccess Architecture: Gateways &rarr; rwarden monitor &rarr; GoAccess Engine &rarr; Web UI (http://localhost:7890)</p>
+  <p style="color:#a1a1aa;">Real-time SOC Architecture: Gateways &rarr; rwarden monitor &rarr; RouteWarden SOC Engine &rarr; Web UI (http://localhost:7890)</p>
 </div>`
 
 const archSnippets = computed(() => ({
@@ -52,31 +52,43 @@ const dashboard_up = buildSnippet({
   code: `# 1. Start the security dashboard (auto-discovers labeled containers & opens http://localhost:7890)
 rwarden dashboard
 
-# 2. Start on a custom port without auto-opening the browser
-rwarden dashboard up --port 8080 --no-open
+# 2. Launch in background (detached daemon mode)
+rwarden dashboard -d
+# or
+rwarden dashboard up --detach
 
-# 3. Monitor a specific container
+# 3. Launch with optional HTTP Basic Auth protection
+rwarden dashboard up --auth admin:supersecret
+
+# 4. Start on a custom port and bind to localhost only without opening browser
+rwarden dashboard up --port 8080 --host 127.0.0.1 --no-open
+
+# 5. Monitor a specific container by name or ID
 rwarden dashboard --container traefik
 
-# 4. Monitor an NGINX or Apache access log file
+# 6. Monitor an NGINX or Apache access log file
 rwarden dashboard --file /var/log/nginx/access.log`,
 })
 
 const dashboard_status = buildSnippet({
   lang: 'bash',
   code: `# View running status of dashboard
-rwarden dashboard status`,
+rwarden dashboard status
+# or
+rwarden status dashboard`,
 })
 
 const dashboard_down = buildSnippet({
   lang: 'bash',
-  code: `# Stop the dashboard
-rwarden dashboard down`,
+  code: `# Stop the running dashboard daemon
+rwarden dashboard stop
+# or
+rwarden stop dashboard`,
 })
 
 const dashboard_export = buildSnippet({
   lang: 'bash',
-  code: `# Export docker-compose.yml, goaccess.conf, and README.md to a local directory
+  code: `# Export docker-compose.yml and configuration assets to a local directory
 rwarden dashboard export ./deploy/dashboard`,
 })
 
@@ -93,25 +105,17 @@ const cliSnippets = computed(() => ({
 const compose_yaml = buildSnippet({
   lang: 'yaml',
   code: `services:
-  goaccess:
-    image: allinurl/goaccess:latest
+  dashboard:
+    # Dedicated lightweight dashboard image (~11MB) or full toolkit ghcr.io/routewarden/cli:latest
+    image: ghcr.io/routewarden/dashboard:latest
     container_name: routewarden-dashboard
     restart: unless-stopped
+    command: up --port 7890 --no-open
     ports:
       - "\${PORT:-7890}:7890"
-    environment:
-      - TZ=UTC
     volumes:
-      - ./goaccess.conf:/etc/goaccess/goaccess.conf:ro
-      - ./data:/srv/data:ro
-      - ./report:/srv/report
-    command: >
-      goaccess /srv/data/access.log
-      --config-file=/etc/goaccess/goaccess.conf
-      --real-time-html
-      --port=7890
-      --addr=0.0.0.0
-      -o /srv/report/index.html`,
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ~/.routewarden/dashboard:/root/.routewarden/dashboard`,
 })
 
 const composeSnippets = computed(() => ({
@@ -155,20 +159,39 @@ It provides an ultra-fast, live executive SOC dashboard consuming only **~8MB of
 - **Restart Survival**: Historical metrics, threat breakdown ratios, and top attacking IPs persist across dashboard restarts.
 - **Auto-Pruning**: Telemetry older than 30 days is automatically pruned to keep disk usage lean (~10–30 MB).
 
-### 2. Live SOC Stream & Stream Controls
+### 2. Live SOC Stream, Pagination & Stream Controls
 - **Verdict Tabs**: Filter stream instantly by `ALL`, `BLOCK` (🛑), `TARPIT` (⏳), or `ALLOW` (🛡️).
-- **Time Range Selector**: Rolling time windows (`1m`, `5m`, `15m`, `30m`, `Custom Date Range`) querying SQLite directly via `GET /api/logs`.
+- **Connected Node & Source Filtering**: Dedicated `📡 All Nodes` matrix dropdown and interactive badges in the `🌐 MONITORED NODES` ribbon with active glow states to isolate events by container, remote agent, or log file.
+- **Server-Backed Pagination**: High-throughput SQLite pagination with selectable page sizes (`25`, `50`, `100`, `250`), direct page jump, First / Prev / Next / Last buttons, and keyboard controls (<kbd>[</kbd> / <kbd>]</kbd> or Left/Right arrows).
+- **Time Range Selector**: Rolling time windows (`1m`, `5m`, `15m`, `30m`, `1h`, `6h`, `24h`, `Custom Date Range`) querying SQLite directly via `GET /api/logs`.
 - **Stream Pause / Resume**: Freeze table updates with **⏸ Pause** or <kbd>Space</kbd> to inspect active security events; incoming logs are buffered with a counter badge (`⏸ PAUSED (+N new)`).
 
-### 3. Threat Intelligence Dossier
+### 3. Password Protection & Custom Auth Screen (`--auth`)
+- **Dedicated Cyber Auth Screen**: When `--auth <user:password>` is enabled, browser visits to `http://localhost:7890` are presented with a sleek, cyber-themed authentication screen (`/login`) complete with the RouteWarden shield logo, operator ID & access key inputs, password visibility toggle, and error messaging.
+- **Session Cookie & Sign Out**: Successful login issues a secure session cookie (`routewarden_auth`) with 30-day persistence. Operators can sign out at any time via the **🚪 Sign Out** button in the dashboard header.
+- **Protected Endpoints**: Protects `GET /`, `/api/logs`, `/api/stream`, `/api/stats`, `/api/sources`, and `/api/ip-lookup`.
+- **Flexible Auth Channels**: Supports standard HTTP Basic Auth (`Authorization: Basic`), `Authorization: Bearer <token>`, session cookies, and query parameters (`?auth=` / `?token=`).
+- **Whitelisted Endpoints**: Static branding assets (`/favicon.ico`, `/icon.svg`) and cryptographic agent ingestion (`/api/v1/*`) remain open so remote edge agents can push without knowing dashboard passwords.
+- **HUD Indicator**: Active cyan `🔒 AUTH: <username>` badge in the sticky topbar.
+
+### 4. Mobile & Tablet Optimization
+- **Responsive Layout (< 768px & < 480px)**: Complete mobile optimization with touch-friendly 36–44px controls and viewport-fit formatting.
+- **Compact 2-Column KPI Grid**: Displays all critical security indicators (Blocks, Tarpits, Total Events, EPS) in a neat 2-column layout instead of oversized vertical scrolling cards.
+- **Mobile Cyber Hero**: Automatically replaces the large raw ASCII banner with a clean, branded mobile hero header on smaller screens to prevent horizontal overflow.
+- **Touch-Optimized Filters & Search**: Full-width search bar and grid-based filter dropdowns with 16px inputs that prevent iOS auto-zooming.
+- **Mobile Bottom-Sheet Modals**: IP Threat Dossiers and Event Detail inspectors transition to native-feeling bottom sheets on mobile devices.
+- **Auto-Hiding Desktop Shortcuts**: The fixed bottom keyboard shortcut bar automatically hides on touch devices to maximize screen real estate.
+
+### 5. Threat Intelligence Dossier
 - Inspect top attacking client IPs and click any row to reveal autonomous systems (ASN), reverse DNS, origin country, CIDR prefix, and one-click AbuseIPDB lookup.
 
-### 4. Keyboard Shortcuts
+### 6. Keyboard Shortcuts (Desktop)
 - <kbd>Space</kbd> — Stream Pause / Resume
 - <kbd>T</kbd> — Toggle Theme (Auto / Light / Dark)
 - <kbd>W</kbd> — Focus Time Range filter
 - <kbd>/</kbd> — Focus Search / Grep filter
 - <kbd>F</kbd> — Focus Country filter
+- <kbd>[</kbd> / <kbd>]</kbd> (or <kbd>&larr;</kbd> / <kbd>&rarr;</kbd>) — Previous / Next Page in log stream
 - <kbd>R</kbd> — Reset all active filters
 - <kbd>ESC</kbd> — Close active modal dialog
 
@@ -216,11 +239,16 @@ docker compose up -d
 
 | Subcommand / Flag | Type | Default | Description |
 |:---|:---|:---|:---|
-| `up` | subcommand | — | Launch GoAccess real-time security dashboard (default) |
-| `down` | subcommand | — | Stop and tear down running dashboard containers |
-| `status` | subcommand | — | Display status of dashboard |
-| `export [dir]` | subcommand | `./dashboard` | Export compose and GoAccess configs to disk |
-| `--port` | int | `7890` | Port for GoAccess dashboard UI and WebSocket |
+| `up`, `start` | subcommand | — | Launch real-time SOC security dashboard (default) |
+| `down`, `stop` | subcommand | — | Stop running background dashboard daemon |
+| `status`, `ps` | subcommand | — | Display running status, PID, and URL of dashboard |
+| `export [dir]` | subcommand | `./dashboard` | Export compose and configuration assets to disk |
+| `-d`, `--detach` | bool | `false` | Run dashboard in background (detached) daemon mode |
+| `-a`, `--auth` | string | `""` | Optional HTTP Basic Auth credentials (`user:password` or `RW_DASHBOARD_AUTH`) |
+| `--user` | string | `""` | Optional Basic Auth username (used with `--password`) |
+| `--password` | string | `""` | Optional Basic Auth password (used with `--user`) |
+| `--host` | string | `""` | Host IP interface to bind (e.g. `127.0.0.1` or `0.0.0.0`, default: all interfaces) |
+| `--port` | int | `7890` | Port for SOC dashboard UI and SSE stream |
 | `-f`, `--file` | string | `""` | Log file to monitor (default: auto-discovered Docker containers) |
 | `-c`, `--container` | string | `""` | Tail a specific Docker container by name or ID |
 | `-l`, `--label` | string | `"routewarden=true"` | Docker label to filter containers |

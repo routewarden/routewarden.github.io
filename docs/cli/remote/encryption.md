@@ -81,7 +81,7 @@ Each batch of security events is encrypted independently with an ephemeral keypa
        │                                                                 │ 5. Compute shared_secret = ECDH(server_priv, ephemeral_pub)
        │                                                                 │ 6. Derive session_key = HKDF-SHA256(shared_secret)
        │                                                                 │ 7. Decrypt & verify tag with AES-256-GCM
-       │                                                                 │ 8. Ingest verified logs into GoAccess engine
+       │                                                                 │ 8. Ingest verified logs into RouteWarden SOC engine
 ```
 
 ### Properties of this Design:

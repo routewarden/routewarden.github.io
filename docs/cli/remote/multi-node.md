@@ -12,17 +12,18 @@ const central_compose = buildSnippet({
   lang: 'yaml',
   code: `services:
   routewarden-dashboard:
-    image: ghcr.io/routewarden/cli:latest
+    # Dedicated SOC dashboard image (~11MB) or full toolkit ghcr.io/routewarden/cli:latest
+    image: ghcr.io/routewarden/dashboard:latest
     container_name: routewarden-dashboard
     restart: unless-stopped
     ports:
       - "7890:7890"
     volumes:
-      # Persistent storage for master keypair and keystore
-      - routewarden_data:/root/.routewarden
+      # Persistent storage for master keypair, API keys, and SQLite database
+      - routewarden_data:/root/.routewarden/dashboard
       # Optional: access Docker daemon to monitor local containers as well
       - /var/run/docker.sock:/var/run/docker.sock:ro
-    command: ["dashboard", "--no-open", "--port", "7890"]
+    command: ["up", "--no-open", "--port", "7890"]
 
 volumes:
   routewarden_data:`,
@@ -79,9 +80,9 @@ const remote_compose = buildSnippet({
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./traefik.yml:/etc/traefik/traefik.yml:ro
 
-  # Lightweight RouteWarden Shipper Companion (~10MB RAM)
+  # Ultra-lightweight RouteWarden Shipper Companion (~6.2MB binary)
   routewarden-shipper:
-    image: ghcr.io/routewarden/cli:latest
+    image: ghcr.io/routewarden/shipper:latest
     container_name: routewarden-shipper
     restart: unless-stopped
     volumes:
@@ -89,7 +90,7 @@ const remote_compose = buildSnippet({
       - /var/run/docker.sock:/var/run/docker.sock:ro
       # Mount registered agent configuration
       - ~/.routewarden:/root/.routewarden:ro
-    command: ["push", "--docker"]`,
+    command: ["--docker"]`,
 })
 
 const remoteComposeSnippets = computed(() => ({
