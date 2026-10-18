@@ -251,23 +251,298 @@ const versionSnippets = computed(() => ({
 // ─── 8. Dashboard Command ───────────────────────────────────────────────────
 const dashboard_cmd = buildSnippet({
   lang: 'bash',
-  code: `# Launch Grafana, Loki, and Alloy stack via Docker Compose (default: port 3000)
+  code: `# Launch real-time SOC security dashboard (opens http://localhost:7890)
 rwarden dashboard
 rwarden dashboard up
 
-# Check status of running observability stack containers
+# Launch in background (detached daemon mode)
+rwarden dashboard -d
+# or
+rwarden dashboard up --detach
+
+# Launch with password protection (HTTP Basic Auth)
+rwarden dashboard up --auth admin:supersecret
+
+# Launch on a custom host/port without auto-opening browser
+rwarden dashboard up --host 127.0.0.1 --port 8080 --no-open
+
+# Monitor a specific container by name
+rwarden dashboard --container traefik
+
+# Check status of running dashboard
 rwarden dashboard status
+# or
+rwarden status dashboard
 
-# Stop and tear down the observability stack
-rwarden dashboard down
+# Stop background dashboard daemon
+rwarden dashboard stop
+# or
+rwarden stop dashboard
 
-# Export Docker Compose, Alloy, and Grafana config files to disk
-rwarden dashboard export ./observability`,
+# Export standalone Docker Compose and configuration files to disk
+rwarden dashboard export ./dashboard`,
 })
 
 const dashboardSnippets = computed(() => ({
   cli: [
     { filename: 'rwarden dashboard', lang: 'bash', code: dashboard_cmd.cleanCode, html: dashboard_cmd.html, hasDiff: false },
+  ],
+}))
+
+// ─── 9. Audit Command ────────────────────────────────────────────────────────
+const audit_cmd = buildSnippet({
+  lang: 'bash',
+  code: `# Audit default routewarden.json
+rwarden audit
+
+# Audit custom configuration file
+rwarden audit ./config/routewarden.json
+
+# Strict mode: fail on warnings as well as critical flaws
+rwarden audit --strict routewarden.json
+
+# Output as JSON
+rwarden audit --format json routewarden.json
+
+# Output in OASIS SARIF v2.1.0 format for GitHub Code Scanning
+rwarden audit --format sarif routewarden.json > results.sarif`,
+})
+
+const auditSnippets = computed(() => ({
+  cli: [
+    { filename: 'rwarden audit', lang: 'bash', code: audit_cmd.cleanCode, html: audit_cmd.html, hasDiff: false },
+  ],
+}))
+
+// ─── 10. Diff Command ────────────────────────────────────────────────────────
+const diff_cmd = buildSnippet({
+  lang: 'bash',
+  code: `# Compare production policy against candidate update
+rwarden diff prod.json candidate.json
+
+# Output diff as machine-readable JSON
+rwarden diff --format json prod.json candidate.json
+
+# Fail with exit code 1 if differences exist, or code 2 if security posture is relaxed
+rwarden diff --exit-code prod.json candidate.json`,
+})
+
+const diffSnippets = computed(() => ({
+  cli: [
+    { filename: 'rwarden diff', lang: 'bash', code: diff_cmd.cleanCode, html: diff_cmd.html, hasDiff: false },
+  ],
+}))
+
+// ─── 11. Monitor Command ─────────────────────────────────────────────────────
+const monitor_compose = buildSnippet({
+  lang: 'yaml',
+  code: `services:
+  traefik:
+    image: traefik:v3.1
+    labels:
+      - "routewarden=true"
+  nginx:
+    image: openresty/openresty:alpine
+    labels:
+      - "routewarden=true"`,
+})
+
+const monitor_cmd = buildSnippet({
+  lang: 'bash',
+  code: `# Auto-discover & multiplex all containers labeled routewarden=true
+rwarden monitor
+
+# Tail a specific container by name or ID
+rwarden monitor --container traefik
+
+# Filter by custom Docker label
+rwarden monitor --label "env=production"
+
+# Stream raw unformatted logs for external processing or jq
+rwarden monitor --raw | jq .
+
+# Tail an NGINX or Apache access log file
+rwarden monitor --file /var/log/nginx/access.log
+
+# Filter exclusively for blocked threats or specific IP / path
+rwarden monitor --verdict BLOCK
+rwarden monitor --path "/.env" --ip "192.168.1."`,
+})
+
+const monitorSnippets = computed(() => ({
+  cli: [
+    { filename: 'rwarden monitor', lang: 'bash', code: monitor_cmd.cleanCode, html: monitor_cmd.html, hasDiff: false },
+    { filename: 'docker-compose.yaml', lang: 'yaml', code: monitor_compose.cleanCode, html: monitor_compose.html, hasDiff: false },
+  ],
+}))
+
+// ─── 12. TUI Command ─────────────────────────────────────────────────────────
+const tui_cmd = buildSnippet({
+  lang: 'bash',
+  code: `# Launch interactive terminal simulator
+rwarden tui
+
+# Or with alias
+rwarden interactive
+
+# Pre-load custom policy configuration
+rwarden tui ./routewarden.json`,
+})
+
+const tuiSnippets = computed(() => ({
+  cli: [
+    { filename: 'rwarden tui', lang: 'bash', code: tui_cmd.cleanCode, html: tui_cmd.html, hasDiff: false },
+  ],
+}))
+
+// ─── 13. Completion Command ──────────────────────────────────────────────────
+const completion_cmd = buildSnippet({
+  lang: 'bash',
+  code: `# Bash
+source <(rwarden completion bash)
+
+# Zsh
+rwarden completion zsh > ~/.zsh/completion/_rwarden
+
+# Fish
+rwarden completion fish | source
+
+# PowerShell
+rwarden completion powershell | Out-String | Invoke-Expression`,
+})
+
+const completionSnippets = computed(() => ({
+  cli: [
+    { filename: 'rwarden completion', lang: 'bash', code: completion_cmd.cleanCode, html: completion_cmd.html, hasDiff: false },
+  ],
+}))
+
+// ─── 14. Manpage Command ─────────────────────────────────────────────────────
+const man_cmd = buildSnippet({
+  lang: 'bash',
+  code: `# View system manual page directly in terminal
+rwarden man | man -l -
+
+# Save manual page to system directory
+sudo rwarden man -o /usr/share/man/man1/rwarden.1`,
+})
+
+const manSnippets = computed(() => ({
+  cli: [
+    { filename: 'rwarden man', lang: 'bash', code: man_cmd.cleanCode, html: man_cmd.html, hasDiff: false },
+  ],
+}))
+
+// ─── 15. Keys Command ────────────────────────────────────────────────────────
+const keys_cmd = buildSnippet({
+  lang: 'bash',
+  code: `# Generate a new remote agent authentication key
+rwarden keys create edge-node-01
+
+# List all registered remote agent keys and their status
+rwarden keys list
+
+# Revoke an agent key by name or ID
+rwarden keys revoke edge-node-01
+rwarden keys revoke agent_8f9a2b4c1e0d3f7a
+
+# Specify a custom dashboard storage directory
+rwarden keys list --dir /data/routewarden`,
+})
+
+const keysSnippets = computed(() => ({
+  cli: [
+    { filename: 'rwarden keys', lang: 'bash', code: keys_cmd.cleanCode, html: keys_cmd.html, hasDiff: false },
+  ],
+}))
+
+// ─── 16. Register Command ────────────────────────────────────────────────────
+const register_cmd = buildSnippet({
+  lang: 'bash',
+  code: `# One-time registration with RouteWarden Central Dashboard
+rwarden register --url http://198.51.100.10:7890 --key rw_sec_8f9a2b4c1e0d3f7a...
+
+# Register with flag aliases (-u and -k)
+rwarden register -u http://dashboard.internal:7890 -k rw_sec_8f9a...
+
+# Store configuration in a custom file
+rwarden register --url http://dashboard.internal:7890 --key rw_sec_... --config /etc/routewarden/agent.json`,
+})
+
+const registerSnippets = computed(() => ({
+  cli: [
+    { filename: 'rwarden register', lang: 'bash', code: register_cmd.cleanCode, html: register_cmd.html, hasDiff: false },
+  ],
+}))
+
+// ─── 17. Push Command ────────────────────────────────────────────────────────
+const push_cmd = buildSnippet({
+  lang: 'bash',
+  code: `# Zero-flag push: reads ~/.routewarden/agent.json and auto-discovers containers
+rwarden push
+
+# Run in background (detached daemon mode)
+rwarden push -d
+# or
+rwarden push --detach
+
+# Check status of running background shipper
+rwarden push status
+# or
+rwarden status push
+
+# Stop background shipper daemon
+rwarden push stop
+# or
+rwarden stop push
+
+# Auto-discover and stream all containers with label 'routewarden=true'
+rwarden push --docker
+
+# Stream multiple log files concurrently (repeatable -f, comma-separated, or globs)
+rwarden push -f /var/log/nginx/access.log -f /var/log/caddy/access.log
+rwarden push --file "/var/log/nginx/*.log"
+
+# Concurrent hybrid streaming: monitor files AND auto-discover Docker containers
+rwarden push --docker -f /var/log/nginx/access.log -f /var/log/syslog
+
+# Tail multiple specific containers and files concurrently
+rwarden push -c traefik,api-gateway -f /var/log/nginx/access.log
+
+# Push directly with URL and key flags (skipping registration)
+rwarden push --url http://198.51.100.10:7890 --key rw_sec_... --docker
+
+# Tune in-memory batching buffer and flush interval
+rwarden push --batch-size 100 --flush-interval 2s`,
+})
+
+const pushSnippets = computed(() => ({
+  cli: [
+    { filename: 'rwarden push', lang: 'bash', code: push_cmd.cleanCode, html: push_cmd.html, hasDiff: false },
+  ],
+}))
+
+// ─── 18. Daemon Management (status, stop) ────────────────────────────────────
+const daemon_cmd = buildSnippet({
+  lang: 'bash',
+  code: `# Check status of all running daemons (dashboard and shipper)
+rwarden status
+
+# Check status of a specific daemon
+rwarden status dashboard
+rwarden status push
+
+# Stop all running background daemons
+rwarden stop
+
+# Stop a specific background daemon
+rwarden stop dashboard
+rwarden stop push`,
+})
+
+const daemonSnippets = computed(() => ({
+  cli: [
+    { filename: 'rwarden status / stop', lang: 'bash', code: daemon_cmd.cleanCode, html: daemon_cmd.html, hasDiff: false },
   ],
 }))
 </script>
@@ -373,9 +648,9 @@ Check installed binary version:
 
 ---
 
-## 8. Observability Stack (`dashboard`)
+## 8. Security Dashboard (`dashboard`)
 
-Launch and manage a turnkey cloud-native observability stack (Grafana, Grafana Loki, and Grafana Alloy) using Docker Compose to visualize real-time blocked threats, attack rates, and top offender IPs:
+Launch and manage an ultra-lightweight, real-time security dashboard powered by RouteWarden's embedded SOC engine and SQLite persistence. It replaces heavy multi-container monitoring stacks with an in-memory dashboard consuming only **~8MB of RAM**:
 
 <CodeViewer :snippets="dashboardSnippets" />
 
@@ -383,13 +658,207 @@ Launch and manage a turnkey cloud-native observability stack (Grafana, Grafana L
 
 | Subcommand / Flag | Type | Default | Description |
 |:---|:---|:---|:---|
-| `up`, `start` | subcommand | — | Spin up Grafana, Loki, and Alloy stack (default) |
-| `down`, `stop` | subcommand | — | Stop and tear down running stack containers |
-| `status`, `ps` | subcommand | — | Check container health and service URLs |
-| `export [dir]` | subcommand | `./observability` | Export compose, Alloy, and Grafana assets to disk |
-| `--port` | int | `3000` | Port for Grafana dashboard UI |
-| `--loki-port` | int | `3100` | Port for Loki log engine |
-| `--dir` | string | `~/.routewarden/observability` | Working directory storing stack files |
+| `up`, `start` | subcommand | — | Spin up real-time SOC security dashboard (default) |
+| `down`, `stop` | subcommand | — | Stop running background dashboard daemon |
+| `status`, `ps` | subcommand | — | Check running status, PID, and dashboard URL |
+| `export [dir]` | subcommand | `./dashboard` | Export compose and configuration assets to disk |
+| `-d`, `--detach` | bool | `false` | Run dashboard in background (detached) daemon mode |
+| `-a`, `--auth` | string | `""` | Require HTTP Basic Auth (`user:pass`) for dashboard UI and APIs |
+| `--user` | string | `""` | Dashboard authentication username |
+| `--password` | string | `""` | Dashboard authentication password |
+| `--host` | string | `""` | Host interface to bind server (`127.0.0.1`, `0.0.0.0`) |
+| `--port` | int | `7890` | Port for SOC dashboard UI and SSE stream |
+| `-f`, `--file` | string | `""` | Log file to monitor (default: auto-discovered Docker containers) |
+| `-c`, `--container` | string | `""` | Tail a specific Docker container by name or ID |
+| `-l`, `--label` | string | `"routewarden=true"` | Docker label to filter containers |
+| `--dir` | string | `~/.routewarden/dashboard` | Working directory storing SQLite `events.db` and keys |
 | `--no-open` | bool | `false` | Do not launch system default browser |
 
-👉 For full configuration, LogQL query cheat sheets, and custom alerts, see the [Security Observability Stack Guide](/cli/dashboard).
+---
+
+## 9. Policy Static Analyzer & Linter (`audit`)
+
+Perform deep static analysis and linting on a RouteWarden policy file to catch ReDoS vulnerabilities, unescaped dots, universal wildcard traps, and header spoofing risks before deployment:
+
+<CodeViewer :snippets="auditSnippets" />
+
+### Flags
+
+| Flag | Type | Default | Description |
+|:---|:---|:---|:---|
+| `[file]` | string | `"routewarden.json"` | Configuration file to audit (or `-` for stdin) |
+| `-f`, `--format` | string | `"text"` | Output format: `text` (default), `json`, or `sarif` |
+| `-s`, `--strict` | bool | `false` | Strict mode: exit code 1 on warnings as well as critical flaws |
+
+---
+
+## 10. Policy Diffing (`diff`)
+
+Compare two RouteWarden policy files and evaluate the security posture delta (e.g. relaxed, hardened, or neutral):
+
+<CodeViewer :snippets="diffSnippets" />
+
+### Flags
+
+| Flag | Type | Default | Description |
+|:---|:---|:---|:---|
+| `<base.json>` | string | — | Baseline policy file |
+| `<candidate.json>` | string | — | Candidate policy file to evaluate against base |
+| `-f`, `--format` | string | `"text"` | Output format: `text` (default) or `json` |
+| `--exit-code` | bool | `false` | Exit code 1 if differences exist, 2 if posture is relaxed |
+
+---
+
+## 11. Live Terminal Threat Monitoring (`monitor`)
+
+Tail, multiplex, and colorize live reverse proxy security events directly in the terminal from Docker containers, log files, or standard input.
+
+When invoked without `--file` or a pipe, `rwarden monitor` automatically discovers running Docker containers tagged with `routewarden=true` (or `routewarden.logs=true`) and streams them simultaneously with container attribution tags (`[traefik]`, `[nginx]`, etc.).
+
+::: tip Turnkey Live Web Dashboard
+To view live reverse proxy telemetry with a real-time web UI, world map, and threat intelligence, run `rwarden dashboard` directly.
+:::
+
+<CodeViewer :snippets="monitorSnippets" />
+
+### Flags
+
+| Flag | Type | Default | Description |
+|:---|:---|:---|:---|
+| `-f`, `--file` | string | `""` | Log file to read from (default: stdin or auto-discovered docker) |
+| `--docker` | bool | `false` | Explicitly enable Docker container auto-discovery |
+| `-c`, `--container` | string | `""` | Tail a specific Docker container by name or ID |
+| `-l`, `--label` | string | `""` | Docker label to filter containers (default: `routewarden=true`) |
+| `--tail` | string | `"50"` | Initial lines to tail from Docker container(s) |
+| `--raw` | bool | `false` | Output raw unformatted log lines (ideal for piping into analyzers or jq) |
+| `--verdict` | string | `""` | Filter events by verdict (`BLOCK`, `ALLOW`, `TARPIT`) |
+| `--ip` | string | `""` | Filter events by client IP substring |
+| `--path` | string | `""` | Filter events by request path substring |
+
+---
+
+## 12. Interactive Terminal REPL (`tui`)
+
+Launch an interactive terminal simulator to experiment with paths, query strings, headers, and client IPs in real time:
+
+<CodeViewer :snippets="tuiSnippets" />
+
+### Interactive Commands
+
+| Command | Description |
+|:---|:---|
+| `<path>` | Evaluate path directly (e.g. `/.env` or `/api/v1/health?token=abc`) |
+| `:method <METHOD>` | Switch active HTTP method (`GET`, `POST`, `PUT`, `DELETE`, etc.) |
+| `:ip <address>` | Set client IP for allowlist / trusted proxy checks |
+| `:query <querystring>` | Set default query string |
+| `:body <payload>` | Set request body for body inspection tests |
+| `:header Key: Value` | Set or add custom request header |
+| `:clear-headers` | Clear all custom headers |
+| `:load <file.json>` | Load a custom `routewarden.json` policy |
+| `:status` | Display current test environment state |
+| `:clear` | Clear terminal screen |
+| `:exit` / `quit` | Exit interactive mode |
+
+---
+
+## 13. Shell Autocompletion (`completion`)
+
+Generate autocompletion scripts for subcommands, flags, and targets:
+
+<CodeViewer :snippets="completionSnippets" />
+
+### Supported Shells
+- **Bash**: `source <(rwarden completion bash)`
+- **Zsh**: `rwarden completion zsh > "${fpath[1]}/_rwarden"`
+- **Fish**: `rwarden completion fish | source`
+- **PowerShell**: `rwarden completion powershell | Out-String | Invoke-Expression`
+
+---
+
+## 14. System Manpage (`man`)
+
+Output the standard system manual page formatted in roff/troff:
+
+<CodeViewer :snippets="manSnippets" />
+
+---
+
+## 15. Manage Remote Agent API Keys (`keys`)
+
+Manage distributed enrollment keys for remote log shippers. When running a central RouteWarden security dashboard, use `rwarden keys` to create and revoke credentials:
+
+<CodeViewer :snippets="keysSnippets" />
+
+### Subcommands
+
+| Subcommand | Aliases | Description |
+|:---|:---|:---|
+| `create <name>` | `new`, `add` | Generate a new remote agent authentication token (`rw_sec_...`) |
+| `list` | `ls` | List all registered agent keys, token prefixes, status, and last seen |
+| `revoke <id>` | `rm`, `delete` | Revoke access for a specific agent by ID or name |
+
+### Flags
+
+| Flag | Type | Default | Description |
+|:---|:---|:---|:---|
+| `--dir` | string | `~/.routewarden/dashboard` | Dashboard storage directory holding `server.key` and `api_keys.json` |
+
+---
+
+## 16. Remote Agent Enrollment (`register`)
+
+Enroll a remote node with a central RouteWarden dashboard. This one-time handshake validates the agent token, downloads the central server's X25519 public key, and saves configuration to `~/.routewarden/agent.json`:
+
+<CodeViewer :snippets="registerSnippets" />
+
+### Flags
+
+| Flag | Shorthand | Type | Required | Description |
+|:---|:---|:---|:---|:---|
+| `--url` | `-u` | string | **Yes** | RouteWarden Central Dashboard URL (e.g. `http://dashboard.internal:7890`) |
+| `--key` | `-k` | string | **Yes** | Remote agent authentication key (`rw_sec_...`) |
+| `--config` | — | string | No | Custom path to store agent configuration (default: `~/.routewarden/agent.json`) |
+
+---
+
+## 17. Distributed Log Shipper (`push`)
+
+Stream live security events and gateway access logs from remote edge nodes, cloud servers, or local containers to the central RouteWarden dashboard with end-to-end asymmetric encryption (X25519 ECDH + AES-256-GCM):
+
+<CodeViewer :snippets="pushSnippets" />
+
+### Subcommands & Flags
+
+| Command / Flag | Shorthand | Type | Default | Description |
+|:---|:---|:---|:---|:---|
+| `status`, `ps` | — | subcommand | — | Check running status, PID, and target URL of background shipper |
+| `stop`, `down` | — | subcommand | — | Gracefully stop running background shipper daemon |
+| `--detach` | `-d` | bool | `false` | Run shipper in background (detached) daemon mode |
+| `--docker` | — | bool | `false` | Auto-discover and tail Docker containers. Can run concurrently with `--file` and `--container` |
+| `--container` | `-c` | string | `""` | Tail specific Docker container(s) by name or ID (repeatable or comma-separated) |
+| `--file` | `-f` | string | `""` | Tail and ship events from log file(s) (repeatable, comma-separated, or glob pattern `*.log`) |
+| `--label` | `-l` | string | `"routewarden=true"` | Custom Docker label filter |
+| `--tail` | — | string | `"50"` | Initial lines to tail from Docker container(s) and log file(s) |
+| `--batch-size` | — | int | `50` | Maximum events to buffer in memory before flushing |
+| `--flush-interval` | — | duration | `1s` | Maximum duration before flushing partial buffer |
+| `--url` | `-u` | string | `""` | Override central dashboard URL from registered config |
+| `--key` | `-k` | string | `""` | Override agent authentication key from registered config |
+| `--config` | — | string | `~/.routewarden/agent.json` | Custom path to agent configuration file |
+
+---
+
+## 18. Daemon Process Management (`status`, `stop`)
+
+Manage background daemons spawned with `--detach` (`-d`). RouteWarden manages daemon state via PID files in `~/.routewarden/*.pid` and redirects detached logs to `~/.routewarden/*.log`:
+
+<CodeViewer :snippets="daemonSnippets" />
+
+### Daemon Subsystems & Files
+
+| Subsystem | PID File | Detached Log File | Description |
+|:---|:---|:---|:---|
+| `dashboard` | `~/.routewarden/dashboard.pid` | `~/.routewarden/dashboard.log` | Central SOC Security Dashboard web server and SSE stream |
+| `push` | `~/.routewarden/push.pid` | `~/.routewarden/push.log` | Background remote log shipper daemon |
+
+
+

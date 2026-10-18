@@ -2,7 +2,86 @@
 
 All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and the CLI adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v4.5.2] - 2026-10-17 (Latest)
+## [v5.0.0] - 2026-10-18 (Latest)
+
+### Added
+- **Distributed Remote Log Shipping & Enrollment (`rwarden push`, `keys`, `register`)**:
+  - Introduced a CrowdSec-style distributed log shipping model allowing multiple remote edge servers, cloud VMs, and Kubernetes clusters to stream live telemetry to a central RouteWarden dashboard.
+  - **`rwarden keys`**: Generate (`keys create <name>`), list (`keys list`), and revoke (`keys revoke <id>`) 24-byte cryptographically secure agent authentication tokens (`rw_sec_...`).
+  - **`rwarden register`**: One-time registration handshake connecting remote nodes to the central dashboard, automatically fetching the server's public key, and persisting configuration in `~/.routewarden/agent.json` with strict `0600` permissions.
+  - **`rwarden push`**: Zero-flag background log shipper reading saved credentials, auto-discovering labeled Docker containers (`routewarden=true`) or tailing local log files (`--file`), and streaming encrypted batches.
+  - **In-Memory Ring Buffer**: Implemented a 2,000-event in-memory ring buffer (~2MB max RAM) ensuring zero disk wear on edge SSDs.
+  - **Resilience & Backoff**: Added automated 30-second heartbeat pings and 3-stage exponential backoff retry on network drops.
+- **End-to-End Asymmetric Cryptography (X25519 ECDH + AES-256-GCM)**:
+  - Central server maintains a master X25519 keypair (`server.key` / `server.pub`).
+  - Remote agents derive ephemeral shared secrets via X25519 ECDH with SHA-256 HKDF and encrypt log batches with AES-256-GCM.
+  - Intermediate proxies or network observers cannot inspect or tamper with log payloads in transit.
+- **Native Detached Background Daemon Execution (`--detach` / `-d`, `status`, `stop`)**:
+  - Added native background process detachment for both `rwarden dashboard` and `rwarden push` via `--detach` (or `-d`).
+  - Implemented cross-platform PID tracking (`~/.routewarden/*.pid`) and persistent background log redirection (`~/.routewarden/*.log`).
+  - Added global and subsystem-scoped management commands: `rwarden status [dashboard|push]` and `rwarden stop [dashboard|push]`.
+- **Standalone Micro-Binaries (`cmd/shipper` & `cmd/dashboard`)**:
+  - **`rwarden-shipper` (`cmd/shipper`)**: Ultra-lean micro-binary (**~6.2 MB**) stripped of SQLite, embedded Web UI assets, HTML/JS/CSS, and GeoIP code. Dedicated for edge nodes and low-RAM VPS instances.
+  - **`rwarden-dashboard` (`cmd/dashboard`)**: Standalone SOC dashboard server binary (**~11 MB**) dedicated to web serving, SQLite persistence, and SSE event streaming.
+  - **Monolithic Host CLI (`rwarden`)**: Unified full toolkit maintained at ~12 MB with zero external runtime dependencies.
+- **Dedicated Container Distribution Images (`cli`, `shipper`, `dashboard`)**:
+  - Published three targeted images to GitHub Container Registry (`ghcr.io/routewarden`):
+    - **`ghcr.io/routewarden/cli:latest`**: Unified full toolkit (~12 MB binary) with Docker CLI for container tailing.
+    - **`ghcr.io/routewarden/shipper:latest`**: Ultra-lean micro-image (**~6.2 MB binary**) with zero SQLite and zero UI assets, supporting Docker socket tailing, multiple access log files, and hybrid ingestion.
+    - **`ghcr.io/routewarden/dashboard:latest`**: Standalone SOC security dashboard image (~11 MB binary) serving port `7890`.
+- **Concurrent Multi-Source & Multiple File Ingestion**:
+  - Added support for concurrent multiple log file tailing via repeatable `-f`, comma-separated paths, glob patterns (`*.log`), and positional arguments alongside Docker container discovery.
+- **Real-Time Central Dashboard Status Ribbon & Sources API**:
+  - Injected real-time status ribbon into SOC dashboard interface displaying both local containers and remote nodes with dynamic online/idle/offline health pulses.
+  - Extended `/api/sources` to return live telemetry and event counters for all connected remote agents.
+  - Added automated log translation from Traefik JSON, Nginx text, Caddy JSON, and RouteWarden security verdicts into unified NCSA/Combined log format.
+- **Ultra-Lightweight Real-Time Security Dashboard (`rwarden dashboard`)**:
+  - Replaced the multi-container monitoring stack with an ultra-lightweight real-time security dashboard powered by RouteWarden's embedded SOC engine and SQLite persistence.
+  - Drastically reduced memory footprint from ~350MB+ down to **~8MB RAM**.
+  - Single-port embedded HTTP web server and SSE stream serving live interactive analytics at `http://localhost:7890`.
+  - Automatic Docker container discovery for `routewarden=true` / `routewarden.logs=true` via `/var/run/docker.sock`.
+  - Native execution engine: serves self-contained SOC dashboard and real-time SSE stream with zero external dependencies.
+  - Added flexible flags: `--port` (default 7890), `--file` (monitor specific log file), `--container` (tail target container), `--label` (custom Docker discovery label), `--no-open`, and `--export`.
+- **Built-in Roff Man Page Generator (`rwarden man`)**:
+  - Expanded `man.go` generator to cover `keys`, `register`, `push`, `status`, and `stop` subcommands and flags.
+- **Shell Autocompletion Scripts (`rwarden completion`)**:
+  - Added completion for `-d` / `--detach`, `status`, `stop`, `dashboard_cmds`, and `push_cmds` across Bash, Zsh, Fish, and PowerShell.
+- **Comprehensive Unit & Integration Test Suites**:
+  - Added zero-socket integration and unit tests covering cryptographic edge cases (`crypto_test.go`), keystore management (`keys_test.go`), ingestion endpoints (`ingest_test.go`), registration & flusher retries (`register_test.go`, `push_flusher_test.go`), and concurrent multi-agent streaming (`integration_test.go`).
+- **Native Linux Package Management via NFPM (`.deb`, `.rpm`, `.apk`)**:
+  - Configured GoReleaser NFPM packager to build and publish native packages across major Linux distributions:
+    - **Debian / Ubuntu (`.deb`)**: Direct installation via APT (`curl -fsSLO ... && sudo apt install ./rwarden_linux_amd64.deb`) with automated dependency resolution.
+    - **Red Hat / Fedora / CentOS / Rocky Linux (`.rpm`)**: Direct package installation via RPM (`sudo rpm -ivh ...`).
+    - **Alpine Linux (`.apk`)**: Standalone APK package installation (`apk add --allow-untrusted ...`).
+  - Standardized package metadata, license file mapping to `/usr/share/doc/rwarden/copyright`, and binary placement in `/usr/local/bin/rwarden`.
+- **Official Homebrew Tap Integration (`routewarden/homebrew-tap`)**:
+  - Published official Homebrew formula `Formula/rwarden.rb` supporting native compilation and bottled releases via `brew install routewarden/tap/rwarden`.
+  - Added automated GoReleaser v2 `brews` formula publishing pipeline triggered on release tags with fine-grained GitHub token authentication.
+- **Dedicated macOS and Linux Installation Documentation**:
+  - Redesigned the [CLI Installation Guide](/cli/installation) and [CLI Overview](/cli/) with tabbed, platform-specific installation workflows for macOS (Homebrew, automated curl installer, manual binary, Gatekeeper quarantine mitigation) and Linux (APT, Homebrew, RPM, APK, curl, manual binary).
+  - Added comprehensive uninstallation commands covering Homebrew, APT, RPM, APK, and standalone binaries.
+
+### Changed
+- **Multi-Image CI/CD Workflows**:
+  - Updated GitHub Actions workflows (`ci.yml` and `release.yml`) to build, test, and publish `cli`, `shipper`, and `dashboard` container images.
+- **Synchronized Versioning Script (`scripts/update-version.sh`)**:
+  - Synchronizes versions across root `main.go`, `cmd/shipper/main.go`, and `cmd/dashboard/main.go`.
+- **Version Alignment & Installer Script Synchronization**:
+  - Upgraded universal installer script (`install.sh`) fallback and default tag to `v5.0.0`.
+  - Synced documentation version registry (`version.json`) and release download artifacts to `v5.0.0`.
+
+---
+
+## [v4.5.3] - 2026-10-17
+
+### Added
+- **Official Homebrew Tap Integration (`routewarden/homebrew-tap`)**:
+  - Published official Homebrew formula `Formula/rwarden.rb` supporting installation via `brew install routewarden/tap/rwarden`.
+  - Added GoReleaser v2 `brews` automated formula publishing configuration in `.goreleaser.yaml` and release workflow.
+
+---
+
+## [v4.5.2] - 2026-10-17
 
 ### Fixed
 - **Duplicate Time Column in Incident Triage Table (`routewarden-overview.json`)**:
@@ -27,7 +106,7 @@ All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The 
 
 ### Added
 - **Automated Ingestion-Time GeoIP Resolution (`config.alloy` & `docker-compose.yml`)**:
-  - Integrated `stage.geoip` into the Grafana Alloy log processing pipeline to resolve raw `client_ip` against MaxMind `GeoLite2-Country.mmdb`.
+  - Integrated `stage.geoip` into the log processing pipeline to resolve raw `client_ip` against MaxMind `GeoLite2-Country.mmdb`.
   - Added template stages normalizing `country_code` (injecting MaxMind ISO 3166-1 alpha-2 code and classifying RFC 1918 / loopback ranges as `LAN`) and human-readable `country_name` (or `"Local Network"`).
   - Added automated `geoip-init` service in bundled Docker Compose stack with configurable `GEOIP_DB_URL` mirror for zero-friction database acquisition.
   - Exposed `geoip-data` persistent volume mounted read-only to Alloy (`/etc/alloy/geoip:ro`).
@@ -50,7 +129,7 @@ All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The 
   - Added generator support for emitting `configFile` across Traefik Dynamic YAML, Traefik TOML, Traefik Docker labels, Caddyfile (`config_file`), and OpenResty NGINX Lua (`config_file`).
   - Added base config file path diagnostics in `rwarden validate`.
 - **Observability Dashboard Map Layer Update**:
-  - Migrated the GeoIP threat map layer in the bundled Grafana dashboards from Carto to OpenStreetMap.
+  - Migrated the GeoIP threat map layer in the bundled dashboards from Carto to OpenStreetMap.
 - **Comprehensive Test Coverage & Anti-Evasion Matrix**:
   - Added extensive unit and integration tests across Docker labels parsing, candidate path evasions (multi-consecutive slashes, mixed backslashes, matrix parameters, and multi-layer percent encoding), response mode generators, and CLI commands.
 
@@ -108,23 +187,23 @@ All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The 
   - Protocol Breakdown (`piechart` panel) tracking traffic proportions across protected protocols (`http`, `ssh`, `dns`, `dht`, `tcp`, `udp`).
   - Transport Split (`bargauge` panel) comparing connection-oriented TCP vs datagram UDP flows.
   - Interactive `$protocol` and `$transport` template filter variables for fine-grained multi-protocol drilldowns.
-- **Optional Grafana Threat Alerting & Automated Incident Notification Channels**:
-  - Pre-configured alerting rules provisioned in `grafana/provisioning/alerting/alerting.yaml`, optional and disabled by default (enabled via `rwarden dashboard up --enable-alerting` or `ALERTING_PROVISIONING_DIR=./grafana/provisioning/alerting`):
+- **Optional Threat Alerting & Automated Incident Notification Channels**:
+  - Pre-configured alerting rules, optional and disabled by default (enabled via `rwarden dashboard up --enable-alerting`):
     - `rw-ddos-attack-spike`: Hostile attack rate spike alert triggering when block rate exceeds 10 req/s over 5m.
     - `rw-sensitive-path-probe`: Immediate critical alert on hostile access attempts to `.env`, `.git`, or cloud credential files.
     - `rw-l4-brute-force`: Layer 4 brute-force surge alert when >15 connection drops or bans occur within 3m.
     - `rw-scanner-nuclei-sqlmap`: High-urgency alert when active exploitation tool signatures are detected.
   - Multi-channel notification receivers pre-configured for Slack (`${SLACK_WEBHOOK_URL}`), Discord (`${DISCORD_WEBHOOK_URL}`), PagerDuty (`${PAGERDUTY_KEY}`), and Generic Webhooks (`${ALERT_WEBHOOK_URL}`).
 - **Public & Shared Dashboards with Iframe Embedding**:
-  - Enabled Grafana `publicDashboards` feature toggle (`GF_FEATURE_TOGGLES_ENABLE=publicDashboards`) for zero-login public links to live threat telemetry.
-  - Enabled frame embedding (`GF_SECURITY_ALLOW_EMBEDDING=true`) for embedding threat widgets directly into SecOps intranets or customer portals.
+  - Enabled `publicDashboards` feature toggle for zero-login public links to live threat telemetry.
+  - Enabled frame embedding for embedding threat widgets directly into SecOps intranets or customer portals.
 - **Interactive SOC Incident Triage Table & Threat Intelligence Drilldowns**:
   - Dedicated SOC triage grid (`table` panel) displaying real-time forensic event records.
   - Interactive one-click investigative drilldowns on attacker client IPs:
     - **AbuseIPDB**: Instant IP reputation check, report counts, and abuse confidence score (`https://www.abuseipdb.com/check/${__data.fields.client_ip}`).
     - **VirusTotal**: Cross-engine malware, scanner, and infrastructure scoring (`https://www.virustotal.com/gui/ip-address/${__data.fields.client_ip}`).
     - **Shodan**: Open ports, running daemons, and banner reconnaissance (`https://www.shodan.io/host/${__data.fields.client_ip}`).
-    - **Loki Forensic Threat Hunter**: Instant pivot into Grafana Explore pre-filtered to the attacker's client IP.
+    - **Forensic Threat Hunter**: Instant pivot into explore view pre-filtered to the attacker's client IP.
   - Direct top-bar navigation shortcuts for rapid threat hunting.
 
 ### Fixed
@@ -148,19 +227,19 @@ All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The 
   - Mapped `type="routewarden_block"` to `verdict="BLOCK"` and `type="routewarden_allow"` to `verdict="ALLOW"` across Traefik, Caddy, and NGINX logs.
 - **TCP Warden Metadata Extraction (`config.alloy`)**:
   - Extracted full Layer 4 metadata (`service`, `protocol`, `transport`, `client_ip`, `country_code`, `flag_emoji`, `level`, and `reason`) for unified dashboard correlation.
-- **Runtime Grafana Environment Overrides (`rwarden dashboard up`)**:
-  - Added repeatable `--env` / `-e` flags to `rwarden dashboard up` (e.g. `--env GF_SECURITY_ADMIN_PASSWORD=secret`).
-  - Added `${GF_*:-default}` parameter fallbacks across `docker-compose.yml` so custom environment variables, SMTP credentials, and OAuth SSO settings are respected at runtime.
+- **Runtime Environment Overrides (`rwarden dashboard up`)**:
+  - Added repeatable `--env` / `-e` flags to `rwarden dashboard up`.
+  - Added `${ENV_VAR:-default}` parameter fallbacks across `docker-compose.yml` so custom environment variables, SMTP credentials, and OAuth SSO settings are respected at runtime.
 - **TCP Warden Sample Configuration & Obsolete Flags**:
   - Fixed `samples/tcp-warden/docker-compose.yaml`, `README.md`, and `tcp-warden.yaml` by removing non-existent flags (`--tcp-warden`, `--host`, `--no-docker`) and adding the proper `routewarden.logs=true` label for the RouteWarden Observability Stack.
 - **UDP Port Exposure in Docker Image**:
   - Added `1514/udp` to the `EXPOSE` directive in `Dockerfile` for network UDP syslog ingestion.
 
 ### Changed
-- **Pure Opt-In Container Discovery & Self-Logging Protection (`config.alloy`)**:
+- **Pure Opt-In Container Discovery & Self-Logging Protection**:
   - Replaced broad container name regex matching (`.*(routewarden|traefik|caddy|nginx|tcp-warden).*`) with a strict, label-based **Pure Opt-In** model (`routewarden.logs=true` or `routewarden=true`).
-  - Completely prevents the observability stack (`routewarden-loki`, `routewarden-alloy`, `routewarden-grafana`) from capturing its own internal logs or scraping unrelated host containers (databases, web applications, or unmanaged proxies).
-  - Added stream-level log noise filtering in `loki.process` (`stage.drop`) to automatically discard plain-text container startup banners, health check probes, and ordinary proxy access lines lacking structured RouteWarden security fields (`verdict` or `action`).
+  - Completely prevents the observability stack from capturing its own internal logs or scraping unrelated host containers (databases, web applications, or unmanaged proxies).
+  - Added stream-level log noise filtering to automatically discard plain-text container startup banners, health check probes, and ordinary proxy access lines lacking structured RouteWarden security fields (`verdict` or `action`).
   - Simplified `docker-compose.yml` by eliminating negative exclusion labels across all observability services.
 
 ---
@@ -168,12 +247,12 @@ All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The 
 ## [v4.1.0] - 2026-10-01
 
 ### Added
-- **Grafana, Loki & Alloy Observability Stack (`rwarden dashboard`)**:
-  - Replaced the embedded monolithic web dashboard with a production-grade cloud-native telemetry stack powered by Grafana, Grafana Loki, and Grafana Alloy.
-  - Added `rwarden dashboard up` (default) to orchestrate and launch the full stack via Docker Compose with pre-provisioned data sources and security dashboards on port 3000.
+- **Security Observability Stack (`rwarden dashboard`)**:
+  - Replaced the embedded monolithic web dashboard with a cloud-native telemetry stack.
+  - Added `rwarden dashboard up` (default) to orchestrate and launch the full stack via Docker Compose with pre-provisioned data sources and security dashboards.
   - Added `rwarden dashboard down` to cleanly stop and remove running stack containers.
   - Added `rwarden dashboard status` to inspect container health, active port bindings, and endpoint URLs.
-  - Added `rwarden dashboard export [dir]` (and `--dir <path>`) to extract `docker-compose.yml`, `config.alloy`, `loki-config.yaml`, and Grafana provisioning dashboards to disk for standalone customization and GitOps workflows.
+  - Added `rwarden dashboard export [dir]` (and `--dir <path>`) to extract `docker-compose.yml` and dashboard assets to disk for standalone customization and GitOps workflows.
 - **Trusted Proxies Support Across All Generators (`trustedProxies`)**:
   - Full code generator support for `trustedProxies` across all supported targets:
     - Traefik Dynamic File Provider YAML (`http.middlewares.routewarden.plugin.routewarden.ipFilter.trustedProxies`)

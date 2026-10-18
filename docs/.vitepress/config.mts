@@ -180,7 +180,7 @@ export default defineConfig({
       },
       {
         text: 'Docs',
-        activeMatch: '^/(core|examples|reference|tools)/',
+        activeMatch: '^/(core|examples|reference|tools|faq)/',
         items: [
           { text: 'Architecture & Threat Model', link: '/core/architecture' },
           { text: 'Anti-Evasion Normalization', link: '/core/anti-evasion' },
@@ -188,13 +188,19 @@ export default defineConfig({
           { text: 'Custom Regex Patterns', link: '/core/custom-patterns' },
           { text: 'Production Case Studies', link: '/examples/case-study-immich' },
           { text: 'Common Recipes & Compose', link: '/examples/basic-sensitive-files' },
-          { text: 'Interactive Pattern Checker', link: '/tools/pattern-checker' }
+          { text: 'Interactive Pattern Checker', link: '/tools/pattern-checker' },
+          { text: 'Frequently Asked Questions (FAQ)', link: '/faq' }
         ]
       },
       {
         text: 'CLI',
         link: '/cli/',
         activeMatch: '^/cli/'
+      },
+      {
+        text: 'FAQ',
+        link: '/faq',
+        activeMatch: '^/faq'
       },
       {
         text: versionsRegistry.current,
@@ -426,6 +432,7 @@ export default defineConfig({
             { text: 'Anti-Evasion Normalization', link: '/core/anti-evasion' },
             { text: 'Response Modes (13 Actions)', link: '/core/response-modes' },
             { text: 'Custom Regex Patterns', link: '/core/custom-patterns' },
+            { text: 'Frequently Asked Questions (FAQ)', link: '/faq' },
             { text: 'RouteWarden CLI Tool', link: '/cli/' },
             { text: 'Changelog & Migrations', link: '/core/changelog' }
           ]
@@ -563,22 +570,36 @@ export default defineConfig({
           ]
         },
         {
+          text: 'Remote Monitoring & Streaming',
+          collapsed: false,
+          items: [
+            { text: 'Architecture & Overview', link: '/cli/remote/' },
+            { text: 'Key Management (rwarden keys)', link: '/cli/remote/keys' },
+            { text: 'Agent Enrollment (rwarden register)', link: '/cli/remote/registration' },
+            { text: 'Log Shipper (rwarden push)', link: '/cli/remote/shipper' },
+            { text: 'End-to-End Cryptography', link: '/cli/remote/encryption' },
+            { text: 'Multi-Node & Docker Compose', link: '/cli/remote/multi-node' }
+          ]
+        },
+        {
           text: 'Security Dashboard',
           collapsed: false,
           items: [
             { text: 'Overview & Architecture', link: '/cli/dashboard' },
             { text: 'Container Discovery & Logging', link: '/cli/dashboard/discovery-and-logging' },
-            { text: 'Pre-Configured Dashboard', link: '/cli/dashboard/prebuilt-dashboard' },
+            { text: 'Pre-Configured Panels', link: '/cli/dashboard/prebuilt-dashboard' },
             { text: 'Standalone Deployment', link: '/cli/dashboard/deployment' },
-            { text: 'Reusing Existing Stack', link: '/cli/dashboard/existing-stack' },
-            { text: 'LogQL & Alerting Reference', link: '/cli/dashboard/logql-reference' }
+            { text: 'Distributed Remote Streaming', link: '/cli/dashboard/remote-streaming' },
+            { text: 'Reusing Existing Logging', link: '/cli/dashboard/existing-stack' },
+            { text: 'Event Format & Query Reference', link: '/cli/dashboard/event-format' }
           ]
         },
         {
           text: 'Tools & Playground',
           collapsed: false,
           items: [
-            { text: 'Pattern & Response Playground', link: '/tools/pattern-checker' }
+            { text: 'Pattern & Response Playground', link: '/tools/pattern-checker' },
+            { text: 'Frequently Asked Questions (FAQ)', link: '/faq' }
           ]
         },
         {
@@ -613,6 +634,45 @@ export default defineConfig({
           ]
         }
       ],
+      '/faq': [
+        {
+          text: 'Frequently Asked Questions',
+          collapsed: false,
+          items: [
+            { text: 'RouteWarden FAQ', link: '/faq' },
+            { text: 'TCP Warden (L4) FAQ ➔', link: '/tcp/faq' }
+          ]
+        },
+        {
+          text: 'Core Engine',
+          collapsed: false,
+          items: [
+            { text: 'System Architecture', link: '/core/architecture' },
+            { text: 'Anti-Evasion Normalization', link: '/core/anti-evasion' },
+            { text: 'Response Modes (13 Actions)', link: '/core/response-modes' },
+            { text: 'Custom Regex Patterns', link: '/core/custom-patterns' }
+          ]
+        },
+        {
+          text: 'Tools & Dashboard',
+          collapsed: false,
+          items: [
+            { text: 'RouteWarden CLI (`rwarden`)', link: '/cli/' },
+            { text: 'Security Dashboard', link: '/cli/dashboard' },
+            { text: 'Pattern & Response Playground', link: '/tools/pattern-checker' }
+          ]
+        },
+        {
+          text: 'Gateways',
+          collapsed: false,
+          items: [
+            { text: 'Traefik Warden', link: '/traefik/' },
+            { text: 'Caddy Warden', link: '/caddy/' },
+            { text: 'NGINX Warden', link: '/nginx/' },
+            { text: 'TCP Warden (L4 Firewall)', link: '/tcp/' }
+          ]
+        }
+      ],
       '/': [
         {
           text: 'Gateways',
@@ -627,6 +687,7 @@ export default defineConfig({
           text: 'References',
           collapsed: false,
           items: [
+            { text: 'Frequently Asked Questions (FAQ)', link: '/faq' },
             { text: 'Custom Paths & Regex Guide', link: '/reference/custom-paths' },
             { text: 'Response Modes Reference', link: '/reference/response-modes' },
             { text: 'Anti-Evasion Engine', link: '/reference/anti-evasion' }

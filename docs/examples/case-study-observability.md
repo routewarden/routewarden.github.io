@@ -206,7 +206,7 @@ const snippets = computed(() => ({
 
 # Case Study: Prometheus & Actuator Observability Cloaking
 
-This case study demonstrates how to protect internal telemetry, metrics scrapers, and diagnostic dumps from public disclosure while preserving uninterrupted collection by internal monitoring pipelines (Prometheus, Datadog, Grafana).
+This case study demonstrates how to protect internal telemetry, metrics scrapers, and diagnostic dumps from public disclosure while preserving uninterrupted collection by internal monitoring pipelines (Prometheus, Datadog, SIEM collectors).
 
 ---
 

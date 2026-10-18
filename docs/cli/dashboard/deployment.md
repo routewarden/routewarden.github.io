@@ -1,6 +1,6 @@
 ---
 title: Standalone Docker Compose Deployment — RouteWarden Dashboard
-description: Deploy RouteWarden's security observability stack in production using standalone Docker Compose, configure Grafana environment variables, OAuth SSO, and persistent storage.
+description: Deploy RouteWarden's native SOC security dashboard in production using standalone Docker Compose.
 ---
 
 <script setup>
@@ -10,12 +10,15 @@ import { buildSnippet } from '../../.vitepress/theme/composables/useCodeSnippet'
 // ─── 1. Export Snippets ─────────────────────────────────────────────────────
 const export_cmd = buildSnippet({
   lang: 'bash',
-  code: `# 1. Export stack configuration files to local directory
-rwarden dashboard export ./observability
-cd ./observability
+  code: `# 1. Export dashboard configuration to local directory
+rwarden dashboard export ./dashboard
+cd ./dashboard
 
-# 2. Start containers with Docker Compose
-docker compose up -d`,
+# 2. Launch native SOC dashboard with Docker Compose
+docker compose up -d
+
+# 3. View live dashboard in browser
+# 👉 http://localhost:7890`,
 })
 
 const export_cmd_docker = buildSnippet({
@@ -23,286 +26,149 @@ const export_cmd_docker = buildSnippet({
   code: `# Export configs using the RouteWarden CLI container image
 # (no local rwarden binary required)
 docker run --rm \\
-  -v "$(pwd)/observability:/data" \\
+  -v "$(pwd)/dashboard:/data" \\
   ghcr.io/routewarden/cli:latest \\
   dashboard export /data
 
-# The exported directory now contains:
-#  observability/
+# The exported directory contains:
+#  dashboard/
 #  ├── docker-compose.yml
-#  ├── config.alloy
-#  ├── loki-config.yaml
-#  └── grafana/
-#      ├── provisioning/
-#      └── dashboards/routewarden-overview.json
+#  └── README.md
 
-# Bring the full stack up with Docker Compose
-cd observability
+# Bring the dashboard up with Docker Compose
+cd dashboard
 docker compose up -d
 
-# Check logs
+# Check live logs
 docker compose logs -f
 
-# Tear down (volumes are preserved)
+# Tear down
 docker compose down`,
 })
 
 const exportSnippets = computed(() => ({
   cli: [
-    { filename: 'rwarden export', lang: 'bash', code: export_cmd.cleanCode, html: export_cmd.html, hasDiff: false },
-    { filename: 'Docker container', lang: 'bash', code: export_cmd_docker.cleanCode, html: export_cmd_docker.html, hasDiff: false },
+    { filename: 'Using rwarden CLI', lang: 'bash', code: export_cmd.cleanCode, html: export_cmd.html, hasDiff: false },
+    { filename: 'Using Docker Image', lang: 'bash', code: export_cmd_docker.cleanCode, html: export_cmd_docker.html, hasDiff: false },
   ],
 }))
 
 // ─── 2. Compose File Snippet ────────────────────────────────────────────────
-const compose_file = buildSnippet({
+const compose_full = buildSnippet({
   lang: 'yaml',
   code: `services:
-  loki:
-    image: grafana/loki:3.0.0
-    container_name: routewarden-loki
+  dashboard:
+    image: ghcr.io/routewarden/cli:latest
+    container_name: routewarden-dashboard
     restart: unless-stopped
-    command: -config.file=/etc/loki/loki-config.yaml
+    command: dashboard --port 7890 --no-open
     ports:
-      - "3100:3100"
+      - "\${PORT:-7890}:7890"
     volumes:
-      - ./loki-config.yaml:/etc/loki/loki-config.yaml:ro
-      - loki-data:/loki
-    networks:
-      - routewarden-observability
-
-  geoip-init:
-    image: curlimages/curl:latest
-    container_name: routewarden-geoip-init
-    restart: "no"
-    environment:
-      - GEOIP_DB_URL=\${GEOIP_DB_URL:-https://github.com/P3TERX/GeoLite.mmdb/raw/download/GeoLite2-Country.mmdb}
-    command:
-      - sh
-      - -c
-      - |
-        if [ ! -s /home/curl_user/GeoLite2-Country.mmdb ]; then
-          echo "Downloading GeoLite2 Country database for RouteWarden GeoIP pipeline (non-root)..."
-          curl -sSL --connect-timeout 15 --retry 3 "$$GEOIP_DB_URL" -o /home/curl_user/GeoLite2-Country.mmdb || true
-        fi
-    volumes:
-      - geoip-data:/home/curl_user
-    networks:
-      - routewarden-observability
-
-  alloy:
-    image: grafana/alloy:v1.1.0
-    container_name: routewarden-alloy
-    restart: unless-stopped
-    command: run --server.http.listen-addr=0.0.0.0:12345 --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy
-    ports:
-      - "12345:12345"
-      - "1514:1514/udp"
-    volumes:
-      - ./config.alloy:/etc/alloy/config.alloy:ro
+      # Mount Docker socket for automatic reverse proxy log discovery
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - /var/log:/var/log:ro
-      - geoip-data:/etc/alloy/geoip:ro
-    depends_on:
-      - loki
-      - geoip-init
-    networks:
-      - routewarden-observability
-
-  grafana:
-    image: grafana/grafana:11.0.0
-    container_name: routewarden-grafana
-    restart: unless-stopped
-    ports:
-      - "3000:3000"
+      # Persist SQLite telemetry database across container restarts
+      - routewarden-data:/root/.routewarden/dashboard
     environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-      - GF_USERS_ALLOW_SIGN_UP=false
-      - GF_AUTH_ANONYMOUS_ENABLED=true
-      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
-      - GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/var/lib/grafana/dashboards/routewarden-overview.json
-    volumes:
-      - ./grafana/provisioning:/etc/grafana/provisioning:ro
-      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
-      - grafana-data:/var/lib/grafana
-    depends_on:
-      - loki
-    networks:
-      - routewarden-observability
+      - TZ=UTC
 
 volumes:
-  loki-data:
-  grafana-data:
-  geoip-data:
-
-networks:
-  routewarden-observability:
-    name: routewarden-observability`,
+  routewarden-data:
+    name: routewarden-dashboard-data`,
 })
 
 const composeSnippets = computed(() => ({
   cli: [
-    { filename: 'docker-compose.yml', lang: 'yaml', code: compose_file.cleanCode, html: compose_file.html, hasDiff: false },
+    { filename: 'docker-compose.yml', lang: 'yaml', code: compose_full.cleanCode, html: compose_full.html, hasDiff: false },
   ],
 }))
 
-// ─── 3. Grafana Environment Configuration Snippets ──────────────────────────
-const grafana_env_override = buildSnippet({
+// ─── 3. Multi-Node Compose Snippet ──────────────────────────────────────────
+const compose_multi = buildSnippet({
   lang: 'yaml',
-  code: `# docker-compose.override.yml — place next to docker-compose.yml
-# Run: docker compose up -d  (override is merged automatically)
-services:
-  grafana:
+  code: `services:
+  # Central SOC Dashboard
+  dashboard:
+    image: ghcr.io/routewarden/cli:latest
+    container_name: routewarden-dashboard
+    restart: unless-stopped
+    command: dashboard --port 7890 --no-open
+    ports:
+      - "\${PORT:-7890}:7890"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - routewarden-data:/root/.routewarden/dashboard
     environment:
-      # ── Admin credentials ──────────────────────────────────────────────────
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=your-strong-password
-      - GF_SECURITY_SECRET_KEY=your-32-char-secret-key
+      - TZ=UTC
 
-      # ── Anonymous access (read-only, no login required) ───────────────────
-      - GF_AUTH_ANONYMOUS_ENABLED=true
-      - GF_AUTH_ANONYMOUS_ORG_NAME=Main Org.
-      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
+  # Edge Node / Remote Proxy Streamer (Optional Companion)
+  streamer:
+    image: ghcr.io/routewarden/cli:latest
+    container_name: routewarden-streamer
+    restart: unless-stopped
+    command: monitor --raw --stream-to http://dashboard:7890 --agent-id edge-us-east
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    depends_on:
+      - dashboard
 
-      # ── Disable user sign-up (recommended for public-facing instances) ────
-      - GF_USERS_ALLOW_SIGN_UP=false
-      - GF_USERS_AUTO_ASSIGN_ORG_ROLE=Viewer
-
-      # ── Server & base URL ─────────────────────────────────────────────────
-      - GF_SERVER_ROOT_URL=https://grafana.example.com
-      - GF_SERVER_DOMAIN=grafana.example.com
-
-      # ── SMTP / email alerting ─────────────────────────────────────────────
-      - GF_SMTP_ENABLED=true
-      - GF_SMTP_HOST=smtp.example.com:587
-      - GF_SMTP_USER=grafana@example.com
-      - GF_SMTP_PASSWORD=smtp-password
-      - GF_SMTP_FROM_ADDRESS=grafana@example.com
-      - GF_SMTP_FROM_NAME=RouteWarden Alerts
-
-      # ── Default home dashboard (pre-provisioned RouteWarden panel) ────────
-      - GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/var/lib/grafana/dashboards/routewarden-overview.json`,
+volumes:
+  routewarden-data:`,
 })
 
-const grafana_env_oauth = buildSnippet({
-  lang: 'yaml',
-  code: `# docker-compose.override.yml — GitHub OAuth SSO example
-services:
-  grafana:
-    environment:
-      # ── GitHub OAuth ───────────────────────────────────────────────────────
-      - GF_AUTH_GITHUB_ENABLED=true
-      - GF_AUTH_GITHUB_CLIENT_ID=your-github-client-id
-      - GF_AUTH_GITHUB_CLIENT_SECRET=your-github-client-secret
-      - GF_AUTH_GITHUB_SCOPES=user:email,read:org
-      - GF_AUTH_GITHUB_AUTH_URL=https://github.com/login/oauth/authorize
-      - GF_AUTH_GITHUB_TOKEN_URL=https://github.com/login/oauth/access_token
-      - GF_AUTH_GITHUB_API_URL=https://api.github.com/user
-      # Restrict to members of a specific GitHub org/team:
-      - GF_AUTH_GITHUB_ALLOWED_ORGANIZATIONS=my-org
-      - GF_AUTH_GITHUB_TEAM_IDS=123456
-
-      # ── Google OAuth ───────────────────────────────────────────────────────
-      # - GF_AUTH_GOOGLE_ENABLED=true
-      # - GF_AUTH_GOOGLE_CLIENT_ID=your-google-client-id
-      # - GF_AUTH_GOOGLE_CLIENT_SECRET=your-google-client-secret
-      # - GF_AUTH_GOOGLE_ALLOWED_DOMAINS=example.com
-      # - GF_AUTH_GOOGLE_SCOPES=https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email`,
-})
-
-const grafana_env_cli = buildSnippet({
-  lang: 'bash',
-  code: `# Pass env vars directly to rwarden dashboard up
-# All GF_* variables are forwarded to the Grafana container
-rwarden dashboard up \\
-  --port 3000 \\
-  --env GF_SECURITY_ADMIN_PASSWORD=mysecret \\
-  --env GF_SMTP_ENABLED=true \\
-  --env GF_SMTP_HOST=smtp.example.com:587 \\
-  --env GF_AUTH_GITHUB_ENABLED=true \\
-  --env GF_AUTH_GITHUB_CLIENT_ID=abc123 \\
-  --env GF_AUTH_GITHUB_CLIENT_SECRET=xyz789
-
-# Or export first, edit docker-compose.override.yml, then bring the stack up:
-rwarden dashboard export ./observability
-cd ./observability
-# Edit docker-compose.override.yml with your GF_* values
-docker compose up -d`,
-})
-
-const grafanaEnvSnippets = computed(() => ({
+const multiSnippets = computed(() => ({
   cli: [
-    { filename: 'docker-compose.override.yml', lang: 'yaml', code: grafana_env_override.cleanCode, html: grafana_env_override.html, hasDiff: false },
-    { filename: 'OAuth / SSO', lang: 'yaml', code: grafana_env_oauth.cleanCode, html: grafana_env_oauth.html, hasDiff: false },
-    { filename: 'rwarden dashboard up', lang: 'bash', code: grafana_env_cli.cleanCode, html: grafana_env_cli.html, hasDiff: false },
+    { filename: 'docker-compose.yml', lang: 'yaml', code: compose_multi.cleanCode, html: compose_multi.html, hasDiff: false },
   ],
 }))
 </script>
 
 # Standalone Docker Compose Deployment
 
-If you prefer deploying the security observability stack without relying on the local CLI binary (for example, in GitOps pipelines, headless production servers, Kubernetes, or Docker Swarm), you can export the full stack files and operate them using native Docker Compose.
+RouteWarden allows you to export and deploy the native real-time security dashboard as a standalone **Docker Compose** service without needing the `rwarden` binary installed on your production servers.
 
 ---
 
-## 1. Export Stack Files
+## 1. Export the Stack
 
-You can extract the full stack assets using either the `rwarden` binary or RouteWarden's official container image:
+Export the embedded configuration files to any target directory:
 
 <CodeViewer :snippets="exportSnippets" />
 
-The exported directory contains everything required to spin up the stack in isolation:
-- `docker-compose.yml`: Service definitions for Loki, Alloy, and Grafana.
-- `config.alloy`: Pipeline configuration for Docker container discovery, UDP syslog, JSON parsing, and label normalization.
-- `loki-config.yaml`: Standalone Loki TSDB storage and retention rules.
-- `grafana/provisioning/`: Auto-provisioning manifests for datasources and dashboard providers.
-- `grafana/dashboards/routewarden-overview.json`: Complete pre-configured Grafana dashboard.
-
 ---
 
-## 2. Full `docker-compose.yml` Reference
+## 2. Docker Compose Configuration
+
+The exported `docker-compose.yml` runs RouteWarden's native SOC dashboard consuming **~8MB of RAM** with zero external dependencies:
 
 <CodeViewer :snippets="composeSnippets" />
 
 ---
 
-## 3. Grafana Environment Configuration & Customization
+## 3. Distributed / Multi-Container Setup
 
-All Grafana behaviour — credentials, SMTP, OAuth, anonymous access, and the home dashboard path — is controlled via `GF_*` environment variables.
+For environments where proxy ingress logs originate across multiple microservice containers or edge instances, stream telemetry directly into the central dashboard:
 
-Use a `docker-compose.override.yml` alongside the exported `docker-compose.yml` so your customizations are preserved when updating or re-exporting:
-
-<CodeViewer :snippets="grafanaEnvSnippets" />
-
-### Key `GF_*` Variables
-
-| Variable | Default | Purpose |
-|:--|:--|:--|
-| `GF_SECURITY_ADMIN_USER` | `admin` | Admin username |
-| `GF_SECURITY_ADMIN_PASSWORD` | `admin` | Admin password — **change in production** |
-| `GF_SECURITY_SECRET_KEY` | random | Cookie signing key — set a stable value to survive restarts |
-| `GF_AUTH_ANONYMOUS_ENABLED` | `true` | Allow read-only access without login |
-| `GF_AUTH_ANONYMOUS_ORG_ROLE` | `Viewer` | Role granted to anonymous users |
-| `GF_USERS_ALLOW_SIGN_UP` | `false` | Disable public self-registration |
-| `GF_SERVER_ROOT_URL` | `http://localhost:3000` | Public URL — required for OAuth redirect URIs |
-| `GF_SMTP_ENABLED` | `false` | Enable email alerting |
-| `GF_AUTH_GITHUB_ENABLED` | `false` | GitHub OAuth SSO |
-| `GF_AUTH_GOOGLE_ENABLED` | `false` | Google OAuth SSO |
-| `GF_SECURITY_ALLOW_EMBEDDING` | `true` | Allow embedding dashboard panels via iframe in portals |
-| `GF_FEATURE_TOGGLES_ENABLE` | `publicDashboards` | Enable public dashboard links creation |
-| `GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH` | provisioned path | Dashboard shown on first load |
-
-> [!TIP]
-> When using `rwarden dashboard up`, pass `--env GF_SECURITY_ADMIN_PASSWORD=secret` for quick one-shot overrides. For persistent configuration, prefer `docker-compose.override.yml` so settings survive CLI re-runs.
+<CodeViewer :snippets="multiSnippets" />
 
 ---
 
-## 4. Accessing the Dashboard & Services
+## 4. Telemetry Persistence & Storage
 
-| Service | Port | Default Credentials | Description |
-|:---|:---|:---|:---|
-| **Grafana** | `3000` | `admin / admin` (anonymous viewer enabled) | Threat Intelligence Dashboard Web UI |
-| **Loki API** | `3100` | No auth required | TSDB storage engine & LogQL HTTP API |
-| **Alloy UI** | `12345` | No auth required | Collector status & component inspector |
-| **Alloy Syslog** | `1514/udp` | Network UDP | Ingestion endpoint for remote network firewalls |
+The native dashboard automatically initializes an embedded **SQLite** database (`events.db`) with Write-Ahead Logging (WAL) enabled:
+
+- **Storage Location**: Inside the container at `/root/.routewarden/dashboard/events.db` (persisted via the `routewarden-data` Docker volume).
+- **Zero-Latency Ingestion**: Asynchronous batch writes flushed every 200ms or 100 events.
+- **30-Day Auto-Pruning**: Built-in pruning engine automatically removes events older than 30 days, capping disk usage to ~10–30 MB.
+- **Restart Survival**: On container restart, all historical metrics, threat classifications, and active attacker hotspots are preserved.
+
+---
+
+## 5. Environment Variables & Options
+
+| Variable / Flag | Default | Description |
+|:---|:---|:---|
+| `PORT` / `--port` | `7890` | Host port exposed for web UI, SSE streams, and REST API |
+| `TZ` | `UTC` | Timezone for log timestamps and reporting |
+| `GEOIP_DB` / `--geoip-db` | `Auto` | Optional path to custom MaxMind `GeoLite2-City.mmdb` or `GeoLite2-Country.mmdb` |
+| `--no-open` | `false` | Disable automatic local browser launch (always set in Docker) |

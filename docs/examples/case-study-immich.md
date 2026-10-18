@@ -1027,7 +1027,7 @@ const immichArchSnippets = computed(() => ({
 
 This case study demonstrates a real-world production pattern: **securing a self-hosted web application with a dual-router architecture using RouteWarden**.
 
-We use **[Immich](https://immich.app/)** (a self-hosted high-performance photo and video backup solution) as the primary example, though this pattern applies equally to Nextcloud, Jellyfin, Grafana, Home Assistant, and internal SaaS tools.
+We use **[Immich](https://immich.app/)** (a self-hosted high-performance photo and video backup solution) as the primary example, though this pattern applies equally to Nextcloud, Jellyfin, Vaultwarden, Home Assistant, and internal SaaS tools.
 
 ---
 

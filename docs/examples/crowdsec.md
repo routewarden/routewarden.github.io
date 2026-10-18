@@ -663,5 +663,5 @@ The client IP is now banned by CrowdSec across all attached bouncers (firewall, 
 Because RouteWarden emits single-line JSON with `type: "routewarden_block"`, you can easily pipe these logs into your existing observability stack without custom grok patterns:
 
 - **Elasticsearch / Filebeat**: Ingest with standard JSON processors and enrich `client_ip` with GeoIP data.
-- **Grafana Loki / Promtail**: Parse with `{type="routewarden_block"} | json` for instant dashboard metrics and alerts.
+- **Loki / Promtail / Vector**: Parse with `{type="routewarden_block"} | json` for instant metrics and alerts.
 - **Datadog / Splunk**: Automatic JSON facet extraction for `pattern`, `action`, `reason`, and `user_agent`.

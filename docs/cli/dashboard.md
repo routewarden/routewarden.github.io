@@ -1,6 +1,6 @@
 ---
-title: Security Observability Stack (Grafana, Loki & Alloy) — RouteWarden CLI
-description: Turnkey cloud-native security dashboard and log parsing with Grafana, Loki, and Alloy for Traefik, Caddy, NGINX, and TCP Warden.
+title: Real-Time Security Dashboard — RouteWarden CLI
+description: Ultra-lightweight real-time SOC security dashboard powered by embedded SQLite (~8MB RAM) with SSE streaming for Traefik, Caddy, NGINX, and TCP Warden.
 ---
 
 <script setup>
@@ -10,166 +10,34 @@ import { buildSnippet } from '../.vitepress/theme/composables/useCodeSnippet'
 // ─── 0. Architecture Overview Mermaid & Diagram Snippet ─────────────────────
 const mermaid_raw = `flowchart LR
     subgraph Gateways ["RouteWarden Gateways"]
-        T["Traefik"]
-        C["Caddy"]
-        N["NGINX"]
-        TCP["TCP Warden"]
+        T["Traefik (routewarden=true)"]
+        C["Caddy (routewarden=true)"]
+        N["NGINX (routewarden=true)"]
+        TCP["TCP Warden (routewarden=true)"]
     end
 
-    subgraph Shipper ["Log Collector"]
-        A["Grafana Alloy\\n(Container & File Discovery)"]
+    subgraph Monitor ["Log Discovery & Multiplexer"]
+        M["rwarden monitor\\n(Docker Socket Discovery)"]
     end
 
-    subgraph Engine ["Log Storage"]
-        L["Grafana Loki\\n(LogQL Indexing)"]
+    subgraph Engine ["Live Analytics & SQLite Engine"]
+        G["RouteWarden SOC Engine\\n(Embedded SQLite + SSE Stream)"]
     end
 
-    subgraph UI ["Observability & SIEM"]
-        G["Grafana\\n(Pre-configured Dashboard)"]
+    subgraph UI ["Real-Time Dashboard"]
+        W["Web UI (http://localhost:7890)\\n(Live SSE Telemetry Stream)"]
     end
 
-    T -->|JSON logs| A
-    C -->|JSON logs| A
-    N -->|JSON logs| A
-    TCP -->|JSON logs| A
+    T -->|stdout/stderr| M
+    C -->|stdout/stderr| M
+    N -->|stdout/stderr| M
+    TCP -->|stdout/stderr| M
 
-    A -->|loki.write| L
-    L -->|LogQL| G`
+    M -->|Structured Log Stream| G
+    G -->|SSE & HTML| W`
 
-const arch_graph_svg = `<div class="rw-graph-container">
-  <svg viewBox="0 0 1280 380" fill="none" xmlns="http://www.w3.org/2000/svg" class="rw-graph-svg">
-    <defs>
-      <linearGradient id="grad-gateways" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#6366f1" stop-opacity="0.08"/>
-        <stop offset="100%" stop-color="#6366f1" stop-opacity="0.01"/>
-      </linearGradient>
-      <linearGradient id="grad-alloy" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.12"/>
-        <stop offset="100%" stop-color="#f59e0b" stop-opacity="0.02"/>
-      </linearGradient>
-      <linearGradient id="grad-loki" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#f97316" stop-opacity="0.12"/>
-        <stop offset="100%" stop-color="#f97316" stop-opacity="0.02"/>
-      </linearGradient>
-      <linearGradient id="grad-grafana" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#ec4899" stop-opacity="0.12"/>
-        <stop offset="100%" stop-color="#ec4899" stop-opacity="0.02"/>
-      </linearGradient>
-      <!-- Arrow markers -->
-      <marker id="arrow-indigo" viewBox="-2 -2 16 14" refX="10" refY="5" markerWidth="10" markerHeight="10" orient="auto" overflow="visible">
-        <path d="M 0 1 L 11 5 L 0 9 z" fill="#6366f1"/>
-      </marker>
-      <marker id="arrow-amber" viewBox="-2 -2 16 14" refX="10" refY="5" markerWidth="10" markerHeight="10" orient="auto" overflow="visible">
-        <path d="M 0 1 L 11 5 L 0 9 z" fill="#f59e0b"/>
-      </marker>
-      <marker id="arrow-orange" viewBox="-2 -2 16 14" refX="10" refY="5" markerWidth="10" markerHeight="10" orient="auto" overflow="visible">
-        <path d="M 0 1 L 11 5 L 0 9 z" fill="#f97316"/>
-      </marker>
-    </defs>
-
-    <!-- 1. GATEWAYS -->
-    <rect x="12" y="14" width="200" height="352" rx="10" class="rw-g-box" fill="url(#grad-gateways)"/>
-    <text x="24" y="38" class="rw-g-header">ROUTEWARDEN GATEWAYS</text>
-
-    <rect x="22" y="52" width="180" height="60" rx="8" class="rw-g-node"/>
-    <circle cx="40" cy="82" r="6" fill="#00a8cc"/>
-    <text x="56" y="76" class="rw-g-title">Traefik</text>
-    <text x="56" y="94" class="rw-g-desc">HTTP/S Reverse Proxy</text>
-
-    <rect x="22" y="128" width="180" height="60" rx="8" class="rw-g-node"/>
-    <circle cx="40" cy="158" r="6" fill="#14b8a6"/>
-    <text x="56" y="152" class="rw-g-title">Caddy</text>
-    <text x="56" y="170" class="rw-g-desc">Auto-HTTPS Gateway</text>
-
-    <rect x="22" y="204" width="180" height="60" rx="8" class="rw-g-node"/>
-    <circle cx="40" cy="234" r="6" fill="#10b981"/>
-    <text x="56" y="228" class="rw-g-title">NGINX</text>
-    <text x="56" y="246" class="rw-g-desc">OpenResty Lua Edge</text>
-
-    <rect x="22" y="280" width="180" height="60" rx="8" class="rw-g-node"/>
-    <circle cx="40" cy="310" r="6" fill="#6366f1"/>
-    <text x="56" y="304" class="rw-g-title">TCP Warden</text>
-    <text x="56" y="322" class="rw-g-desc">Layer 4 TCP &amp; UDP Shield</text>
-
-    <!-- Connector 1: fan-in -> Alloy -->
-    <circle cx="212" cy="82"  r="3.5" fill="#6366f1"/>
-    <circle cx="212" cy="158" r="3.5" fill="#6366f1"/>
-    <circle cx="212" cy="234" r="3.5" fill="#6366f1"/>
-    <circle cx="212" cy="310" r="3.5" fill="#6366f1"/>
-    <path d="M 212 82  C 250 82,  245 190, 265 190" stroke="#6366f1" stroke-width="2" fill="none" opacity="0.75"/>
-    <path d="M 212 158 C 245 158, 248 190, 265 190" stroke="#6366f1" stroke-width="2" fill="none" opacity="0.75"/>
-    <path d="M 212 234 C 245 234, 248 190, 265 190" stroke="#6366f1" stroke-width="2" fill="none" opacity="0.75"/>
-    <path d="M 212 310 C 250 310, 245 190, 265 190" stroke="#6366f1" stroke-width="2" fill="none" opacity="0.75"/>
-    <line x1="265" y1="190" x2="328" y2="190" stroke="#6366f1" stroke-width="3" marker-end="url(#arrow-indigo)"/>
-    <rect x="237" y="164" width="70" height="22" rx="6" class="rw-g-pill"/>
-    <text x="272" y="179" text-anchor="middle" class="rw-g-pill-txt" fill="#6366f1">JSON logs</text>
-
-    <!-- 2. ALLOY -->
-    <rect x="332" y="14" width="185" height="352" rx="10" class="rw-g-box" fill="url(#grad-alloy)"/>
-    <text x="344" y="38" class="rw-g-header" fill="#d97706">LOG COLLECTOR</text>
-
-    <rect x="342" y="52" width="165" height="300" rx="8" class="rw-g-card"/>
-    <rect x="342" y="52" width="165" height="44" rx="8" fill="#f59e0b" fill-opacity="0.12"/>
-    <circle cx="362" cy="74" r="7" fill="#f59e0b"/>
-    <text x="378" y="79" class="rw-g-card-title">Grafana Alloy</text>
-
-    <text x="354" y="122" class="rw-g-tag" fill="#d97706">OpenTelemetry Shipper</text>
-    <text x="354" y="152" class="rw-g-item">• Docker socket discovery</text>
-    <text x="354" y="180" class="rw-g-item">• loki.process JSON parse</text>
-    <text x="354" y="208" class="rw-g-item">• Structured label index</text>
-    <text x="354" y="236" class="rw-g-item">• UDP Syslog (1514/udp)</text>
-
-    <rect x="354" y="286" width="141" height="28" rx="6" class="rw-g-port-box"/>
-    <text x="424" y="304" text-anchor="middle" class="rw-g-port-txt">HTTP :12345 · UDP :1514</text>
-
-    <!-- Connector 2: Alloy -> Loki -->
-    <circle cx="517" cy="190" r="3.5" fill="#f59e0b"/>
-    <line x1="517" y1="190" x2="633" y2="190" stroke="#f59e0b" stroke-width="3" marker-end="url(#arrow-amber)"/>
-    <rect x="542" y="164" width="70" height="22" rx="6" class="rw-g-pill"/>
-    <text x="577" y="179" text-anchor="middle" class="rw-g-pill-txt" fill="#d97706">loki.write</text>
-
-    <!-- 3. LOKI -->
-    <rect x="637" y="14" width="185" height="352" rx="10" class="rw-g-box" fill="url(#grad-loki)"/>
-    <text x="649" y="38" class="rw-g-header" fill="#ea580c">LOG STORAGE</text>
-
-    <rect x="647" y="52" width="165" height="300" rx="8" class="rw-g-card"/>
-    <rect x="647" y="52" width="165" height="44" rx="8" fill="#f97316" fill-opacity="0.12"/>
-    <circle cx="667" cy="74" r="7" fill="#f97316"/>
-    <text x="683" y="79" class="rw-g-card-title">Grafana Loki</text>
-
-    <text x="659" y="122" class="rw-g-tag" fill="#ea580c">High-Perf Chunk Storage</text>
-    <text x="659" y="152" class="rw-g-item">• TSDB index &amp; retention</text>
-    <text x="659" y="180" class="rw-g-item">• Fast stream metadata</text>
-    <text x="659" y="208" class="rw-g-item">• LogQL query execution</text>
-    <text x="659" y="236" class="rw-g-item">• Zero-config container</text>
-
-    <rect x="659" y="286" width="141" height="28" rx="6" class="rw-g-port-box"/>
-    <text x="729" y="304" text-anchor="middle" class="rw-g-port-txt">HTTP API :3100</text>
-
-    <!-- Connector 3: Loki -> Grafana -->
-    <circle cx="822" cy="190" r="3.5" fill="#f97316"/>
-    <line x1="822" y1="190" x2="938" y2="190" stroke="#f97316" stroke-width="3" marker-end="url(#arrow-orange)"/>
-    <rect x="847" y="164" width="70" height="22" rx="6" class="rw-g-pill"/>
-    <text x="882" y="179" text-anchor="middle" class="rw-g-pill-txt" fill="#ea580c">LogQL</text>
-
-    <!-- 4. GRAFANA -->
-    <rect x="942" y="14" width="210" height="352" rx="10" class="rw-g-box" fill="url(#grad-grafana)"/>
-    <text x="954" y="38" class="rw-g-header" fill="#db2777">OBSERVABILITY &amp; SIEM</text>
-
-    <rect x="952" y="52" width="190" height="300" rx="8" class="rw-g-card"/>
-    <rect x="952" y="52" width="190" height="44" rx="8" fill="#ec4899" fill-opacity="0.12"/>
-    <circle cx="972" cy="74" r="7" fill="#ec4899"/>
-    <text x="988" y="79" class="rw-g-card-title">Grafana</text>
-
-    <text x="964" y="122" class="rw-g-tag" fill="#db2777">Security SIEM UI</text>
-    <text x="964" y="152" class="rw-g-item">• Live Threat Matrix</text>
-    <text x="964" y="180" class="rw-g-item">• GeoIP World Map</text>
-    <text x="964" y="208" class="rw-g-item">• HTTP &amp; UDP metrics</text>
-    <text x="964" y="236" class="rw-g-item">• Pre-built dashboard</text>
-
-    <rect x="964" y="286" width="158" height="28" rx="6" class="rw-g-port-box"/>
-    <text x="1043" y="304" text-anchor="middle" class="rw-g-port-txt">Web UI :3000</text>
-  </svg>
+const arch_graph_svg = `<div class="rw-graph-container" style="padding:20px;text-align:center;">
+  <p style="color:#a1a1aa;">Real-time SOC Architecture: Gateways &rarr; rwarden monitor &rarr; RouteWarden SOC Engine &rarr; Web UI (http://localhost:7890)</p>
 </div>`
 
 const archSnippets = computed(() => ({
@@ -181,46 +49,100 @@ const archSnippets = computed(() => ({
 // ─── 1. CLI Management Snippets ─────────────────────────────────────────────
 const dashboard_up = buildSnippet({
   lang: 'bash',
-  code: `# 1. Start the observability stack (launches Grafana at http://localhost:3000)
+  code: `# 1. Start the security dashboard (auto-discovers labeled containers & opens http://localhost:7890)
 rwarden dashboard
 
-# 2. Start on custom ports without auto-opening the browser
-rwarden dashboard up --port 8080 --loki-port 3100 --no-open`,
+# 2. Launch in background (detached daemon mode)
+rwarden dashboard -d
+# or
+rwarden dashboard up --detach
+
+# 3. Launch with optional HTTP Basic Auth protection
+rwarden dashboard up --auth admin:supersecret
+
+# 4. Start on a custom port and bind to localhost only without opening browser
+rwarden dashboard up --port 8080 --host 127.0.0.1 --no-open
+
+# 5. Monitor a specific container by name or ID
+rwarden dashboard --container traefik
+
+# 6. Monitor an NGINX or Apache access log file
+rwarden dashboard --file /var/log/nginx/access.log`,
 })
 
 const dashboard_status = buildSnippet({
   lang: 'bash',
-  code: `# View running status of Grafana, Loki, and Alloy containers
-rwarden dashboard status`,
+  code: `# View running status of dashboard
+rwarden dashboard status
+# or
+rwarden status dashboard`,
 })
 
 const dashboard_down = buildSnippet({
   lang: 'bash',
-  code: `# Stop the observability stack
-rwarden dashboard down`,
+  code: `# Stop the running dashboard daemon
+rwarden dashboard stop
+# or
+rwarden stop dashboard`,
 })
 
 const dashboard_export = buildSnippet({
   lang: 'bash',
-  code: `# Export docker-compose.yml, config.alloy, and Grafana dashboard files to a local directory
-rwarden dashboard export ./deploy/observability`,
+  code: `# Export docker-compose.yml and configuration assets to a local directory
+rwarden dashboard export ./deploy/dashboard`,
 })
 
 const cliSnippets = computed(() => ({
   cli: [
-    { filename: 'Launch Stack', lang: 'bash', code: dashboard_up.cleanCode, html: dashboard_up.html, hasDiff: false },
+    { filename: 'Launch Dashboard', lang: 'bash', code: dashboard_up.cleanCode, html: dashboard_up.html, hasDiff: false },
     { filename: 'Check Status', lang: 'bash', code: dashboard_status.cleanCode, html: dashboard_status.html, hasDiff: false },
-    { filename: 'Stop Stack', lang: 'bash', code: dashboard_down.cleanCode, html: dashboard_down.html, hasDiff: false },
+    { filename: 'Stop Dashboard', lang: 'bash', code: dashboard_down.cleanCode, html: dashboard_down.html, hasDiff: false },
     { filename: 'Export Configs', lang: 'bash', code: dashboard_export.cleanCode, html: dashboard_export.html, hasDiff: false },
+  ],
+}))
+
+// ─── 2. Compose Snippet ─────────────────────────────────────────────────────
+const compose_yaml = buildSnippet({
+  lang: 'yaml',
+  code: `services:
+  dashboard:
+    # Dedicated lightweight dashboard image (~11MB) or full toolkit ghcr.io/routewarden/cli:latest
+    image: ghcr.io/routewarden/dashboard:latest
+    container_name: routewarden-dashboard
+    restart: unless-stopped
+    command: up --port 7890 --no-open
+    ports:
+      - "\${PORT:-7890}:7890"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ~/.routewarden/dashboard:/root/.routewarden/dashboard`,
+})
+
+const composeSnippets = computed(() => ({
+  cli: [
+    { filename: 'docker-compose.yml', lang: 'yaml', code: compose_yaml.cleanCode, html: compose_yaml.html, hasDiff: false },
   ],
 }))
 </script>
 
-# Security Observability Stack (Grafana, Loki & Alloy)
+# Real-Time Security Dashboard (`dashboard`)
 
-RouteWarden includes a complete, cloud-native security observability stack powered by **Grafana**, **Grafana Loki**, and **Grafana Alloy**.
+RouteWarden includes a turnkey, ultra-lightweight real-time security dashboard powered by RouteWarden's embedded Go server and SQLite persistence.
 
-It continuously ingests, parses, indexes, and visualizes structured security events across all your RouteWarden gateways (**Traefik**, **Caddy**, **NGINX**, and **TCP Warden**) with zero manual dashboard setup.
+It provides an ultra-fast, live executive SOC dashboard consuming only **~8MB of RAM** with zero external dependencies.
+
+---
+
+## Performance & Resource Efficiency
+
+| Metric | Traditional Monitoring Stacks | RouteWarden SOC Dashboard |
+|:---|:---|:---|
+| **Memory Footprint** | ~500 MB – 1.2 GB RAM | **~8 MB RAM** |
+| **Containers Required** | Multiple heavy containers | **0 containers** (runs in single binary) |
+| **Startup Time** | 15–30 seconds | **Instant (< 50ms)** |
+| **Real-time Updates** | Polling intervals (5s–10s) | **Real-time SSE (< 10ms)** |
+| **Storage Overhead** | Heavy time-series volumes | **Embedded SQLite WAL** (with 30-day auto-prune) |
+| **Configuration** | Complex multi-file configs | **Zero configuration** |
 
 ---
 
@@ -228,45 +150,88 @@ It continuously ingests, parses, indexes, and visualizes structured security eve
 
 <CodeViewer :snippets="archSnippets" />
 
-### Core Components
+---
 
-1. **Grafana Alloy**: Modern OpenTelemetry-based collector. Discovers Docker containers via `/var/run/docker.sock` and host logs, normalizes RouteWarden JSON events (`loki.process`), extracts indexed stream labels (`verdict`, `status_code`, `gateway`, `method`, `protocol`, `transport`), and attaches structured metadata (`client_ip`, `path`, `matched_pattern`, `rule_id`, `service`).
-2. **Grafana Loki**: Scalable, high-efficiency log aggregation engine that indexes metadata and provides lightning-fast LogQL queries.
-3. **Grafana**: Pre-provisioned with the **"RouteWarden — Threat & Security Intelligence"** dashboard, pre-configured Loki data source, and ready-to-use threat panels.
+## Key SOC Capabilities
+
+### 1. Embedded SQLite Telemetry Persistence
+- Logs and security events are buffered and asynchronously written to `~/.routewarden/dashboard/events.db` in WAL mode every 200ms or 100 events.
+- **Restart Survival**: Historical metrics, threat breakdown ratios, and top attacking IPs persist across dashboard restarts.
+- **Auto-Pruning**: Telemetry older than 30 days is automatically pruned to keep disk usage lean (~10–30 MB).
+
+### 2. Live SOC Stream, Pagination & Stream Controls
+- **Verdict Tabs**: Filter stream instantly by `ALL`, `BLOCK` (🛑), `TARPIT` (⏳), or `ALLOW` (🛡️).
+- **Connected Node & Source Filtering**: Dedicated `📡 All Nodes` matrix dropdown and interactive badges in the `🌐 MONITORED NODES` ribbon with active glow states to isolate events by container, remote agent, or log file.
+- **Server-Backed Pagination**: High-throughput SQLite pagination with selectable page sizes (`25`, `50`, `100`, `250`), direct page jump, First / Prev / Next / Last buttons, and keyboard controls (<kbd>[</kbd> / <kbd>]</kbd> or Left/Right arrows).
+- **Time Range Selector**: Rolling time windows (`1m`, `5m`, `15m`, `30m`, `1h`, `6h`, `24h`, `Custom Date Range`) querying SQLite directly via `GET /api/logs`.
+- **Stream Pause / Resume**: Freeze table updates with **⏸ Pause** or <kbd>Space</kbd> to inspect active security events; incoming logs are buffered with a counter badge (`⏸ PAUSED (+N new)`).
+
+### 3. Password Protection & Custom Auth Screen (`--auth`)
+- **Dedicated Cyber Auth Screen**: When `--auth <user:password>` is enabled, browser visits to `http://localhost:7890` are presented with a sleek, cyber-themed authentication screen (`/login`) complete with the RouteWarden shield logo, operator ID & access key inputs, password visibility toggle, and error messaging.
+- **Session Cookie & Sign Out**: Successful login issues a secure session cookie (`routewarden_auth`) with 30-day persistence. Operators can sign out at any time via the **🚪 Sign Out** button in the dashboard header.
+- **Protected Endpoints**: Protects `GET /`, `/api/logs`, `/api/stream`, `/api/stats`, `/api/sources`, and `/api/ip-lookup`.
+- **Flexible Auth Channels**: Supports standard HTTP Basic Auth (`Authorization: Basic`), `Authorization: Bearer <token>`, session cookies, and query parameters (`?auth=` / `?token=`).
+- **Whitelisted Endpoints**: Static branding assets (`/favicon.ico`, `/icon.svg`) and cryptographic agent ingestion (`/api/v1/*`) remain open so remote edge agents can push without knowing dashboard passwords.
+- **HUD Indicator**: Active cyan `🔒 AUTH: <username>` badge in the sticky topbar.
+
+### 4. Mobile & Tablet Optimization
+- **Responsive Layout (< 768px & < 480px)**: Complete mobile optimization with touch-friendly 36–44px controls and viewport-fit formatting.
+- **Compact 2-Column KPI Grid**: Displays all critical security indicators (Blocks, Tarpits, Total Events, EPS) in a neat 2-column layout instead of oversized vertical scrolling cards.
+- **Mobile Cyber Hero**: Automatically replaces the large raw ASCII banner with a clean, branded mobile hero header on smaller screens to prevent horizontal overflow.
+- **Touch-Optimized Filters & Search**: Full-width search bar and grid-based filter dropdowns with 16px inputs that prevent iOS auto-zooming.
+- **Mobile Bottom-Sheet Modals**: IP Threat Dossiers and Event Detail inspectors transition to native-feeling bottom sheets on mobile devices.
+- **Auto-Hiding Desktop Shortcuts**: The fixed bottom keyboard shortcut bar automatically hides on touch devices to maximize screen real estate.
+
+### 5. Threat Intelligence Dossier
+- Inspect top attacking client IPs and click any row to reveal autonomous systems (ASN), reverse DNS, origin country, CIDR prefix, and one-click AbuseIPDB lookup.
+
+### 6. Keyboard Shortcuts (Desktop)
+- <kbd>Space</kbd> — Stream Pause / Resume
+- <kbd>T</kbd> — Toggle Theme (Auto / Light / Dark)
+- <kbd>W</kbd> — Focus Time Range filter
+- <kbd>/</kbd> — Focus Search / Grep filter
+- <kbd>F</kbd> — Focus Country filter
+- <kbd>[</kbd> / <kbd>]</kbd> (or <kbd>&larr;</kbd> / <kbd>&rarr;</kbd>) — Previous / Next Page in log stream
+- <kbd>R</kbd> — Reset all active filters
+- <kbd>ESC</kbd> — Close active modal dialog
 
 ---
 
 ## Quick Start CLI Management (`rwarden dashboard`)
 
-The RouteWarden CLI embeds all Docker Compose, Alloy, and Grafana dashboard templates directly in the binary. You can launch, inspect, and stop the stack with single commands:
+The RouteWarden CLI embeds all dashboard assets, SQLite migrations, and templates directly in the binary. You can launch, inspect, and stop the dashboard with single commands:
 
 <CodeViewer :snippets="cliSnippets" />
 
+When launched, `rwarden dashboard` starts an internal HTTP server and SSE stream on:
+👉 **`http://localhost:7890`**
+
 ---
 
-## Dashboard Documentation Subsections
+## How Container Discovery Works
 
-Explore the specialized guides below to configure logging, customize deployment, reuse existing infrastructure, or query events:
+`rwarden dashboard` automatically inspects running Docker containers via `/var/run/docker.sock` and auto-tails any container labeled with:
 
-::: tip [Container Discovery & Opt-In Logging](/cli/dashboard/discovery-and-logging)
-Configure container discovery via `/var/run/docker.sock`, understand the **pure opt-in model** (`routewarden.logs=true`), and inspect Layer 4 UDP protocol logs and network syslog (port 1514).
-:::
+```yaml
+labels:
+  - "routewarden=true"
+```
 
-::: tip [Pre-Configured Dashboard & Panels](/cli/dashboard/prebuilt-dashboard)
-Detailed walkthrough of all built-in panels: KPI threat counters, multi-series attack timelines, top offender IPs with GeoIP flags, top probed targets, and interactive filter variables.
-:::
+Containers with `routewarden.logs=true` are also automatically recognized. If multiple containers are discovered (e.g. `traefik`, `caddy`, and `nginx`), their log streams are multiplexed concurrently into the dashboard in real time.
 
-::: tip [Standalone Docker Compose Deployment](/cli/dashboard/deployment)
-Deploy in production without the CLI binary using standalone Docker Compose, configure `GF_*` environment variables, set up `docker-compose.override.yml`, and enable OAuth SSO (GitHub/Google).
-:::
+---
 
-::: tip [Reusing an Existing Grafana & Loki Stack](/cli/dashboard/existing-stack)
-Avoid redundant containers by importing the RouteWarden dashboard into your existing Grafana, integrating the parsing pipeline into your existing Alloy or Promtail, or running a lightweight shipper-only container.
-:::
+## Standalone Docker Compose Deployment
 
-::: tip [LogQL Queries & Alerting Reference](/cli/dashboard/logql-reference)
-LogQL cheat sheet for security operations (SOC), stream label specifications, high-cardinality metadata reference, and ready-to-use Grafana alert rule definitions.
-:::
+If you prefer deploying the dashboard without the CLI binary, export the configuration:
+
+```bash
+rwarden dashboard export ./dashboard
+cd ./dashboard
+docker compose up -d
+```
+
+<CodeViewer :snippets="composeSnippets" />
 
 ---
 
@@ -274,11 +239,18 @@ LogQL cheat sheet for security operations (SOC), stream label specifications, hi
 
 | Subcommand / Flag | Type | Default | Description |
 |:---|:---|:---|:---|
-| `up` | subcommand | — | Launch Grafana, Loki, and Alloy stack via Docker Compose (default) |
-| `down` | subcommand | — | Stop and tear down running observability stack containers |
-| `status` | subcommand | — | Display status of Grafana, Loki, and Alloy containers |
-| `export [dir]` | subcommand | `./observability` | Export compose, Alloy, and Grafana configs to disk |
-| `--port` | int | `3000` | Port for Grafana dashboard UI |
-| `--loki-port` | int | `3100` | Port for Loki log engine |
-| `--dir` | string | `~/.routewarden/observability` | Working directory storing the stack files |
+| `up`, `start` | subcommand | — | Launch real-time SOC security dashboard (default) |
+| `down`, `stop` | subcommand | — | Stop running background dashboard daemon |
+| `status`, `ps` | subcommand | — | Display running status, PID, and URL of dashboard |
+| `export [dir]` | subcommand | `./dashboard` | Export compose and configuration assets to disk |
+| `-d`, `--detach` | bool | `false` | Run dashboard in background (detached) daemon mode |
+| `-a`, `--auth` | string | `""` | Optional HTTP Basic Auth credentials (`user:password` or `RW_DASHBOARD_AUTH`) |
+| `--user` | string | `""` | Optional Basic Auth username (used with `--password`) |
+| `--password` | string | `""` | Optional Basic Auth password (used with `--user`) |
+| `--host` | string | `""` | Host IP interface to bind (e.g. `127.0.0.1` or `0.0.0.0`, default: all interfaces) |
+| `--port` | int | `7890` | Port for SOC dashboard UI and SSE stream |
+| `-f`, `--file` | string | `""` | Log file to monitor (default: auto-discovered Docker containers) |
+| `-c`, `--container` | string | `""` | Tail a specific Docker container by name or ID |
+| `-l`, `--label` | string | `"routewarden=true"` | Docker label to filter containers |
+| `--dir` | string | `~/.routewarden/dashboard` | Working directory storing dashboard files |
 | `--no-open` | bool | `false` | Do not automatically launch the browser upon startup |

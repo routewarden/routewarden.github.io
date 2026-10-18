@@ -7,25 +7,117 @@ description: Installation methods for rwarden across macOS, Linux, Windows, Dock
 import { computed } from 'vue'
 import { buildSnippet } from '../.vitepress/theme/composables/useCodeSnippet'
 
-// ─── 1. One-Liner Script ────────────────────────────────────────────────────
-const install_default = buildSnippet({
+// ─── 1. macOS Snippets ────────────────────────────────────────────────────────
+const mac_brew = buildSnippet({
   lang: 'bash',
-  code: `curl -fsSL https://routewarden.github.io/install.sh | bash`,
+  code: `# Install using the official RouteWarden Homebrew Tap
+brew install routewarden/tap/rwarden
+
+# Verify installation
+rwarden version`,
 })
 
-const install_custom = buildSnippet({
+const mac_curl = buildSnippet({
   lang: 'bash',
-  code: `curl -fsSL https://routewarden.github.io/install.sh | INSTALL_DIR=$HOME/.local/bin bash`,
+  code: `# Automated one-liner installer (system-wide)
+curl -fsSL https://routewarden.github.io/install.sh | bash
+
+# Or install to user directory (~/.local/bin) without sudo
+curl -fsSL https://routewarden.github.io/install.sh | INSTALL_DIR=$HOME/.local/bin bash`,
 })
 
-const scriptSnippets = computed(() => ({
+const mac_manual = buildSnippet({
+  lang: 'bash',
+  code: `# Apple Silicon (M1/M2/M3/M4)
+curl -fsSL https://github.com/routewarden/cli/releases/download/v5.0.0/rwarden_5.0.0_darwin_arm64.tar.gz | tar -xz
+sudo mv rwarden /usr/local/bin/
+
+# Intel Macs (x86_64)
+# curl -fsSL https://github.com/routewarden/cli/releases/download/v5.0.0/rwarden_5.0.0_darwin_amd64.tar.gz | tar -xz
+# sudo mv rwarden /usr/local/bin/`,
+})
+
+const macSnippets = computed(() => ({
   cli: [
-    { filename: 'System-Wide (Default)', lang: 'bash', code: install_default.cleanCode, html: install_default.html, hasDiff: false },
-    { filename: 'User Directory (~/.local/bin)', lang: 'bash', code: install_custom.cleanCode, html: install_custom.html, hasDiff: false },
+    { filename: 'Homebrew (Recommended)', lang: 'bash', code: mac_brew.cleanCode, html: mac_brew.html, hasDiff: false },
+    { filename: 'Automated Script (curl)', lang: 'bash', code: mac_curl.cleanCode, html: mac_curl.html, hasDiff: false },
+    { filename: 'Manual Binary (tar.gz)', lang: 'bash', code: mac_manual.cleanCode, html: mac_manual.html, hasDiff: false },
   ],
 }))
 
-// ─── 2. Gatekeeper Fix ──────────────────────────────────────────────────────
+// ─── 2. Linux Snippets ────────────────────────────────────────────────────────
+const linux_apt = buildSnippet({
+  lang: 'bash',
+  code: `# Download official .deb package (amd64)
+curl -fsSLO https://github.com/routewarden/cli/releases/latest/download/rwarden_linux_amd64.deb
+
+# Install with automatic dependency resolution via APT
+sudo apt install ./rwarden_linux_amd64.deb
+
+# Verify installation
+rwarden version`,
+})
+
+const linux_brew = buildSnippet({
+  lang: 'bash',
+  code: `# Homebrew on Linux
+brew install routewarden/tap/rwarden
+
+# Verify installation
+rwarden version`,
+})
+
+const linux_rpm = buildSnippet({
+  lang: 'bash',
+  code: `# Install official .rpm package (Fedora, RHEL, CentOS, Rocky)
+sudo rpm -ivh https://github.com/routewarden/cli/releases/latest/download/rwarden_linux_amd64.rpm
+
+# Verify installation
+rwarden version`,
+})
+
+const linux_apk = buildSnippet({
+  lang: 'bash',
+  code: `# Alpine Linux (.apk)
+curl -fsSLO https://github.com/routewarden/cli/releases/latest/download/rwarden_linux_amd64.apk
+apk add --allow-untrusted ./rwarden_linux_amd64.apk
+
+# Verify installation
+rwarden version`,
+})
+
+const linux_curl = buildSnippet({
+  lang: 'bash',
+  code: `# Automated one-liner installer (system-wide)
+curl -fsSL https://routewarden.github.io/install.sh | bash
+
+# Or install to user directory (~/.local/bin) without sudo
+curl -fsSL https://routewarden.github.io/install.sh | INSTALL_DIR=$HOME/.local/bin bash`,
+})
+
+const linux_manual = buildSnippet({
+  lang: 'bash',
+  code: `# Linux x86_64 (amd64)
+curl -fsSL https://github.com/routewarden/cli/releases/download/v5.0.0/rwarden_5.0.0_linux_amd64.tar.gz | tar -xz
+sudo mv rwarden /usr/local/bin/
+
+# Linux ARM64 (e.g. Raspberry Pi / AWS Graviton)
+# curl -fsSL https://github.com/routewarden/cli/releases/download/v5.0.0/rwarden_5.0.0_linux_arm64.tar.gz | tar -xz
+# sudo mv rwarden /usr/local/bin/`,
+})
+
+const linuxSnippets = computed(() => ({
+  cli: [
+    { filename: 'Debian / Ubuntu (APT)', lang: 'bash', code: linux_apt.cleanCode, html: linux_apt.html, hasDiff: false },
+    { filename: 'Homebrew (Linux)', lang: 'bash', code: linux_brew.cleanCode, html: linux_brew.html, hasDiff: false },
+    { filename: 'RHEL / Fedora (RPM)', lang: 'bash', code: linux_rpm.cleanCode, html: linux_rpm.html, hasDiff: false },
+    { filename: 'Alpine Linux (APK)', lang: 'bash', code: linux_apk.cleanCode, html: linux_apk.html, hasDiff: false },
+    { filename: 'Automated Script (curl)', lang: 'bash', code: linux_curl.cleanCode, html: linux_curl.html, hasDiff: false },
+    { filename: 'Manual Binary (tar.gz)', lang: 'bash', code: linux_manual.cleanCode, html: linux_manual.html, hasDiff: false },
+  ],
+}))
+
+// ─── 3. Gatekeeper Fix ──────────────────────────────────────────────────────
 const gatekeeper_code = buildSnippet({
   lang: 'bash',
   code: `# Remove quarantine attribute from PATH binary
@@ -41,26 +133,55 @@ const gatekeeperSnippets = computed(() => ({
   ],
 }))
 
-// ─── 3. Docker Image ────────────────────────────────────────────────────────
-const docker_validate = buildSnippet({
+// ─── 4. Docker Images ───────────────────────────────────────────────────────
+const docker_cli = buildSnippet({
   lang: 'bash',
-  code: `# Validate configuration file directly
+  code: `# Full CLI toolkit: validate, audit, test, or run sandbox
 docker run --rm -v $(pwd)/routewarden.json:/routewarden.json ghcr.io/routewarden/cli:latest validate --config /routewarden.json
 
 # Test path interactively
 docker run --rm ghcr.io/routewarden/cli:latest test --path "/.env"`,
 })
 
+const docker_shipper = buildSnippet({
+  lang: 'bash',
+  code: `# Run ultra-lean remote log shipper (~6MB binary, no SQLite/UI)
+docker run -d \\
+  --name routewarden-shipper \\
+  --restart unless-stopped \\
+  -v /var/run/docker.sock:/var/run/docker.sock:ro \\
+  -v ~/.routewarden:/root/.routewarden:ro \\
+  ghcr.io/routewarden/shipper:latest`,
+})
+
+const docker_dashboard = buildSnippet({
+  lang: 'bash',
+  code: `# Run standalone SOC security dashboard (~11MB binary on port 7890)
+docker run -d \\
+  --name routewarden-dashboard \\
+  --restart unless-stopped \\
+  -p 7890:7890 \\
+  -v /var/run/docker.sock:/var/run/docker.sock:ro \\
+  -v ~/.routewarden/dashboard:/root/.routewarden/dashboard \\
+  ghcr.io/routewarden/dashboard:latest`,
+})
+
 const dockerSnippets = computed(() => ({
   cli: [
-    { filename: 'Docker CLI', lang: 'bash', code: docker_validate.cleanCode, html: docker_validate.html, hasDiff: false },
+    { filename: 'CLI Toolkit', lang: 'bash', code: docker_cli.cleanCode, html: docker_cli.html, hasDiff: false },
+    { filename: 'Edge Shipper', lang: 'bash', code: docker_shipper.cleanCode, html: docker_shipper.html, hasDiff: false },
+    { filename: 'SOC Dashboard', lang: 'bash', code: docker_dashboard.cleanCode, html: docker_dashboard.html, hasDiff: false },
   ],
 }))
 
-// ─── 4. From Source ─────────────────────────────────────────────────────────
+// ─── 5. From Source ─────────────────────────────────────────────────────────
 const source_code = buildSnippet({
   lang: 'bash',
-  code: `git clone https://github.com/routewarden/cli.git
+  code: `# Via Go Install (Go 1.22+)
+go install github.com/routewarden/cli@latest
+
+# Or build from Git repository:
+git clone https://github.com/routewarden/cli.git
 cd cli
 go build -o /usr/local/bin/rwarden .`,
 })
@@ -71,17 +192,17 @@ const sourceSnippets = computed(() => ({
   ],
 }))
 
-// ─── 5. Verification ────────────────────────────────────────────────────────
+// ─── 6. Verification ────────────────────────────────────────────────────────
 const verify_cli = buildSnippet({
   lang: 'bash',
   code: `rwarden version
-# rwarden version 4.5.2`,
+# rwarden version 5.0.0`,
 })
 
 const verify_docker = buildSnippet({
   lang: 'bash',
   code: `docker run --rm ghcr.io/routewarden/cli:latest version
-# rwarden version 4.5.2`,
+# rwarden version 5.0.0`,
 })
 
 const verifySnippets = computed(() => ({
@@ -91,13 +212,25 @@ const verifySnippets = computed(() => ({
   ],
 }))
 
-// ─── 6. Uninstallation ──────────────────────────────────────────────────────
+// ─── 7. Uninstallation ──────────────────────────────────────────────────────
 const uninstall_code = buildSnippet({
   lang: 'bash',
-  code: `# If installed system-wide (default):
+  code: `# Homebrew (macOS & Linux):
+brew uninstall rwarden
+
+# Debian / Ubuntu (APT):
+sudo apt remove rwarden
+
+# RHEL / Fedora (RPM):
+sudo rpm -e rwarden
+
+# Alpine Linux (APK):
+apk del rwarden
+
+# System-wide binary (default):
 sudo rm -f /usr/local/bin/rwarden
 
-# If installed in user directory:
+# User directory (~/.local/bin):
 rm -f ~/.local/bin/rwarden`,
 })
 
@@ -110,51 +243,68 @@ const uninstallSnippets = computed(() => ({
 
 # Installation
 
-`rwarden` is distributed as a single, statically compiled binary with zero external runtime dependencies. Choose the installation method that fits your environment.
+`rwarden` is distributed as a single, statically compiled binary with zero external runtime dependencies. Choose the installation method for your operating system:
 
 ---
 
-## 1. One-Liner Script (macOS & Linux)
+## macOS Installation
 
-Download and install the latest release binary automatically:
+`rwarden` runs natively on Apple Silicon (M1/M2/M3/M4) and Intel (x86_64) Macs. Choose your preferred package manager or installer:
 
-<CodeViewer :snippets="scriptSnippets" />
-
----
-
-## 2. Pre-Built Release Binaries
-
-Download standalone, statically compiled binaries for **Linux**, **macOS**, and **Windows** directly from [GitHub Releases](https://github.com/routewarden/cli/releases/latest):
-
-| Platform | Architecture | Archive |
-|:---|:---|:---|
-| **macOS** | Apple Silicon (`arm64`) | [rwarden_4.5.2_darwin_arm64.tar.gz](https://github.com/routewarden/cli/releases/download/v4.5.2/rwarden_4.5.2_darwin_arm64.tar.gz) |
-| **macOS** | Intel (`amd64`) | [rwarden_4.5.2_darwin_amd64.tar.gz](https://github.com/routewarden/cli/releases/download/v4.5.2/rwarden_4.5.2_darwin_amd64.tar.gz) |
-| **Linux** | 64-bit (`amd64`) | [rwarden_4.5.2_linux_amd64.tar.gz](https://github.com/routewarden/cli/releases/download/v4.5.2/rwarden_4.5.2_linux_amd64.tar.gz) |
-| **Linux** | ARM64 (`arm64`) | [rwarden_4.5.2_linux_arm64.tar.gz](https://github.com/routewarden/cli/releases/download/v4.5.2/rwarden_4.5.2_linux_arm64.tar.gz) |
-| **Windows**| 64-bit (`amd64`) | [rwarden_4.5.2_windows_amd64.zip](https://github.com/routewarden/cli/releases/download/v4.5.2/rwarden_4.5.2_windows_amd64.zip) |
+<CodeViewer :snippets="macSnippets" />
 
 ::: tip macOS Gatekeeper Notice
-If macOS displays *"Apple could not verify “rwarden” is free of malware..."* when running a downloaded binary, macOS Gatekeeper has placed it in quarantine. You can remove the quarantine flag using:
+If macOS displays *"Apple could not verify “rwarden” is free of malware..."* when running a manually downloaded binary, macOS Gatekeeper has placed it in quarantine. You can remove the quarantine flag using:
 
 <CodeViewer :snippets="gatekeeperSnippets" />
 
-Alternatively, navigate to **System Settings > Privacy & Security** and click **"Allow Anyway"** next to the `rwarden` prompt.
+Alternatively, navigate to **System Settings > Privacy & Security** and click **"Allow Anyway"** next to the `rwarden` prompt. (Homebrew installs are not affected by this notice).
 :::
+
+---
+
+## Linux Installation
+
+`rwarden` supports all major Linux distributions (Ubuntu, Debian, Fedora, RHEL, CentOS, Rocky Linux, Alpine, Arch) with native package manager support:
+
+<CodeViewer :snippets="linuxSnippets" />
+
+---
+
+## Pre-Built Release Binaries
+
+Download standalone, statically compiled binaries for **Linux**, **macOS**, and **Windows** directly from [GitHub Releases](https://github.com/routewarden/cli/releases/latest):
+
+| Platform | Architecture | Archive | Package / Command |
+|:---|:---|:---|:---|
+| **macOS** | Apple Silicon (`arm64`) | [rwarden_5.0.0_darwin_arm64.tar.gz](https://github.com/routewarden/cli/releases/download/v5.0.0/rwarden_5.0.0_darwin_arm64.tar.gz) | `brew install routewarden/tap/rwarden` |
+| **macOS** | Intel (`amd64`) | [rwarden_5.0.0_darwin_amd64.tar.gz](https://github.com/routewarden/cli/releases/download/v5.0.0/rwarden_5.0.0_darwin_amd64.tar.gz) | `brew install routewarden/tap/rwarden` |
+| **Linux** | 64-bit (`amd64`) | [rwarden_5.0.0_linux_amd64.tar.gz](https://github.com/routewarden/cli/releases/download/v5.0.0/rwarden_5.0.0_linux_amd64.tar.gz) | [rwarden_linux_amd64.deb](https://github.com/routewarden/cli/releases/latest/download/rwarden_linux_amd64.deb) / [rwarden_linux_amd64.rpm](https://github.com/routewarden/cli/releases/latest/download/rwarden_linux_amd64.rpm) |
+| **Linux** | ARM64 (`arm64`) | [rwarden_5.0.0_linux_arm64.tar.gz](https://github.com/routewarden/cli/releases/download/v5.0.0/rwarden_5.0.0_linux_arm64.tar.gz) | [rwarden_linux_arm64.deb](https://github.com/routewarden/cli/releases/latest/download/rwarden_linux_arm64.deb) / [rwarden_linux_arm64.rpm](https://github.com/routewarden/cli/releases/latest/download/rwarden_linux_arm64.rpm) |
+| **Windows**| 64-bit (`amd64`) | [rwarden_5.0.0_windows_amd64.zip](https://github.com/routewarden/cli/releases/download/v5.0.0/rwarden_5.0.0_windows_amd64.zip) | Standalone Zip |
 
 All downloads and SHA256 checksums are published on the [GitHub Releases Page](https://github.com/routewarden/cli/releases/latest).
 
 ---
 
-## 3. Container Image (Docker / CI/CD)
+## Container Images (Docker / CI/CD)
 
-Run `rwarden` inside a container without installing local binaries:
+RouteWarden publishes three official, security-hardened container images on GitHub Container Registry (`ghcr.io`):
 
 <CodeViewer :snippets="dockerSnippets" />
 
+### Official Container Distributions
+
+| Image | Tag | Binary Size | Intended Workload |
+|:---|:---|:---|:---|
+| `ghcr.io/routewarden/cli` | `:latest`, `:5.0.0` | ~12 MB | **Full Toolkit**: Verification, audits, tests, path simulators, code generation, sandboxes, and Docker CLI container tailing |
+| `ghcr.io/routewarden/shipper` | `:latest`, `:5.0.0` | **~6.2 MB** | **Ultra-Lean Remote Shipper**: Zero SQLite, zero UI assets. Dedicated to `rwarden push --docker` for edge nodes, IoT gateways, and low-RAM VPS instances |
+| `ghcr.io/routewarden/dashboard` | `:latest`, `:5.0.0` | ~11 MB | **Standalone SOC Dashboard**: Turnkey web dashboard server on port `7890` with embedded SQLite persistence and SSE event stream |
+
+
 ---
 
-## 4. From Source (Go)
+## From Source (Go)
 
 If you have Go 1.22+ installed, compile and install from source:
 
