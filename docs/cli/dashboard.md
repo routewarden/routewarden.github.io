@@ -278,6 +278,14 @@ If you prefer deploying the dashboard without the CLI binary, export the configu
 
 ---
 
+## Reverse Proxy Deployment (Traefik, Caddy, NGINX)
+
+To expose RouteWarden's security dashboard publicly with SSL/TLS, custom domains (`soc.example.com`), and proper Server-Sent Events (SSE) streaming configuration without buffering issues, follow the dedicated guide:
+
+👉 **[Reverse Proxy Setup Guide](/cli/dashboard/reverse-proxy)** — Complete configurations and Compose stacks for **Traefik**, **Caddy**, and **NGINX**.
+
+---
+
 ## Command Reference
 
 | Subcommand / Flag | Type | Default | Description |

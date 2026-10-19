@@ -2,7 +2,56 @@
 
 All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and the CLI adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v5.0.0] - 2026-10-18 (Latest)
+## [v5.0.2] - 2026-10-19 (Latest)
+
+### Changed
+- **Homebrew Cask Migration & GoReleaser Deprecation Fix**:
+  - Migrated GoReleaser release specification from deprecated `brews:` to modern `homebrew_casks:` with explicit binary linkage (`binaries: [rwarden]`) and Casks directory target (`directory: Casks`), fully resolving the GoReleaser v2 deprecation warning (`brews should not be used anymore`).
+
+### Fixed
+- **macOS Gatekeeper Quarantine Extended Attribute Stripping**:
+  - Added an automated post-install hook in Homebrew Cask specification running `/usr/bin/xattr -dr com.apple.quarantine` on macOS installations. This removes the `com.apple.quarantine` extended attribute from staged binaries, eliminating macOS Gatekeeper "rwarden is damaged and cannot be opened" alerts for unsigned releases.
+- **Seamless Homebrew Tap Migration (`tap_migrations.json`)**:
+  - Configured `tap_migrations.json` (`"rwarden": "rwarden"`) in the `routewarden/homebrew-tap` repository to seamlessly redirect existing formula installations to the cask distribution during `brew upgrade` without requiring manual uninstallation.
+- **Automated Version Synchronization**:
+  - Synchronized release version constants across CLI micro-binaries (`rwarden`, `rwarden-shipper`, `rwarden-dashboard`), Dockerfiles, terminal authentication screen, custom SOC dashboard badges, SARIF report generators, docs registry, and installer scripts.
+
+---
+
+## [v5.0.1] - 2026-10-19
+
+### Added
+- **Top-Level `rwarden up` Command**:
+  - Added `rwarden up` and `rwarden start` as direct top-level shortcuts for launching the real-time SOC security dashboard without needing `rwarden dashboard up`.
+  - Added full shell autocompletions for `up` across Bash, Zsh, Fish, and PowerShell (`rwarden completion`).
+  - Updated manual page generator (`rwarden man`) with documentation for `up`.
+- **Zero-Touch Environment Variable Auto-Configuration**:
+  - Added support for `RW_DASHBOARD_URL` (or `RW_URL`) and `RW_AGENT_KEY` (or `RW_KEY`) in both `rwarden push` and `rwarden register` (as well as `rwarden-shipper`). Nodes can now stream logs or register directly without command-line flags or pre-existing config files, ideal for containerized deployments.
+  - Added `PORT` and `RW_DASHBOARD_HOST` environment variable support for `rwarden up` / `rwarden dashboard` and `rwarden-dashboard`.
+- **Dynamic Public Key Auto-Discovery**:
+  - `rwarden push` and `rwarden-shipper` now automatically query `/api/v1/pubkey` from the central dashboard on startup when `server_pubkey` is not present in local configuration, enabling full end-to-end asymmetric encryption (X25519 ECDH + AES-256-GCM) without requiring a prior manual `register` command.
+- **Continuous Monitored File Streaming Daemon (`watchAndStreamFile`)**:
+  - Added dedicated continuous log streaming for `rwarden dashboard --file <path>` with automatic log rotation detection (inode change tracking) and file truncation handling.
+
+### Fixed
+- **10MB Buffer Support for High-Volume Log Streaming**:
+  - Increased `bufio.NewScanner` buffer limits from Go's default 64KB up to 10MB across all streaming and tailing pipelines (`tailFileToChan`, `tailContainerToChan`, `streamContainerLogs`, `watchAndStreamContainers`, and `watchAndStreamFile`), eliminating `bufio.Scanner: token too long` crashes on high-volume access logs or wide JSON payloads.
+- **Windows Detached Process Liveness & Console Isolation**:
+  - Fixed Windows daemon alive checks in `daemon_windows.go` and `daemon/daemon_windows.go` by verifying process exit codes (`STILL_ACTIVE` 259) via `GetExitCodeProcess` and testing non-blocking synchronization with `WaitForSingleObject`, eliminating phantom running statuses for killed background processes.
+  - Isolated background processes from the parent console using `CREATE_NEW_PROCESS_GROUP | 0x08000008` (DETACHED_PROCESS).
+- **Flexible Log Timestamp Parsing**:
+  - Added `parseFlexibleTimestamp` supporting `RFC3339Nano`, space-separated timestamps (`2006-01-02 15:04:05`), and Apache/NGINX common log formats (`02/Jan/2006:15:04:05 -0700`).
+- **Memory Capping for High-Volume Ingestion**:
+  - Added automated cache pruning when tracking unique IPs (>5,000) and unique paths (>5,000) in `EventStore`, capping memory consumption for long-lived production dashboard instances.
+- **Flag Binding Aliases**:
+  - Bound short flag aliases directly to identical pointers using `fs.StringVar` / `fs.BoolVar` across `handleGenerate`, `handleSandbox`, and `handleTest`, preventing flag override bugs.
+- **Automated Version Synchronization & Test Assertion Stability**:
+  - Overhauled `scripts/update-version.sh` with robust GNU/BSD `sed` detection, multi-target synchronization across micro-binaries, Dockerfiles, test assertions, VitePress docs registry, and installer scripts.
+  - Exported `observability.Version` package variable preventing version-mismatch test breakages on version bumps.
+
+---
+
+## [v5.0.0] - 2026-10-18
 
 ### Added
 - **Distributed Remote Log Shipping & Enrollment (`rwarden push`, `keys`, `register`)**:
