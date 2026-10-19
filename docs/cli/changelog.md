@@ -5,6 +5,15 @@ All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The 
 ## [v5.0.3] - 2026-10-19 (Latest)
 
 ### Fixed
+- **Full Parity for Snake_case and CamelCase JSON Configurations**:
+  - Implemented `UnmarshalJSON` for `Config`, `ResponseConfig`, and `CaptchaConfig`, enabling seamless parsing of both `snake_case` (e.g. `block_patterns`, `allowed_ips`, `status_code`, `redirect_url`) and `camelCase` keys across all CLI subcommands (`audit`, `diff`, `test`, `validate`, `generate`).
+  - Ensured proper specification defaults (`enabled: true`, `enableDefaultPatterns: true`, `enableDefaultAllowPatterns: true`, etc.) are assigned when boolean keys are omitted in minimal policies.
+- **Base `configFile` Preservation in Engine**:
+  - Resolved an issue in `NewEngine` where `CreateConfig()` defaults overwrote base policy settings when merging an inline configuration with a `configFile`.
+- **Enhanced Linter Response Mode Recognition (RW-A012)**:
+  - Added full support in `rwarden audit` for all 13 RouteWarden response modes (`captcha`, `gzipBomb`, `fakeSuccess`, `rateLimitChallenge`, `redirect`, `proxy`, `infiniteStream`, `xml`, etc.), preventing false positive warnings in strict CI audits.
+- **CLI Standard Input (`-`) Support in `audit` and `diff`**:
+  - Fixed argument parser behavior when receiving `"-"`, enabling direct piped inspection (`cat policy.json | rwarden audit -`) and diffing (`rwarden diff - candidate.json`).
 - **Response Mode Status Code Defaulting in Configuration Generator**:
   - Updated `ResolveResponse()` in `engine` to apply mode-specific status code defaults when omitted (`gzipBomb` &rarr; `200`, `fakeSuccess` &rarr; `200`, `rateLimitChallenge` &rarr; `429`, `redirect` &rarr; `302`).
   - Ensures CLI generator commands (`rwarden generate --target traefik-yaml|traefik-toml|traefik-labels|caddy|nginx`) emit valid, active-defense status codes rather than falling back to default `403`.
