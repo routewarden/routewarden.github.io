@@ -16,6 +16,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   - Fixed `gzipBomb` mode defaulting to `403 Forbidden` instead of `200 OK` when `statusCode` is omitted. Web vulnerability scanners and crawlers typically discard response bodies on `4xx` error codes without decompressing; an enticing `200 OK` header forces the scanner's decompression stream to inflate the bomb in memory.
   - Explicit user-configured `statusCode` values (e.g. `403`, `418`, `404`) remain respected when provided.
   - Added safe fallback in `ServeBlockedRequest` ensuring `http.StatusOK` is written if `statusCode` evaluates to `0`.
+- **Configuration File Merging & Schema Parity (`configFile`)**:
+  - Fixed an issue where `CreateConfig()` non-zero defaults (`statusCode: 403`, `methods: ["GET"]`, `securityLog: true`, `mode: "text"`) clobbered custom settings loaded from `routewarden.json`.
+  - Added full dual-tag schema support (`sharedConfigFile`) for standard `snake_case` JSON properties (`status_code`, `block_patterns`, `allowed_ips`, `trusted_proxies`, `check_query`, etc.), ensuring complete cross-engine compatibility with Caddy, NGINX, and CLI configurations.
+- **Case-Insensitive Captcha Mode Template Compilation**:
+  - Fixed case-sensitive comparison (`respCfg.Mode == "captcha"`) in `NewResponseHandler`, ensuring `mode: "Captcha"` and `"CAPTCHA"` properly initialize the challenge template instead of falling back to raw plaintext.
+  - Standardized captcha fallback body to render a valid HTML document conforming to `Content-Type: text/html`.
 
 ---
 
