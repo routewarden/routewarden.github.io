@@ -16,6 +16,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   - Fixed `gzip_bomb` mode defaulting to `403` instead of `200 OK` when `status_code` is omitted, enticing crawlers to process the compression payload and inflate the bomb in memory.
   - Custom user-configured `status_code` values remain respected when provided.
   - Added safe fallback in `ServeBlockedRequest` ensuring `http.StatusOK` is written if `status_code` is `0`.
+- **Configuration File Merging & Schema Parity (`config_file`)**:
+  - Added full dual-tag schema support (`sharedResponseConfig`) for standard `snake_case` JSON properties inside `response` blocks (`status_code`, `redirect_url`, `proxy_url`, `gzip_bomb_mb`, `retry_after_seconds`, etc.), ensuring full cross-engine compatibility with Traefik, NGINX, and CLI configurations.
+- **Case-Insensitive Captcha Mode Template Compilation**:
+  - Fixed case-sensitive comparison (`respCfg.Mode == "captcha"`) in `NewResponseHandler`, ensuring `mode "Captcha"` and `"CAPTCHA"` properly initialize the challenge template instead of falling back to raw plaintext.
 
 ---
 
