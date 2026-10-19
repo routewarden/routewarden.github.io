@@ -145,13 +145,21 @@ docker run --rm ghcr.io/routewarden/cli:latest test --path "/.env"`,
 
 const docker_shipper = buildSnippet({
   lang: 'bash',
-  code: `# Run ultra-lean remote log shipper (~6MB binary, no SQLite/UI)
+  code: `# Zero-touch configuration via environment variables
 docker run -d \\
   --name routewarden-shipper \\
   --restart unless-stopped \\
   -v /var/run/docker.sock:/var/run/docker.sock:ro \\
-  -v ~/.routewarden:/root/.routewarden:ro \\
-  ghcr.io/routewarden/shipper:latest`,
+  -e RW_DASHBOARD_URL="https://soc.example.com" \\
+  -e RW_AGENT_KEY="rw_sec_your_agent_key_here" \\
+  -e TZ="Asia/Kolkata" \\
+  ghcr.io/routewarden/shipper:latest
+
+# Or mount host-registered agent profile (~/.routewarden)
+# docker run -d --name routewarden-shipper --restart unless-stopped \\
+#   -v /var/run/docker.sock:/var/run/docker.sock:ro \\
+#   -v ~/.routewarden:/root/.routewarden:ro \\
+#   ghcr.io/routewarden/shipper:latest`,
 })
 
 const docker_dashboard = buildSnippet({

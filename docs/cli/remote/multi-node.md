@@ -85,11 +85,17 @@ const remote_compose = buildSnippet({
     image: ghcr.io/routewarden/shipper:latest
     container_name: routewarden-shipper
     restart: unless-stopped
+    environment:
+      - RW_DASHBOARD_URL=http://198.51.100.10:7890
+      - RW_AGENT_KEY=rw_sec_a8f9c2d1e4b7...
+      - TZ=Asia/Kolkata
     volumes:
-      # Read container logs
+      # Read container logs via Docker socket
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      # Mount registered agent configuration
-      - ~/.routewarden:/root/.routewarden:ro
+    # Or mount registered profile if preferred:
+    # volumes:
+    #   - /var/run/docker.sock:/var/run/docker.sock:ro
+    #   - ~/.routewarden:/root/.routewarden:ro
     command: ["--docker"]`,
 })
 
