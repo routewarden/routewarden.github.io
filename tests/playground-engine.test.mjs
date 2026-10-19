@@ -85,7 +85,7 @@ function evaluateRequest(options) {
   let finalCode = statusCode || 403
   if (responseMode === 'redirect') finalCode = 302
   else if (responseMode === 'rateLimitChallenge') finalCode = 429
-  else if (responseMode === 'fakeSuccess') finalCode = 200
+  else if (responseMode === 'fakeSuccess' || responseMode === 'gzipBomb') finalCode = 200
   else if (responseMode === 'silentDrop') finalCode = 0
 
   if (enableDefaultPatterns) {
@@ -298,7 +298,7 @@ test('playground engine & generator: comprehensive test matrix (100+ cases)', as
       { mode: 'redirect', expectedCode: 302 },
       { mode: 'captcha', expectedCode: 403 },
       { mode: 'silentDrop', expectedCode: 0 },
-      { mode: 'gzipBomb', expectedCode: 403 },
+      { mode: 'gzipBomb', expectedCode: 200 },
       { mode: 'tarpit', expectedCode: 403 },
       { mode: 'fakeSuccess', expectedCode: 200 },
       { mode: 'rateLimitChallenge', expectedCode: 429 },

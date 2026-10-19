@@ -9,7 +9,17 @@ All notable changes to the **Caddy Warden** module (`github.com/routewarden/cadd
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and Caddy Warden adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v1.5.0] - 2026-10-16 (Latest)
+## [v1.5.1] - 2026-10-19 (Latest)
+
+### Fixed
+- **Gzip Decompression Bomb (`gzip_bomb` / `bomb`) Status Code Default**:
+  - Fixed `gzip_bomb` mode defaulting to `403` instead of `200 OK` when `status_code` is omitted, enticing crawlers to process the compression payload and inflate the bomb in memory.
+  - Custom user-configured `status_code` values remain respected when provided.
+  - Added safe fallback in `ServeBlockedRequest` ensuring `http.StatusOK` is written if `status_code` is `0`.
+
+---
+
+## [v1.5.0] - 2026-10-16
 
 ### Key Highlights
 

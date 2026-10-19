@@ -9,7 +9,16 @@ All notable changes to **NGINX Warden** (`github.com/routewarden/nginx-warden`) 
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and NGINX Warden adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v1.5.0] - 2026-10-16 (Latest)
+## [v1.5.1] - 2026-10-19 (Latest)
+
+### Fixed
+- **Gzip Decompression Bomb (`gzip_bomb` / `bomb`) Status Code Default**:
+  - Fixed `gzip_bomb` mode defaulting to `403` instead of `200 OK` in `_M.new()` when `status_code` is not configured, ensuring crawlers receive an enticing `200 OK` header to trigger decompression.
+  - Custom user-configured `status_code` values remain respected when provided.
+
+---
+
+## [v1.5.0] - 2026-10-16
 
 ### Key Highlights
 

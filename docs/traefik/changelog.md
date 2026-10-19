@@ -9,7 +9,17 @@ All notable changes to the **Traefik Warden** plugin (`github.com/routewarden/tr
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and Traefik Warden adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v1.5.0] - 2026-10-16 (Latest)
+## [v1.5.1] - 2026-10-19 (Latest)
+
+### Fixed
+- **Gzip Decompression Bomb (`gzipBomb` / `bomb`) Status Code Default**:
+  - Fixed `gzipBomb` mode defaulting to `403 Forbidden` instead of `200 OK` when `statusCode` is omitted. Web vulnerability scanners and crawlers typically discard response bodies on `4xx` error codes without decompressing; an enticing `200 OK` header forces the scanner's decompression stream to inflate the bomb in memory.
+  - Explicit user-configured `statusCode` values (e.g. `403`, `418`, `404`) remain respected when provided.
+  - Added safe fallback in `ServeBlockedRequest` ensuring `http.StatusOK` is written if `statusCode` evaluates to `0`.
+
+---
+
+## [v1.5.0] - 2026-10-16
 
 ### Key Highlights
 
