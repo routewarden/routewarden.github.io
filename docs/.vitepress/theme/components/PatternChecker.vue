@@ -337,6 +337,9 @@ function evaluateForVerb(methodName: string): VerbEvalResult {
   } else if (responseMode.value === 'fakeSuccess') {
     finalCode = 200
     finalStatusText = 'OK (Decoy)'
+  } else if (responseMode.value === 'gzipBomb') {
+    finalCode = 200
+    finalStatusText = 'OK (Decompression Bomb)'
   } else if (responseMode.value === 'silentDrop') {
     finalCode = 0
     finalStatusText = 'TCP Reset'
@@ -556,8 +559,8 @@ const simulatedResponse = computed(() => {
     headers['Content-Encoding'] = 'gzip'
     headers['Content-Type'] = 'text/html'
     return {
-      statusCode: code,
-      statusText: 'Forbidden (Decompression Bomb)',
+      statusCode: 200,
+      statusText: 'OK (Decompression Bomb)',
       headers,
       body: `[Binary Gzip Payload: ${gzipBombMB.value} MB compressed -> expands to ~${gzipBombMB.value * 1000} MB in scanner memory]`,
       note: 'Neutralizes automated scanners by consuming gigabytes of RAM during decompression.'

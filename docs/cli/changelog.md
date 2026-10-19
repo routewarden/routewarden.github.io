@@ -2,7 +2,27 @@
 
 All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and the CLI adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v5.0.2] - 2026-10-19 (Latest)
+## [v5.0.3] - 2026-10-19 (Latest)
+
+### Fixed
+- **Full Parity for Snake_case and CamelCase JSON Configurations**:
+  - Implemented `UnmarshalJSON` for `Config`, `ResponseConfig`, and `CaptchaConfig`, enabling seamless parsing of both `snake_case` (e.g. `block_patterns`, `allowed_ips`, `status_code`, `redirect_url`) and `camelCase` keys across all CLI subcommands (`audit`, `diff`, `test`, `validate`, `generate`).
+  - Ensured proper specification defaults (`enabled: true`, `enableDefaultPatterns: true`, `enableDefaultAllowPatterns: true`, etc.) are assigned when boolean keys are omitted in minimal policies.
+- **Base `configFile` Preservation in Engine**:
+  - Resolved an issue in `NewEngine` where `CreateConfig()` defaults overwrote base policy settings when merging an inline configuration with a `configFile`.
+- **Enhanced Linter Response Mode Recognition (RW-A012)**:
+  - Added full support in `rwarden audit` for all 13 RouteWarden response modes (`captcha`, `gzipBomb`, `fakeSuccess`, `rateLimitChallenge`, `redirect`, `proxy`, `infiniteStream`, `xml`, etc.), preventing false positive warnings in strict CI audits.
+- **CLI Standard Input (`-`) Support in `audit` and `diff`**:
+  - Fixed argument parser behavior when receiving `"-"`, enabling direct piped inspection (`cat policy.json | rwarden audit -`) and diffing (`rwarden diff - candidate.json`).
+- **Response Mode Status Code Defaulting in Configuration Generator**:
+  - Updated `ResolveResponse()` in `engine` to apply mode-specific status code defaults when omitted (`gzipBomb` &rarr; `200`, `fakeSuccess` &rarr; `200`, `rateLimitChallenge` &rarr; `429`, `redirect` &rarr; `302`).
+  - Ensures CLI generator commands (`rwarden generate --target traefik-yaml|traefik-toml|traefik-labels|caddy|nginx`) emit valid, active-defense status codes rather than falling back to default `403`.
+- **Automated Version Synchronization**:
+  - Synchronized release version constants across CLI micro-binaries (`rwarden`, `rwarden-shipper`, `rwarden-dashboard`), Dockerfiles, terminal authentication screen, custom SOC dashboard badges, SARIF report generators, docs registry, and installer scripts.
+
+---
+
+## [v5.0.2] - 2026-10-19
 
 ### Changed
 - **Homebrew Cask Migration & GoReleaser Deprecation Fix**:
@@ -13,8 +33,6 @@ All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The 
   - Added an automated post-install hook in Homebrew Cask specification running `/usr/bin/xattr -dr com.apple.quarantine` on macOS installations. This removes the `com.apple.quarantine` extended attribute from staged binaries, eliminating macOS Gatekeeper "rwarden is damaged and cannot be opened" alerts for unsigned releases.
 - **Seamless Homebrew Tap Migration (`tap_migrations.json`)**:
   - Configured `tap_migrations.json` (`"rwarden": "rwarden"`) in the `routewarden/homebrew-tap` repository to seamlessly redirect existing formula installations to the cask distribution during `brew upgrade` without requiring manual uninstallation.
-- **Automated Version Synchronization**:
-  - Synchronized release version constants across CLI micro-binaries (`rwarden`, `rwarden-shipper`, `rwarden-dashboard`), Dockerfiles, terminal authentication screen, custom SOC dashboard badges, SARIF report generators, docs registry, and installer scripts.
 
 ---
 
