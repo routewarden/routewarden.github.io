@@ -204,27 +204,6 @@ const daemonPushSnippets = computed(() => ({
 }))
 
 // ─── 6. Lean Micro-Docker Image ──────────────────────────────────────────────
-const shipper_compose_files = buildSnippet({
-  lang: 'yaml',
-  code: `services:
-  routewarden-shipper:
-    image: ghcr.io/routewarden/shipper:latest
-    container_name: routewarden-shipper
-    restart: unless-stopped
-    volumes:
-      # Mount host log directories read-only
-      - /var/log/nginx:/var/log/nginx:ro
-      - /var/log/caddy:/var/log/caddy:ro
-      # Mount registered agent configuration
-      - ~/.routewarden:/root/.routewarden:ro
-    # Stream multiple access log files concurrently
-    command:
-      - "-f"
-      - "/var/log/nginx/access.log"
-      - "-f"
-      - "/var/log/caddy/access.log"`,
-})
-
 const shipper_compose_docker = buildSnippet({
   lang: 'yaml',
   code: `services:
@@ -232,12 +211,36 @@ const shipper_compose_docker = buildSnippet({
     image: ghcr.io/routewarden/shipper:latest
     container_name: routewarden-shipper
     restart: unless-stopped
+    environment:
+      - RW_DASHBOARD_URL=https://soc.example.com
+      - RW_AGENT_KEY=rw_sec_your_agent_key_here
+      - TZ=Asia/Kolkata
     volumes:
-      # Auto-discover Docker containers
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      # Mount registered agent configuration
-      - ~/.routewarden:/root/.routewarden:ro
-    command: ["--docker"]`,
+      # Auto-discover Docker containers with label routewarden=true
+      - /var/run/docker.sock:/var/run/docker.sock:ro`,
+})
+
+const shipper_compose_files = buildSnippet({
+  lang: 'yaml',
+  code: `services:
+  routewarden-shipper:
+    image: ghcr.io/routewarden/shipper:latest
+    container_name: routewarden-shipper
+    restart: unless-stopped
+    environment:
+      - RW_DASHBOARD_URL=https://soc.example.com
+      - RW_AGENT_KEY=rw_sec_your_agent_key_here
+      - TZ=Asia/Kolkata
+    volumes:
+      # Mount host log directories read-only
+      - /var/log/nginx:/var/log/nginx:ro
+      - /var/log/caddy:/var/log/caddy:ro
+    # Stream multiple access log files concurrently
+    command:
+      - "-f"
+      - "/var/log/nginx/access.log"
+      - "-f"
+      - "/var/log/caddy/access.log"`,
 })
 
 const shipper_compose_hybrid = buildSnippet({
@@ -247,13 +250,15 @@ const shipper_compose_hybrid = buildSnippet({
     image: ghcr.io/routewarden/shipper:latest
     container_name: routewarden-shipper
     restart: unless-stopped
+    environment:
+      - RW_DASHBOARD_URL=https://soc.example.com
+      - RW_AGENT_KEY=rw_sec_your_agent_key_here
+      - TZ=Asia/Kolkata
     volumes:
       # Watch Docker containers
       - /var/run/docker.sock:/var/run/docker.sock:ro
       # Mount host log directory
       - /var/log:/var/log:ro
-      # Mount registered agent configuration
-      - ~/.routewarden:/root/.routewarden:ro
     # Concurrently auto-discover containers AND tail multiple log files
     command:
       - "--docker"
@@ -263,24 +268,52 @@ const shipper_compose_hybrid = buildSnippet({
       - "/var/log/syslog"`,
 })
 
+const shipper_mounted_compose = buildSnippet({
+  lang: 'yaml',
+  code: `services:
+  routewarden-shipper:
+    image: ghcr.io/routewarden/shipper:latest
+    container_name: routewarden-shipper
+    restart: unless-stopped
+    volumes:
+      # Auto-discover Docker containers
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # Mount pre-registered agent profile from host
+      - ~/.routewarden:/root/.routewarden:ro
+    command: ["--docker"]`,
+})
+
 const shipper_run_cmd = buildSnippet({
   lang: 'bash',
-  code: `# Stream multiple access log files using docker run
+  code: `# Auto-discover Docker containers with zero-touch environment variables
 docker run -d \\
   --name routewarden-shipper \\
   --restart unless-stopped \\
+  -v /var/run/docker.sock:/var/run/docker.sock:ro \\
+  -e RW_DASHBOARD_URL="https://soc.example.com" \\
+  -e RW_AGENT_KEY="rw_sec_your_agent_key_here" \\
+  -e TZ="Asia/Kolkata" \\
+  ghcr.io/routewarden/shipper:latest
+
+# Tail multiple host log files with zero-touch environment variables
+docker run -d \\
+  --name routewarden-shipper-files \\
+  --restart unless-stopped \\
   -v /var/log/nginx:/var/log/nginx:ro \\
   -v /var/log/caddy:/var/log/caddy:ro \\
-  -v ~/.routewarden:/root/.routewarden:ro \\
+  -e RW_DASHBOARD_URL="https://soc.example.com" \\
+  -e RW_AGENT_KEY="rw_sec_your_agent_key_here" \\
+  -e TZ="Asia/Kolkata" \\
   ghcr.io/routewarden/shipper:latest \\
   -f /var/log/nginx/access.log -f /var/log/caddy/access.log`,
 })
 
 const shipperComposeSnippets = computed(() => ({
   cli: [
+    { filename: 'Docker Auto-Discovery (Compose)', lang: 'yaml', code: shipper_compose_docker.cleanCode, html: shipper_compose_docker.html, hasDiff: false },
     { filename: 'Multiple Log Files (Compose)', lang: 'yaml', code: shipper_compose_files.cleanCode, html: shipper_compose_files.html, hasDiff: false },
-    { filename: 'Docker Auto-Discovery', lang: 'yaml', code: shipper_compose_docker.cleanCode, html: shipper_compose_docker.html, hasDiff: false },
     { filename: 'Hybrid (Docker + Files)', lang: 'yaml', code: shipper_compose_hybrid.cleanCode, html: shipper_compose_hybrid.html, hasDiff: false },
+    { filename: 'Mounted Profile (~/.routewarden)', lang: 'yaml', code: shipper_mounted_compose.cleanCode, html: shipper_mounted_compose.html, hasDiff: false },
     { filename: 'Docker Run (CLI)', lang: 'bash', code: shipper_run_cmd.cleanCode, html: shipper_run_cmd.html, hasDiff: false },
   ],
 }))
@@ -400,9 +433,27 @@ For Docker and containerized edge hosts, RouteWarden publishes a dedicated, stri
 
 <CodeViewer :snippets="shipperComposeSnippets" />
 
+### Zero-Touch Environment Variables (Recommended)
+
+When deploying via Docker or Docker Compose, you do not need to run `rwarden register` on the host or mount configuration files. Pass `RW_DASHBOARD_URL` and `RW_AGENT_KEY` directly as environment variables:
+
+| Environment Variable | Shorthand Alias | Description | Example |
+|:---|:---|:---|:---|
+| `RW_DASHBOARD_URL` | `RW_URL` | Central RouteWarden dashboard address | `https://soc.example.com` or `http://198.51.100.10:7890` |
+| `RW_AGENT_KEY` | `RW_KEY` | 24-byte secret agent token created via `rwarden keys create` | `rw_sec_a8f9c2d1e4b7...` |
+| `TZ` | — | IANA Time Zone identifier for log timestamp normalization | `Asia/Kolkata`, `UTC`, `America/New_York` |
+
+> [!TIP]
+> **Dynamic Public Key Auto-Discovery**: When `RW_DASHBOARD_URL` and `RW_AGENT_KEY` are provided, `rwarden-shipper` automatically queries `/api/v1/pubkey` from the central dashboard on startup to derive the ephemeral shared secret (X25519 ECDH + AES-256-GCM). Full asymmetric end-to-end encryption is established immediately without any manual key exchanges or mounted config volumes.
+
+### Deployment Options:
+1. **Zero-Touch Environment Variables**: Ideal for Docker Compose and automated cluster rollouts. Set `RW_DASHBOARD_URL` and `RW_AGENT_KEY` in `environment:`, mount `/var/run/docker.sock` (or host log directories), and the shipper connects automatically.
+2. **Mounted Host Profile**: If the node has already been enrolled via `rwarden register`, mount the host directory `-v ~/.routewarden:/root/.routewarden:ro` to reuse the saved agent identity.
+
 ### Container Highlights:
 - **Binary Size**: Only **~6.2 MB** (stripped of all SQLite, embedded Web UI assets, HTML/JS/CSS, and MaxMind GeoIP code).
 - **Multiple Ingestion Modes**: Stream multiple host access log files (`-f /var/log/nginx/access.log -f /var/log/caddy/access.log`), auto-discover labeled Docker containers (`--docker`), or run both concurrently in hybrid mode.
 - **Zero Configuration**: Defaults to `rwarden push --docker` out-of-the-box when run without command flags.
 - **Memory Footprint**: Consumes under **~10 MB RAM** on low-cost VPS instances and IoT edge gateways.
+
 
