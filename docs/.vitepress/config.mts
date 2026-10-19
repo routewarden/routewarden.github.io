@@ -589,6 +589,7 @@ export default defineConfig({
             { text: 'Container Discovery & Logging', link: '/cli/dashboard/discovery-and-logging' },
             { text: 'Pre-Configured Panels', link: '/cli/dashboard/prebuilt-dashboard' },
             { text: 'Standalone Deployment', link: '/cli/dashboard/deployment' },
+            { text: 'Reverse Proxy Setup', link: '/cli/dashboard/reverse-proxy' },
             { text: 'Distributed Remote Streaming', link: '/cli/dashboard/remote-streaming' },
             { text: 'Reusing Existing Logging', link: '/cli/dashboard/existing-stack' },
             { text: 'Event Format & Query Reference', link: '/cli/dashboard/event-format' }
