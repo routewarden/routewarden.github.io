@@ -2,7 +2,22 @@
 
 All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and the CLI adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v5.2.0] - 2026-10-20 (Latest)
+## [v5.2.1] - 2026-10-20 (Latest)
+
+### Added
+- **Docker Container Log Filtering (`isRouteWardenLog` & `--all-logs`)**:
+  - Implemented automatic log filtering for Docker container streaming (`tailContainerToChan` and `TailContainerFilteredToChan`), ensuring the shipper only pushes valid RouteWarden security events (structured JSON with `verdict`, `rule`, `action`, `client_ip`, `path`) or standard Combined access logs.
+  - Automatically drops arbitrary container stdout/stderr output (e.g. application banners, database connection strings, startup debug statements, stack traces) before batching and network transmission.
+  - Added automatic Docker RFC3339 timestamp prefix stripping (`dockerTimestampPrefixRegex`) to normalize container output lines before JSON evaluation and ingestion.
+  - Added `--all-logs` flag to `rwarden push` and `rwarden-shipper` to allow operators to bypass filtering and stream unparsed raw container output when explicitly requested.
+
+### Fixed
+- **Unfiltered Docker Container Output Transmission ([push.go](file:///Users/aman/git/routewarden/cli/push.go))**:
+  - Resolved an issue where `rwarden push` and `rwarden-shipper` unconditionally forwarded all container stdout and stderr lines, resulting in non-security container diagnostics flooding the ingest buffer.
+
+---
+
+## [v5.2.0] - 2026-10-20
 
 ### Added
 - **Continuous Log File Streaming with Live Follow Mode (`rwarden monitor --follow` / `-F`)**:
@@ -18,11 +33,7 @@ All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The 
 - **Real-Time Docker Container Lifecycle Observers**:
   - Upgraded `rwarden monitor` with a real-time 2-second lifecycle observer that dynamically attaches to newly started or restarted containers (`🐳 [Docker] Attached to container: <name>`) and cleanly detaches on stop (`🛑 [Docker] Container stopped: <name>`) without exiting the monitor session.
   - Added immediate zero-delay startup scan for Docker container discovery in `rwarden push` and `rwarden-shipper`.
-- **Docker Container Log Filtering (`isRouteWardenLog` & `--all-logs`)**:
-  - Implemented automatic log filtering for Docker container streaming (`tailContainerToChan` and `TailContainerFilteredToChan`), ensuring the shipper only pushes valid RouteWarden security events (structured JSON with `verdict`, `rule`, `action`, `client_ip`, `path`) or standard Combined access logs.
-  - Automatically drops arbitrary container stdout/stderr output (e.g. application banners, database connection strings, startup debug statements, stack traces) before batching and network transmission.
-  - Added automatic Docker RFC3339 timestamp prefix stripping (`dockerTimestampPrefixRegex`) to normalize container output lines before JSON evaluation and ingestion.
-  - Added `--all-logs` flag to `rwarden push` and `rwarden-shipper` to allow operators to bypass filtering and stream unparsed raw container output when explicitly requested.
+  - Added automated sanity checks and diagnostic warnings for macOS Docker Desktop socket mounts where `/var/run/docker.sock` is mounted as an empty directory instead of the host socket at `~/.docker/run/docker.sock`.
 
 ### Fixed
 - **Stream Termination Race Condition on Channel Close ([monitor.go](file:///Users/aman/git/routewarden/cli/monitor.go))**:
