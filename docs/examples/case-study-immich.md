@@ -266,7 +266,7 @@ const caddyDockerfile = buildSnippet({
 FROM caddy:2-builder AS builder # [!code ++]
 
 RUN xcaddy build \\ # [!code ++]
-    --with github.com/routewarden/caddy-warden@v1.6.0 # [!code ++]
+    --with github.com/routewarden/caddy-warden@v1.6.1 # [!code ++]
 
 FROM caddy:2
 

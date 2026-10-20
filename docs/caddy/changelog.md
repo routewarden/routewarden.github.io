@@ -9,7 +9,19 @@ All notable changes to the **Caddy Warden** module (`github.com/routewarden/cadd
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and Caddy Warden adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v1.6.0] - 2026-10-20 (Latest)
+## [v1.6.1] - 2026-10-20 (Latest)
+
+### Added
+- **Official Multi-Arch Docker Packaging & GHCR Publishing**:
+  - Added multi-stage `Dockerfile` based on `caddy:2.11.7-builder` and `caddy:2.11.7-alpine`.
+  - Added GitHub Actions release workflow publishing multi-architecture (`linux/amd64`, `linux/arm64`) container images to GitHub Container Registry (`ghcr.io/routewarden/caddy-warden`) on release tags.
+  - Added PR validation job in CI to verify container build integrity.
+- **Base Caddy Version Upgrade**:
+  - Upgraded base Caddy image reference to `2.11.7`.
+
+---
+
+## [v1.6.0] - 2026-10-20
 
 ### Added
 - **Fractional & Floating Point Gzip Decompression Bomb Sizing (`gzip_bomb_mb`)**:
