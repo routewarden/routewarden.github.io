@@ -852,6 +852,7 @@ Stream live security events and gateway access logs from remote edge nodes, clou
 | `--tail` | — | string | `"50"` | Initial lines to tail from Docker container(s) and log file(s) |
 | `--batch-size` | — | int | `50` | Maximum events to buffer in memory before flushing |
 | `--flush-interval` | — | duration | `1s` | Maximum duration before flushing partial buffer |
+| `--all-logs` | — | bool | `false` | Ship all raw container lines without filtering (default filters for RouteWarden events & access logs) |
 | `--url` | `-u` | string | `""` | Override central dashboard URL from registered config |
 | `--key` | `-k` | string | `""` | Override agent authentication key from registered config |
 | `--config` | — | string | `~/.routewarden/agent.json` | Custom path to agent configuration file |
