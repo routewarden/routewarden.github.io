@@ -45,13 +45,8 @@ const install_compose = buildSnippet({
   code: `# docker-compose.yml
 services:
   caddy:
-    build: # [!code ++]
-      context: . # [!code ++]
-      dockerfile_inline: | # [!code ++]
-        FROM caddy:2-builder AS builder # [!code ++]
-        RUN xcaddy build --with github.com/routewarden/caddy-warden@{{caddy_version}} # [!code ++]
-        FROM caddy:2-alpine # [!code ++]
-        COPY --from=builder /usr/bin/caddy /usr/bin/caddy # [!code ++]
+    image: ghcr.io/routewarden/caddy-warden:{{caddy_version}} # [!code ++]
+    restart: unless-stopped
     ports:
       - "80:80"
       - "443:443"
@@ -82,7 +77,7 @@ COPY --from=builder /usr/bin/caddy /usr/bin/caddy # [!code ++]`,
 
 const installSnippets = computed(() => ({
   caddy: [
-    { filename: 'Docker Compose (Inline)', lang: 'yaml', code: install_compose.cleanCode, html: install_compose.html, hasDiff: install_compose.hasDiff },
+    { filename: 'Docker Compose', lang: 'yaml', code: install_compose.cleanCode, html: install_compose.html, hasDiff: install_compose.hasDiff },
     { filename: 'xcaddy CLI', lang: 'bash', code: install_xcaddy.cleanCode, html: install_xcaddy.html, hasDiff: install_xcaddy.hasDiff },
     { filename: 'Dockerfile', lang: 'dockerfile', code: install_dockerfile.cleanCode, html: install_dockerfile.html, hasDiff: install_dockerfile.hasDiff },
   ],

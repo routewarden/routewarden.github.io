@@ -44,9 +44,7 @@ const compose_yaml = buildSnippet({
   lang: 'yaml',
   code: `services:
   caddy:
-    build: # [!code ++]
-      context: . # [!code ++]
-      dockerfile: Dockerfile # [!code ++]
+    image: ghcr.io/routewarden/caddy-warden:{{caddy_version}} # [!code ++]
     ports:
       - "80:80"
       - "443:443"
