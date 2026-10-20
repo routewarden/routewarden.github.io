@@ -29,11 +29,11 @@ curl -fsSL https://routewarden.github.io/install.sh | INSTALL_DIR=$HOME/.local/b
 const mac_manual = buildSnippet({
   lang: 'bash',
   code: `# Apple Silicon (M1/M2/M3/M4)
-curl -fsSL https://github.com/routewarden/cli/releases/download/v5.0.3/rwarden_5.0.3_darwin_arm64.tar.gz | tar -xz
+curl -fsSL https://github.com/routewarden/cli/releases/download/v5.1.0/rwarden_5.1.0_darwin_arm64.tar.gz | tar -xz
 sudo mv rwarden /usr/local/bin/
 
 # Intel Macs (x86_64)
-# curl -fsSL https://github.com/routewarden/cli/releases/download/v5.0.3/rwarden_5.0.3_darwin_amd64.tar.gz | tar -xz
+# curl -fsSL https://github.com/routewarden/cli/releases/download/v5.1.0/rwarden_5.1.0_darwin_amd64.tar.gz | tar -xz
 # sudo mv rwarden /usr/local/bin/`,
 })
 
@@ -98,11 +98,11 @@ curl -fsSL https://routewarden.github.io/install.sh | INSTALL_DIR=$HOME/.local/b
 const linux_manual = buildSnippet({
   lang: 'bash',
   code: `# Linux x86_64 (amd64)
-curl -fsSL https://github.com/routewarden/cli/releases/download/v5.0.3/rwarden_5.0.3_linux_amd64.tar.gz | tar -xz
+curl -fsSL https://github.com/routewarden/cli/releases/download/v5.1.0/rwarden_5.1.0_linux_amd64.tar.gz | tar -xz
 sudo mv rwarden /usr/local/bin/
 
 # Linux ARM64 (e.g. Raspberry Pi / AWS Graviton)
-# curl -fsSL https://github.com/routewarden/cli/releases/download/v5.0.3/rwarden_5.0.3_linux_arm64.tar.gz | tar -xz
+# curl -fsSL https://github.com/routewarden/cli/releases/download/v5.1.0/rwarden_5.1.0_linux_arm64.tar.gz | tar -xz
 # sudo mv rwarden /usr/local/bin/`,
 })
 
@@ -204,13 +204,13 @@ const sourceSnippets = computed(() => ({
 const verify_cli = buildSnippet({
   lang: 'bash',
   code: `rwarden version
-# rwarden version 5.0.3`,
+# rwarden version 5.1.0`,
 })
 
 const verify_docker = buildSnippet({
   lang: 'bash',
   code: `docker run --rm ghcr.io/routewarden/cli:latest version
-# rwarden version 5.0.3`,
+# rwarden version 5.1.0`,
 })
 
 const verifySnippets = computed(() => ({
@@ -223,23 +223,24 @@ const verifySnippets = computed(() => ({
 // ─── 7. Uninstallation ──────────────────────────────────────────────────────
 const uninstall_code = buildSnippet({
   lang: 'bash',
-  code: `# Homebrew (macOS & Linux):
+  code: `# Homebrew (automatic pre-uninstall hook stops services):
 brew uninstall rwarden
 
-# Debian / Ubuntu (APT):
+# Debian / Ubuntu (automatic preremove script stops services):
 sudo apt remove rwarden
 
-# RHEL / Fedora (RPM):
+# RHEL / Fedora (automatic preremove script stops services):
 sudo rpm -e rwarden
 
 # Alpine Linux (APK):
 apk del rwarden
 
-# System-wide binary (default):
-sudo rm -f /usr/local/bin/rwarden
+# Universal automated uninstaller:
+curl -fsSL https://routewarden.github.io/uninstall.sh | bash
 
-# User directory (~/.local/bin):
-rm -f ~/.local/bin/rwarden`,
+# Manual binary removal:
+rwarden stop && rwarden cleanup
+sudo rm -f /usr/local/bin/rwarden`,
 })
 
 const uninstallSnippets = computed(() => ({
@@ -285,11 +286,11 @@ Download standalone, statically compiled binaries for **Linux**, **macOS**, and 
 
 | Platform | Architecture | Archive | Package / Command |
 |:---|:---|:---|:---|
-| **macOS** | Apple Silicon (`arm64`) | [rwarden_5.0.3_darwin_arm64.tar.gz](https://github.com/routewarden/cli/releases/download/v5.0.3/rwarden_5.0.3_darwin_arm64.tar.gz) | `brew install routewarden/tap/rwarden` |
-| **macOS** | Intel (`amd64`) | [rwarden_5.0.3_darwin_amd64.tar.gz](https://github.com/routewarden/cli/releases/download/v5.0.3/rwarden_5.0.3_darwin_amd64.tar.gz) | `brew install routewarden/tap/rwarden` |
-| **Linux** | 64-bit (`amd64`) | [rwarden_5.0.3_linux_amd64.tar.gz](https://github.com/routewarden/cli/releases/download/v5.0.3/rwarden_5.0.3_linux_amd64.tar.gz) | [rwarden_linux_amd64.deb](https://github.com/routewarden/cli/releases/latest/download/rwarden_linux_amd64.deb) / [rwarden_linux_amd64.rpm](https://github.com/routewarden/cli/releases/latest/download/rwarden_linux_amd64.rpm) |
-| **Linux** | ARM64 (`arm64`) | [rwarden_5.0.3_linux_arm64.tar.gz](https://github.com/routewarden/cli/releases/download/v5.0.3/rwarden_5.0.3_linux_arm64.tar.gz) | [rwarden_linux_arm64.deb](https://github.com/routewarden/cli/releases/latest/download/rwarden_linux_arm64.deb) / [rwarden_linux_arm64.rpm](https://github.com/routewarden/cli/releases/latest/download/rwarden_linux_arm64.rpm) |
-| **Windows**| 64-bit (`amd64`) | [rwarden_5.0.3_windows_amd64.zip](https://github.com/routewarden/cli/releases/download/v5.0.3/rwarden_5.0.3_windows_amd64.zip) | Standalone Zip |
+| **macOS** | Apple Silicon (`arm64`) | [rwarden_5.1.0_darwin_arm64.tar.gz](https://github.com/routewarden/cli/releases/download/v5.1.0/rwarden_5.1.0_darwin_arm64.tar.gz) | `brew install routewarden/tap/rwarden` |
+| **macOS** | Intel (`amd64`) | [rwarden_5.1.0_darwin_amd64.tar.gz](https://github.com/routewarden/cli/releases/download/v5.1.0/rwarden_5.1.0_darwin_amd64.tar.gz) | `brew install routewarden/tap/rwarden` |
+| **Linux** | 64-bit (`amd64`) | [rwarden_5.1.0_linux_amd64.tar.gz](https://github.com/routewarden/cli/releases/download/v5.1.0/rwarden_5.1.0_linux_amd64.tar.gz) | [rwarden_linux_amd64.deb](https://github.com/routewarden/cli/releases/latest/download/rwarden_linux_amd64.deb) / [rwarden_linux_amd64.rpm](https://github.com/routewarden/cli/releases/latest/download/rwarden_linux_amd64.rpm) |
+| **Linux** | ARM64 (`arm64`) | [rwarden_5.1.0_linux_arm64.tar.gz](https://github.com/routewarden/cli/releases/download/v5.1.0/rwarden_5.1.0_linux_arm64.tar.gz) | [rwarden_linux_arm64.deb](https://github.com/routewarden/cli/releases/latest/download/rwarden_linux_arm64.deb) / [rwarden_linux_arm64.rpm](https://github.com/routewarden/cli/releases/latest/download/rwarden_linux_arm64.rpm) |
+| **Windows**| 64-bit (`amd64`) | [rwarden_5.1.0_windows_amd64.zip](https://github.com/routewarden/cli/releases/download/v5.1.0/rwarden_5.1.0_windows_amd64.zip) | Standalone Zip |
 
 All downloads and SHA256 checksums are published on the [GitHub Releases Page](https://github.com/routewarden/cli/releases/latest).
 
@@ -330,6 +331,6 @@ Verify that `rwarden` is accessible in your system `$PATH`:
 
 ## Uninstallation
 
-`rwarden` is a single self-contained binary with no background daemon services or system hooks. To remove it:
+`rwarden` packages (Homebrew, APT, RPM, APK) include automated pre-removal hooks that gracefully terminate active background services (dashboard, push shipper) and ephemeral sandbox containers. To remove RouteWarden:
 
 <CodeViewer :snippets="uninstallSnippets" />

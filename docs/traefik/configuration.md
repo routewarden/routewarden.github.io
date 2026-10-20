@@ -172,10 +172,10 @@ This reference covers all configuration options available in **Traefik Warden**.
 | `allowPatterns` | `[]string` | `[]` | Additional custom regex patterns to explicitly allow even if matching blocked rules. |
 | `allowedIps` | `[]string` | `[]` | Whitelisted IPv4/IPv6 addresses or CIDR subnets (e.g., `10.0.0.0/8`, `127.0.0.1`). |
 | `trustedProxies` | `[]string` | `[]` | Upstream proxies/load-balancers trusted for `X-Forwarded-For` / `X-Real-IP`. Untrusted connections use socket IP directly. |
-| `methods` | `[]string` | `["GET"]` | HTTP request verbs to inspect (e.g. `["GET", "POST"]`). Non-matching verbs bypass inspection. |
+| `methods` | `[]string` | `["GET"]` | HTTP request verbs to inspect (e.g. `["GET", "POST"]`). Supports wildcard `"*"` or `"ALL"` to inspect all verbs. Auto-expanded to include `POST`, `PUT`, `PATCH` when `checkBody` is enabled without explicit methods. |
 | `checkQuery` | `bool` | `false` | Also inspects the URL raw query string for blocked patterns. |
 | `checkHeaders` | `[]string` | `[]` | Optional list of HTTP request headers to inspect for path smuggling (e.g. `["X-Forwarded-Uri", "X-Rewrite-URL"]`). |
-| `checkBody` | `bool` | `false` | When true, buffers and inspects request bodies against blocked patterns. |
+| `checkBody` | `bool` | `false` | When true, buffers and inspects request bodies against blocked patterns (auto-expands default `methods` to include `POST`, `PUT`, `PATCH`). |
 | `checkBodyMaxBytes` | `int64` | `65536` | Maximum bytes to buffer for body inspection (default: 64KB). |
 | `checkBodyPatterns` | `[]string` | `[]` | Specific regex patterns to match against request body (falls back to `blockPatterns` if empty). |
 | `statusCode` | `int` | `403` | Default HTTP status code when request is blocked (legacy shortcut). |
@@ -278,7 +278,7 @@ When `enableDefaultAllowPatterns: true` (default), RouteWarden immediately permi
 | `redirectUrl` | `string` | `""` | Target URL when `mode: redirect`. |
 | `proxyUrl` | `string` | `""` | Target backend honeypot URL when `mode: proxy` (transparent reverse-proxy). |
 | `captcha` | `object` | `{}` | Captcha challenge options when `mode: captcha`. |
-| `gzipBombMB` | `int` | `10` | Uncompressed stream size in Megabytes when `mode: gzipBomb` (expands ~1000x on client memory). |
+| `gzipBombMB` | `float` | `10` | Uncompressed stream size in Megabytes when `mode: gzipBomb` (expands ~1000x on client memory; supports fractional values e.g. `0.5`). |
 | `retryAfterSeconds` | `int` | `300` | Value for `Retry-After` header when `mode: rateLimitChallenge`. |
 | `tarpitDelayMs` | `int` | `1000` | Milliseconds between trickle bytes when `mode: tarpit` (stalls scanner connections). |
 | `tarpitMaxDurationSeconds` | `int` | `60` | Maximum seconds before terminating stalled connection in `mode: tarpit`. |
@@ -289,7 +289,7 @@ When `enableDefaultAllowPatterns: true` (default), RouteWarden immediately permi
 | Key | Type | Default | Description |
 |---|---|---|---|
 | `provider` | `string` | `"turnstile"` | Captcha provider: `turnstile`, `hcaptcha`, or `recaptcha`. |
-| `siteKey` | `string` | `""` | Public site key for the captcha widget. |
+| `siteKey` / `site_key` | `string` | `""` | Public site key for the captcha widget (accepts camelCase `siteKey` or snake_case `site_key`). |
 | `title` | `string` | `"Verification"` | Heading displayed on the verification challenge page. |
 | `template` | `string` | `""` | Optional custom HTML template string override. |
 
@@ -300,6 +300,29 @@ When `enableDefaultAllowPatterns: true` (default), RouteWarden immediately permi
 By default, RouteWarden inspects incoming `GET` requests (`methods: ["GET"]`), as automated scanners and vulnerability reconnaissance probes primarily use `GET` to check for leaked files (`.env`, `.git`, backups, configs).
 
 You can configure `methods` to inspect additional HTTP request verbs (e.g. `POST`, `PUT`, `DELETE`, `PATCH`, `HEAD`) or tailor inspection to specific workloads. Any incoming request whose HTTP method is **not** included in `methods` will immediately bypass inspection and pass downstream to upstream containers.
+
+### Wildcard Methods (`*` and `ALL`)
+
+To inspect all incoming HTTP request methods without enumerating each verb individually, supply `"*"` or `"ALL"` (case-insensitive):
+
+```yaml
+methods:
+  - "*"
+```
+
+### Automatic Method Expansion for Request Body Inspection
+
+When body inspection is enabled (`checkBody: true` or custom `checkBodyPatterns` configured) and `methods` is left at the default `["GET"]`, RouteWarden automatically expands `methods` to:
+
+```yaml
+methods:
+  - "GET"
+  - "POST"
+  - "PUT"
+  - "PATCH"
+```
+
+This ensures that incoming payload-bearing mutation requests (`POST`, `PUT`, `PATCH`) are inspected automatically without requiring boilerplate configuration. If you explicitly specify `methods`, your custom list is preserved as configured.
 
 ### Configuration Examples
 

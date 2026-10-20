@@ -9,7 +9,26 @@ All notable changes to the **Traefik Warden** plugin (`github.com/routewarden/tr
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and Traefik Warden adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v1.5.1] - 2026-10-19 (Latest)
+## [v1.6.0] - 2026-10-20 (Latest)
+
+### Security
+- **Critical Fix: Matrix Parameter Allowlist Bypass (`/.env;robots.txt`)**:
+  - Fixed an issue in `ExtractCandidatePaths` where semicolon matrix parameters (e.g. `;robots.txt`, `;sitemap.xml`, `;.well-known`) were extracted as standalone root candidate paths (`/robots.txt`). Because `AllowPatterns` evaluates before `BlockPatterns`, this enabled attackers to bypass blocking on sensitive files (`/.env`, `/backup.sql`, `/.git`) simply by appending `;robots.txt`.
+  - Removed synthetic parameter-to-path generation while preserving matrix parameter stripping (`matrixStripped`) and semicolon slash normalization (`semiAsSlash`), ensuring all sensitive patterns inside or outside matrix segments are blocked.
+
+### Added
+- **Wildcard HTTP Methods Matching (`*` and `ALL`)**:
+  - Added native support for `methods: ["*"]` and `methods: ["ALL"]` in `Config` and `ServeHTTP`. Operators can now inspect all HTTP methods across all endpoints without needing to list every verb explicitly.
+- **Automatic Method Expansion on Request Body Inspection (`checkBody`)**:
+  - When `checkBody: true` or `checkBodyPatterns` is configured and `methods` was left to its default `["GET"]`, RouteWarden now automatically expands inspected methods to include `POST`, `PUT`, and `PATCH`. Prevents the silent configuration trap where request bodies submitted via mutation verbs were bypassed.
+- **Flexible Snake_Case Support in `CaptchaConfig`**:
+  - Added `UnmarshalJSON` to `CaptchaConfig` enabling transparent parsing of standard `site_key` (snake_case) from `routewarden.json` and YAML dynamic configurations.
+- **Fractional & Floating Point Gzip Bomb Sizes (`gzipBombMB`)**:
+  - Added floating-point support for `gzipBombMB` (e.g. `gzipBombMB: 0.5` for a 512KB payload) in `ResponseConfig`, allowing fine-grained control over bomb sizes in memory-constrained environments.
+
+---
+
+## [v1.5.1] - 2026-10-19
 
 ### Fixed
 - **Gzip Decompression Bomb (`gzipBomb` / `bomb`) Status Code Default**:

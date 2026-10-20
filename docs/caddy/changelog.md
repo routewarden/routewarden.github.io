@@ -9,7 +9,19 @@ All notable changes to the **Caddy Warden** module (`github.com/routewarden/cadd
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and Caddy Warden adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v1.5.1] - 2026-10-19 (Latest)
+## [v1.6.0] - 2026-10-20 (Latest)
+
+### Added
+- **Fractional & Floating Point Gzip Decompression Bomb Sizing (`gzip_bomb_mb`)**:
+  - Added floating-point support for `gzip_bomb_mb` in Caddyfile parsing (`strconv.ParseFloat`) and `GzipBombMB float64` in `ResponseConfig`.
+  - Supports fractional sizes (e.g. `gzip_bomb_mb 0.5` for a 512KB payload / 16 chunks).
+  - Hardened `totalChunks` calculation with a safe minimum chunk floor (`totalChunks = 1`), preventing zero or negative chunk streaming on sub-megabyte inputs.
+  - Updated dual-tag JSON schema bindings (`GzipBombMB *float64` / `GzipBombMBSnake *float64`) for both camelCase and snake_case configurations.
+  - Added comprehensive test coverage in `caddyfile_test.go` (`TestCaddyfile_GzipBombMB_Float`) and `response_handler_test.go`.
+
+---
+
+## [v1.5.1] - 2026-10-19
 
 ### Fixed
 - **Gzip Decompression Bomb (`gzip_bomb` / `bomb`) Status Code Default**:

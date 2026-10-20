@@ -3,8 +3,14 @@ import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import path from 'node:path'
 import os from 'node:os'
+import { execFileSync } from 'node:child_process'
 import { syncVersion, normalizeAppName, resolveDocsRootDir } from '../scripts/sync-version.mjs'
 import { snapshotVersion } from '../scripts/snapshot-version.mjs'
+
+const __dirname = path.dirname(new URL(import.meta.url).pathname)
+const docsProjectRoot = path.resolve(__dirname, '..')
+const uninstallScriptPath = path.join(docsProjectRoot, 'docs/public/uninstall.sh')
+const installScriptPath = path.join(docsProjectRoot, 'docs/public/install.sh')
 
 /**
  * Creates a mock isolated workspace for testing scripts
@@ -276,3 +282,154 @@ test('snapshotVersion throws when version argument is missing', (t) => {
 
   assert.throws(() => snapshotVersion('', { rootDir: ws }), /New version argument is required/)
 })
+
+// ─── Universal Shell Script Tests (install.sh / uninstall.sh) ──────────────────
+
+test('uninstall.sh script exists, is executable, and passes bash syntax validation', () => {
+  assert.ok(fs.existsSync(uninstallScriptPath), `Expected ${uninstallScriptPath} to exist`)
+  const stat = fs.statSync(uninstallScriptPath)
+  assert.ok((stat.mode & 0o111) !== 0, 'uninstall.sh must be executable')
+
+  assert.doesNotThrow(() => {
+    execFileSync('bash', ['-n', uninstallScriptPath], { stdio: 'pipe' })
+  })
+})
+
+test('uninstall.sh runs cleanly when no rwarden installation is found', (t) => {
+  const tempHome = fs.mkdtempSync(path.join(os.tmpdir(), 'rw-uninstall-clean-'))
+  t.after(() => fs.rmSync(tempHome, { recursive: true, force: true }))
+
+  const stdout = execFileSync('bash', [uninstallScriptPath], {
+    env: {
+      HOME: tempHome,
+      PATH: '/bin:/usr/bin'
+    },
+    encoding: 'utf8'
+  })
+
+  assert.match(stdout, /Stopping RouteWarden services/)
+  assert.match(stdout, /No rwarden binary found in standard install locations/)
+  assert.match(stdout, /RouteWarden uninstallation complete/)
+})
+
+test('uninstall.sh stops services, cleans containers, removes binary, and wipes ~/.routewarden', (t) => {
+  const tempHome = fs.mkdtempSync(path.join(os.tmpdir(), 'rw-uninstall-full-'))
+  t.after(() => fs.rmSync(tempHome, { recursive: true, force: true }))
+
+  const localBin = path.join(tempHome, '.local/bin')
+  fs.mkdirSync(localBin, { recursive: true })
+
+  const mockLog = path.join(tempHome, 'mock_calls.log')
+  const rwardenBin = path.join(localBin, 'rwarden')
+  fs.writeFileSync(rwardenBin, `#!/bin/sh\necho "$@" >> "${mockLog}"\nexit 0\n`, { mode: 0o755 })
+
+  const runtimeDir = path.join(tempHome, '.routewarden')
+  fs.mkdirSync(runtimeDir, { recursive: true })
+  fs.writeFileSync(path.join(runtimeDir, 'state.json'), '{"active":true}')
+
+  const stdout = execFileSync('bash', [uninstallScriptPath], {
+    env: {
+      HOME: tempHome,
+      PATH: `${localBin}:/bin:/usr/bin`
+    },
+    encoding: 'utf8'
+  })
+
+  // Verify binary removal
+  assert.ok(!fs.existsSync(rwardenBin), 'Expected rwarden binary to be deleted')
+
+  // Verify runtime directory cleanup
+  assert.ok(!fs.existsSync(runtimeDir), 'Expected ~/.routewarden to be deleted')
+
+  // Verify services stop and cleanup calls
+  const calls = fs.readFileSync(mockLog, 'utf8')
+  assert.match(calls, /stop/)
+  assert.match(calls, /cleanup/)
+
+  // Verify stdout notifications
+  assert.match(stdout, /Successfully uninstalled rwarden/)
+  assert.ok(stdout.includes('Removing ~/.routewarden runtime data'), 'Expected runtime data cleanup message')
+  assert.match(stdout, /RouteWarden uninstallation complete/)
+})
+
+test('uninstall.sh invokes docker rm -f routewarden-dashboard when docker CLI is available', (t) => {
+  const tempHome = fs.mkdtempSync(path.join(os.tmpdir(), 'rw-uninstall-docker-'))
+  t.after(() => fs.rmSync(tempHome, { recursive: true, force: true }))
+
+  const binDir = path.join(tempHome, 'bin')
+  fs.mkdirSync(binDir, { recursive: true })
+
+  const dockerLog = path.join(tempHome, 'docker.log')
+  const dockerBin = path.join(binDir, 'docker')
+  fs.writeFileSync(dockerBin, `#!/bin/sh\necho "$@" >> "${dockerLog}"\nexit 0\n`, { mode: 0o755 })
+
+  execFileSync('bash', [uninstallScriptPath], {
+    env: {
+      HOME: tempHome,
+      PATH: `${binDir}:/bin:/usr/bin`
+    },
+    encoding: 'utf8'
+  })
+
+  const dockerCalls = fs.readFileSync(dockerLog, 'utf8')
+  assert.match(dockerCalls, /rm -f routewarden-dashboard/)
+})
+
+test('uninstall.sh removes symlinked binary correctly', (t) => {
+  const tempHome = fs.mkdtempSync(path.join(os.tmpdir(), 'rw-uninstall-symlink-'))
+  t.after(() => fs.rmSync(tempHome, { recursive: true, force: true }))
+
+  const realBinDir = path.join(tempHome, 'real_bin')
+  const localBin = path.join(tempHome, '.local/bin')
+  fs.mkdirSync(realBinDir, { recursive: true })
+  fs.mkdirSync(localBin, { recursive: true })
+
+  const targetBin = path.join(realBinDir, 'rwarden_actual')
+  fs.writeFileSync(targetBin, `#!/bin/sh\nexit 0\n`, { mode: 0o755 })
+
+  const symlinkBin = path.join(localBin, 'rwarden')
+  fs.symlinkSync(targetBin, symlinkBin)
+
+  execFileSync('bash', [uninstallScriptPath], {
+    env: {
+      HOME: tempHome,
+      PATH: `${localBin}:/bin:/usr/bin`
+    },
+    encoding: 'utf8'
+  })
+
+  assert.ok(!fs.existsSync(symlinkBin), 'Expected symlink at .local/bin/rwarden to be removed')
+})
+
+test('uninstall.sh is resilient when rwarden stop or cleanup command fails', (t) => {
+  const tempHome = fs.mkdtempSync(path.join(os.tmpdir(), 'rw-uninstall-resilient-'))
+  t.after(() => fs.rmSync(tempHome, { recursive: true, force: true }))
+
+  const localBin = path.join(tempHome, '.local/bin')
+  fs.mkdirSync(localBin, { recursive: true })
+
+  const rwardenBin = path.join(localBin, 'rwarden')
+  fs.writeFileSync(rwardenBin, `#!/bin/sh\nexit 1\n`, { mode: 0o755 })
+
+  const stdout = execFileSync('bash', [uninstallScriptPath], {
+    env: {
+      HOME: tempHome,
+      PATH: `${localBin}:/bin:/usr/bin`
+    },
+    encoding: 'utf8'
+  })
+
+  assert.ok(!fs.existsSync(rwardenBin), 'Expected binary to still be removed even when stop fails')
+  assert.match(stdout, /Successfully uninstalled rwarden/)
+})
+
+test('install.sh script exists and passes bash syntax validation', () => {
+  assert.ok(fs.existsSync(installScriptPath), `Expected ${installScriptPath} to exist`)
+  const stat = fs.statSync(installScriptPath)
+  assert.ok(stat.size > 0, 'install.sh must not be empty')
+
+  assert.doesNotThrow(() => {
+    execFileSync('bash', ['-n', installScriptPath], { stdio: 'pipe' })
+  })
+})
+
