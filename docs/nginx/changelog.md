@@ -9,7 +9,20 @@ All notable changes to **NGINX Warden** (`github.com/routewarden/nginx-warden`) 
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and NGINX Warden adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v1.5.1] - 2026-10-19 (Latest)
+## [v1.6.0] - 2026-10-20 (Latest)
+
+### Added
+- **Fractional & Floating Point Gzip Decompression Bomb Sizing (`gzip_bomb_mb`)**:
+  - Supported floating-point values for `gzip_bomb_mb` in `response.lua` (e.g., `gzip_bomb_mb = 0.5`).
+  - Added safe chunk floor guard (`if total_chunks <= 0 then total_chunks = 1 end`) preventing empty or negative chunk streaming on sub-megabyte sizes.
+  - Added test coverage in `t/test_response.lua`.
+- **Module Version Synchronization (`1.6.0`)**:
+  - Synchronized `_VERSION = "1.6.0"` across all core Lua modules: `resty.routewarden.config`, `resty.routewarden.init`, `resty.routewarden.ip_filter`, `resty.routewarden.logger`, `resty.routewarden.normalizer`, and `resty.routewarden.response`.
+  - Updated `version.json` and `VERSIONING.md`.
+
+---
+
+## [v1.5.1] - 2026-10-19
 
 ### Fixed
 - **Gzip Decompression Bomb (`gzip_bomb` / `bomb`) Status Code Default**:

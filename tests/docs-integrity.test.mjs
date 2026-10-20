@@ -256,6 +256,15 @@ test('documentation structure and integrity', async (t) => {
       assert.equal(composeContent, canonicalContent, 'docs/cli/dashboard/docker-compose.yml must match cli/observability/docker-compose.yml byte-for-byte')
     }
   })
+
+  await t.test('cli commands document contains push manual event examples', () => {
+    const cmdDoc = path.join(docsDir, 'cli', 'commands.md')
+    assert.ok(fs.existsSync(cmdDoc), 'Expected docs/cli/commands.md to exist')
+    const content = fs.readFileSync(cmdDoc, 'utf8')
+    assert.ok(content.includes('rwarden push -e'), 'commands.md must document push -e')
+    assert.ok(content.includes('rwarden push --stdin'), 'commands.md must document push --stdin')
+    assert.ok(content.includes('rwarden push -f -'), 'commands.md must document push -f -')
+  })
 })
 
 

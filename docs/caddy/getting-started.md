@@ -271,7 +271,7 @@ const caddyfile_syntax = buildSnippet({
         body <string>
         redirect_url <url>
         proxy_url <url>
-        gzip_bomb_mb <int>
+        gzip_bomb_mb <number>
         retry_after_seconds <int>
         tarpit_delay_ms <int>
         stream_size_mb <int>
