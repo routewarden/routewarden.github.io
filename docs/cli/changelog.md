@@ -2,7 +2,59 @@
 
 All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and the CLI adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v5.1.0] - 2026-10-20 (Latest)
+## [v5.2.1] - 2026-10-20 (Latest)
+
+### Added
+- **Docker Container Log Filtering (`isRouteWardenLog` & `--all-logs`)**:
+  - Implemented automatic log filtering for Docker container streaming (`tailContainerToChan` and `TailContainerFilteredToChan`), ensuring the shipper only pushes valid RouteWarden security events (structured JSON with `verdict`, `rule`, `action`, `client_ip`, `path`) or standard Combined access logs.
+  - Automatically drops arbitrary container stdout/stderr output (e.g. application banners, database connection strings, startup debug statements, stack traces) before batching and network transmission.
+  - Added automatic Docker RFC3339 timestamp prefix stripping (`dockerTimestampPrefixRegex`) to normalize container output lines before JSON evaluation and ingestion.
+  - Added `--all-logs` flag to `rwarden push` and `rwarden-shipper` to allow operators to bypass filtering and stream unparsed raw container output when explicitly requested.
+
+### Fixed
+- **Unfiltered Docker Container Output Transmission ([push.go](file:///Users/aman/git/routewarden/cli/push.go))**:
+  - Resolved an issue where `rwarden push` and `rwarden-shipper` unconditionally forwarded all container stdout and stderr lines, resulting in non-security container diagnostics flooding the ingest buffer.
+
+---
+
+## [v5.2.0] - 2026-10-20
+
+### Added
+- **Continuous Log File Streaming with Live Follow Mode (`rwarden monitor --follow` / `-F`)**:
+  - Added `-F` / `--follow` flag to `rwarden monitor` for continuously following log files in real time.
+  - Implemented automatic in-place file truncation detection (`fi.Size() < offset`), automatically rewinding the read offset to beginning.
+  - Implemented automatic log rotation detection (`!os.SameFile(fi, curFi)`), draining any final writes from the rotated file descriptor before re-attaching to the newly created file.
+  - Preserved one-shot reading behavior when `--follow` is omitted, allowing automated test suites and batch analysis to run to EOF without hanging.
+- **Pure-Go Native File Streaming Fallback**:
+  - Implemented Go-native file tailing (`streamFileToChan` / `StreamFileToChan`) as an automatic fallback when the system `tail` executable is not installed (e.g. scratch, distroless, or minimal Alpine Docker containers).
+- **Dynamic Log File Discovery**:
+  - Added an active background observer in `rwarden push` and standalone `rwarden-shipper` that periodically scans glob patterns (e.g. `*.log`) and directories, dynamically attaching collectors to newly created log files (`📄 [File] Attached to new log file: <path>`).
+  - Added directory path expansion in `resolveFileList`, expanding directory arguments to contained `.log`, `.json`, and `.txt` files rather than erroring on directory descriptors.
+- **Real-Time Docker Container Lifecycle Observers**:
+  - Upgraded `rwarden monitor` with a real-time 2-second lifecycle observer that dynamically attaches to newly started or restarted containers (`🐳 [Docker] Attached to container: <name>`) and cleanly detaches on stop (`🛑 [Docker] Container stopped: <name>`) without exiting the monitor session.
+  - Added immediate zero-delay startup scan for Docker container discovery in `rwarden push` and `rwarden-shipper`.
+  - Added automated sanity checks and diagnostic warnings for macOS Docker Desktop socket mounts where `/var/run/docker.sock` is mounted as an empty directory instead of the host socket at `~/.docker/run/docker.sock`.
+
+### Fixed
+- **Stream Termination Race Condition on Channel Close ([monitor.go](file:///Users/aman/git/routewarden/cli/monitor.go))**:
+  - Replaced an arbitrary 100ms sleep on shutdown with a `sync.WaitGroup` tracking all active file stream routines, eliminating the race condition that triggered fatal `panic: send on closed channel` errors.
+- **Container Pipe Truncation on Stderr EOF ([manager.go](file:///Users/aman/git/routewarden/cli/observability/manager.go))**:
+  - Added `sync.WaitGroup` synchronization across stdout and stderr reader pipes in `watchAndStreamContainers` before calling `cmd.Wait()`, preventing premature stream closure when containers produce no stderr output.
+- **File Descriptor Leak on Log Rotation ([manager.go](file:///Users/aman/git/routewarden/cli/observability/manager.go))**:
+  - Fixed descriptor leak in `watchAndStreamFile` where deferred `f.Close()` closed the old file pointer by value rather than closing the dynamically updated active file descriptor.
+- **Unchecked Scanner Errors in Tail Reading**:
+  - Added explicit terminal `scanner.Err()` checks across all `bufio.Scanner` loops in `push.go`, `shipper/push.go`, and `monitor.go`, preventing silent error swallowing on I/O failures or buffer overflows (`bufio.ErrTooLong`).
+- **Data Race on `Targets` Slice in `getSourceInfo()` ([manager.go](file:///Users/aman/git/routewarden/cli/observability/manager.go))**:
+  - Implemented deep slice copy for `Targets` under `sourceMu.RLock()`, eliminating concurrent slice access between the HTTP API handler and background container discovery.
+- **Unbounded HTTP Request Body & Contention in `/api/v1/events` ([manager.go](file:///Users/aman/git/routewarden/cli/observability/manager.go))**:
+  - Enforced a 10MB limit on incoming event payloads via `io.LimitReader(r.Body, 10*1024*1024)` preventing OOM denial-of-service.
+  - Decoupled `dashboardLogMu` file logging lock from `globalStore.ParseAndIngest` SQLite processing to eliminate ingest pipeline contention.
+- **Cryptographic Timing Attack in Agent Token Validation ([keys.go](file:///Users/aman/git/routewarden/cli/observability/keys.go))**:
+  - Switched token hash comparison to `crypto/subtle.ConstantTimeCompare`, preventing side-channel timing leaks.
+
+---
+
+## [v5.1.0] - 2026-10-20
 
 ### Added
 - **Manual Event Push via CLI (`rwarden push -e` / `--event`)**:
