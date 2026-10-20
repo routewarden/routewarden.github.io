@@ -731,17 +731,20 @@ To view live reverse proxy telemetry with a real-time web UI, world map, and thr
 
 ### Flags
 
-| Flag | Type | Default | Description |
-|:---|:---|:---|:---|
-| `-f`, `--file` | string | `""` | Log file to read from (default: stdin or auto-discovered docker) |
-| `--docker` | bool | `false` | Explicitly enable Docker container auto-discovery |
-| `-c`, `--container` | string | `""` | Tail a specific Docker container by name or ID |
-| `-l`, `--label` | string | `""` | Docker label to filter containers (default: `routewarden=true`) |
-| `--tail` | string | `"50"` | Initial lines to tail from Docker container(s) |
-| `--raw` | bool | `false` | Output raw unformatted log lines (ideal for piping into analyzers or jq) |
-| `--verdict` | string | `""` | Filter events by verdict (`BLOCK`, `ALLOW`, `TARPIT`) |
-| `--ip` | string | `""` | Filter events by client IP substring |
-| `--path` | string | `""` | Filter events by request path substring |
+| Flag | Shorthand | Type | Default | Description |
+|:---|:---|:---|:---|:---|
+| `--file` | `-f` | string | `""` | Log file to read from (default: stdin or auto-discovered docker) |
+| `--follow` | `-F` | bool | `false` | Continuously follow log file for new changes (auto-detects rotation and truncation) |
+| `--out` | `-o` | string | `""` | Output file to append monitored security events to (Combined log format) |
+| `--docker` | — | bool | `false` | Explicitly enable Docker container auto-discovery |
+| `--container` | `-c` | string | `""` | Tail a specific Docker container by name or ID |
+| `--label` | `-l` | string | `""` | Docker label to filter containers (default: `routewarden=true`) |
+| `--wait` | `-w` | bool | `false` | Wait and retry if no matching containers are running initially |
+| `--tail` | — | string | `"50"` | Initial lines to tail from Docker container(s) or file |
+| `--raw` | — | bool | `false` | Output raw unformatted log lines (ideal for piping into analyzers or jq) |
+| `--verdict` | — | string | `""` | Filter events by verdict (`BLOCK`, `ALLOW`, `TARPIT`) |
+| `--ip` | — | string | `""` | Filter events by client IP substring |
+| `--path` | — | string | `""` | Filter events by request path substring |
 
 ---
 
