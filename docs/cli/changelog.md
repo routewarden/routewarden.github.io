@@ -18,7 +18,11 @@ All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The 
 - **Real-Time Docker Container Lifecycle Observers**:
   - Upgraded `rwarden monitor` with a real-time 2-second lifecycle observer that dynamically attaches to newly started or restarted containers (`🐳 [Docker] Attached to container: <name>`) and cleanly detaches on stop (`🛑 [Docker] Container stopped: <name>`) without exiting the monitor session.
   - Added immediate zero-delay startup scan for Docker container discovery in `rwarden push` and `rwarden-shipper`.
-  - Added automated sanity checks and diagnostic warnings for macOS Docker Desktop socket mounts where `/var/run/docker.sock` is mounted as an empty directory instead of the host socket at `~/.docker/run/docker.sock`.
+- **Docker Container Log Filtering (`isRouteWardenLog` & `--all-logs`)**:
+  - Implemented automatic log filtering for Docker container streaming (`tailContainerToChan` and `TailContainerFilteredToChan`), ensuring the shipper only pushes valid RouteWarden security events (structured JSON with `verdict`, `rule`, `action`, `client_ip`, `path`) or standard Combined access logs.
+  - Automatically drops arbitrary container stdout/stderr output (e.g. application banners, database connection strings, startup debug statements, stack traces) before batching and network transmission.
+  - Added automatic Docker RFC3339 timestamp prefix stripping (`dockerTimestampPrefixRegex`) to normalize container output lines before JSON evaluation and ingestion.
+  - Added `--all-logs` flag to `rwarden push` and `rwarden-shipper` to allow operators to bypass filtering and stream unparsed raw container output when explicitly requested.
 
 ### Fixed
 - **Stream Termination Race Condition on Channel Close ([monitor.go](file:///Users/aman/git/routewarden/cli/monitor.go))**:
