@@ -512,6 +512,14 @@ rwarden push -c traefik,api-gateway -f /var/log/nginx/access.log
 # Push directly with URL and key flags (skipping registration)
 rwarden push --url http://198.51.100.10:7890 --key rw_sec_... --docker
 
+# Manually push one or more specific events directly (one-shot)
+rwarden push -e '{"client_ip":"198.51.100.1","path":"/.env","verdict":"BLOCK"}'
+rwarden push -e "event1" -e "event2"
+
+# Pipe events line-by-line via STDIN (or -f -)
+cat access.log | rwarden push --stdin
+echo '{"client_ip":"198.51.100.1","path":"/.env","verdict":"BLOCK"}' | rwarden push -f -
+
 # Tune in-memory batching buffer and flush interval
 rwarden push --batch-size 100 --flush-interval 2s`,
 })

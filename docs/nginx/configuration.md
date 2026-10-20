@@ -253,7 +253,7 @@ RouteWarden for NGINX supports 13 response modes matching the core engine:
 | `redirect` | `status_code`, `redirect_url` | Redirects client via HTTP 301, 302, or 307. |
 | `captcha` | `captcha.provider`, `captcha.site_key` | Serves interactive Cloudflare Turnstile, hCaptcha, or reCAPTCHA page. |
 | `silentDrop` | None | Terminates TCP connection immediately via NGINX `HTTP 444`. |
-| `gzipBomb` | `gzip_bomb_mb` | Delivers highly compressed zero-byte gzip stream that expands in client RAM. |
+| `gzipBomb` | `gzip_bomb_mb` | Delivers highly compressed zero-byte gzip stream that expands in client RAM (supports fractional sizes e.g. `0.5`). |
 | `tarpit` | `tarpit_delay_ms`, `tarpit_max_duration_seconds` | Trickles bytes slowly to tie up bot sockets and worker pools. |
 | `fakeSuccess` | `status_code` (200), `body` (optional) | Deceptive honeypot returning realistic `.env`, `.git/HEAD`, or Spring Actuator mock data. |
 | `rateLimitChallenge` | `retry_after_seconds` (300) | Returns HTTP 429 with standard `Retry-After` header. |

@@ -2,7 +2,24 @@
 
 All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and the CLI adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v5.0.3] - 2026-10-19 (Latest)
+## [v5.1.0] - 2026-10-20 (Latest)
+
+### Added
+- **Manual Event Push via CLI (`rwarden push -e` / `--event`)**:
+  - Added native one-shot manual direct event push support. Operators can immediately dispatch synthetic test events or external log lines directly to RouteWarden dashboard without spawning a background log shipping daemon.
+  - Supports repeatable `-e` flags (`rwarden push -e '{"path":"/.env","verdict":"BLOCK"}' -e '...'`) to push multiple events simultaneously.
+- **Piped STDIN Event Streaming (`rwarden push --stdin` / `-f -` / `rwarden push -`)**:
+  - Added line-by-line streaming from standard input via `--stdin`, `-f -`, or positional `-` (`cat access.log | rwarden push --stdin`).
+  - Implemented automatic batch chunking with configurable `--batch-size` (default: 50) and `--flush-interval` (default: 1s), flushing on buffer capacity or EOF.
+- **Automatic Uninstall Service Stop & Cleanup Hook**:
+  - Integrated an automatic uninstall cleanup hook into `rwarden uninstall` and the standalone `uninstall.sh` script.
+  - Automatically identifies and stops active RouteWarden background services (`rwarden stop`), tears down dashboard Docker containers (`docker rm -f routewarden-dashboard`), unlinks binary symlinks (`/usr/local/bin/rwarden` and `~/.local/bin/rwarden`), and safely purges runtime state directories (`~/.routewarden`).
+- **Unified Standalone Shipper (`rwarden-shipper`) Parity**:
+  - Extended standalone shipper binary with identical `-e`/`--event` one-shot pushing and `--stdin` piping capabilities.
+
+---
+
+## [v5.0.3] - 2026-10-19
 
 ### Fixed
 - **Full Parity for Snake_case and CamelCase JSON Configurations**:
