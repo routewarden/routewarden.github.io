@@ -338,6 +338,7 @@ export default defineConfig({
             { text: 'Caddyfile Reference', link: '/caddy/caddyfile' },
             { text: 'JSON API Reference', link: '/caddy/json-api' },
             { text: 'Recipes & Blueprints', link: '/caddy/examples' },
+            { text: 'Frequently Asked Questions (FAQ)', link: '/caddy/faq' },
             { text: 'Changelog & Releases', link: '/caddy/changelog' }
           ]
         },

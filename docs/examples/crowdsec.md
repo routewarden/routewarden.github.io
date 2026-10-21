@@ -329,7 +329,7 @@ volumes:
       context: . # [!code ++]
       dockerfile_inline: | # [!code ++]
         FROM caddy:2-builder AS builder # [!code ++]
-        RUN xcaddy build --with github.com/routewarden/caddy-warden@v1.6.1 # [!code ++]
+        RUN xcaddy build --with github.com/routewarden/caddy-warden@v1.6.2 # [!code ++]
         FROM caddy:2-alpine # [!code ++]
         COPY --from=builder /usr/bin/caddy /usr/bin/caddy # [!code ++]
     ports:

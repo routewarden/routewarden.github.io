@@ -306,6 +306,10 @@ export default {
     }
 
     if (typeof window !== 'undefined') {
+      if (typeof navigator !== 'undefined' && /(Mac|iPhone|iPod|iPad)/i.test(navigator.userAgent || navigator.platform || '')) {
+        document.documentElement.classList.add('mac')
+      }
+
       // When user clicks a tab label directly, sync the gateway state
       window.addEventListener('click', (e) => {
         if (_syncing) return
