@@ -6,6 +6,14 @@ import { computed } from 'vue'
 import { buildSnippet } from '../.vitepress/theme/composables/useCodeSnippet'
 
 // ─── 1. Directive Ordering ──────────────────────────────────────────────────
+const order_handle = buildSnippet({
+  lang: 'caddy',
+  code: `{
+    # Recommended when site definitions use handle or handle_path
+    order routewarden before handle # [!code ++]
+}`,
+})
+
 const order_basicauth = buildSnippet({
   lang: 'caddy',
   code: `{
@@ -35,8 +43,9 @@ const order_route_block = buildSnippet({
 
 const orderingSnippets = computed(() => ({
   caddy: [
-    { filename: 'Before Basicauth', lang: 'caddy', code: order_basicauth.cleanCode, html: order_basicauth.html, hasDiff: order_basicauth.hasDiff },
+    { filename: 'Before Handle (Recommended)', lang: 'caddy', code: order_handle.cleanCode, html: order_handle.html, hasDiff: order_handle.hasDiff },
     { filename: 'Before Reverse Proxy', lang: 'caddy', code: order_reverse_proxy.cleanCode, html: order_reverse_proxy.html, hasDiff: order_reverse_proxy.hasDiff },
+    { filename: 'Before Basicauth', lang: 'caddy', code: order_basicauth.cleanCode, html: order_basicauth.html, hasDiff: order_basicauth.hasDiff },
     { filename: 'Inside Route Block', lang: 'caddy', code: order_route_block.cleanCode, html: order_route_block.html, hasDiff: order_route_block.hasDiff },
   ],
 }))
@@ -182,6 +191,10 @@ To resolve this, declare directive ordering in your Caddyfile's global options b
 
 > [!TIP]
 > **Using a `route` Block**: Alternatively, select the **Inside Route Block** tab in the CodeViewer above. Encapsulating RouteWarden and your upstream proxy inside a `route { ... }` block instructs Caddy to execute directives strictly in the order they are written, eliminating the need for global options.
+
+> [!IMPORTANT]
+> **Using `handle` or `handle_path` Blocks?**
+> In Caddy, `handle` blocks take routing priority over standard handlers. If your site blocks encapsulate `reverse_proxy` inside a `handle` block, use **`order routewarden before handle`** or wrap your site inside a `route { ... }` block to prevent requests from bypassing RouteWarden. See the [Caddy Warden FAQ](./faq) for detailed examples.
 
 ---
 

@@ -77,7 +77,7 @@
 }
 
 /* ============================================================
-   Modern Search Bar - Fills Remaining Empty Space
+   Modern Search Bar - Responsive & Overflow Protected
    ============================================================ */
 @media (min-width: 768px) {
   .VPNavBarSearch {
@@ -85,9 +85,9 @@
     align-items: center !important;
     flex: 1 1 auto !important;
     width: auto !important;
-    max-width: none !important;
-    min-width: 120px !important;
-    margin: 0 20px !important;
+    max-width: 280px !important;
+    min-width: 72px !important;
+    margin: 0 16px !important;
     padding-left: 0 !important;
     padding-right: 0 !important;
   }
@@ -110,7 +110,7 @@
     max-width: 100% !important;
     flex: 1 1 auto !important;
     height: 38px !important;
-    padding: 0 16px !important;
+    padding: 0 12px !important;
     border-radius: 19px !important;
     background: rgba(243, 244, 246, 0.75) !important;
     border: 1px solid rgba(229, 231, 235, 0.9) !important;
@@ -120,6 +120,9 @@
     align-items: center !important;
     justify-content: space-between !important;
     box-sizing: border-box !important;
+    overflow: hidden !important;
+    min-width: 0 !important;
+    cursor: pointer !important;
   }
 
   .VPNavBarSearch .DocSearch-Button-Container {
@@ -127,6 +130,16 @@
     align-items: center !important;
     gap: 8px !important;
     flex: 1 1 auto !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .VPNavBarSearch .DocSearch-Search-Icon,
+  .VPNavBarSearch .search-icon {
+    flex-shrink: 0 !important;
+    display: inline-block !important;
+    width: 15px !important;
+    height: 15px !important;
   }
 
   .dark .VPNavBarSearch .DocSearch-Button,
@@ -158,22 +171,34 @@
     font-weight: 500 !important;
     color: var(--vp-c-text-2) !important;
     letter-spacing: -0.01em !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    min-width: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
   }
 
   .VPNavBarSearch .DocSearch-Button-Keys,
   .VPNavBarSearch .search-btn-keys {
     display: inline-flex !important;
     align-items: center !important;
+    justify-content: center !important;
     gap: 2px !important;
-    padding: 1px 6px !important;
-    height: 18px !important;
+    padding: 0 5px !important;
+    height: 20px !important;
     border-radius: 4px !important;
     border: 1px solid var(--vp-c-divider) !important;
     background: var(--vp-c-bg) !important;
-    font-size: 10px !important;
+    font-size: 11px !important;
     font-weight: 600 !important;
-    font-family: var(--vp-font-family-mono) !important;
+    font-family: var(--vp-font-family-mono), system-ui, -apple-system, sans-serif !important;
     color: var(--vp-c-text-3) !important;
+    flex-shrink: 0 !important;
+    margin-left: auto !important;
+    white-space: nowrap !important;
+    line-height: 1 !important;
+    box-sizing: border-box !important;
   }
 
   .dark .VPNavBarSearch .DocSearch-Button-Keys,
@@ -198,33 +223,53 @@
     font-size: inherit !important;
   }
 
+  .VPNavBarSearch .DocSearch-Button-Key + .DocSearch-Button-Key {
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
   .VPNavBarSearch .DocSearch-Button-Key:first-child {
     font-size: 0 !important;
   }
 
   .VPNavBarSearch .DocSearch-Button-Key:first-child:after {
+    content: 'Ctrl';
     font-size: 10px !important;
     font-family: inherit !important;
     font-weight: 600 !important;
     color: inherit !important;
+    line-height: 1 !important;
+  }
+
+  .mac .VPNavBarSearch .DocSearch-Button-Key:first-child:after,
+  :root.mac .VPNavBarSearch .DocSearch-Button-Key:first-child:after {
+    content: '⌘' !important;
+    font-size: 12px !important;
   }
 }
 
-/* Tablet & Medium Screen Refinements (768px - 1024px) */
-@media (min-width: 768px) and (max-width: 1024px) {
+/* Tablet & Medium Screen Refinements (768px - 1180px) */
+@media (min-width: 768px) and (max-width: 1180px) {
   .VPNavBar .container {
     padding: 0 16px !important;
   }
 
   .VPNavBarSearch {
-    margin: 0 12px !important;
-    min-width: 100px !important;
+    margin: 0 10px !important;
+    min-width: 72px !important;
+    max-width: 160px !important;
+  }
+
+  /* When navbar is tight, hide placeholder text so icon + shortcut key badge fit perfectly without overflow */
+  .VPNavBarSearch .DocSearch-Button-Placeholder {
+    display: none !important;
   }
 
   .VPNavBarMenuLink,
   .VPNavBarMenuGroup > button,
   .VPNavBarMenuGroup > .button {
-    padding: 0 7px !important;
+    padding: 0 6px !important;
     font-size: 13px !important;
   }
 }

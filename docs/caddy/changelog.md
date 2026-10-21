@@ -9,7 +9,37 @@ All notable changes to the **Caddy Warden** module (`github.com/routewarden/cadd
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and Caddy Warden adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v1.6.1] - 2026-10-20 (Latest)
+## [v1.6.2] - 2026-10-21 (Latest)
+
+### Fixed
+- **Directive Order Precedence (`reverse_proxy` Interception)**:
+  - Updated directive registration from `Before, "respond"` to `Before, "reverse_proxy"`. This ensures RouteWarden intercepts and blocks malicious requests before Caddy forwards them to upstream backend servers.
+- **`config_file` Caddy Zap Logger Restoration**:
+  - Fixed an issue where Caddy's provisioned Zap logger on `rw` was clobbered by the zero-value logger in `*rw = fileCfg`, restoring structured access and security logging for sites utilizing `config_file`.
+- **Caddyfile Parser HTTP Methods Defaulting**:
+  - Prevented `UnmarshalCaddyfile` from unconditionally defaulting `rw.Methods = []string{"GET"}` when `config_file` is specified, allowing custom HTTP methods defined in the JSON configuration file to take effect.
+- **Inline Caddyfile Flag Overrides with `config_file`**:
+  - Fixed an issue where loading `config_file` discarded inline Caddyfile directives. Inline settings (`security_log`, `status_code`, `enabled`) now properly override file configurations.
+- **Default Status Code Resolution & Synchronization**:
+  - Fixed status code mode defaults bypassing explicit response configs when `respCfg.StatusCode == 0`. Synchronized top-level `status_code` parsing directly to `Response.StatusCode`.
+- **Wildcard HTTP Method Matching**:
+  - Added support for `*` and `ALL` in monitored methods (`isMethodMonitored`), enabling inspection across all HTTP methods.
+- **Resilient Client IP Extraction**:
+  - Enhanced `ExtractClientIP` to iterate comma-separated `X-Forwarded-For` tokens and select the first syntactically valid IP, preventing corrupt IPs from malformed headers.
+- **Snake-Case Schema Parity in `ResponseConfig`**:
+  - Added custom JSON unmarshaling to `ResponseConfig` supporting both `snake_case` (e.g., `gzip_ratio`, `status_code`, `redirect_url`) and `camelCase` keys.
+- **Tarpit Timer Resource Leak**:
+  - Replaced `time.After` in tarpit chunk streaming with `time.NewTimer` and explicit deferred cleanup, preventing timer accumulation under heavy concurrency.
+- **Boolean Flag Parsing for `debug`**:
+  - Added boolean argument parsing to the `debug` directive (`debug false`, `debug off`), avoiding unintentional enablement.
+- **Body Buffer Preservation on Stream Read Errors**:
+  - Ensured partially-read request body bytes are preserved and readable by downstream handlers even when reading encounters an error prior to EOF.
+- **Accurate Path Tracking in Security Logs**:
+  - Fixed security event logging where the `path` field was overwritten by query string or body match targets. The `path` field now strictly records `r.URL.Path` with matched payload fragments recorded in `matched_target`.
+
+---
+
+## [v1.6.1] - 2026-10-20
 
 ### Added
 - **Official Multi-Arch Docker Packaging & GHCR Publishing**:

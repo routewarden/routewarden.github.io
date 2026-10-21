@@ -2,7 +2,25 @@
 
 All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and the CLI adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v5.2.1] - 2026-10-20 (Latest)
+## [v5.2.2] - 2026-10-21 (Latest)
+
+### Fixed
+- **SQLite Database Concurrency & Busy Locks ([sqlite_store.go](file:///Users/aman/git/routewarden/cli/observability/sqlite_store.go))**:
+  - Configured WAL mode (`_journal_mode=WAL`) and a busy timeout (`_busy_timeout=5000`) on SQLite connections.
+  - Implemented serialized write locking and batch transaction retries to resolve database locked errors under high event ingestion rates.
+- **Custom Dashboard Concurrency & Rendering ([custom_dashboard.go](file:///Users/aman/git/routewarden/cli/observability/custom_dashboard.go))**:
+  - Secured widget data access with proper read/write mutexes, preventing concurrent map read/write race conditions during dashboard refreshes.
+  - Hardened metric calculations against division-by-zero on empty datasets.
+- **Observability Manager Lifecycle & Goroutine Cleanups ([manager.go](file:///Users/aman/git/routewarden/cli/observability/manager.go))**:
+  - Fixed goroutine leaks during monitoring and log streaming by ensuring context cancellation propagates through all worker loops.
+  - Handled channel closure sequencing to eliminate race conditions during manager shutdown.
+- **Shipper Reconnection Backoff & Error Recovery ([push.go](file:///Users/aman/git/routewarden/cli/push.go), [shipper/push.go](file:///Users/aman/git/routewarden/cli/shipper/push.go))**:
+  - Added exponential backoff and jitter for failed shipper push connections.
+  - Hardened line reading against truncated buffer allocations on unusually long log lines.
+
+---
+
+## [v5.2.1] - 2026-10-20
 
 ### Added
 - **Docker Container Log Filtering (`isRouteWardenLog` & `--all-logs`)**:
