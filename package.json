@@ -1,6 +1,6 @@
 {
   "name": "routewarden-docs",
-  "version": "v4.9.3",
+  "version": "v4.10.0",
   "description": "Documentation and examples wiki site for RouteWarden",
   "private": true,
   "type": "module",
