@@ -7,7 +7,7 @@ Release notes for the RouteWarden security ecosystem are maintained independentl
 | **Traefik Warden** | Traefik v2 / v3 Middleware Plugin (Go) | `{{traefik_version}}` | [Traefik Changelog](/traefik/changelog) |
 | **Caddy Warden** | Caddy v2 HTTP Module (Go) | `{{caddy_version}}` | [Caddy Changelog](/caddy/changelog) |
 | **NGINX Warden** | NGINX / OpenResty Module (Lua) | `{{nginx_version}}` | [NGINX Changelog](/nginx/changelog) |
-| **TCP Warden** | L4 TCP/UDP Reverse Proxy & Shield (Go) | Integrated in CLI (`{{cli_version}}`) | [TCP Warden Changelog](/tcp/changelog) |
+| **TCP Warden** | L4 TCP/UDP Reverse Proxy & Shield (Go) | Integrated in CLI (`{{cli_version}}`) | [CLI & TCP Warden Changelog](/cli/changelog) |
 | **RouteWarden CLI** | Policy Compiler & Generator (`rwarden`) | `{{cli_version}}` | [CLI Changelog](/cli/changelog) |
 
 ---
@@ -35,10 +35,10 @@ Covers releases for the OpenResty / NGINX Lua security handler, LuaRocks package
 
 ---
 
-### [TCP Warden Changelog](/tcp/changelog)
-Covers releases for the high-performance L4 proxy daemon, including v3.0.0 UDP proxying with session tracking and connection throttling, plugins (CrowdSec, GeoIP, IP Whitelist, Connection Limiter), and metrics.
+### [TCP Warden & L4 Proxy Changelog](/cli/changelog)
+TCP Warden is integrated into the RouteWarden CLI (`rwarden tcp` & `tcp-warden`). Release notes, binary packages, and updates are maintained in the unified CLI changelog.
 
-👉 [View TCP Warden Changelog](/tcp/changelog)
+👉 [View CLI & TCP Warden Changelog](/cli/changelog)
 
 ---
 

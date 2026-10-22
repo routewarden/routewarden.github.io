@@ -227,8 +227,7 @@ export default defineConfig({
             { text: 'CrowdSec Integration (Optional)', link: '/tcp/crowdsec' },
             { text: 'FAQ & Comparisons', link: '/tcp/faq' },
             { text: 'Management API & SSE', link: '/tcp/api' },
-            { text: 'CLI Commands Reference', link: '/tcp/cli' },
-            { text: 'Changelog & Releases', link: '/tcp/changelog' }
+            { text: 'CLI Commands Reference', link: '/tcp/cli' }
           ]
         },
         {
