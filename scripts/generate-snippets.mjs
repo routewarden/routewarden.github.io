@@ -14,7 +14,7 @@ export async function generateSetupSnippets(options = {}) {
   let traefikVersion = currentVersion
   let caddyVersion = currentVersion
   let nginxVersion = currentVersion
-  let cliVersion = 'v5.3.0'
+  let cliVersion = 'v5.3.1'
   if (fs.existsSync(versionFilePath)) {
     const vData = JSON.parse(fs.readFileSync(versionFilePath, 'utf8'))
     const formatV = (v) => (v ? (v.startsWith('v') ? v : `v${v}`) : null)
@@ -22,7 +22,7 @@ export async function generateSetupSnippets(options = {}) {
     traefikVersion = formatV(vData.traefik) || currentVersion
     caddyVersion = formatV(vData.caddy) || currentVersion
     nginxVersion = formatV(vData.nginx) || currentVersion
-    cliVersion = formatV(vData.cli) || 'v5.3.0'
+    cliVersion = formatV(vData.cli) || 'v5.3.1'
   }
 
   const caddyLanguage = {

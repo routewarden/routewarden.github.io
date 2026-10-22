@@ -11,7 +11,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
-## [v3.4.0] - 2026-10-06 (Latest)
+## [CLI v5.3.1 / Proxy Integration] - 2026-10-22 (Latest)
+
+### Standalone Binary Packaging, NFPM Linux Packages & Dedicated Container
+
+TCP Warden is now distributed alongside the RouteWarden CLI release lifecycle with dedicated standalone binaries, system packages, and automated container builds:
+
+#### 1. Dedicated Standalone Binaries (`tcp-warden`)
+- **Automated GoReleaser Artifacts**: Dedicated standalone `tcp-warden` binary compilation for Linux (`amd64`, `arm64`), macOS (`amd64`, `arm64`), and Windows (`amd64`, `arm64`).
+- **Archive Bundles**: Standalone archives (`tcp-warden_5.3.1_<os>_<arch>.tar.gz` and `.zip`) including `README.md`, `LICENSE`, and default `tcp-warden.yaml`.
+- **Native Linux Packages**: Debian (`.deb`), Red Hat (`.rpm`), and Alpine (`.apk`) packages with pre-installed `/etc/routewarden/tcp-warden.yaml` default configuration.
+- **Homebrew Cask Integration**: Standalone `tcp-warden` binary included in `routewarden/tap/rwarden` with macOS quarantine clearance and automatic daemon stop hooks.
+
+#### 2. Official Multi-Arch Docker Container
+- **`ghcr.io/routewarden/tcp-warden`**: Automated multi-architecture image publication (`linux/amd64`, `linux/arm64`) on GitHub Container Registry, built from an ultra-lean Alpine runtime (`Dockerfile.tcp-warden`, <15MB).
+
+#### 3. Subcommand `rwarden tcp version`
+- **CLI Version Inspection**: Added `rwarden tcp version` (`--version`, `-v`) reporting the integrated proxy engine version.
+
+#### 4. Zero-Dependency Subsystem Refactoring
+- **Supply Chain Hardening**: Removed `golang.org/x/mod` and `golang.org/x/time` dependencies from the proxy engine, replacing them with standard library parsing and an internal token bucket rate limiter.
+- **Package Uninstallation Teardown**: Updated package preremove scripts (`preremove.sh`) to detect and gracefully stop active standalone `tcp-warden` daemons on package removal or upgrade.
+
+---
+
+## [v3.4.0] - 2026-10-06
 
 ### 🔒 Security Hardening Release: Protocol Plugin Boundary Fixes, UDP Ban Fast-Path & Installer Path Traversal Protection
 

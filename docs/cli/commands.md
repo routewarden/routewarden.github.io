@@ -590,6 +590,9 @@ rwarden stop tcp
 # Validate TCP proxy configuration file syntax and protocol rules
 rwarden tcp validate -c tcp-warden.yaml
 
+# Check TCP proxy engine version
+rwarden tcp version
+
 # List registered L4 protocol inspection plugins
 rwarden tcp plugins list
 
@@ -960,13 +963,14 @@ RouteWarden CLI natively integrates an ultra-high performance Layer 4 reverse pr
 | `reload` | — | subcommand | — | Reload configuration file on running daemon without dropping live connections (`SIGHUP`) |
 | `validate` | — | subcommand | — | Validate proxy configuration YAML syntax and protocol definitions |
 | `plugins` | — | subcommand | — | Manage protocol inspection plugins (`list`, `test`, `install`) |
+| `version` | `-v` | subcommand | — | Display TCP proxy engine version (`rwarden tcp version`) |
 | `--config` | `-c` | string | `tcp-warden.yaml` | Path to YAML configuration file (falls back to `ROUTEWARDEN_CONFIG`) |
 | `--detach` | `-d` | bool | `false` | Run proxy in background (detached) daemon mode |
 | `--verbose` | `-v` | bool | `false` | Enable verbose operational logging |
 
 ### Standalone Binary & Container
 
-For edge architectures where only L4 proxying is desired, a dedicated standalone binary (`tcp-warden`) and minimal Alpine container (`ghcr.io/routewarden/tcp-warden:latest`, &lt;15MB) are provided alongside the unified `rwarden` binary.
+For edge architectures where only L4 proxying is desired, a dedicated standalone binary (`tcp-warden`), native Linux packages (`.deb`, `.rpm`, `.apk`), Homebrew Cask (`brew install routewarden/tap/rwarden`), and minimal Alpine container (`ghcr.io/routewarden/tcp-warden:latest`, &lt;15MB) are provided alongside the unified `rwarden` binary. See [Getting Started with TCP Warden](/tcp/getting-started) and [Installation Guide](/cli/installation) for full installation instructions.
 
 
 
