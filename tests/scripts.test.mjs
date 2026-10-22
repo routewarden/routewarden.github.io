@@ -240,9 +240,21 @@ test('syncVersion allows updating cli version without touching other apps and up
   const ws = createMockWorkspace()
   t.after(() => fs.rmSync(ws, { recursive: true, force: true }))
 
+  fs.mkdirSync(path.join(ws, 'docs/cli'), { recursive: true })
+  fs.writeFileSync(
+    path.join(ws, 'docs/cli/installation.md'),
+    '| **macOS** (`rwarden`) | [rwarden_5.2.0_darwin_arm64.tar.gz](https://github.com/routewarden/cli/releases/download/v5.2.0/rwarden_5.2.0_darwin_arm64.tar.gz) |\n' +
+    '| **macOS** (`tcp-warden`) | [tcp-warden_5.2.0_darwin_arm64.tar.gz](https://github.com/routewarden/cli/releases/download/v5.2.0/tcp-warden_5.2.0_darwin_arm64.tar.gz) |\n' +
+    '| `ghcr.io/routewarden/cli` | `:latest`, `:5.0.0` | ~12 MB |\n' +
+    '| `ghcr.io/routewarden/tcp-warden` | `:latest`, `:v5.2.0` | ~14 MB |\n' +
+    '# rwarden version 5.2.0\n'
+  )
+
   fs.writeFileSync(
     path.join(ws, 'VERSIONING.md'),
-    '{\n  "cli": "v5.2.0",\n  "caddy": "v1.6.0"\n}\n'
+    '{\n  "cli": "v5.2.0",\n  "caddy": "v1.6.0"\n}\n\n' +
+    'node scripts/sync-version.mjs --cli v5.2.0\n' +
+    'node scripts/sync-version.mjs --caddy v1.6.0\n'
   )
 
   const res = syncVersion({ rootDir: ws, app: 'cli', version: 'v5.4.0' })
@@ -251,10 +263,24 @@ test('syncVersion allows updating cli version without touching other apps and up
   assert.equal(res.appVersions.cli, 'v5.4.0')
   assert.ok(res.updatedFiles.includes('docs/version.json'))
   assert.ok(res.updatedFiles.includes('VERSIONING.md'))
+  assert.ok(res.updatedFiles.includes('docs/cli/installation.md'))
 
   const versioningDoc = fs.readFileSync(path.join(ws, 'VERSIONING.md'), 'utf8')
   assert.match(versioningDoc, /"cli": "v5\.4\.0"/)
   assert.match(versioningDoc, /"caddy": "v1\.6\.0"/)
+  assert.match(versioningDoc, /--cli v5\.4\.0/)
+  assert.match(versioningDoc, /--caddy v1\.6\.0/)
+
+  const installDoc = fs.readFileSync(path.join(ws, 'docs/cli/installation.md'), 'utf8')
+  assert.match(installDoc, /rwarden_5\.4\.0_darwin_arm64\.tar\.gz/)
+  assert.match(installDoc, /tcp-warden_5\.4\.0_darwin_arm64\.tar\.gz/)
+  assert.match(installDoc, /`ghcr\.io\/routewarden\/cli`\s*\|\s*`:latest`,\s*`:5\.4\.0`/)
+  assert.match(installDoc, /`ghcr\.io\/routewarden\/tcp-warden`\s*\|\s*`:latest`,\s*`:5\.4\.0`/)
+  assert.match(installDoc, /# rwarden version 5\.4\.0/)
+
+  // When tcp is omitted from version.json, updating cli also cascades to tcp files
+  const tcpApiDoc = fs.readFileSync(path.join(ws, 'docs/tcp/api.md'), 'utf8')
+  assert.match(tcpApiDoc, /"version": "5\.4\.0"/)
 })
 
 test('resolveDocsRootDir returns custom directory when specified', () => {

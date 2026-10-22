@@ -234,11 +234,40 @@ test('documentation structure and integrity', async (t) => {
     )
     assert.ok(
       content.includes(`rwarden_${cliSemver}_`),
-      `installation.md archive filenames must match CLI semver ${cliSemver}`
+      `installation.md rwarden archive filenames must match CLI semver ${cliSemver}`
+    )
+    assert.ok(
+      content.includes(`tcp-warden_${cliSemver}_`),
+      `installation.md tcp-warden archive filenames must match CLI semver ${cliSemver}`
     )
     assert.ok(
       content.includes(`# rwarden version ${cliSemver}`),
       `installation.md verification command must match CLI semver ${cliSemver}`
+    )
+    assert.ok(
+      content.includes(`| \`ghcr.io/routewarden/cli\` | \`:latest\`, \`:${cliSemver}\``),
+      `installation.md container distribution table cli tag must match ${cliSemver}`
+    )
+    assert.ok(
+      content.includes(`| \`ghcr.io/routewarden/tcp-warden\` | \`:latest\`, \`:${cliSemver}\``),
+      `installation.md container distribution table tcp-warden tag must match ${cliSemver}`
+    )
+
+    // Check TCP api and health check snippets match unified CLI release version
+    const tcpApiDoc = fs.readFileSync(path.join(docsDir, 'tcp', 'api.md'), 'utf8')
+    assert.ok(
+      tcpApiDoc.includes(`"version": "${cliSemver}"`),
+      `tcp/api.md health status version must match CLI semver ${cliSemver}`
+    )
+    const tcpGsDoc = fs.readFileSync(path.join(docsDir, 'tcp', 'getting-started.md'), 'utf8')
+    assert.ok(
+      tcpGsDoc.includes(`"version":"${cliSemver}"`),
+      `tcp/getting-started.md health status version must match CLI semver ${cliSemver}`
+    )
+    const tcpCsDoc = fs.readFileSync(path.join(docsDir, 'tcp', 'crowdsec.md'), 'utf8')
+    assert.ok(
+      tcpCsDoc.includes(`"version": "${cliSemver}"`),
+      `tcp/crowdsec.md health status version must match CLI semver ${cliSemver}`
     )
   })
 

@@ -29,11 +29,11 @@ curl -fsSL https://routewarden.github.io/install.sh | INSTALL_DIR=$HOME/.local/b
 const mac_manual = buildSnippet({
   lang: 'bash',
   code: `# Apple Silicon (M1/M2/M3/M4)
-curl -fsSL https://github.com/routewarden/cli/releases/download/v5.3.1/rwarden_5.3.1_darwin_arm64.tar.gz | tar -xz
+curl -fsSL https://github.com/routewarden/cli/releases/download/v5.3.2/rwarden_5.3.2_darwin_arm64.tar.gz | tar -xz
 sudo mv rwarden /usr/local/bin/
 
 # Intel Macs (x86_64)
-# curl -fsSL https://github.com/routewarden/cli/releases/download/v5.3.1/rwarden_5.3.1_darwin_amd64.tar.gz | tar -xz
+# curl -fsSL https://github.com/routewarden/cli/releases/download/v5.3.2/rwarden_5.3.2_darwin_amd64.tar.gz | tar -xz
 # sudo mv rwarden /usr/local/bin/`,
 })
 
@@ -98,11 +98,11 @@ curl -fsSL https://routewarden.github.io/install.sh | INSTALL_DIR=$HOME/.local/b
 const linux_manual = buildSnippet({
   lang: 'bash',
   code: `# Linux x86_64 (amd64)
-curl -fsSL https://github.com/routewarden/cli/releases/download/v5.3.1/rwarden_5.3.1_linux_amd64.tar.gz | tar -xz
+curl -fsSL https://github.com/routewarden/cli/releases/download/v5.3.2/rwarden_5.3.2_linux_amd64.tar.gz | tar -xz
 sudo mv rwarden /usr/local/bin/
 
 # Linux ARM64 (e.g. Raspberry Pi / AWS Graviton)
-# curl -fsSL https://github.com/routewarden/cli/releases/download/v5.3.1/rwarden_5.3.1_linux_arm64.tar.gz | tar -xz
+# curl -fsSL https://github.com/routewarden/cli/releases/download/v5.3.2/rwarden_5.3.2_linux_arm64.tar.gz | tar -xz
 # sudo mv rwarden /usr/local/bin/`,
 })
 
@@ -216,13 +216,13 @@ const sourceSnippets = computed(() => ({
 const verify_cli = buildSnippet({
   lang: 'bash',
   code: `rwarden version
-# rwarden version 5.3.1`,
+# rwarden version 5.3.2`,
 })
 
 const verify_docker = buildSnippet({
   lang: 'bash',
   code: `docker run --rm ghcr.io/routewarden/cli:latest version
-# rwarden version 5.3.1`,
+# rwarden version 5.3.2`,
 })
 
 const verifySnippets = computed(() => ({
@@ -298,14 +298,14 @@ Download standalone, statically compiled binaries for **Linux**, **macOS**, and 
 
 | Platform | Architecture | Archive | Package / Command |
 |:---|:---|:---|:---|
-| **macOS** (`rwarden`) | Apple Silicon (`arm64`) | [rwarden_5.3.1_darwin_arm64.tar.gz](https://github.com/routewarden/cli/releases/download/v5.3.1/rwarden_5.3.1_darwin_arm64.tar.gz) | `brew install routewarden/tap/rwarden` |
-| **macOS** (`rwarden`) | Intel (`amd64`) | [rwarden_5.3.1_darwin_amd64.tar.gz](https://github.com/routewarden/cli/releases/download/v5.3.1/rwarden_5.3.1_darwin_amd64.tar.gz) | `brew install routewarden/tap/rwarden` |
-| **Linux** (`rwarden`) | 64-bit (`amd64`) | [rwarden_5.3.1_linux_amd64.tar.gz](https://github.com/routewarden/cli/releases/download/v5.3.1/rwarden_5.3.1_linux_amd64.tar.gz) | [rwarden_linux_amd64.deb](https://github.com/routewarden/cli/releases/latest/download/rwarden_linux_amd64.deb) / [rwarden_linux_amd64.rpm](https://github.com/routewarden/cli/releases/latest/download/rwarden_linux_amd64.rpm) |
-| **Linux** (`rwarden`) | ARM64 (`arm64`) | [rwarden_5.3.1_linux_arm64.tar.gz](https://github.com/routewarden/cli/releases/download/v5.3.1/rwarden_5.3.1_linux_arm64.tar.gz) | [rwarden_linux_arm64.deb](https://github.com/routewarden/cli/releases/latest/download/rwarden_linux_arm64.deb) / [rwarden_linux_arm64.rpm](https://github.com/routewarden/cli/releases/latest/download/rwarden_linux_arm64.rpm) |
-| **Windows** (`rwarden`)| 64-bit (`amd64`) | [rwarden_5.3.1_windows_amd64.zip](https://github.com/routewarden/cli/releases/download/v5.3.1/rwarden_5.3.1_windows_amd64.zip) | Standalone Zip |
-| **macOS** (`tcp-warden`) | Universal | [tcp-warden_5.3.1_darwin_arm64.tar.gz](https://github.com/routewarden/cli/releases/download/v5.3.1/tcp-warden_5.3.1_darwin_arm64.tar.gz) / [amd64](https://github.com/routewarden/cli/releases/download/v5.3.1/tcp-warden_5.3.1_darwin_amd64.tar.gz) | `brew install routewarden/tap/tcp-warden` |
-| **Linux** (`tcp-warden`) | 64-bit / ARM64 | [tcp-warden_5.3.1_linux_amd64.tar.gz](https://github.com/routewarden/cli/releases/download/v5.3.1/tcp-warden_5.3.1_linux_amd64.tar.gz) / [arm64](https://github.com/routewarden/cli/releases/download/v5.3.1/tcp-warden_5.3.1_linux_arm64.tar.gz) | [tcp-warden_linux_amd64.deb](https://github.com/routewarden/cli/releases/latest/download/tcp-warden_linux_amd64.deb) / [rpm](https://github.com/routewarden/cli/releases/latest/download/tcp-warden_linux_amd64.rpm) |
-| **Windows** (`tcp-warden`)| 64-bit (`amd64`) | [tcp-warden_5.3.1_windows_amd64.zip](https://github.com/routewarden/cli/releases/download/v5.3.1/tcp-warden_5.3.1_windows_amd64.zip) | Standalone Zip |
+| **macOS** (`rwarden`) | Apple Silicon (`arm64`) | [rwarden_5.3.2_darwin_arm64.tar.gz](https://github.com/routewarden/cli/releases/download/v5.3.2/rwarden_5.3.2_darwin_arm64.tar.gz) | `brew install routewarden/tap/rwarden` |
+| **macOS** (`rwarden`) | Intel (`amd64`) | [rwarden_5.3.2_darwin_amd64.tar.gz](https://github.com/routewarden/cli/releases/download/v5.3.2/rwarden_5.3.2_darwin_amd64.tar.gz) | `brew install routewarden/tap/rwarden` |
+| **Linux** (`rwarden`) | 64-bit (`amd64`) | [rwarden_5.3.2_linux_amd64.tar.gz](https://github.com/routewarden/cli/releases/download/v5.3.2/rwarden_5.3.2_linux_amd64.tar.gz) | [rwarden_linux_amd64.deb](https://github.com/routewarden/cli/releases/latest/download/rwarden_linux_amd64.deb) / [rwarden_linux_amd64.rpm](https://github.com/routewarden/cli/releases/latest/download/rwarden_linux_amd64.rpm) |
+| **Linux** (`rwarden`) | ARM64 (`arm64`) | [rwarden_5.3.2_linux_arm64.tar.gz](https://github.com/routewarden/cli/releases/download/v5.3.2/rwarden_5.3.2_linux_arm64.tar.gz) | [rwarden_linux_arm64.deb](https://github.com/routewarden/cli/releases/latest/download/rwarden_linux_arm64.deb) / [rwarden_linux_arm64.rpm](https://github.com/routewarden/cli/releases/latest/download/rwarden_linux_arm64.rpm) |
+| **Windows** (`rwarden`)| 64-bit (`amd64`) | [rwarden_5.3.2_windows_amd64.zip](https://github.com/routewarden/cli/releases/download/v5.3.2/rwarden_5.3.2_windows_amd64.zip) | Standalone Zip |
+| **macOS** (`tcp-warden`) | Universal | [tcp-warden_5.3.2_darwin_arm64.tar.gz](https://github.com/routewarden/cli/releases/download/v5.3.2/tcp-warden_5.3.2_darwin_arm64.tar.gz) / [amd64](https://github.com/routewarden/cli/releases/download/v5.3.2/tcp-warden_5.3.2_darwin_amd64.tar.gz) | `brew install routewarden/tap/tcp-warden` |
+| **Linux** (`tcp-warden`) | 64-bit / ARM64 | [tcp-warden_5.3.2_linux_amd64.tar.gz](https://github.com/routewarden/cli/releases/download/v5.3.2/tcp-warden_5.3.2_linux_amd64.tar.gz) / [arm64](https://github.com/routewarden/cli/releases/download/v5.3.2/tcp-warden_5.3.2_linux_arm64.tar.gz) | [tcp-warden_linux_amd64.deb](https://github.com/routewarden/cli/releases/latest/download/tcp-warden_linux_amd64.deb) / [rpm](https://github.com/routewarden/cli/releases/latest/download/tcp-warden_linux_amd64.rpm) |
+| **Windows** (`tcp-warden`)| 64-bit (`amd64`) | [tcp-warden_5.3.2_windows_amd64.zip](https://github.com/routewarden/cli/releases/download/v5.3.2/tcp-warden_5.3.2_windows_amd64.zip) | Standalone Zip |
 
 All downloads and SHA256 checksums are published on the [GitHub Releases Page](https://github.com/routewarden/cli/releases/latest).
 
@@ -321,10 +321,10 @@ RouteWarden publishes four official, security-hardened container images on GitHu
 
 | Image | Tag | Binary Size | Intended Workload |
 |:---|:---|:---|:---|
-| `ghcr.io/routewarden/cli` | `:latest`, `:5.0.0` | ~12 MB | **Full Toolkit**: Verification, audits, tests, path simulators, code generation, sandboxes, and Docker CLI container tailing |
-| `ghcr.io/routewarden/shipper` | `:latest`, `:5.0.0` | **~6.2 MB** | **Ultra-Lean Remote Shipper**: Zero SQLite, zero UI assets. Dedicated to `rwarden push --docker` for edge nodes, IoT gateways, and low-RAM VPS instances |
-| `ghcr.io/routewarden/dashboard` | `:latest`, `:5.0.0` | ~11 MB | **Standalone SOC Dashboard**: Turnkey web dashboard server on port `7890` with embedded SQLite persistence and SSE event stream |
-| `ghcr.io/routewarden/tcp-warden` | `:latest`, `:v5.3.1` | **~14 MB** | **Dedicated L4 Reverse Proxy**: Minimal Alpine container with protocol defense engine, CrowdSec remediation, SQLite banlists, and modular plugin loader |
+| `ghcr.io/routewarden/cli` | `:latest`, `:5.3.2` | ~12 MB | **Full Toolkit**: Verification, audits, tests, path simulators, code generation, sandboxes, and Docker CLI container tailing |
+| `ghcr.io/routewarden/shipper` | `:latest`, `:5.3.2` | **~6.2 MB** | **Ultra-Lean Remote Shipper**: Zero SQLite, zero UI assets. Dedicated to `rwarden push --docker` for edge nodes, IoT gateways, and low-RAM VPS instances |
+| `ghcr.io/routewarden/dashboard` | `:latest`, `:5.3.2` | ~11 MB | **Standalone SOC Dashboard**: Turnkey web dashboard server on port `7890` with embedded SQLite persistence and SSE event stream |
+| `ghcr.io/routewarden/tcp-warden` | `:latest`, `:5.3.2` | **~14 MB** | **Dedicated L4 Reverse Proxy**: Minimal Alpine container with protocol defense engine, CrowdSec remediation, SQLite banlists, and modular plugin loader |
 
 
 ---

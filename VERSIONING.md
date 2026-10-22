@@ -13,7 +13,7 @@ RouteWarden uses `docs/version.json` as the **single source of truth** for versi
   "traefik": "v1.6.0",
   "caddy": "v1.6.2",
   "nginx": "v1.6.0",
-  "cli": "v5.3.1"
+  "cli": "v5.3.2"
 }
 ```
 
@@ -39,7 +39,7 @@ node scripts/sync-version.mjs --traefik v1.6.0
 node scripts/sync-version.mjs --nginx v1.6.0
 
 # Update CLI (rwarden & rwarden tcp) version:
-node scripts/sync-version.mjs --cli v5.3.1
+node scripts/sync-version.mjs --cli v5.3.2
 
 # Synchronize all apps using their current versions in docs/version.json:
 node scripts/sync-version.mjs
