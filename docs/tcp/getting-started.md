@@ -63,11 +63,17 @@ curl -s http://127.0.0.1:9091/health`
 
 const binary_install = buildSnippet({
   lang: 'bash',
-  code: `# Download or build standalone binary
-# Standalone binary is available from GitHub releases or cli/cmd/tcp-warden
+  code: `# macOS via Homebrew (installs both rwarden and tcp-warden)
+brew install routewarden/tap/rwarden
+
+# Linux (Debian / Ubuntu package)
+# curl -fsSL -O https://github.com/routewarden/cli/releases/latest/download/tcp-warden_linux_amd64.deb
+# sudo dpkg -i tcp-warden_linux_amd64.deb
+
+# Or install from source via Go (1.22+)
 go install github.com/routewarden/cli/cmd/tcp-warden@latest
 
-# Run daemon
+# Run standalone daemon
 tcp-warden run --config tcp-warden.yaml`
 })
 

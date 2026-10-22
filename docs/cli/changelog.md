@@ -2,7 +2,32 @@
 
 All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and the CLI adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v5.3.0] - 2026-10-21 (Latest)
+## [v5.3.1] - 2026-10-22 (Latest)
+
+### Added
+- **Dedicated Standalone TCP Warden Binary Distribution (`tcp-warden`)**:
+  - Configured GoReleaser to produce dedicated standalone binary releases for `tcp-warden` (`./cmd/tcp-warden`) across Linux (`amd64`, `arm64`), macOS (`amd64`, `arm64`), and Windows (`amd64`, `arm64`).
+  - Added standalone archive distribution (`tcp-warden_<version>_<os>_<arch>.tar.gz` and `.zip`) bundled with `README.md`, `LICENSE`, and default `tcp-warden.yaml`.
+  - Added native Linux NFPM packages (`.deb`, `.rpm`, `.apk`) for `tcp-warden` with pre-installed `/etc/routewarden/tcp-warden.yaml` default configuration.
+  - Added standalone `tcp-warden` binary packaging into the RouteWarden Homebrew Cask (`routewarden/tap/rwarden`) with macOS quarantine clearing and automated daemon teardown.
+- **Dedicated Multi-Arch Docker Container (`ghcr.io/routewarden/tcp-warden`)**:
+  - Added automated multi-architecture Docker image builds (`linux/amd64`, `linux/arm64`) based on an ultra-lean Alpine runtime (`Dockerfile.tcp-warden`, <15MB) published to `ghcr.io/routewarden/tcp-warden:latest` and tagged release versions.
+  - Added CI build validation dry-runs for `Dockerfile.tcp-warden` across all pull requests and branch builds.
+- **`rwarden tcp version` Subcommand**:
+  - Added `version` command and flags (`--version`, `-v`) to `rwarden tcp`, outputting formatted RouteWarden TCP Proxy version metadata.
+- **Package Teardown Lifecycle Hooks (`scripts/preremove.sh`)**:
+  - Updated RPM, Debian, and APK package pre-removal scripts to automatically detect and stop active standalone `tcp-warden` daemons during package uninstallation or upgrade.
+
+### Changed
+- **Zero-Dependency Refactoring for Module and Rate Limiting Subsystems**:
+  - Removed external dependencies `golang.org/x/mod/semver`, `golang.org/x/mod/modfile`, and `golang.org/x/time/rate` from the core CLI and proxy packages.
+  - Replaced with custom, highly optimized, zero-dependency implementations (`sdk.ParseSemVer`, standard library module parser, and internal token-bucket rate limiter) to eliminate external supply chain risks and minimize binary footprint.
+- **Ecosystem Plugin Compatibility Alignment**:
+  - Aligned all 21 official protocol plugins in `github.com/routewarden/plugins` to import `github.com/routewarden/cli/proxy/...` directly, verifying compatibility against the unified CLI and proxy codebase.
+
+---
+
+## [v5.3.0] - 2026-10-21
 
 ### Added
 - **Active Connection Health Supervisor & Ping Heartbeat (`/api/v1/ping`)**:

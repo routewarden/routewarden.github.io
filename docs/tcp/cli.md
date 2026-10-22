@@ -269,14 +269,20 @@ const unbanSnippets = computed(() => ({
 }))
 
 // ─── version ─────────────────────────────────────────────────────────────────
-const version_cmd = buildSnippet({
+const version_rwarden = buildSnippet({
+  lang: 'bash',
+  code: `rwarden tcp version`
+})
+
+const version_standalone = buildSnippet({
   lang: 'bash',
   code: `tcp-warden version`
 })
 
 const versionSnippets = computed(() => ({
   tcp: [
-    { filename: 'Terminal', lang: 'bash', code: version_cmd.cleanCode, html: version_cmd.html, hasDiff: false },
+    { filename: 'Unified CLI (rwarden tcp)', lang: 'bash', code: version_rwarden.cleanCode, html: version_rwarden.html, hasDiff: false },
+    { filename: 'Standalone (tcp-warden)', lang: 'bash', code: version_standalone.cleanCode, html: version_standalone.html, hasDiff: false },
   ]
 }))
 </script>
