@@ -232,4 +232,3 @@ Deploy and configure TCP Warden in three simple steps:
 | ❓ **[FAQ & Comparisons](./faq)** | Plain-English answers, comparisons with CrowdSec, Fail2ban, and iptables, and synergy breakdown. |
 | 📡 **[Management API & SSE](./api)** | Query health status, view active bans, and stream live security alerts over HTTP. |
 | 💻 **[CLI Reference](./cli)** | Full reference for `run`, `validate`, `plugins`, `ban`, and `status` commands. |
-| 📜 **[Changelog & Releases](./changelog)** | Release notes, breaking changes, and migration history across TCP Warden versions. |
