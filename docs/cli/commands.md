@@ -970,7 +970,7 @@ RouteWarden CLI natively integrates an ultra-high performance Layer 4 reverse pr
 
 ### Standalone Binary & Container
 
-For edge architectures where only L4 proxying is desired, a dedicated standalone binary (`tcp-warden`), native Linux packages (`.deb`, `.rpm`, `.apk`), Homebrew Cask (`brew install routewarden/tap/rwarden`), and minimal Alpine container (`ghcr.io/routewarden/tcp-warden:latest`, &lt;15MB) are provided alongside the unified `rwarden` binary. See [Getting Started with TCP Warden](/tcp/getting-started) and [Installation Guide](/cli/installation) for full installation instructions.
+For edge architectures where only L4 proxying is desired, a dedicated standalone binary (`tcp-warden`), native Linux packages (`.deb`, `.rpm`, `.apk`), Homebrew Cask (`brew install routewarden/tap/tcp-warden`), and minimal Alpine container (`ghcr.io/routewarden/tcp-warden:latest`, &lt;15MB) are provided alongside the unified `rwarden` binary. See [Getting Started with TCP Warden](/tcp/getting-started) and [Installation Guide](/cli/installation) for full installation instructions.
 
 
 
