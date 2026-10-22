@@ -2,7 +2,18 @@
 
 All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and the CLI adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v5.3.1] - 2026-10-22 (Latest)
+## [v5.3.2] - 2026-10-22 (Latest)
+
+### Fixed
+- **Homebrew Cask Multi-Archive Mapping in GoReleaser**:
+  - Resolved GoReleaser CI/CD release failure (`one tap can handle only one archive of an OS/Arch combination`) by explicitly specifying archive `ids` for Homebrew casks (`ids: [rwarden]` for `rwarden` cask, and `ids: [tcp-warden]` for `tcp-warden` cask).
+  - Split standalone `tcp-warden` binary from the `rwarden` cask into its own dedicated Homebrew Cask (`brew install routewarden/tap/tcp-warden`), preventing missing binary errors during cask installation from single-binary archives.
+- **Standalone TCP Warden Container Package Deployment**:
+  - Re-scoped and aligned GitHub Container Registry (GHCR) package ownership and repository links for `ghcr.io/routewarden/tcp-warden`, enabling automated multi-architecture Docker container publication directly from `routewarden/cli` CI/CD workflows.
+
+---
+
+## [v5.3.1] - 2026-10-22
 
 ### Added
 - **Dedicated Standalone TCP Warden Binary Distribution (`tcp-warden`)**:

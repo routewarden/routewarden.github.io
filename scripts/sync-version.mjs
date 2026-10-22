@@ -107,7 +107,7 @@ export function syncVersion(options = {}) {
   const appVersions = {
     traefik: rawVersionData.traefik || primaryVersion,
     caddy: rawVersionData.caddy || primaryVersion,
-    cli: rawVersionData.cli || 'v5.3.1',
+    cli: rawVersionData.cli || 'v5.3.2',
     nginx: rawVersionData.nginx || primaryVersion,
     ...rawVersionData
   }
