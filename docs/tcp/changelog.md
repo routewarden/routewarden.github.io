@@ -5,7 +5,7 @@ description: Complete release notes, breaking changes, and migration guide for T
 
 # TCP Warden Changelog & Release Notes
 
-All notable changes to **TCP Warden** (`github.com/routewarden/tcp-warden`) are documented here.
+All notable changes to **TCP Warden** (integrated into RouteWarden CLI, `github.com/routewarden/cli`) are documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and TCP Warden adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
@@ -247,7 +247,7 @@ TCP Warden v2.1.0 introduces fine-grained, leveled logging across both human-rea
 - **CrowdSec Ready Out of the Box**: Keeps `/var/log/routewarden/tcp-warden.jsonl` strictly focused on actionable threat signals (`auth_failure` and `blocked` events), minimizing CrowdSec parser CPU and disk I/O overhead.
 
 #### 4. New Zero-Dependency `logger` Package
-- **Leaf Architecture**: Introduced [`github.com/routewarden/tcp-warden/logger`](file:///Users/aman/git/routewarden/tcp-warden/logger) with zero internal imports, eliminating any risk of import cycles.
+- **Leaf Architecture**: Introduced `github.com/routewarden/cli/proxy/logger` with zero internal imports, eliminating any risk of import cycles.
 - **Plugin Integration**: External protocol plugins in `github.com/routewarden/plugins` can now directly import `logger` to emit leveled trace, warning, and error diagnostics via `logger.Default().Debug(...)` / `logger.Default().Warn(...)`.
 
 ---

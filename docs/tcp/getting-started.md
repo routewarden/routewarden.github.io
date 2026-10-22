@@ -8,6 +8,24 @@ import { computed } from 'vue'
 import { buildSnippet } from '../.vitepress/theme/composables/useCodeSnippet'
 
 // ─── Deployment Snippets ────────────────────────────────────────────────────
+const cli_install = buildSnippet({
+  lang: 'bash',
+  code: `# 1. Install RouteWarden CLI (includes L4 TCP/UDP proxy engine)
+curl -fsSL https://routewarden.github.io/install.sh | bash
+
+# 2. Start TCP proxy in background (detached daemon mode)
+rwarden tcp up -d
+
+# 3. Verify daemon status and active services
+rwarden tcp status
+
+# 4. Reload configuration without dropping connections
+rwarden tcp reload
+
+# 5. Stop proxy daemon when needed
+rwarden tcp stop`
+})
+
 const compose_file = buildSnippet({
   lang: 'yaml',
   code: `services:
@@ -45,20 +63,20 @@ curl -s http://127.0.0.1:9091/health`
 
 const binary_install = buildSnippet({
   lang: 'bash',
-  code: `# Clone and build from source
-git clone https://github.com/routewarden/tcp-warden.git
-cd tcp-warden
-go build -o tcp-warden .
+  code: `# Download or build standalone binary
+# Standalone binary is available from GitHub releases or cli/cmd/tcp-warden
+go install github.com/routewarden/cli/cmd/tcp-warden@latest
 
 # Run daemon
-./tcp-warden run --config tcp-warden.yaml`
+tcp-warden run --config tcp-warden.yaml`
 })
 
 const deploySnippets = computed(() => ({
   tcp: [
+    { filename: 'rwarden tcp (CLI)', lang: 'bash', code: cli_install.cleanCode, html: cli_install.html, hasDiff: false },
     { filename: 'docker-compose.yml', lang: 'yaml', code: compose_file.cleanCode, html: compose_file.html, hasDiff: false },
     { filename: 'Docker CLI', lang: 'bash', code: compose_launch.cleanCode, html: compose_launch.html, hasDiff: false },
-    { filename: 'Binary (Go)', lang: 'bash', code: binary_install.cleanCode, html: binary_install.html, hasDiff: false },
+    { filename: 'Standalone Binary', lang: 'bash', code: binary_install.cleanCode, html: binary_install.html, hasDiff: false },
   ]
 }))
 
@@ -95,20 +113,20 @@ const verifySnippets = computed(() => ({
 
 # Getting Started with TCP Warden
 
-TCP Warden is distributed as a single static binary and as a multi-arch container image (`ghcr.io/routewarden/tcp-warden:latest`).
+TCP Warden can be deployed in two convenient ways:
+1. **Built into RouteWarden CLI (`rwarden tcp`)**: Recommended for unified edge nodes with full daemon supervision, zero-downtime reloads, and multi-protocol tools.
+2. **Dedicated Minimal Binary / Container (`tcp-warden`)**: A standalone static binary and <15MB Alpine container (`ghcr.io/routewarden/tcp-warden:latest`) designed for lightweight L4-only edge bastions.
 
 ---
 
 ## Deployment Options
 
-### Option 1: Docker Compose (Recommended)
-
-Docker Compose provides automated persistent storage for configuration files, modular plugins, and audit logs.
+Select your preferred deployment method below:
 
 <CodeViewer :snippets="deploySnippets" />
 
 ::: tip First-Run Template Auto-Creation
-On initial boot, if `/etc/routewarden/tcp-warden.yaml` does not exist, TCP Warden automatically creates a fully-commented default configuration template in the `tcp-warden-config` volume.
+On initial boot, if `tcp-warden.yaml` does not exist, TCP Warden automatically creates a fully-commented default configuration template ready for immediate use.
 :::
 
 ::: info Optional: CrowdSec Integration
@@ -123,7 +141,7 @@ TCP Warden exposes an HTTP management endpoint on port `9091` (configurable via 
 
 <CodeViewer :snippets="verifySnippets" />
 
-Output of `./tcp-warden status`:
+Output of `rwarden tcp status` (or `tcp-warden status`):
 ```
 🛡️  TCP Warden Daemon Status (http://127.0.0.1:9091)
 ----------------------------------------------------------------------

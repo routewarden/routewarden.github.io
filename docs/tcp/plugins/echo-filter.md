@@ -10,11 +10,14 @@ import { buildSnippet } from '../../.vitepress/theme/composables/useCodeSnippet'
 // ─── 1. Installation Snippets ───────────────────────────────────────────────
 const install_cli = buildSnippet({
   lang: 'bash',
-  code: `# Install using short name
+  code: `# Install via RouteWarden CLI
+rwarden tcp plugins install echo_filter
+
+# Or standalone binary
 tcp-warden plugins install echo_filter
 
 # Or install via Git repository URL
-tcp-warden plugins install https://github.com/routewarden/plugins/echo_filter`
+rwarden tcp plugins install https://github.com/routewarden/plugins/echo_filter`
 })
 
 const install_yaml = buildSnippet({

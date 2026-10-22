@@ -17,10 +17,10 @@ export function normalizeAppName(app) {
   if (['caddy', 'caddy-warden', 'caddy_warden'].includes(lower)) {
     return 'caddy'
   }
-  if (['tcp', 'tcp-warden', 'tcp_warden', 'l4'].includes(lower)) {
+  if (['tcp', 'tcp-warden', 'tcp_warden', 'l4', 'rwarden-tcp', 'rwarden_tcp'].includes(lower)) {
     return 'tcp'
   }
-  if (['cli', 'rwarden', 'routewarden-cli'].includes(lower)) {
+  if (['cli', 'rwarden', 'routewarden-cli', 'routewarden'].includes(lower)) {
     return 'cli'
   }
   if (['nginx', 'nginx-warden', 'nginx_warden'].includes(lower)) {
@@ -107,16 +107,18 @@ export function syncVersion(options = {}) {
   const appVersions = {
     traefik: rawVersionData.traefik || primaryVersion,
     caddy: rawVersionData.caddy || primaryVersion,
-    tcp: rawVersionData.tcp || 'v3.0.0',
-    cli: rawVersionData.cli || 'v4.0.1',
+    cli: rawVersionData.cli || 'v5.3.0',
     nginx: rawVersionData.nginx || primaryVersion,
     ...rawVersionData
   }
-  // Only maintain legacy "version" key if it was explicitly present in the source file
+  // Only maintain legacy "version" or "tcp" key if explicitly present in source file
   if ('version' in rawVersionData) {
     appVersions.version = rawVersionData.version || primaryVersion
   } else {
     delete appVersions.version
+  }
+  if (!('tcp' in rawVersionData)) {
+    delete appVersions.tcp
   }
 
   // Apply explicit versions map if supplied
@@ -173,7 +175,7 @@ export function syncVersion(options = {}) {
 
   const shouldSyncTraefik = !targetApp || targetApp === 'all' || targetApp === 'traefik'
   const shouldSyncCaddy = !targetApp || targetApp === 'all' || targetApp === 'caddy'
-  const shouldSyncTcp = !targetApp || targetApp === 'all' || targetApp === 'tcp'
+  const shouldSyncTcp = Boolean(appVersions.tcp) && (!targetApp || targetApp === 'all' || targetApp === 'tcp')
   const shouldSyncCli = !targetApp || targetApp === 'all' || targetApp === 'cli'
   const shouldSyncNginx = !targetApp || targetApp === 'all' || targetApp === 'nginx'
 
@@ -265,7 +267,7 @@ export function syncVersion(options = {}) {
   // ── 2. Synchronize Caddy Warden Files ──────────────────────────────────────
   if (shouldSyncCaddy) {
     const { cleanVersion: caddyClean } = formatVersion(appVersions.caddy)
-    const caddyFiles = []
+    const caddyFiles = ['README.md']
     collectMarkdownFiles(path.join(rootDir, 'docs/caddy'), rootDir, caddyFiles)
     collectMarkdownFiles(path.join(rootDir, 'docs/examples'), rootDir, caddyFiles)
 
@@ -290,29 +292,26 @@ export function syncVersion(options = {}) {
     const { cleanVersion: tcpClean, semver: tcpSemver } = formatVersion(appVersions.tcp)
     const tcpFiles = [
       'docs/tcp/api.md',
-      'docs/tcp/getting-started.md'
+      'docs/tcp/getting-started.md',
+      'docs/tcp/crowdsec.md'
     ]
     collectMarkdownFiles(path.join(rootDir, 'docs/tcp'), rootDir, tcpFiles)
 
     for (const relPath of tcpFiles) {
       updateFileContent(relPath, (content) => {
         let updated = content
-        // Health / API status JSON snippet: "version": "3.0.0"
-        if (relPath.endsWith('api.md') || relPath.endsWith('getting-started.md')) {
+        // Health / API status JSON snippet: "version": "3.4.0"
+        if (relPath.endsWith('api.md') || relPath.endsWith('getting-started.md') || relPath.endsWith('crowdsec.md')) {
           updated = updated.replace(
             /("version":\s*")[0-9]+\.[0-9]+\.[0-9]+(")/g,
             `$1${tcpSemver}$2`
           )
           updated = updated.replace(
-            /(# \{"status":"ok","version":")[0-9]+\.[0-9]+\.[0-9]+("\})/g,
+            /(# \{"status":"ok","version":")[0-9]+\.[0-9]+\.[0-9]+(")/g,
             `$1${tcpSemver}$2`
           )
         }
-        // GitHub / GHCR container image references
-        updated = updated.replace(
-          /(github\.com\/routewarden\/tcp-warden@)v?[0-9]+\.[0-9]+\.[0-9]+/g,
-          `$1${tcpClean}`
-        )
+        // GHCR container image references
         updated = updated.replace(
           /(ghcr\.io\/routewarden\/tcp-warden:)v[0-9]+\.[0-9]+\.[0-9]+/g,
           `$1${tcpClean}`
@@ -325,7 +324,11 @@ export function syncVersion(options = {}) {
   // ── 4. Synchronize CLI Files ───────────────────────────────────────────────
   if (shouldSyncCli) {
     const { cleanVersion: cliClean, semver: cliSemver } = formatVersion(appVersions.cli)
-    const cliFiles = []
+    const cliFiles = [
+      'docs/tcp/getting-started.md',
+      'docs/tcp/index.md',
+      'docs/tcp/cli.md'
+    ]
     collectMarkdownFiles(path.join(rootDir, 'docs/cli'), rootDir, cliFiles)
 
     for (const relPath of cliFiles) {
@@ -347,6 +350,10 @@ export function syncVersion(options = {}) {
           /(rwarden\s+(?:version\s+)?v?)[0-9]+\.[0-9]+\.[0-9]+/g,
           `$1${cliSemver}`
         )
+        updated = updated.replace(
+          /(github\.com\/routewarden\/cli\/cmd\/tcp-warden@)v?[0-9]+\.[0-9]+\.[0-9]+/g,
+          `$1${cliClean}`
+        )
         return updated
       })
     }
@@ -365,21 +372,12 @@ export function syncVersion(options = {}) {
         return updated
       })
     }
-
-    if (fs.existsSync(path.join(rootDir, 'VERSIONING.md'))) {
-      updateFileContent('VERSIONING.md', (content) => {
-        return content.replace(
-          /("cli":\s*")v?[0-9]+\.[0-9]+\.[0-9]+(")/g,
-          `$1${cliClean}$2`
-        )
-      })
-    }
   }
 
   // ── 5. Synchronize NGINX Warden Files ──────────────────────────────────────
   if (shouldSyncNginx) {
     const { cleanVersion: nginxClean } = formatVersion(appVersions.nginx)
-    const nginxFiles = []
+    const nginxFiles = ['README.md']
     collectMarkdownFiles(path.join(rootDir, 'docs/nginx'), rootDir, nginxFiles)
 
     for (const relPath of nginxFiles) {
@@ -396,6 +394,34 @@ export function syncVersion(options = {}) {
         return updated
       })
     }
+  }
+
+  // ── 6. Synchronize VERSIONING.md Master Matrix ─────────────────────────────
+  if (fs.existsSync(path.join(rootDir, 'VERSIONING.md'))) {
+    updateFileContent('VERSIONING.md', (content) => {
+      let updated = content
+      if (shouldSyncTraefik) {
+        const { cleanVersion: traefikClean } = formatVersion(appVersions.traefik)
+        updated = updated.replace(/("traefik":\s*")v?[0-9]+\.[0-9]+\.[0-9]+(")/g, `$1${traefikClean}$2`)
+      }
+      if (shouldSyncCaddy) {
+        const { cleanVersion: caddyClean } = formatVersion(appVersions.caddy)
+        updated = updated.replace(/("caddy":\s*")v?[0-9]+\.[0-9]+\.[0-9]+(")/g, `$1${caddyClean}$2`)
+      }
+      if (shouldSyncNginx) {
+        const { cleanVersion: nginxClean } = formatVersion(appVersions.nginx)
+        updated = updated.replace(/("nginx":\s*")v?[0-9]+\.[0-9]+\.[0-9]+(")/g, `$1${nginxClean}$2`)
+      }
+      if (shouldSyncTcp && appVersions.tcp) {
+        const { cleanVersion: tcpClean } = formatVersion(appVersions.tcp)
+        updated = updated.replace(/("tcp":\s*")v?[0-9]+\.[0-9]+\.[0-9]+(")/g, `$1${tcpClean}$2`)
+      }
+      if (shouldSyncCli) {
+        const { cleanVersion: cliClean } = formatVersion(appVersions.cli)
+        updated = updated.replace(/("cli":\s*")v?[0-9]+\.[0-9]+\.[0-9]+(")/g, `$1${cliClean}$2`)
+      }
+      return updated
+    })
   }
 
   return { updatedFiles, targetVersion: returnedTargetVersion, appVersions }

@@ -10,17 +10,20 @@ import { buildSnippet } from '../../.vitepress/theme/composables/useCodeSnippet'
 // ─── Local Testing Snippets ─────────────────────────────────────────────────
 const local_cli = buildSnippet({
   lang: 'bash',
-  code: `# 1. Install local plugin into tcp-warden
-tcp-warden plugins install ./echo_guard
+  code: `# 1. Install local plugin into RouteWarden TCP
+rwarden tcp plugins install ./echo_guard
 
 # 2. Verify it appears as ACTIVE
-tcp-warden plugins list
+rwarden tcp plugins list
 
 # 3. Validate configuration syntax
-tcp-warden validate --config tcp-warden.yaml
+rwarden tcp validate -c tcp-warden.yaml
 
-# 4. Start the proxy
-tcp-warden run --config tcp-warden.yaml`,
+# 4. Start the proxy in background
+rwarden tcp up -d
+
+# Or using standalone binary:
+# tcp-warden plugins install ./echo_guard && tcp-warden run`,
 })
 
 const local_yaml = buildSnippet({
@@ -50,7 +53,10 @@ const localSnippets = computed(() => ({
 const git_install = buildSnippet({
   lang: 'bash',
   code: `# Install directly from a public or private Git repository
-tcp-warden plugins install https://github.com/my-org/my-protocol-guard
+rwarden tcp plugins install https://github.com/my-org/my-protocol-guard
+
+# Or using standalone binary:
+# tcp-warden plugins install https://github.com/my-org/my-protocol-guard
 
 # Or declare in tcp-warden.yaml for auto-installation on boot
 plugins:
@@ -140,4 +146,4 @@ Before tagging a release or submitting a plugin to the official registry, review
 To contribute your plugin to the official **[`routewarden/plugins`](https://github.com/routewarden/plugins)** repository:
 1. Ensure all tests in your plugin pass with `-race`.
 2. Follow the directory layout: `plugin.yaml`, `plugin.go`, `inspector.go`, `plugin_test.go`, and `README.md`.
-3. Open a Pull Request against `routewarden/plugins`. Once merged, users can install your plugin instantly using `tcp-warden plugins install <name>`.
+3. Open a Pull Request against `routewarden/plugins`. Once merged, users can install your plugin instantly using `rwarden tcp plugins install <name>` (or `tcp-warden plugins install <name>`).
