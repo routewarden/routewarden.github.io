@@ -98,10 +98,11 @@ test('documentation structure and integrity', async (t) => {
     const versionPath = path.join(docsDir, 'version.json')
     assert.ok(fs.existsSync(versionPath), 'docs/version.json must exist')
     const vData = JSON.parse(fs.readFileSync(versionPath, 'utf8'))
-    for (const app of ['traefik', 'caddy', 'tcp', 'cli', 'nginx']) {
+    for (const app of ['traefik', 'caddy', 'cli', 'nginx']) {
       assert.ok(typeof vData[app] === 'string', `${app} version must be string`)
       assert.match(vData[app], /^v?\d+\.\d+\.\d+/, `${app} version must match semver`)
     }
+    assert.strictEqual(vData.tcp, undefined, 'tcp version should not be in docs/version.json')
 
     const versionsPath = path.join(docsDir, 'versions.json')
     assert.ok(fs.existsSync(versionsPath), 'docs/versions.json must exist')
@@ -264,6 +265,33 @@ test('documentation structure and integrity', async (t) => {
     assert.ok(content.includes('rwarden push -e'), 'commands.md must document push -e')
     assert.ok(content.includes('rwarden push --stdin'), 'commands.md must document push --stdin')
     assert.ok(content.includes('rwarden push -f -'), 'commands.md must document push -f -')
+  })
+
+  await t.test('no local file:// filesystem links exist in documentation', () => {
+    function findMarkdownFiles(dir) {
+      let results = []
+      const entries = fs.readdirSync(dir, { withFileTypes: true })
+      for (const entry of entries) {
+        const fullPath = path.join(dir, entry.name)
+        if (entry.isDirectory()) {
+          if (entry.name !== '.vitepress' && entry.name !== 'node_modules') {
+            results = results.concat(findMarkdownFiles(fullPath))
+          }
+        } else if (entry.isFile() && entry.name.endsWith('.md')) {
+          results.push(fullPath)
+        }
+      }
+      return results
+    }
+
+    const mdFiles = findMarkdownFiles(docsDir)
+    for (const file of mdFiles) {
+      const content = fs.readFileSync(file, 'utf8')
+      assert.ok(
+        !content.includes('file:///Users/'),
+        `Found local file:/// URL in ${path.relative(docsDir, file)}`
+      )
+    }
   })
 })
 

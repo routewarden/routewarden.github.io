@@ -13,12 +13,16 @@ export async function generateSetupSnippets(options = {}) {
   let currentVersion = 'v1.1.0'
   let traefikVersion = currentVersion
   let caddyVersion = currentVersion
+  let nginxVersion = currentVersion
+  let cliVersion = 'v5.3.0'
   if (fs.existsSync(versionFilePath)) {
     const vData = JSON.parse(fs.readFileSync(versionFilePath, 'utf8'))
     const formatV = (v) => (v ? (v.startsWith('v') ? v : `v${v}`) : null)
-    currentVersion = formatV(vData.traefik || vData.version) || 'v1.3.0'
+    currentVersion = formatV(vData.traefik || vData.version) || 'v1.6.0'
     traefikVersion = formatV(vData.traefik) || currentVersion
     caddyVersion = formatV(vData.caddy) || currentVersion
+    nginxVersion = formatV(vData.nginx) || currentVersion
+    cliVersion = formatV(vData.cli) || 'v5.3.0'
   }
 
   const caddyLanguage = {
@@ -243,6 +247,22 @@ server {
       }
     ],
     tcp: [
+      {
+        filename: 'rwarden tcp (CLI)',
+        lang: 'bash',
+        diffLines: [],
+        code: `# 1. Start TCP Warden proxy daemon in background (auto-loads tcp-warden.yaml)
+rwarden tcp up -d
+
+# 2. Check proxy daemon status
+rwarden tcp status
+
+# 3. Reload configuration with zero-downtime
+rwarden tcp reload
+
+# 4. Stream real-time L4 security events
+curl -N http://127.0.0.1:9091/events`
+      },
       {
         filename: 'docker-compose.yml',
         lang: 'yaml',

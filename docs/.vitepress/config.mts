@@ -95,7 +95,7 @@ export default defineConfig({
       traefik_version: (versionData as any).traefik || defaultVer,
       caddy_version: (versionData as any).caddy || defaultVer,
       nginx_version: (versionData as any).nginx || defaultVer,
-      tcp_version: (versionData as any).tcp || defaultVer,
+      tcp_version: (versionData as any).tcp || (versionData as any).cli || defaultVer,
       cli_version: (versionData as any).cli || defaultVer,
     }
   },
@@ -110,8 +110,8 @@ export default defineConfig({
         const vTraefik = (versionData as any).traefik || vDefault
         const vCaddy = (versionData as any).caddy || vDefault
         const vNginx = (versionData as any).nginx || vDefault
-        const vTcp = (versionData as any).tcp || vDefault
         const vCli = (versionData as any).cli || vDefault
+        const vTcp = (versionData as any).tcp || vCli || vDefault
 
         let replaced = src
           .replace(/\{\{version\}\}/g, vDefault)

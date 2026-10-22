@@ -67,7 +67,10 @@ rwarden dashboard up --port 8080 --host 127.0.0.1 --no-open
 rwarden dashboard --container traefik
 
 # 6. Monitor an NGINX or Apache access log file
-rwarden dashboard --file /var/log/nginx/access.log`,
+rwarden dashboard --file /var/log/nginx/access.log
+
+# 7. Configure automated data retention, event row cap, and log rotation
+rwarden dashboard up --retention 30d --max-events 100000 --prune-interval 1h --max-log-size 50MB`,
 })
 
 const dashboard_status = buildSnippet({
@@ -237,7 +240,14 @@ It provides an ultra-fast, live executive SOC dashboard consuming only **~8MB of
 ### 5. Threat Intelligence Dossier
 - Inspect top attacking client IPs and click any row to reveal autonomous systems (ASN), reverse DNS, origin country, CIDR prefix, and one-click AbuseIPDB lookup.
 
-### 6. Keyboard Shortcuts (Desktop)
+### 6. Automated Data Retention & Storage Pruning (`--retention`, `--max-events`)
+- **Automated Lifecycle Management**: Configurable retention periods (`--retention 30d`, `7d`, `48h`, or `0` for unlimited). Expired telemetry rows are automatically purged on background intervals (`--prune-interval 1h`).
+- **Maximum Event Row Capacity**: Hard capacity limits (`--max-events 100000`) protect host disks from uncontrolled event flooding or high-traffic spikes.
+- **Automatic SQLite Compacting (`VACUUM`)**: When significant batches of events are deleted, SQLite database pages are reclaimed via automated `VACUUM` to keep the `.db` file footprint minimal on disk.
+- **Access Log Rotation (`--max-log-size`)**: Multiplexed `access.log` is automatically rotated to `access.log.1` when exceeding configured size limits (default: `50MB`).
+- **Interactive Storage Modal**: Accessible via the **💾 Storage** topbar button or REST API (`GET /api/v1/storage`), displaying real-time database footprint, event count, age breakdown, and a one-click **🧹 Prune & Compact Now** trigger (`POST /api/v1/prune`).
+
+### 7. Keyboard Shortcuts (Desktop)
 - <kbd>Space</kbd> — Stream Pause / Resume
 - <kbd>T</kbd> — Toggle Theme (Auto / Light / Dark)
 - <kbd>W</kbd> — Focus Time Range filter
@@ -286,6 +296,78 @@ To expose RouteWarden's security dashboard publicly with SSL/TLS, custom domains
 
 ---
 
+## Storage & Data Retention REST API
+
+RouteWarden exposes dedicated REST endpoints to inspect telemetry storage metrics and execute on-demand pruning and database compaction.
+
+### 1. Get Storage Telemetry & Retention Policy (`GET /api/v1/storage`)
+
+Queries live SQLite database file footprint, stored row counts, oldest/newest timestamps, active retention policy, and access log status:
+
+```bash
+curl -s http://localhost:7890/api/v1/storage
+```
+
+**Response Example:**
+```json
+{
+  "storage": {
+    "event_count": 24190,
+    "database_size_bytes": 14884864,
+    "database_size_human": "14.2 MB",
+    "oldest_event": "2026-09-22T08:14:00Z",
+    "newest_event": "2026-10-22T04:15:30Z"
+  },
+  "policy": {
+    "retention_period": "720h0m0s",
+    "retention_days": 30,
+    "max_events": 100000,
+    "prune_interval": "1h0m0s",
+    "max_log_size": "50.0 MB",
+    "auto_vacuum": true
+  },
+  "retention": {
+    "retention_period": "720h0m0s",
+    "retention_days": 30,
+    "max_events": 100000,
+    "prune_interval": "1h0m0s",
+    "last_pruned_at": "2026-10-22T04:00:00Z",
+    "last_pruned_count": 342,
+    "total_pruned": 1820
+  },
+  "access_log": {
+    "size_bytes": 4194304,
+    "size_human": "4.0 MB"
+  }
+}
+```
+
+### 2. Trigger On-Demand Pruning & Compacting (`POST /api/v1/prune`)
+
+Executes an immediate prune pass according to configured retention and maximum event capacity, followed by a SQLite `VACUUM` to compact database pages:
+
+```bash
+curl -s -X POST http://localhost:7890/api/v1/prune
+```
+
+**Response Example:**
+```json
+{
+  "status": "ok",
+  "pruned_events": 342,
+  "timestamp": "2026-10-22T04:20:15Z",
+  "storage": {
+    "event_count": 23848,
+    "database_size_bytes": 12582912,
+    "database_size_human": "12.0 MB",
+    "oldest_event": "2026-09-22T08:14:00Z",
+    "newest_event": "2026-10-22T04:15:30Z"
+  }
+}
+```
+
+---
+
 ## Command Reference
 
 | Subcommand / Flag | Type | Default | Description |
@@ -305,3 +387,19 @@ To expose RouteWarden's security dashboard publicly with SSL/TLS, custom domains
 | `-l`, `--label` | string | `"routewarden=true"` | Docker label to filter containers |
 | `--dir` | string | `~/.routewarden/dashboard` | Working directory storing dashboard files |
 | `--no-open` | bool | `false` | Do not automatically launch the browser upon startup |
+| `--retention` | string | `"30d"` | Data retention window (`30d`, `7d`, `48h`, or `0` for unlimited) |
+| `--max-events` | int | `100000` | Maximum event row capacity before pruning (`0` = unlimited) |
+| `--prune-interval` | duration | `"1h"` | Background automated pruning frequency (`1h`, `30m`) |
+| `--max-log-size` | string | `"50MB"` | Maximum access.log size before rotating to `access.log.1` |
+
+### Environment Variables
+
+| Variable | Default | Description |
+|:---|:---|:---|
+| `RW_RETENTION` / `RW_DASHBOARD_RETENTION` | `30d` | Cutoff age for retained events (`30d`, `7d`, `48h`, `0` = unlimited) |
+| `RW_MAX_EVENTS` / `RW_DASHBOARD_MAX_EVENTS` | `100000` | Maximum rows retained in SQLite persistence |
+| `RW_PRUNE_INTERVAL` | `1h` | Frequency of automated background prune supervisor |
+| `RW_MAX_LOG_SIZE` | `50MB` | Maximum size of `access.log` before rotation to `access.log.1` |
+| `RW_DASHBOARD_AUTH` | `""` | Dashboard authentication credentials (`user:password`) |
+| `RW_DASHBOARD_HOST` | `""` | Default IP interface to bind |
+| `PORT` | `7890` | Default listening port |

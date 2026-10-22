@@ -10,11 +10,14 @@ import { buildSnippet } from '../../.vitepress/theme/composables/useCodeSnippet'
 // ─── 1. Installation Snippets ───────────────────────────────────────────────
 const install_cli = buildSnippet({
   lang: 'bash',
-  code: `# Install using short name
+  code: `# Install via RouteWarden CLI
+rwarden tcp plugins install tls_sni
+
+# Or standalone binary
 tcp-warden plugins install tls_sni
 
 # Or install via Git repository URL
-tcp-warden plugins install https://github.com/routewarden/plugins/tls_sni`
+rwarden tcp plugins install https://github.com/routewarden/plugins/tls_sni`
 })
 
 const install_yaml = buildSnippet({

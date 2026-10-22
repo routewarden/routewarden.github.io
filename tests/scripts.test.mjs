@@ -134,6 +134,8 @@ test('normalizeAppName resolves all known aliases', () => {
   assert.equal(normalizeAppName('tcp-warden'), 'tcp')
   assert.equal(normalizeAppName('tcp_warden'), 'tcp')
   assert.equal(normalizeAppName('l4'), 'tcp')
+  assert.equal(normalizeAppName('rwarden-tcp'), 'tcp')
+  assert.equal(normalizeAppName('rwarden_tcp'), 'tcp')
   assert.equal(normalizeAppName('caddy'), 'caddy')
   assert.equal(normalizeAppName('caddy-warden'), 'caddy')
   assert.equal(normalizeAppName('traefik'), 'traefik')
@@ -141,8 +143,35 @@ test('normalizeAppName resolves all known aliases', () => {
   assert.equal(normalizeAppName('plugin'), 'traefik')
   assert.equal(normalizeAppName('cli'), 'cli')
   assert.equal(normalizeAppName('rwarden'), 'cli')
+  assert.equal(normalizeAppName('routewarden'), 'cli')
   assert.equal(normalizeAppName('nginx'), 'nginx')
   assert.equal(normalizeAppName(''), 'all')
+})
+
+test('syncVersion synchronizes crowdsec.md and VERSIONING.md when updating tcp version', (t) => {
+  const ws = createMockWorkspace()
+  t.after(() => fs.rmSync(ws, { recursive: true, force: true }))
+
+  fs.writeFileSync(
+    path.join(ws, 'docs/tcp/crowdsec.md'),
+    '# {"status":"ok","version":"1.2.1","crowdsec":{}}\n"version": "1.2.1"\n'
+  )
+  fs.writeFileSync(
+    path.join(ws, 'VERSIONING.md'),
+    '{\n  "tcp": "v3.0.0",\n  "cli": "v5.2.0"\n}\n'
+  )
+
+  const res = syncVersion({ rootDir: ws, app: 'tcp', version: 'v3.5.0' })
+  assert.equal(res.appVersions.tcp, 'v3.5.0')
+  assert.ok(res.updatedFiles.includes('docs/tcp/crowdsec.md'))
+  assert.ok(res.updatedFiles.includes('VERSIONING.md'))
+
+  const csDoc = fs.readFileSync(path.join(ws, 'docs/tcp/crowdsec.md'), 'utf8')
+  assert.match(csDoc, /"version": "3\.5\.0"/)
+  assert.match(csDoc, /"version":"3\.5\.0"/)
+
+  const versioningDoc = fs.readFileSync(path.join(ws, 'VERSIONING.md'), 'utf8')
+  assert.match(versioningDoc, /"tcp": "v3\.5\.0"/)
 })
 
 test('syncVersion allows updating individual app version (tcp) without touching other apps', (t) => {
@@ -205,6 +234,27 @@ test('syncVersion allows updating nginx version without touching other apps', (t
 
   const nginxDoc = fs.readFileSync(path.join(ws, 'docs/nginx/getting-started.md'), 'utf8')
   assert.match(nginxDoc, /nginx-warden@v1\.3\.0/)
+})
+
+test('syncVersion allows updating cli version without touching other apps and updates VERSIONING.md', (t) => {
+  const ws = createMockWorkspace()
+  t.after(() => fs.rmSync(ws, { recursive: true, force: true }))
+
+  fs.writeFileSync(
+    path.join(ws, 'VERSIONING.md'),
+    '{\n  "cli": "v5.2.0",\n  "caddy": "v1.6.0"\n}\n'
+  )
+
+  const res = syncVersion({ rootDir: ws, app: 'cli', version: 'v5.4.0' })
+
+  assert.equal(res.targetVersion, 'v5.4.0')
+  assert.equal(res.appVersions.cli, 'v5.4.0')
+  assert.ok(res.updatedFiles.includes('docs/version.json'))
+  assert.ok(res.updatedFiles.includes('VERSIONING.md'))
+
+  const versioningDoc = fs.readFileSync(path.join(ws, 'VERSIONING.md'), 'utf8')
+  assert.match(versioningDoc, /"cli": "v5\.4\.0"/)
+  assert.match(versioningDoc, /"caddy": "v1\.6\.0"/)
 })
 
 test('resolveDocsRootDir returns custom directory when specified', () => {

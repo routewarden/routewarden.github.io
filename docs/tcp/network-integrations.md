@@ -360,7 +360,7 @@ const priv_systemd = buildSnippet({
   lang: 'bash',
   code: `# /etc/systemd/system/tcp-warden.service
 [Unit]
-Description=TCP Warden L4 Security Proxy
+Description=RouteWarden TCP L4 Security Proxy
 After=network.target
 
 [Service]
@@ -368,7 +368,8 @@ User=routewarden
 Group=routewarden
 AmbientCapabilities=CAP_NET_BIND_SERVICE
 CapabilityBoundingSet=CAP_NET_BIND_SERVICE
-ExecStart=/usr/local/bin/tcp-warden run --config /etc/routewarden/tcp-warden.yaml
+ExecStart=/usr/local/bin/rwarden tcp up --config /etc/routewarden/tcp-warden.yaml
+# Or standalone: ExecStart=/usr/local/bin/tcp-warden run --config /etc/routewarden/tcp-warden.yaml
 Restart=always
 RestartSec=3
 
@@ -418,8 +419,9 @@ const verify_events_bans = buildSnippet({
   code: `# 1. Stream live security events
 curl -N http://127.0.0.1:9091/events
 
-# 2. Query active bans via CLI
-tcp-warden banlist --api http://127.0.0.1:9091
+# 2. Query status and active bans via CLI
+rwarden tcp status
+# Or standalone: tcp-warden status
 
 # 3. Query active bans via cURL
 curl -s http://127.0.0.1:9091/api/banlist | jq .`

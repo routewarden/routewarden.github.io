@@ -279,6 +279,9 @@ rwarden dashboard stop
 # or
 rwarden stop dashboard
 
+# Configure automated data retention, event row cap, and log rotation
+rwarden dashboard up --retention 30d --max-events 100000 --prune-interval 1h --max-log-size 50MB
+
 # Export standalone Docker Compose and configuration files to disk
 rwarden dashboard export ./dashboard`,
 })
@@ -521,7 +524,10 @@ cat access.log | rwarden push --stdin
 echo '{"client_ip":"198.51.100.1","path":"/.env","verdict":"BLOCK"}' | rwarden push -f -
 
 # Tune in-memory batching buffer and flush interval
-rwarden push --batch-size 100 --flush-interval 2s`,
+rwarden push --batch-size 100 --flush-interval 2s
+
+# Configure offline queue capacity and disconnect drop timeout
+rwarden push --queue-size 20000 --disconnect-timeout 10m`,
 })
 
 const pushSnippets = computed(() => ({
@@ -533,24 +539,80 @@ const pushSnippets = computed(() => ({
 // ─── 18. Daemon Management (status, stop) ────────────────────────────────────
 const daemon_cmd = buildSnippet({
   lang: 'bash',
-  code: `# Check status of all running daemons (dashboard and shipper)
+  code: `# Check status of all running daemons (dashboard, shipper, tcp)
 rwarden status
 
 # Check status of a specific daemon
 rwarden status dashboard
 rwarden status push
+rwarden status tcp
 
 # Stop all running background daemons
 rwarden stop
 
 # Stop a specific background daemon
 rwarden stop dashboard
-rwarden stop push`,
+rwarden stop push
+rwarden stop tcp`,
 })
 
 const daemonSnippets = computed(() => ({
   cli: [
     { filename: 'rwarden status / stop', lang: 'bash', code: daemon_cmd.cleanCode, html: daemon_cmd.html, hasDiff: false },
+  ],
+}))
+
+// ─── 19. L4 TCP/UDP Reverse Proxy (tcp) ─────────────────────────────────────
+const tcp_cmd = buildSnippet({
+  lang: 'bash',
+  code: `# Start TCP/UDP proxy in foreground (auto-loads tcp-warden.yaml)
+rwarden tcp
+rwarden tcp up
+
+# Start proxy in background (detached daemon mode)
+rwarden tcp up -d
+# or with custom config
+rwarden tcp up -c /etc/routewarden/tcp-warden.yaml --detach
+
+# Check status of running TCP proxy daemon
+rwarden tcp status
+# or
+rwarden status tcp
+
+# Reload configuration on running daemon without dropping live connections (zero-downtime)
+rwarden tcp reload
+
+# Stop background TCP proxy daemon
+rwarden tcp stop
+# or
+rwarden stop tcp
+
+# Validate TCP proxy configuration file syntax and protocol rules
+rwarden tcp validate -c tcp-warden.yaml
+
+# List registered L4 protocol inspection plugins
+rwarden tcp plugins list
+
+# Run self-tests on registered plugins
+rwarden tcp plugins test
+
+# Install a modular protocol plugin from Git
+rwarden tcp plugins install github.com/routewarden/plugin-redis`,
+})
+
+const tcp_docker = buildSnippet({
+  lang: 'bash',
+  code: `# Run standalone minimal L4 proxy container (<15MB)
+docker run -d --name tcp-warden \\
+  -p 5432:5432 -p 6379:6379 \\
+  -v $(pwd)/tcp-warden.yaml:/etc/tcp-warden/tcp-warden.yaml:ro \\
+  ghcr.io/routewarden/tcp-warden:latest`,
+})
+
+const tcpSnippets = computed(() => ({
+  cli: [
+    { filename: 'rwarden tcp', lang: 'bash', code: tcp_cmd.cleanCode, html: tcp_cmd.html, hasDiff: false },
+    { filename: 'Docker (Standalone)', lang: 'bash', code: tcp_docker.cleanCode, html: tcp_docker.html, hasDiff: false },
   ],
 }))
 </script>
@@ -681,6 +743,10 @@ Launch and manage an ultra-lightweight, real-time security dashboard powered by 
 | `-l`, `--label` | string | `"routewarden=true"` | Docker label to filter containers |
 | `--dir` | string | `~/.routewarden/dashboard` | Working directory storing SQLite `events.db` and keys |
 | `--no-open` | bool | `false` | Do not launch system default browser |
+| `--retention` | string | `"30d"` | Data retention window (`30d`, `7d`, `48h`, or `0` for unlimited) |
+| `--max-events` | int | `100000` | Maximum event row capacity before pruning (`0` = unlimited) |
+| `--prune-interval` | duration | `"1h"` | Background automated pruning frequency (`1h`, `30m`) |
+| `--max-log-size` | string | `"50MB"` | Maximum access.log size before rotating to `access.log.1` |
 
 ---
 
@@ -852,6 +918,9 @@ Stream live security events and gateway access logs from remote edge nodes, clou
 | `--tail` | — | string | `"50"` | Initial lines to tail from Docker container(s) and log file(s) |
 | `--batch-size` | — | int | `50` | Maximum events to buffer in memory before flushing |
 | `--flush-interval` | — | duration | `1s` | Maximum duration before flushing partial buffer |
+| `--queue-size` | — | int | `10000` | Maximum events to buffer in memory while disconnected from dashboard |
+| `--disconnect-timeout` | — | duration | `5m` | Duration disconnected from dashboard before dropping stale events |
+| `--ping-interval` | — | duration | `10s` | Interval between connection health pings when connected |
 | `--all-logs` | — | bool | `false` | Ship all raw container lines without filtering (default filters for RouteWarden events & access logs) |
 | `--url` | `-u` | string | `""` | Override central dashboard URL from registered config |
 | `--key` | `-k` | string | `""` | Override agent authentication key from registered config |
@@ -871,6 +940,34 @@ Manage background daemons spawned with `--detach` (`-d`). RouteWarden manages da
 |:---|:---|:---|:---|
 | `dashboard` | `~/.routewarden/dashboard.pid` | `~/.routewarden/dashboard.log` | Central SOC Security Dashboard web server and SSE stream |
 | `push` | `~/.routewarden/push.pid` | `~/.routewarden/push.log` | Background remote log shipper daemon |
+| `tcp` | `~/.routewarden/tcp.pid` | `~/.routewarden/tcp.log` | High-performance L4 TCP/UDP security proxy daemon |
+
+---
+
+## 19. L4 TCP/UDP Reverse Proxy (`tcp`)
+
+RouteWarden CLI natively integrates an ultra-high performance Layer 4 reverse proxy with protocol-aware inspection (HTTP, TLS SNI, SSH, Redis, PostgreSQL, MySQL), geo-fencing, IP ban persistence, rate limiting, and CrowdSec remediation:
+
+<CodeViewer :snippets="tcpSnippets" />
+
+### Subcommands & Flags
+
+| Command / Flag | Shorthand | Type | Default | Description |
+|:---|:---|:---|:---|:---|
+| `up`, `start` | — | subcommand | — | Start TCP/UDP proxy (default action when omitting subcommand) |
+| `down`, `stop` | — | subcommand | — | Gracefully stop running background proxy daemon |
+| `status`, `ps` | — | subcommand | — | Check running status, PID, and uptime of background proxy daemon |
+| `reload` | — | subcommand | — | Reload configuration file on running daemon without dropping live connections (`SIGHUP`) |
+| `validate` | — | subcommand | — | Validate proxy configuration YAML syntax and protocol definitions |
+| `plugins` | — | subcommand | — | Manage protocol inspection plugins (`list`, `test`, `install`) |
+| `--config` | `-c` | string | `tcp-warden.yaml` | Path to YAML configuration file (falls back to `ROUTEWARDEN_CONFIG`) |
+| `--detach` | `-d` | bool | `false` | Run proxy in background (detached) daemon mode |
+| `--verbose` | `-v` | bool | `false` | Enable verbose operational logging |
+
+### Standalone Binary & Container
+
+For edge architectures where only L4 proxying is desired, a dedicated standalone binary (`tcp-warden`) and minimal Alpine container (`ghcr.io/routewarden/tcp-warden:latest`, &lt;15MB) are provided alongside the unified `rwarden` binary.
+
 
 
 

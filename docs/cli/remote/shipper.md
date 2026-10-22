@@ -32,8 +32,11 @@ const push_output = buildSnippet({
   Dashboard URL:   http://198.51.100.10:7890
   Agent Name:      edge-frankfurt-01
   Encryption:      🔒 End-to-End Encrypted (X25519 + AES-256-GCM)
+  Batch Settings:  Size=50, Interval=1s
+  Offline Queue:   Max=10000, Timeout=5m0s
   Auto-Discovery:  Watching Docker containers with label 'routewarden=true'
 ─────────────────────────────────────────────────────────────
+[15:04:05] 🟢 Connected to RouteWarden dashboard (http://198.51.100.10:7890)
 Press Ctrl+C to stop.
 🐳 [Docker] Attached to container: edge-traefik (4b7e89a1c2d3)`,
 })
@@ -369,12 +372,13 @@ Stream multiple log files and Docker containers simultaneously. Both files and D
 
 ---
 
-## 3. In-Memory Ring Buffer & Performance
+## 3. In-Memory Ring Buffer & Offline Queueing
 
-Unlike traditional shippers that write WAL journals to disk, `rwarden push` uses an in-memory ring buffer:
-- **Maximum Buffer**: **2,000 events** (~2MB max RAM allocation).
+Unlike traditional shippers that write heavy WAL journals to disk, `rwarden push` uses zero-disk, memory-buffered streaming:
+- **Collector Ring Buffer**: Ingests up to **2,000 events** from log streams and Docker pipes before backpressure throttling (~2MB RAM).
+- **Offline Event Queue (`--queue-size`)**: In-memory buffer holding up to **10,000 events** (configurable) when the dashboard is unreachable, restarting, or disconnected.
 - **Edge Storage Protection**: Prevents millions of daily disk write cycles, preserving SSD life on edge hardware, Raspberry Pis, and low-cost VPS instances.
-- **Backpressure Handling**: If network connectivity drops, events buffer safely up to 2,000 events before safely dropping oldest events rather than crashing the process or exhausting system memory.
+- **Stale Event Protection (`--disconnect-timeout`)**: If the dashboard remains disconnected longer than 5 minutes (default), stale events are gradually pruned with throttled warnings to protect node memory from unbounded growth.
 
 ---
 
@@ -388,20 +392,27 @@ You can tune batching parameters to match high-traffic or low-latency environmen
 |:---|:---|:---|
 | `--batch-size` | `50` | Maximum number of events to buffer before triggering an immediate flush. |
 | `--flush-interval` | `1s` | Maximum time to wait before flushing partial batches to the server. |
-| `--tail` | `50` | Number of existing lines to replay when attaching to a container. |
+| `--queue-size` | `10000` | Maximum events to queue in memory while disconnected from dashboard. |
+| `--disconnect-timeout` | `5m` | Duration disconnected from dashboard before dropping stale events to protect memory. |
+| `--ping-interval` | `10s` | Interval between connection health pings when connected. |
+| `--tail` | `50` | Number of existing lines to replay when attaching to a container or file. |
 
 ---
 
-## 5. Resilience & Automated Retries
+## 5. Resilience, Active Health Supervisor & Auto-Reconnect
 
-`rwarden push` includes robust network failure recovery:
+`rwarden push` includes robust network failure recovery and zero-event-loss failover:
 
-1. **Automated Heartbeats**: Every 30 seconds, a background ping is sent to `/api/v1/heartbeat`. This keeps the agent marked **online** in the dashboard status ribbon even during periods of zero web traffic.
-2. **Exponential Backoff**: If the central dashboard is temporarily unreachable (e.g. during a deployment or transient network drop), `sendBatchWithRetry` retries automatically:
-   - Attempt 1: immediate
-   - Attempt 2: after 500ms
-   - Attempt 3: after 1,000ms
-3. **Graceful Shutdown**: Listens for `SIGINT` (Ctrl+C) and `SIGTERM`, drains remaining buffered events, and terminates cleanly.
+1. **Active Connection Health Supervisor (`/api/v1/ping`)**:
+   - When connected, sends health pings every `--ping-interval` (`10s` default) to `/api/v1/ping`. This refreshes the agent's last-seen status on the dashboard and verifies end-to-end reachability.
+   - When disconnected, automatically switches to **fast-polling mode (2-second interval)** to detect when the dashboard returns online immediately after reboots.
+2. **Zero-Drop Offline Queueing & Backlog Drain**:
+   - If the dashboard server restarts or connectivity drops, events are seamlessly held in the offline queue buffer.
+   - Upon reconnection, `rwarden push` detects the online state, logs `🚀 Dashboard reconnected! Flushing <N> queued offline event(s)...`, and instantly drains the backlog in batches to the dashboard without dropping telemetry.
+3. **Encryption Key Rotation Auto-Recovery**:
+   - If the dashboard restarts and rotates or regenerates its encryption keypair, the client automatically receives the new public key, re-encrypts the current payload, updates its cached server key, and retries the batch immediately.
+4. **Exponential Backoff**: If the central dashboard is temporarily unreachable, `sendBatchWithRetry` retries in-flight requests with backoff before queueing them offline.
+5. **Graceful Shutdown**: Listens for `SIGINT` (Ctrl+C) and `SIGTERM`, flushes remaining buffered events, and terminates cleanly.
 
 ---
 

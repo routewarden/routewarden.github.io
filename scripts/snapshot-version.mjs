@@ -67,7 +67,7 @@ export function snapshotVersion(newVersion, options = {}) {
   const targetSnapshotDir = path.join(rootDir, `docs/${minorSnapshotDirName}`)
 
   // 1. Snapshot current documentation sections
-  const dirsToSnapshot = options.dirs || ['traefik', 'caddy', 'nginx', 'core', 'examples', 'guide', 'reference']
+  const dirsToSnapshot = options.dirs || ['traefik', 'caddy', 'nginx', 'tcp', 'cli', 'core', 'examples', 'guide', 'reference']
   for (const dir of dirsToSnapshot) {
     const srcDir = path.join(rootDir, `docs/${dir}`)
     const destDir = path.join(rootDir, `docs/${minorSnapshotDirName}/${dir}`)
@@ -78,7 +78,7 @@ export function snapshotVersion(newVersion, options = {}) {
           .replace(/\{\{(?:traefik_version|version_traefik)\}\}/g, currentVersionData.traefik || currentVersion)
           .replace(/\{\{(?:caddy_version|version_caddy)\}\}/g, currentVersionData.caddy || currentVersion)
           .replace(/\{\{(?:nginx_version|version_nginx)\}\}/g, currentVersionData.nginx || currentVersion)
-          .replace(/\{\{(?:tcp_version|version_tcp)\}\}/g, currentVersionData.tcp || currentVersion)
+          .replace(/\{\{(?:tcp_version|version_tcp)\}\}/g, currentVersionData.tcp || currentVersionData.cli || currentVersion)
           .replace(/\{\{(?:cli_version|version_cli)\}\}/g, currentVersionData.cli || currentVersion)
         if (!replaced.includes('Legacy Version Notice') && replaced.startsWith('# ')) {
           const firstLineEnd = replaced.indexOf('\n')

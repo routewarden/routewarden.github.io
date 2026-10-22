@@ -251,19 +251,26 @@ TCP Warden + CrowdSec gives you instant in-line blocking with global community l
 
 ### Can I run both on the same server?
 **Yes, this is the recommended setup.**
-1. TCP Warden runs as a Docker container or systemd service on your public ports (`:22`, `:25`, `:587`, `:993`).
+1. TCP Warden runs as a unified daemon (`rwarden tcp up -d`), a standalone service, or a Docker container on your public ports (`:22`, `:25`, `:587`, `:993`).
 2. It checks CrowdSec's local API (`http://127.0.0.1:8080`) in memory before allowing any connection.
 3. It writes events to `/var/log/routewarden/tcp-warden.jsonl`, which CrowdSec reads.
 
 ---
 
-### Why can't TCP Warden protect UDP ports (like 3478 for STUN/TURN)?
-TCP Warden is designed specifically for **TCP streams** (connections with handshakes, byte flows, and session states). 
+### What is the relationship between `rwarden tcp` and standalone `tcp-warden`?
+TCP Warden is natively integrated into the RouteWarden unified CLI (`rwarden tcp`).
+* **Unified CLI (`rwarden tcp`)**: The recommended interface for bare-metal and server installations. Manage daemon lifecycles (`rwarden tcp up [-d]`, `rwarden tcp reload`, `rwarden tcp status`, `rwarden tcp stop`), and manage plugins (`rwarden tcp plugins install <name>`).
+* **Standalone Binary & Docker (`tcp-warden`)**: Maintained for lightweight single-purpose deployments and containers (`ghcr.io/routewarden/tcp-warden:latest`). Both share the exact same proxy engine, configuration schema (`tcp-warden.yaml`), and plugin ecosystem.
 
-UDP is connectionless—it just sends loose packets without a stream. Services like STUN/TURN (Coturn / Nextcloud Talk on port 3478), WireGuard (51820), or DNS (53) should remain open directly on your system firewall:
-```bash
-sudo ufw allow 3478/udp
-```
+---
+
+### Does TCP Warden support UDP traffic?
+**Yes!** RouteWarden TCP Warden includes a high-performance Layer 4 UDP proxy engine (`udp_engine.go`) supporting bidirectional session tracking, sliding idle timeouts, and connection tracking. 
+
+Services can configure `transport: "udp"` or `transport: "both"` in `tcp-warden.yaml` to protect both TCP streams and UDP datagrams simultaneously. For example:
+* **DNS Firewall (`dns`)**: Filters queries across both UDP:53 and TCP:53 with anti-amplification and rebinding defenses.
+* **BitTorrent Guard (`bittorrent`)**: Protects BitTorrent Peer Wire (TCP) as well as DHT and uTP UDP datagrams.
+* **Generic UDP Services**: Set `transport: "udp"` or `transport: "both"` in `tcp-warden.yaml` for game servers, syslog, or custom UDP sockets.
 
 ---
 

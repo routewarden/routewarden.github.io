@@ -18,7 +18,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/routewarden/tcp-warden/plugins/sdk"
+	"github.com/routewarden/cli/proxy/plugins/sdk"
 )
 
 func TestInspector_BlockedTraffic(t *testing.T) {
@@ -113,13 +113,34 @@ const test_cmd = buildSnippet({
   code: `# 1. Run unit tests with multithreaded race detector enabled
 go test -v -race -count=1 ./...
 
-# 2. Run in-memory self-tests across all installed plugins
-tcp-warden plugins test`,
+# 2. Run in-memory self-tests across all installed plugins (Unified CLI)
+rwarden tcp plugins test
+
+# Or using standalone binary:
+# tcp-warden plugins test`,
 })
 
 const testCmdSnippets = computed(() => ({
   tcp: [
     { filename: 'Terminal', lang: 'bash', code: test_cmd.cleanCode, html: test_cmd.html, hasDiff: false },
+  ]
+}))
+
+// ─── Self-Test Snippet ──────────────────────────────────────────────────────
+const selftest_go = buildSnippet({
+  lang: 'go',
+  code: `func (p *Plugin) SelfTest() error {
+	insp := &Inspector{BlockedWords: []string{"test"}}
+	if len(insp.BlockedWords) == 0 {
+		return errors.New("self-test failed: uninitialized slice")
+	}
+	return nil
+}`,
+})
+
+const selfTestSnippets = computed(() => ({
+  tcp: [
+    { filename: 'plugin.go', lang: 'go', code: selftest_go.cleanCode, html: selftest_go.html, hasDiff: false },
   ]
 }))
 </script>
@@ -172,20 +193,12 @@ The 4-step safety pipeline automatically runs `go test -race` when installing pl
 
 Every plugin can implement the `SelfTest() error` method on `sdk.Plugin`:
 
-```go
-func (p *Plugin) SelfTest() error {
-    insp := &Inspector{BlockedWords: []string{"test"}}
-    if len(insp.BlockedWords) == 0 {
-        return errors.New("self-test failed: uninitialized slice")
-    }
-    return nil
-}
-```
+<CodeViewer :snippets="selfTestSnippets" />
 
 Self-tests are executed:
-1. When starting the daemon (`tcp-warden run`).
-2. When validating configurations (`tcp-warden validate`).
-3. On demand via `tcp-warden plugins test`.
+1. When starting the daemon (`rwarden tcp up` or `tcp-warden run`).
+2. When validating configurations (`rwarden tcp validate` or `tcp-warden validate`).
+3. On demand via `rwarden tcp plugins test` (or `tcp-warden plugins test`).
 
 ---
 

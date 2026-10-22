@@ -10,11 +10,14 @@ import { buildSnippet } from '../../.vitepress/theme/composables/useCodeSnippet'
 // ─── 1. Installation Snippets ───────────────────────────────────────────────
 const install_cli = buildSnippet({
   lang: 'bash',
-  code: `# Install using short name
+  code: `# Install via RouteWarden CLI
+rwarden tcp plugins install postgres
+
+# Or standalone binary
 tcp-warden plugins install postgres
 
 # Or install via Git repository URL
-tcp-warden plugins install https://github.com/routewarden/plugins/postgres`
+rwarden tcp plugins install https://github.com/routewarden/plugins/postgres`
 })
 
 const install_yaml = buildSnippet({

@@ -313,7 +313,10 @@ const verify_commands = buildSnippet({
   code: `# 1. Verify TCP Warden health & CrowdSec status
 curl -s http://127.0.0.1:9091/health
 # Expected output contains:
-# {"status":"ok","version":"1.2.1","crowdsec":{"status":"healthy","decisions":1250,"update_frequency":"10s"}}
+# {"status":"ok","version":"3.4.0","crowdsec":{"status":"healthy","decisions":1250,"update_frequency":"10s"}}
+
+# Or check status via RouteWarden CLI
+rwarden tcp status
 
 # 2. List registered bouncers in CrowdSec
 docker compose exec crowdsec cscli bouncers list
@@ -332,7 +335,7 @@ const health_response = buildSnippet({
   lang: 'json',
   code: `{
   "status": "ok",
-  "version": "1.2.1",
+  "version": "3.4.0",
   "crowdsec": {
     "status": "healthy",
     "decisions": 1250,

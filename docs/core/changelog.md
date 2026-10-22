@@ -7,7 +7,7 @@ Release notes for the RouteWarden security ecosystem are maintained independentl
 | **Traefik Warden** | Traefik v2 / v3 Middleware Plugin (Go) | `{{traefik_version}}` | [Traefik Changelog](/traefik/changelog) |
 | **Caddy Warden** | Caddy v2 HTTP Module (Go) | `{{caddy_version}}` | [Caddy Changelog](/caddy/changelog) |
 | **NGINX Warden** | NGINX / OpenResty Module (Lua) | `{{nginx_version}}` | [NGINX Changelog](/nginx/changelog) |
-| **TCP Warden** | L4 TCP/UDP Reverse Proxy & Shield (Go) | `{{tcp_version}}` | [TCP Warden Changelog](/tcp/changelog) |
+| **TCP Warden** | L4 TCP/UDP Reverse Proxy & Shield (Go) | Integrated in CLI (`{{cli_version}}`) | [TCP Warden Changelog](/tcp/changelog) |
 | **RouteWarden CLI** | Policy Compiler & Generator (`rwarden`) | `{{cli_version}}` | [CLI Changelog](/cli/changelog) |
 
 ---

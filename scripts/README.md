@@ -67,4 +67,4 @@ npm run test:scripts
 npm test
 ```
 
-Test definitions can be inspected and extended in [tests/scripts.test.mjs](file:///Users/aman/git/routewarden/tests/scripts.test.mjs).
+Test definitions can be inspected and extended in [tests/scripts.test.mjs](../tests/scripts.test.mjs).

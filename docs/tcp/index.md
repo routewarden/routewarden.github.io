@@ -44,7 +44,7 @@ services:
       connections_per_minute: 60
       burst: 10
 
-  # Protocol inspection via plugin (install: tcp-warden plugins install ssh)
+  # Protocol inspection via plugin (install: rwarden tcp plugins install ssh)
   ssh-guard:
     listen: ":2222"
     upstream: "127.0.0.1:22"
@@ -52,6 +52,21 @@ services:
     max_auth_failures: 3
     ban_after_failures: 3
     ban_duration: 1h`
+})
+
+const quick_rwarden = buildSnippet({
+  lang: 'bash',
+  code: `# 1. Start TCP/UDP proxy in background (auto-loads tcp-warden.yaml)
+rwarden tcp up -d
+
+# 2. Check running status and active connections
+rwarden tcp status
+
+# 3. Reload configuration with zero downtime
+rwarden tcp reload
+
+# 4. Stream real-time connection security events (SSE)
+curl -N http://127.0.0.1:9091/events`
 })
 
 const quick_cli = buildSnippet({
@@ -71,9 +86,10 @@ curl -N http://127.0.0.1:9091/events`
 
 const quickStartSnippets = computed(() => ({
   tcp: [
-    { filename: 'docker-compose.yml', lang: 'yaml', code: quick_compose.cleanCode, html: quick_compose.html, hasDiff: false },
+    { filename: 'rwarden tcp (CLI)', lang: 'bash', code: quick_rwarden.cleanCode, html: quick_rwarden.html, hasDiff: false },
     { filename: 'tcp-warden.yaml', lang: 'yaml', code: quick_yaml.cleanCode, html: quick_yaml.html, hasDiff: false },
-    { filename: 'CLI & Docker', lang: 'bash', code: quick_cli.cleanCode, html: quick_cli.html, hasDiff: false },
+    { filename: 'docker-compose.yml', lang: 'yaml', code: quick_compose.cleanCode, html: quick_compose.html, hasDiff: false },
+    { filename: 'Docker CLI', lang: 'bash', code: quick_cli.cleanCode, html: quick_cli.html, hasDiff: false },
   ]
 }))
 </script>
@@ -83,6 +99,10 @@ const quickStartSnippets = computed(() => ({
 <p class="tagline" style="font-size: 1.25rem; color: var(--vp-c-text-2); margin-bottom: 1.5rem;">
 A lightweight, protocol-aware security proxy and firewall for non-HTTP services across TCP and UDP.
 </p>
+
+::: tip Built into RouteWarden CLI
+TCP Warden is natively integrated into the RouteWarden suite via the `rwarden tcp` command tree. You can also run it as a standalone binary (`tcp-warden`) or lightweight Alpine container (`ghcr.io/routewarden/tcp-warden:latest`).
+:::
 
 Most reverse proxies (like Traefik, Caddy, or NGINX) are built to protect web traffic (HTTP/HTTPS). But what protects your databases, SSH servers, DNS resolvers, message queues, and cache layers?
 
@@ -178,7 +198,7 @@ TCP Warden provides a high-performance Layer 4 transparent proxy core, plus on-d
 - **Built-in Core Protocol (`generic` / `tcp`)**:
   - Universal Layer 4 transparent bastion for any TCP socket or proprietary protocol.
   - Token-bucket rate limiting, CIDR allow/deny filtering, GeoIP country blocking, max connection capping, tarpitting, and SQLite ban tracking without extra plugins.
-- **Modular Protocol Plugins (Installed via `tcp-warden plugins install <name>` or `AUTO_INSTALL_PLUGINS`)**:
+- **Modular Protocol Plugins (Installed via `rwarden tcp plugins install <name>` or `AUTO_INSTALL_PLUGINS`)**:
   - **DNS & P2P Protocols**: DNS Guard (`dns` over UDP/TCP), BitTorrent Guard (`bittorrent` over TCP/DHT/uTP).
   - **Remote Access & Mail**: SSH, SMTP, POP3, IMAP, FTP, VNC.
   - **Databases & Caches**: PostgreSQL, MySQL / MariaDB, Redis / Valkey, MongoDB, Memcached.

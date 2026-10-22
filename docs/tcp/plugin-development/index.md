@@ -10,11 +10,14 @@ import { buildSnippet } from '../../.vitepress/theme/composables/useCodeSnippet'
 // ─── Scaffolding Snippet ────────────────────────────────────────────────────
 const scaffold_cmd = buildSnippet({
   lang: 'bash',
-  code: `# Scaffold a new custom protocol inspector plugin
-tcp-warden plugins create echo_guard \\
+  code: `# Scaffold a new custom protocol inspector plugin (Unified CLI)
+rwarden tcp plugins create echo_guard \\
   --protocol echo_guard \\
   --listen ":9000" \\
-  --upstream "127.0.0.1:9001"`,
+  --upstream "127.0.0.1:9001"
+
+# Or using standalone binary:
+# tcp-warden plugins create echo_guard --protocol echo_guard --listen ":9000" --upstream "127.0.0.1:9001"`,
 })
 
 const scaffoldSnippets = computed(() => ({
@@ -26,7 +29,7 @@ const scaffoldSnippets = computed(() => ({
 // ─── 4-Step Validation Pipeline Snippet ─────────────────────────────────────
 const pipeline_log = buildSnippet({
   lang: 'bash',
-  code: `$ tcp-warden plugins install ./echo_guard
+  code: `$ rwarden tcp plugins install ./echo_guard
 [1/4] Validating manifest for plugin 'echo_guard'...
 [2/4] Checking manifest compatibility (manifest_version 1.0.0)...
 [3/4] Compiling plugin 'echo_guard'...
@@ -47,7 +50,7 @@ const pipelineSnippets = computed(() => ({
 Build, test, and package custom Layer 4 protocol inspectors for TCP Warden using Go.
 </p>
 
-TCP Warden is built on a modular plugin architecture. While the core daemon handles high-throughput Layer 4 transparent proxying, all protocol-specific inspectors (SSH, PostgreSQL, MySQL, Redis, MongoDB, SMTP, etc.) are independent plugins implementing the **TCP Warden Plugin SDK** (`github.com/routewarden/tcp-warden/plugins/sdk`).
+TCP Warden is built on a modular plugin architecture. While the core daemon handles high-throughput Layer 4 transparent proxying, all protocol-specific inspectors (SSH, PostgreSQL, MySQL, Redis, MongoDB, SMTP, etc.) are independent plugins implementing the **RouteWarden Plugin SDK** (`github.com/routewarden/cli/proxy/plugins/sdk`).
 
 ---
 
@@ -72,7 +75,7 @@ Think of a plugin as a **security guard** stationed between incoming client sock
 
 ## 2-Minute Quick Start: Scaffolding a Plugin
 
-The easiest way to start developing a plugin is using the built-in `tcp-warden plugins create` CLI command:
+The easiest way to start developing a plugin is using the built-in CLI command (`rwarden tcp plugins create` or `tcp-warden plugins create`):
 
 <CodeViewer :snippets="scaffoldSnippets" />
 
@@ -91,7 +94,7 @@ echo_guard/
 
 ## The 4-Step Safety Verification Pipeline
 
-Whenever a plugin is installed via `tcp-warden plugins install <source>`, TCP Warden automatically runs a strict **4-step safety verification pipeline** to ensure the plugin will never crash your proxy or cause concurrency deadlocks:
+Whenever a plugin is installed via `rwarden tcp plugins install <source>` (or `tcp-warden plugins install <source>`), TCP Warden automatically runs a strict **4-step safety verification pipeline** to ensure the plugin will never crash your proxy or cause concurrency deadlocks:
 
 <CodeViewer :snippets="pipelineSnippets" />
 

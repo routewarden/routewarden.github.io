@@ -44,8 +44,8 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/routewarden/tcp-warden/plugins"
-	"github.com/routewarden/tcp-warden/plugins/sdk"
+	"github.com/routewarden/cli/proxy/plugins"
+	"github.com/routewarden/cli/proxy/plugins/sdk"
 )
 
 //go:embed plugin.yaml
@@ -119,8 +119,8 @@ import (
 	"net"
 	"strings"
 
-	"github.com/routewarden/tcp-warden/plugins/sdk"
-	"github.com/routewarden/tcp-warden/protocol"
+	"github.com/routewarden/cli/proxy/plugins/sdk"
+	"github.com/routewarden/cli/proxy/protocol"
 )
 
 type Inspector struct {
@@ -201,7 +201,7 @@ const udp_plugin_go = buildSnippet({
 import (
 	"strings"
 
-	"github.com/routewarden/tcp-warden/plugins/sdk"
+	"github.com/routewarden/cli/proxy/plugins/sdk"
 )
 
 // 1. Opt into UDP support by implementing sdk.UDPPlugin
@@ -249,7 +249,7 @@ const udpSnippets = computed(() => ({
 
 # Plugin SDK & Lifecycle
 
-This reference details the Go interfaces, embedded manifest schemas, and lifecycle hooks provided by the **TCP Warden Plugin SDK** (`github.com/routewarden/tcp-warden/plugins/sdk`).
+This reference details the Go interfaces, embedded manifest schemas, and lifecycle hooks provided by the **RouteWarden Plugin SDK** (`github.com/routewarden/cli/proxy/plugins/sdk`).
 
 ---
 

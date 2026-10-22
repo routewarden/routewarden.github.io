@@ -17,7 +17,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/routewarden/tcp-warden"><img src="https://img.shields.io/badge/TCP--Warden-L4%20Proxy-orange.svg" alt="TCP Warden L4"></a>
+  <a href="https://github.com/routewarden/cli"><img src="https://img.shields.io/badge/CLI%20&amp;%20L4%20Proxy-rwarden-orange.svg" alt="RouteWarden CLI &amp; L4"></a>
   <a href="https://github.com/routewarden/traefik-warden/actions/workflows/ci.yml"><img src="https://github.com/routewarden/traefik-warden/actions/workflows/ci.yml/badge.svg" alt="Traefik CI Status"></a>
   <a href="https://github.com/routewarden/caddy-warden/actions/workflows/ci.yml"><img src="https://github.com/routewarden/caddy-warden/actions/workflows/ci.yml/badge.svg" alt="Caddy CI Status"></a>
   <a href="https://github.com/routewarden/nginx-warden/actions/workflows/ci.yml"><img src="https://github.com/routewarden/nginx-warden/actions/workflows/ci.yml/badge.svg" alt="NGINX CI Status"></a>
@@ -34,7 +34,7 @@
 
 ## RouteWarden Documentation
 
-This repository contains the documentation, deployment guides, examples, and release references for RouteWarden across **[TCP Warden](https://github.com/routewarden/tcp-warden)**, **[Traefik](https://github.com/routewarden/traefik-warden)**, **[Caddy](https://github.com/routewarden/caddy-warden)**, and **[NGINX & OpenResty](https://github.com/routewarden/nginx-warden)**.
+This repository contains the documentation, deployment guides, examples, and release references for RouteWarden across **[RouteWarden CLI & TCP Proxy](https://github.com/routewarden/cli)**, **[Traefik](https://github.com/routewarden/traefik-warden)**, **[Caddy](https://github.com/routewarden/caddy-warden)**, and **[NGINX & OpenResty](https://github.com/routewarden/nginx-warden)**.
 
 - **Documentation Portal**: [https://routewarden.github.io/](https://routewarden.github.io/)
 - **Interactive Playground**: [https://routewarden.github.io/?playground=open](https://routewarden.github.io/?playground=open)
@@ -45,7 +45,7 @@ This repository contains the documentation, deployment guides, examples, and rel
 
 | Resource | Link | Description |
 |---|---|---|
-| **TCP Warden (tcp-warden)** | [github.com/routewarden/tcp-warden](https://github.com/routewarden/tcp-warden) | Protocol-aware Layer 4 reverse proxy, rate limiter, and protocol firewall |
+| **RouteWarden CLI & TCP Proxy (cli)** | [github.com/routewarden/cli](https://github.com/routewarden/cli) | Unified CLI daemon, dashboard, and protocol-aware Layer 4 reverse proxy (`rwarden tcp`) |
 | **Traefik Plugin (traefik-warden)** | [github.com/routewarden/traefik-warden](https://github.com/routewarden/traefik-warden) | Pure Go Traefik plugin with Yaegi compatibility |
 | **Caddy Plugin (caddy-warden)** | [github.com/routewarden/caddy-warden](https://github.com/routewarden/caddy-warden) | Official Caddy v2 security module and Caddyfile directive |
 | **NGINX Plugin (nginx-warden)** | [github.com/routewarden/nginx-warden](https://github.com/routewarden/nginx-warden) | High-performance Lua security module for NGINX & OpenResty |
@@ -109,7 +109,7 @@ http:
 
 Build Caddy with `xcaddy`:
 ```bash
-xcaddy build --with github.com/routewarden/caddy-warden@v1.2.1
+xcaddy build --with github.com/routewarden/caddy-warden@v1.6.2
 ```
 
 Configure `Caddyfile`:

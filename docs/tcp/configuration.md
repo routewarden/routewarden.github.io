@@ -223,7 +223,22 @@ const portRangeSnippets = computed(() => ({
 }))
 
 // ─── Validate Snippets ────────────────────────────────────────────────────────
-const validate_cmd = buildSnippet({
+const validate_rwarden = buildSnippet({
+  lang: 'bash',
+  code: `# Validate config syntax, CIDRs, duplicate ports, and plugin dependencies
+rwarden tcp validate -c /etc/routewarden/tcp-warden.yaml
+
+# Or using general route validation
+rwarden validate /etc/routewarden/tcp-warden.yaml
+
+# Output:
+# ✓ Configuration /etc/routewarden/tcp-warden.yaml is valid!
+#   • Global Max Connections: 10000
+#   • Services Configured:    4
+#   • CrowdSec Enabled:       true`
+})
+
+const validate_standalone = buildSnippet({
   lang: 'bash',
   code: `# Validate config syntax, CIDRs, duplicate ports, and plugin dependencies
 tcp-warden validate --config /etc/routewarden/tcp-warden.yaml
@@ -243,7 +258,8 @@ docker compose exec tcp-warden tcp-warden validate --config /etc/routewarden/tcp
 
 const validateSnippets = computed(() => ({
   tcp: [
-    { filename: 'CLI Command', lang: 'bash', code: validate_cmd.cleanCode, html: validate_cmd.html, hasDiff: false },
+    { filename: 'Unified CLI (rwarden tcp)', lang: 'bash', code: validate_rwarden.cleanCode, html: validate_rwarden.html, hasDiff: false },
+    { filename: 'Standalone (tcp-warden)', lang: 'bash', code: validate_standalone.cleanCode, html: validate_standalone.html, hasDiff: false },
     { filename: 'Docker Compose', lang: 'bash', code: validate_docker.cleanCode, html: validate_docker.html, hasDiff: false },
   ]
 }))
