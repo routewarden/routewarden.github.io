@@ -8,31 +8,38 @@ import { computed } from 'vue'
 import { buildSnippet } from '../.vitepress/theme/composables/useCodeSnippet'
 
 // ─── 1. CLI Installation Snippets ───────────────────────────────────────────
-const install_short = buildSnippet({
+const install_rwarden = buildSnippet({
+  lang: 'bash',
+  code: `# Install by short name from the official routewarden/plugins repository
+rwarden tcp plugins install http
+rwarden tcp plugins install redis
+rwarden tcp plugins install postgres
+
+# Install from a custom Git repository
+rwarden tcp plugins install https://github.com/my-org/tcp-warden-kafka
+
+# Install from a local directory (useful during plugin development)
+rwarden tcp plugins install ./my-plugin`
+})
+
+const install_standalone = buildSnippet({
   lang: 'bash',
   code: `# Install by short name from the official routewarden/plugins repository
 tcp-warden plugins install http
 tcp-warden plugins install redis
-tcp-warden plugins install postgres`
-})
+tcp-warden plugins install postgres
 
-const install_git = buildSnippet({
-  lang: 'bash',
-  code: `# Install from a custom Git repository
-tcp-warden plugins install https://github.com/my-org/tcp-warden-kafka`
-})
+# Install from a custom Git repository
+tcp-warden plugins install https://github.com/my-org/tcp-warden-kafka
 
-const install_local = buildSnippet({
-  lang: 'bash',
-  code: `# Install from a local directory (useful during plugin development)
+# Install from a local directory (useful during plugin development)
 tcp-warden plugins install ./my-plugin`
 })
 
 const installCliSnippets = computed(() => ({
   tcp: [
-    { filename: 'Official Short Name', lang: 'bash', code: install_short.cleanCode, html: install_short.html, hasDiff: false },
-    { filename: 'Git Repository', lang: 'bash', code: install_git.cleanCode, html: install_git.html, hasDiff: false },
-    { filename: 'Local Source', lang: 'bash', code: install_local.cleanCode, html: install_local.html, hasDiff: false },
+    { filename: 'Unified CLI (rwarden tcp)', lang: 'bash', code: install_rwarden.cleanCode, html: install_rwarden.html, hasDiff: false },
+    { filename: 'Standalone (tcp-warden)', lang: 'bash', code: install_standalone.cleanCode, html: install_standalone.html, hasDiff: false },
   ]
 }))
 
@@ -59,32 +66,46 @@ const declarativeSnippets = computed(() => ({
 }))
 
 // ─── 3. Plugin Management Snippets ──────────────────────────────────────────
-const manage_list = buildSnippet({
+const manage_rwarden = buildSnippet({
   lang: 'bash',
   code: `# List all installed plugins and their current status
-tcp-warden plugins list`
+rwarden tcp plugins list
+
+# Test installed plugins
+rwarden tcp plugins test
+
+# Enable a plugin (runs self-tests and updates config)
+rwarden tcp plugins enable redis
+
+# Temporarily disable a plugin without uninstalling
+rwarden tcp plugins disable redis
+
+# Remove plugin source and clean up
+rwarden tcp plugins uninstall redis`
 })
 
-const manage_toggle = buildSnippet({
+const manage_standalone = buildSnippet({
   lang: 'bash',
-  code: `# Enable a plugin (runs self-tests and updates config)
+  code: `# List all installed plugins and their current status
+tcp-warden plugins list
+
+# Test installed plugins
+tcp-warden plugins test
+
+# Enable a plugin (runs self-tests and updates config)
 tcp-warden plugins enable redis
 
 # Temporarily disable a plugin without uninstalling
-tcp-warden plugins disable redis`
-})
+tcp-warden plugins disable redis
 
-const manage_uninstall = buildSnippet({
-  lang: 'bash',
-  code: `# Remove plugin source, unregister import, and recompile binary
+# Remove plugin source, unregister import, and recompile binary
 tcp-warden plugins uninstall redis`
 })
 
 const manageSnippets = computed(() => ({
   tcp: [
-    { filename: 'List Plugins', lang: 'bash', code: manage_list.cleanCode, html: manage_list.html, hasDiff: false },
-    { filename: 'Enable / Disable', lang: 'bash', code: manage_toggle.cleanCode, html: manage_toggle.html, hasDiff: false },
-    { filename: 'Uninstall', lang: 'bash', code: manage_uninstall.cleanCode, html: manage_uninstall.html, hasDiff: false },
+    { filename: 'Unified CLI (rwarden tcp)', lang: 'bash', code: manage_rwarden.cleanCode, html: manage_rwarden.html, hasDiff: false },
+    { filename: 'Standalone (tcp-warden)', lang: 'bash', code: manage_standalone.cleanCode, html: manage_standalone.html, hasDiff: false },
   ]
 }))
 
@@ -284,7 +305,7 @@ const dockerCacheSnippets = computed(() => ({
 
 # Modular Protocol Plugins
 
-The core `tcp-warden` binary is a ultra-lightweight, high-performance Layer 4 transparent security proxy (`generic` / `tcp`).
+The core TCP Warden proxy engine in RouteWarden (`rwarden tcp` or standalone `tcp-warden`) is an ultra-lightweight, high-performance Layer 4 transparent security proxy (`generic` / `tcp`).
 
 All protocol-specific security inspectors (`ssh`, `smtp`, `pop3`, `imap`, `postgres`, `mysql`, `redis`, `http`, etc.) are modular plugins maintained in the dedicated **[`routewarden/plugins`](https://github.com/routewarden/plugins)** repository. This modular architecture ensures the core daemon remains minimal, zero-bloat, and rock-solid, while allowing operators to install only the protocols their infrastructure requires.
 
@@ -292,7 +313,7 @@ All protocol-specific security inspectors (`ssh`, `smtp`, `pop3`, `imap`, `postg
 
 ## Official Plugins
 
-TCP Warden provides **21 official plugins** in the [`routewarden/plugins`](https://github.com/routewarden/plugins) repository, covering DNS resolvers, P2P networks, database servers, mail systems, remote access, web services, caches, message brokers, and game servers. All plugins can be installed instantly with `tcp-warden plugins install <name>`.
+TCP Warden provides **21 official plugins** in the [`routewarden/plugins`](https://github.com/routewarden/plugins) repository, covering DNS resolvers, P2P networks, database servers, mail systems, remote access, web services, caches, message brokers, and game servers. All plugins can be installed instantly with `rwarden tcp plugins install <name>` (or `tcp-warden plugins install <name>`).
 
 | Plugin | Protocol(s) | Documentation | What it does |
 | :--- | :--- | :--- | :--- |

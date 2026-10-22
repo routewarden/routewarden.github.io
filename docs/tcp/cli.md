@@ -8,19 +8,45 @@ import { computed } from 'vue'
 import { buildSnippet } from '../.vitepress/theme/composables/useCodeSnippet'
 
 // ─── Global Syntax ───────────────────────────────────────────────────────────
-const global_syntax = buildSnippet({
+const syntax_rwarden = buildSnippet({
+  lang: 'bash',
+  code: `rwarden tcp [command] [flags]
+rwarden status tcp
+rwarden stop tcp`
+})
+
+const syntax_standalone = buildSnippet({
   lang: 'bash',
   code: `tcp-warden [command] [flags]`
 })
 
 const globalSyntaxSnippets = computed(() => ({
   tcp: [
-    { filename: 'Terminal', lang: 'bash', code: global_syntax.cleanCode, html: global_syntax.html, hasDiff: false },
+    { filename: 'Unified CLI (rwarden tcp)', lang: 'bash', code: syntax_rwarden.cleanCode, html: syntax_rwarden.html, hasDiff: false },
+    { filename: 'Standalone (tcp-warden)', lang: 'bash', code: syntax_standalone.cleanCode, html: syntax_standalone.html, hasDiff: false },
   ]
 }))
 
 // ─── run (Default) ───────────────────────────────────────────────────────────
-const run_cmd = buildSnippet({
+const run_rwarden = buildSnippet({
+  lang: 'bash',
+  code: `# Run in foreground (auto-resolves tcp-warden.yaml)
+rwarden tcp up
+
+# Run in background daemon mode (detached)
+rwarden tcp up -d
+
+# Run with custom config file and verbose logging
+rwarden tcp up -c /etc/routewarden/custom.yaml -v -d
+
+# Reload configuration on running daemon without dropping connections (zero-downtime)
+rwarden tcp reload
+
+# Stop running background proxy daemon
+rwarden tcp stop`
+})
+
+const run_standalone = buildSnippet({
   lang: 'bash',
   code: `# Run with default config (auto-resolves ./tcp-warden.yaml or /etc/routewarden/tcp-warden.yaml)
 tcp-warden run
@@ -31,35 +57,61 @@ tcp-warden run --config /etc/routewarden/custom.yaml`
 
 const runSnippets = computed(() => ({
   tcp: [
-    { filename: 'Terminal', lang: 'bash', code: run_cmd.cleanCode, html: run_cmd.html, hasDiff: false },
+    { filename: 'Unified CLI (rwarden tcp)', lang: 'bash', code: run_rwarden.cleanCode, html: run_rwarden.html, hasDiff: false },
+    { filename: 'Standalone (tcp-warden)', lang: 'bash', code: run_standalone.cleanCode, html: run_standalone.html, hasDiff: false },
   ]
 }))
 
 // ─── validate ────────────────────────────────────────────────────────────────
-const validate_cmd = buildSnippet({
+const validate_rwarden = buildSnippet({
+  lang: 'bash',
+  code: `# Validate TCP Warden configuration YAML
+rwarden tcp validate -c tcp-warden.yaml
+
+# or universal validate
+rwarden validate tcp-warden.yaml`
+})
+
+const validate_standalone = buildSnippet({
   lang: 'bash',
   code: `tcp-warden validate --config /etc/routewarden/tcp-warden.yaml`
 })
 
 const validateSnippets = computed(() => ({
   tcp: [
-    { filename: 'Terminal', lang: 'bash', code: validate_cmd.cleanCode, html: validate_cmd.html, hasDiff: false },
+    { filename: 'Unified CLI (rwarden tcp)', lang: 'bash', code: validate_rwarden.cleanCode, html: validate_rwarden.html, hasDiff: false },
+    { filename: 'Standalone (tcp-warden)', lang: 'bash', code: validate_standalone.cleanCode, html: validate_standalone.html, hasDiff: false },
   ]
 }))
 
 // ─── plugins list ────────────────────────────────────────────────────────────
-const plugins_list = buildSnippet({
+const plugins_list_rwarden = buildSnippet({
+  lang: 'bash',
+  code: `rwarden tcp plugins list`
+})
+
+const plugins_list_standalone = buildSnippet({
   lang: 'bash',
   code: `tcp-warden plugins list`
 })
 
 const pluginsListSnippets = computed(() => ({
   tcp: [
-    { filename: 'Terminal', lang: 'bash', code: plugins_list.cleanCode, html: plugins_list.html, hasDiff: false },
+    { filename: 'Unified CLI (rwarden tcp)', lang: 'bash', code: plugins_list_rwarden.cleanCode, html: plugins_list_rwarden.html, hasDiff: false },
+    { filename: 'Standalone (tcp-warden)', lang: 'bash', code: plugins_list_standalone.cleanCode, html: plugins_list_standalone.html, hasDiff: false },
   ]
 }))
 
 // ─── plugins install ─────────────────────────────────────────────────────────
+const install_rwarden = buildSnippet({
+  lang: 'bash',
+  code: `# Install official plugin by short name or repository
+rwarden tcp plugins install http
+rwarden tcp plugins install redis
+rwarden tcp plugins install postgres
+rwarden tcp plugins install https://github.com/routewarden/plugins/postgres`
+})
+
 const install_short = buildSnippet({
   lang: 'bash',
   code: `tcp-warden plugins install http
@@ -84,6 +136,7 @@ const install_force = buildSnippet({
 
 const pluginsInstallSnippets = computed(() => ({
   tcp: [
+    { filename: 'Unified CLI (rwarden tcp)', lang: 'bash', code: install_rwarden.cleanCode, html: install_rwarden.html, hasDiff: false },
     { filename: 'Official Short Name', lang: 'bash', code: install_short.cleanCode, html: install_short.html, hasDiff: false },
     { filename: 'Git Repository', lang: 'bash', code: install_git.cleanCode, html: install_git.html, hasDiff: false },
     { filename: 'Local Source', lang: 'bash', code: install_local.cleanCode, html: install_local.html, hasDiff: false },
@@ -116,14 +169,20 @@ const pluginsDisableSnippets = computed(() => ({
 }))
 
 // ─── plugins test ────────────────────────────────────────────────────────────
-const plugins_test = buildSnippet({
+const plugins_test_rwarden = buildSnippet({
+  lang: 'bash',
+  code: `rwarden tcp plugins test`
+})
+
+const plugins_test_standalone = buildSnippet({
   lang: 'bash',
   code: `tcp-warden plugins test`
 })
 
 const pluginsTestSnippets = computed(() => ({
   tcp: [
-    { filename: 'Terminal', lang: 'bash', code: plugins_test.cleanCode, html: plugins_test.html, hasDiff: false },
+    { filename: 'Unified CLI (rwarden tcp)', lang: 'bash', code: plugins_test_rwarden.cleanCode, html: plugins_test_rwarden.html, hasDiff: false },
+    { filename: 'Standalone (tcp-warden)', lang: 'bash', code: plugins_test_standalone.cleanCode, html: plugins_test_standalone.html, hasDiff: false },
   ]
 }))
 
@@ -153,14 +212,23 @@ const pluginsUninstallSnippets = computed(() => ({
 }))
 
 // ─── status ──────────────────────────────────────────────────────────────────
-const status_cmd = buildSnippet({
+const status_rwarden = buildSnippet({
+  lang: 'bash',
+  code: `# Check running proxy daemon status
+rwarden tcp status
+# or
+rwarden status tcp`
+})
+
+const status_standalone = buildSnippet({
   lang: 'bash',
   code: `tcp-warden status --api http://127.0.0.1:9091`
 })
 
 const statusSnippets = computed(() => ({
   tcp: [
-    { filename: 'Terminal', lang: 'bash', code: status_cmd.cleanCode, html: status_cmd.html, hasDiff: false },
+    { filename: 'Unified CLI (rwarden tcp)', lang: 'bash', code: status_rwarden.cleanCode, html: status_rwarden.html, hasDiff: false },
+    { filename: 'Standalone (tcp-warden)', lang: 'bash', code: status_standalone.cleanCode, html: status_standalone.html, hasDiff: false },
   ]
 }))
 
@@ -216,6 +284,10 @@ const versionSnippets = computed(() => ({
 # CLI Reference
 
 The `tcp-warden` binary provides built-in subcommands for starting the proxy, validating YAML configuration, installing modular protocol plugins, and managing active IP bans.
+
+::: tip Unified CLI Available
+All commands documented below can be executed directly using either the standalone `tcp-warden` binary or via the unified RouteWarden CLI as `rwarden tcp <subcommand>` (e.g. `rwarden tcp up`, `rwarden tcp reload`, `rwarden tcp plugins list`).
+:::
 
 ---
 

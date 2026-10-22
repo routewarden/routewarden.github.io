@@ -2,19 +2,96 @@
 
 All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and the CLI adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v5.2.2] - 2026-10-21 (Latest)
+## [v5.3.0] - 2026-10-21 (Latest)
+
+### Added
+- **Active Connection Health Supervisor & Ping Heartbeat (`/api/v1/ping`)**:
+  - Implemented `/api/v1/ping` on the RouteWarden dashboard server returning node status, server public key, version, and server timestamp while validating agent tokens and refreshing agent last-seen state and hostname metadata.
+  - Added an active client connection supervisor loop in `rwarden push` and standalone `rwarden-shipper` (`--ping-interval`, default: `10s`), continuously tracking dashboard reachability.
+  - Implemented fast-probing reconnection mode: whenever the dashboard is unreachable, the client accelerates health checks to 2-second intervals, immediately detecting dashboard recovery.
+- **Offline Event Queueing & Backlog Drain (`--queue-size` & `--disconnect-timeout`)**:
+  - Added `--queue-size` (default: `10,000` events) to buffer log events in memory while the central dashboard is down, restarting, or temporarily disconnected, eliminating event loss.
+  - Added `--disconnect-timeout` (default: `5m`) to safeguard edge node memory by safely pruning stale events with throttled warnings if the dashboard remains unreachable long-term.
+  - Implemented instant backlog draining upon reconnection: flushes all queued offline events in batches to the dashboard without dropping telemetry.
+- **Zero-Drop Encryption Key Rotation Auto-Recovery**:
+  - Enhanced `/api/v1/events` decryption error handling (HTTP 400) to return the dashboard's current public key when server keys rotate or reload on restart.
+  - Upgraded client `sendBatchWithRetry` / `SendBatchWithRetry` to automatically intercept decryption errors, update the cached public key, re-encrypt the payload, and retry the batch immediately with zero event loss.
+- **Global World Map Coordinate Coverage**:
+  - Expanded geographic coordinates mapping to all 249 officially assigned ISO 3166-1 alpha-2 country codes, plus regional identifiers `EU` and `AP`.
+  - Added a comprehensive country-name-to-code fallback dictionary (`CountryNameToCode` and `countryNameToCoords`) to resolve full country names returned by certain MaxMind GeoIP city databases.
+  - Removed the top-10 country truncation in custom dashboard maps, allowing full global origin visualization.
+- **Automated Data Retention & Pruning Policies (`--retention`, `--max-events`, `--prune-interval`, `--max-log-size`)**:
+  - Added configurable telemetry retention period (`--retention`, default: `30d`, supports `7d`, `48h`, or `0` for unlimited).
+  - Added maximum event capacity cap (`--max-events`, default: `100,000`, `0` = unlimited) to protect disk footprint against event flooding.
+  - Added automated background pruning supervisor (`--prune-interval`, default: `1h`) to continuously purge expired and overflow events.
+  - Added automated access log rotation (`--max-log-size`, default: `50MB`) atomically archiving `access.log` to `access.log.1`.
+  - Implemented automatic database `VACUUM` page reclamation whenever significant batches (> 500) of events are pruned, physically shrinking the `.db` file footprint.
+  - Added `rebuildSeenHashes()` to evict stale entries from deduplication memory upon pruning, keeping RAM consumption strictly proportional to active rows.
+  - Added dedicated REST endpoints `GET /api/v1/storage` (metrics & policy) and `POST /api/v1/prune` (on-demand prune & compact).
+  - Added **💾 Storage** modal in the dashboard UI with live footprint indicators and a one-click **🧹 Prune & Compact Now** action.
+- **Merged High-Performance L4 TCP/UDP Reverse Proxy (`rwarden tcp`)**:
+  - Integrated `tcp-warden` into the RouteWarden CLI repository under modular package `cli/proxy/`, keeping core networking, protocols, geoip, crowdsec, and plugins reusable across the suite.
+  - Added unified `rwarden tcp` command tree supporting foreground execution and background detached daemon mode (`up`, `down`, `status`, `validate`, `plugins`).
+  - Added Layer 4 protocol-aware inspection (HTTP, TLS SNI, SSH, Redis, PostgreSQL, MySQL), connection rate limiting, CIDR geo-blocking, dynamic IP banlist persistence, and CrowdSec LAPI remediation.
+  - Implemented modular protocol inspection plugin SDK (`rwarden tcp plugins list`, `rwarden tcp plugins test`, `rwarden tcp plugins install`).
+  - Embedded SQLite banlist storage using pure `database/sql` and `modernc.org/sqlite`, fully resolving driver registration collisions while maintaining WAL persistence.
+  - Added dedicated standalone binary `cli/cmd/tcp-warden` and ultra-lean multi-stage Alpine container (`cli/Dockerfile.tcp-warden`, <15MB) for dedicated L4 edge deployments.
+- **Zero-Downtime Daemon Reload (`rwarden tcp reload`)**:
+  - Added `rwarden tcp reload` subcommand utilizing `syscall.SIGHUP` and cross-platform process signaling to reload proxy configuration on running daemons without dropping active client connections.
+- **Static Audit Regex Syntax Linter Rule (`RW-A015`)**:
+  - `routewarden audit` validates regular expression syntax across `blockPatterns`, `allowPatterns`, and `checkBodyPatterns`, catching uncompilable patterns (e.g. unclosed brackets `[a-z`) prior to runtime deployment.
+  - Extended ReDoS catastrophic backtracking analysis (Rule `RW-A006`) and duplicate checking (Rule `RW-A008`) to include `checkBodyPatterns`.
+- **Policy Diff Completeness & Request Body Security Impact**:
+  - `DiffConfigs` and `rwarden diff` now evaluate `checkBodyPatterns`, `checkBodyMaxBytes`, `customResponseText`, and resolved response settings (`mode`, `statusCode`, `body`).
+  - Added security posture impact evaluation (`DiffImpactRelaxed` vs `DiffImpactHardened`) for body inspection toggles and pattern modifications.
+- **Shell Autocompletion & Manual Integration**:
+  - Expanded Bash, Zsh, Fish, and PowerShell completion scripts to provide rich command completion for `tcp` and its subcommands (`up`, `down`, `status`, `reload`, `plugins`).
+  - Updated the system roff manual (`rwarden.1`) via `rwarden man` documenting L4 proxy usage and daemon supervisor commands.
 
 ### Fixed
-- **SQLite Database Concurrency & Busy Locks ([sqlite_store.go](file:///Users/aman/git/routewarden/cli/observability/sqlite_store.go))**:
+- **Interactive Simulator Response Resolution Parity (`tui.go`)**:
+  - Fixed `rwarden tui` evaluating candidate paths using raw `cfg.StatusCode` instead of `cfg.ResolveResponse()`.
+  - Added support for custom response modes (`json`, `html`, `redirect`), `⏭️ BYPASSED` indicator for HTTP method overrides, and client IP allowlist explanations.
+- **Crypto Nil Key & Base64 Whitespace Robustness (`crypto/crypto.go`)**:
+  - Fixed nil-pointer dereference panics when calling `EncodePrivateKey(nil)` or `EncodePublicKey(nil)`.
+  - Added automatic whitespace and newline trimming in `DecodePrivateKey` and `DecodePublicKey` to support keys copied from shells or text files with trailing newlines.
+- **Log Stream Ingestion Leading Whitespace (`monitor.go`)**:
+  - Fixed `parseLogLine` using `TrimRight`, which caused log lines with leading whitespace (common in Docker, syslog, and indented container outputs) to fail prefix and regex matching.
+- **Daemon Shutdown Safety & Typo Protection (`daemon.go`)**:
+  - Fixed an issue where typing an invalid service name in `rwarden stop <service>` fell through to stopping all background daemons. Unknown service names are now rejected with an explicit error and exit code 1.
+  - Added `tcp` proxy daemon to `rwarden status` and `rwarden stop` global command handlers, and supported `"all"` explicitly.
+- **Subcommand Help Handling**:
+  - Fixed `rwarden tcp help`, `rwarden dashboard help`, and `rwarden push help` treating `"help"` as an argument or throwing errors.
+- **Version Synchronization Coverage (`update-version.sh`)**:
+  - Added `cmd/tcp-warden/main.go`, `proxy/plugins/sdk/sdk.go`, and `Dockerfile.tcp-warden` to automated version synchronization scripts with comprehensive test coverage.
+- **Dual-Stack IPv4-Mapped IPv6 CrowdSec Ban Bypass (`proxy/crowdsec/client.go`)**:
+  - Canonicalized IP strings via `net.ParseIP` and `parsed.To4()` across `c.Check()` and decision streams, preventing dual-stack IPv4-mapped IPv6 connections (`::ffff:x.x.x.x`) from bypassing single-IP CrowdSec bans.
+- **SSE Stream Reliability & CPU Spin Prevention (`observability/custom_dashboard.go`)**:
+  - Replaced unvalidated channel receive in `ServeSSE` with `ev, ok := <-ch` to prevent infinite CPU loops when channels close, and added write error checks to immediately terminate handlers upon client disconnect.
+- **Standalone Shipper Configuration Diagnostics (`shipper/push.go`)**:
+  - Fixed an issue where corrupt `agent.json` files failed silently or emitted inaccurate error messages when `--url` or `--key` flags were passed.
+- **Cross-Platform Windows Daemon Linters (`daemon_windows.go`)**:
+  - Replaced named unused parameters with blank identifiers (`_ int, _ syscall.Signal`) in Windows process signal stubs, satisfying strict Go linters.
+- **Event Drops During Dashboard Restarts (`push.go`, `shipper/push.go`)**:
+  - Fixed an issue where HTTP 400 errors returned during server restart or key mismatch were treated as non-retryable authentication errors, causing the entire in-flight batch to be discarded.
+- **Unstable Connected Nodes Ribbon Sorting (`manager.go`, `custom_dashboard.go`)**:
+  - Enforced deterministic lexicographical sorting by `AgentName` / `AgentID` for connected agents, preventing UI node cards from randomly shuffling on auto-refresh intervals.
+
+---
+
+## [v5.2.2] - 2026-10-21
+
+### Fixed
+- **SQLite Database Concurrency & Busy Locks (`sqlite_store.go`)**:
   - Configured WAL mode (`_journal_mode=WAL`) and a busy timeout (`_busy_timeout=5000`) on SQLite connections.
   - Implemented serialized write locking and batch transaction retries to resolve database locked errors under high event ingestion rates.
-- **Custom Dashboard Concurrency & Rendering ([custom_dashboard.go](file:///Users/aman/git/routewarden/cli/observability/custom_dashboard.go))**:
+- **Custom Dashboard Concurrency & Rendering (`custom_dashboard.go`)**:
   - Secured widget data access with proper read/write mutexes, preventing concurrent map read/write race conditions during dashboard refreshes.
   - Hardened metric calculations against division-by-zero on empty datasets.
-- **Observability Manager Lifecycle & Goroutine Cleanups ([manager.go](file:///Users/aman/git/routewarden/cli/observability/manager.go))**:
+- **Observability Manager Lifecycle & Goroutine Cleanups (`manager.go`)**:
   - Fixed goroutine leaks during monitoring and log streaming by ensuring context cancellation propagates through all worker loops.
   - Handled channel closure sequencing to eliminate race conditions during manager shutdown.
-- **Shipper Reconnection Backoff & Error Recovery ([push.go](file:///Users/aman/git/routewarden/cli/push.go), [shipper/push.go](file:///Users/aman/git/routewarden/cli/shipper/push.go))**:
+- **Shipper Reconnection Backoff & Error Recovery (`push.go`, `shipper/push.go`)**:
   - Added exponential backoff and jitter for failed shipper push connections.
   - Hardened line reading against truncated buffer allocations on unusually long log lines.
 
@@ -30,7 +107,7 @@ All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The 
   - Added `--all-logs` flag to `rwarden push` and `rwarden-shipper` to allow operators to bypass filtering and stream unparsed raw container output when explicitly requested.
 
 ### Fixed
-- **Unfiltered Docker Container Output Transmission ([push.go](file:///Users/aman/git/routewarden/cli/push.go))**:
+- **Unfiltered Docker Container Output Transmission (`push.go`)**:
   - Resolved an issue where `rwarden push` and `rwarden-shipper` unconditionally forwarded all container stdout and stderr lines, resulting in non-security container diagnostics flooding the ingest buffer.
 
 ---
@@ -58,20 +135,20 @@ All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The 
   - Added `--all-logs` flag to `rwarden push` and `rwarden-shipper` to allow operators to bypass filtering and stream unparsed raw container output when explicitly requested.
 
 ### Fixed
-- **Stream Termination Race Condition on Channel Close ([monitor.go](file:///Users/aman/git/routewarden/cli/monitor.go))**:
+- **Stream Termination Race Condition on Channel Close (`monitor.go`)**:
   - Replaced an arbitrary 100ms sleep on shutdown with a `sync.WaitGroup` tracking all active file stream routines, eliminating the race condition that triggered fatal `panic: send on closed channel` errors.
-- **Container Pipe Truncation on Stderr EOF ([manager.go](file:///Users/aman/git/routewarden/cli/observability/manager.go))**:
+- **Container Pipe Truncation on Stderr EOF (`manager.go`)**:
   - Added `sync.WaitGroup` synchronization across stdout and stderr reader pipes in `watchAndStreamContainers` before calling `cmd.Wait()`, preventing premature stream closure when containers produce no stderr output.
-- **File Descriptor Leak on Log Rotation ([manager.go](file:///Users/aman/git/routewarden/cli/observability/manager.go))**:
+- **File Descriptor Leak on Log Rotation (`manager.go`)**:
   - Fixed descriptor leak in `watchAndStreamFile` where deferred `f.Close()` closed the old file pointer by value rather than closing the dynamically updated active file descriptor.
 - **Unchecked Scanner Errors in Tail Reading**:
   - Added explicit terminal `scanner.Err()` checks across all `bufio.Scanner` loops in `push.go`, `shipper/push.go`, and `monitor.go`, preventing silent error swallowing on I/O failures or buffer overflows (`bufio.ErrTooLong`).
-- **Data Race on `Targets` Slice in `getSourceInfo()` ([manager.go](file:///Users/aman/git/routewarden/cli/observability/manager.go))**:
+- **Data Race on `Targets` Slice in `getSourceInfo()` (`manager.go`)**:
   - Implemented deep slice copy for `Targets` under `sourceMu.RLock()`, eliminating concurrent slice access between the HTTP API handler and background container discovery.
-- **Unbounded HTTP Request Body & Contention in `/api/v1/events` ([manager.go](file:///Users/aman/git/routewarden/cli/observability/manager.go))**:
+- **Unbounded HTTP Request Body & Contention in `/api/v1/events` (`manager.go`)**:
   - Enforced a 10MB limit on incoming event payloads via `io.LimitReader(r.Body, 10*1024*1024)` preventing OOM denial-of-service.
   - Decoupled `dashboardLogMu` file logging lock from `globalStore.ParseAndIngest` SQLite processing to eliminate ingest pipeline contention.
-- **Cryptographic Timing Attack in Agent Token Validation ([keys.go](file:///Users/aman/git/routewarden/cli/observability/keys.go))**:
+- **Cryptographic Timing Attack in Agent Token Validation (`keys.go`)**:
   - Switched token hash comparison to `crypto/subtle.ConstantTimeCompare`, preventing side-channel timing leaks.
 
 ---
