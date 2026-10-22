@@ -321,10 +321,10 @@ RouteWarden publishes four official, security-hardened container images on GitHu
 
 | Image | Tag | Binary Size | Intended Workload |
 |:---|:---|:---|:---|
-| `ghcr.io/routewarden/cli` | `:latest`, `:5.0.0` | ~12 MB | **Full Toolkit**: Verification, audits, tests, path simulators, code generation, sandboxes, and Docker CLI container tailing |
-| `ghcr.io/routewarden/shipper` | `:latest`, `:5.0.0` | **~6.2 MB** | **Ultra-Lean Remote Shipper**: Zero SQLite, zero UI assets. Dedicated to `rwarden push --docker` for edge nodes, IoT gateways, and low-RAM VPS instances |
-| `ghcr.io/routewarden/dashboard` | `:latest`, `:5.0.0` | ~11 MB | **Standalone SOC Dashboard**: Turnkey web dashboard server on port `7890` with embedded SQLite persistence and SSE event stream |
-| `ghcr.io/routewarden/tcp-warden` | `:latest`, `:v5.3.2` | **~14 MB** | **Dedicated L4 Reverse Proxy**: Minimal Alpine container with protocol defense engine, CrowdSec remediation, SQLite banlists, and modular plugin loader |
+| `ghcr.io/routewarden/cli` | `:latest`, `:5.3.2` | ~12 MB | **Full Toolkit**: Verification, audits, tests, path simulators, code generation, sandboxes, and Docker CLI container tailing |
+| `ghcr.io/routewarden/shipper` | `:latest`, `:5.3.2` | **~6.2 MB** | **Ultra-Lean Remote Shipper**: Zero SQLite, zero UI assets. Dedicated to `rwarden push --docker` for edge nodes, IoT gateways, and low-RAM VPS instances |
+| `ghcr.io/routewarden/dashboard` | `:latest`, `:5.3.2` | ~11 MB | **Standalone SOC Dashboard**: Turnkey web dashboard server on port `7890` with embedded SQLite persistence and SSE event stream |
+| `ghcr.io/routewarden/tcp-warden` | `:latest`, `:5.3.2` | **~14 MB** | **Dedicated L4 Reverse Proxy**: Minimal Alpine container with protocol defense engine, CrowdSec remediation, SQLite banlists, and modular plugin loader |
 
 
 ---

@@ -175,7 +175,9 @@ export function syncVersion(options = {}) {
 
   const shouldSyncTraefik = !targetApp || targetApp === 'all' || targetApp === 'traefik'
   const shouldSyncCaddy = !targetApp || targetApp === 'all' || targetApp === 'caddy'
-  const shouldSyncTcp = Boolean(appVersions.tcp) && (!targetApp || targetApp === 'all' || targetApp === 'tcp')
+  const shouldSyncTcp = Boolean(appVersions.tcp)
+    ? (!targetApp || targetApp === 'all' || targetApp === 'tcp')
+    : (!targetApp || targetApp === 'all' || targetApp === 'cli' || targetApp === 'tcp')
   const shouldSyncCli = !targetApp || targetApp === 'all' || targetApp === 'cli'
   const shouldSyncNginx = !targetApp || targetApp === 'all' || targetApp === 'nginx'
 
@@ -289,7 +291,8 @@ export function syncVersion(options = {}) {
 
   // ── 3. Synchronize TCP Warden Files ────────────────────────────────────────
   if (shouldSyncTcp) {
-    const { cleanVersion: tcpClean, semver: tcpSemver } = formatVersion(appVersions.tcp)
+    const effectiveTcp = appVersions.tcp || appVersions.cli
+    const { cleanVersion: tcpClean, semver: tcpSemver } = formatVersion(effectiveTcp)
     const tcpFiles = [
       'docs/tcp/api.md',
       'docs/tcp/getting-started.md',
@@ -300,7 +303,7 @@ export function syncVersion(options = {}) {
     for (const relPath of tcpFiles) {
       updateFileContent(relPath, (content) => {
         let updated = content
-        // Health / API status JSON snippet: "version": "3.4.0"
+        // Health / API status JSON snippet: "version": "3.4.0" -> current semver
         if (relPath.endsWith('api.md') || relPath.endsWith('getting-started.md') || relPath.endsWith('crowdsec.md')) {
           updated = updated.replace(
             /("version":\s*")[0-9]+\.[0-9]+\.[0-9]+(")/g,
@@ -313,7 +316,22 @@ export function syncVersion(options = {}) {
         }
         // GHCR container image references
         updated = updated.replace(
-          /(ghcr\.io\/routewarden\/tcp-warden:)v[0-9]+\.[0-9]+\.[0-9]+/g,
+          /(ghcr\.io\/routewarden\/tcp-warden:)v?[0-9]+\.[0-9]+\.[0-9]+/g,
+          `$1${tcpClean}`
+        )
+        // Standalone binary archive references
+        updated = updated.replace(
+          /((?:rwarden|tcp-warden)_)[0-9]+\.[0-9]+\.[0-9]+(_)/g,
+          `$1${tcpSemver}$2`
+        )
+        // Standalone binary version output
+        updated = updated.replace(
+          /((?:rwarden|tcp-warden)\s+(?:version\s+)?v?)[0-9]+\.[0-9]+\.[0-9]+/g,
+          `$1${tcpSemver}`
+        )
+        // TCP Warden Go module tag
+        updated = updated.replace(
+          /(github\.com\/routewarden\/cli\/cmd\/tcp-warden@)v?[0-9]+\.[0-9]+\.[0-9]+/g,
           `$1${tcpClean}`
         )
         return updated
@@ -327,9 +345,12 @@ export function syncVersion(options = {}) {
     const cliFiles = [
       'docs/tcp/getting-started.md',
       'docs/tcp/index.md',
-      'docs/tcp/cli.md'
+      'docs/tcp/cli.md',
+      'docs/tcp/api.md',
+      'docs/tcp/crowdsec.md'
     ]
     collectMarkdownFiles(path.join(rootDir, 'docs/cli'), rootDir, cliFiles)
+    collectMarkdownFiles(path.join(rootDir, 'docs/tcp'), rootDir, cliFiles)
 
     for (const relPath of cliFiles) {
       updateFileContent(relPath, (content) => {
@@ -343,15 +364,25 @@ export function syncVersion(options = {}) {
           `$1${cliClean}`
         )
         updated = updated.replace(
-          /(rwarden_)[0-9]+\.[0-9]+\.[0-9]+(_)/g,
+          /((?:rwarden|tcp-warden)_)[0-9]+\.[0-9]+\.[0-9]+(_)/g,
           `$1${cliSemver}$2`
         )
         updated = updated.replace(
-          /(rwarden\s+(?:version\s+)?v?)[0-9]+\.[0-9]+\.[0-9]+/g,
+          /((?:rwarden|tcp-warden)\s+(?:version\s+)?v?)[0-9]+\.[0-9]+\.[0-9]+/g,
           `$1${cliSemver}`
         )
         updated = updated.replace(
           /(github\.com\/routewarden\/cli\/cmd\/tcp-warden@)v?[0-9]+\.[0-9]+\.[0-9]+/g,
+          `$1${cliClean}`
+        )
+        // Official container distribution table tags in docs/cli/installation.md: `:latest`, `:5.0.0` or `:v5.3.2` -> `:latest`, `:5.3.2`
+        updated = updated.replace(
+          /(\| `ghcr\.io\/routewarden\/(?:cli|shipper|dashboard|tcp-warden)`\s*\|\s*`:latest`,\s*`:)v?[0-9]+\.[0-9]+\.[0-9]+(`)/g,
+          `$1${cliSemver}$2`
+        )
+        // Container image references: ghcr.io/routewarden/(cli|shipper|dashboard|tcp-warden):5.3.2
+        updated = updated.replace(
+          /(ghcr\.io\/routewarden\/(?:cli|shipper|dashboard|tcp-warden):)v?[0-9]+\.[0-9]+\.[0-9]+/g,
           `$1${cliClean}`
         )
         return updated
@@ -379,6 +410,7 @@ export function syncVersion(options = {}) {
     const { cleanVersion: nginxClean } = formatVersion(appVersions.nginx)
     const nginxFiles = ['README.md']
     collectMarkdownFiles(path.join(rootDir, 'docs/nginx'), rootDir, nginxFiles)
+    collectMarkdownFiles(path.join(rootDir, 'docs/examples'), rootDir, nginxFiles)
 
     for (const relPath of nginxFiles) {
       updateFileContent(relPath, (content) => {
@@ -403,22 +435,27 @@ export function syncVersion(options = {}) {
       if (shouldSyncTraefik) {
         const { cleanVersion: traefikClean } = formatVersion(appVersions.traefik)
         updated = updated.replace(/("traefik":\s*")v?[0-9]+\.[0-9]+\.[0-9]+(")/g, `$1${traefikClean}$2`)
+        updated = updated.replace(/(--traefik\s+)v?[0-9]+\.[0-9]+\.[0-9]+/g, `$1${traefikClean}`)
       }
       if (shouldSyncCaddy) {
         const { cleanVersion: caddyClean } = formatVersion(appVersions.caddy)
         updated = updated.replace(/("caddy":\s*")v?[0-9]+\.[0-9]+\.[0-9]+(")/g, `$1${caddyClean}$2`)
+        updated = updated.replace(/(--caddy\s+)v?[0-9]+\.[0-9]+\.[0-9]+/g, `$1${caddyClean}`)
       }
       if (shouldSyncNginx) {
         const { cleanVersion: nginxClean } = formatVersion(appVersions.nginx)
         updated = updated.replace(/("nginx":\s*")v?[0-9]+\.[0-9]+\.[0-9]+(")/g, `$1${nginxClean}$2`)
+        updated = updated.replace(/(--nginx\s+)v?[0-9]+\.[0-9]+\.[0-9]+/g, `$1${nginxClean}`)
       }
       if (shouldSyncTcp && appVersions.tcp) {
         const { cleanVersion: tcpClean } = formatVersion(appVersions.tcp)
         updated = updated.replace(/("tcp":\s*")v?[0-9]+\.[0-9]+\.[0-9]+(")/g, `$1${tcpClean}$2`)
+        updated = updated.replace(/(--tcp\s+)v?[0-9]+\.[0-9]+\.[0-9]+/g, `$1${tcpClean}`)
       }
       if (shouldSyncCli) {
         const { cleanVersion: cliClean } = formatVersion(appVersions.cli)
         updated = updated.replace(/("cli":\s*")v?[0-9]+\.[0-9]+\.[0-9]+(")/g, `$1${cliClean}$2`)
+        updated = updated.replace(/(--cli\s+)v?[0-9]+\.[0-9]+\.[0-9]+/g, `$1${cliClean}`)
       }
       return updated
     })
@@ -430,12 +467,13 @@ export function syncVersion(options = {}) {
 /**
  * Parses CLI command line arguments.
  * @param {string[]} args
- * @returns {{ app?: string, version?: string }}
+ * @returns {{ app?: string, version?: string, versions?: Record<string, string>, rootDir?: string }}
  */
 function parseArgs(args) {
   let app
   let version
   let rootDir
+  const versions = {}
 
   for (let i = 0; i < args.length; i++) {
     const arg = args[i]
@@ -450,33 +488,43 @@ function parseArgs(args) {
     } else if (arg.startsWith('--tcp=')) {
       app = 'tcp'
       version = arg.split('=')[1]
+      versions.tcp = version
     } else if (arg === '--tcp' && args[i + 1]) {
       app = 'tcp'
       version = args[++i]
+      versions.tcp = version
     } else if (arg.startsWith('--caddy=')) {
       app = 'caddy'
       version = arg.split('=')[1]
+      versions.caddy = version
     } else if (arg === '--caddy' && args[i + 1]) {
       app = 'caddy'
       version = args[++i]
+      versions.caddy = version
     } else if (arg.startsWith('--traefik=')) {
       app = 'traefik'
       version = arg.split('=')[1]
+      versions.traefik = version
     } else if (arg === '--traefik' && args[i + 1]) {
       app = 'traefik'
       version = args[++i]
+      versions.traefik = version
     } else if (arg.startsWith('--cli=')) {
       app = 'cli'
       version = arg.split('=')[1]
+      versions.cli = version
     } else if (arg === '--cli' && args[i + 1]) {
       app = 'cli'
       version = args[++i]
+      versions.cli = version
     } else if (arg.startsWith('--nginx=')) {
       app = 'nginx'
       version = arg.split('=')[1]
+      versions.nginx = version
     } else if (arg === '--nginx' && args[i + 1]) {
       app = 'nginx'
       version = args[++i]
+      versions.nginx = version
     } else if (arg.startsWith('--rootDir=') || arg.startsWith('--root=')) {
       rootDir = arg.split('=')[1]
     } else if ((arg === '--rootDir' || arg === '--root') && args[i + 1]) {
@@ -491,7 +539,14 @@ function parseArgs(args) {
     }
   }
 
-  return { app, version, rootDir }
+  const result = { rootDir }
+  if (Object.keys(versions).length > 1) {
+    result.versions = versions
+  } else {
+    result.app = app
+    result.version = version
+  }
+  return result
 }
 
 // Auto-run when executed directly via CLI

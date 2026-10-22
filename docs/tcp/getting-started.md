@@ -91,7 +91,7 @@ const verify_health = buildSnippet({
   lang: 'bash',
   code: `# Health check
 curl -s http://127.0.0.1:9091/health
-# {"status":"ok","version":"3.4.0"}
+# {"status":"ok","version":"5.3.2"}
 
 # Active service stats
 curl -s http://127.0.0.1:9091/stats
