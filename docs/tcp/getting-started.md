@@ -63,8 +63,8 @@ curl -s http://127.0.0.1:9091/health`
 
 const binary_install = buildSnippet({
   lang: 'bash',
-  code: `# macOS via Homebrew (installs both rwarden and tcp-warden)
-brew install routewarden/tap/rwarden
+  code: `# macOS via Homebrew (installs standalone tcp-warden)
+brew install routewarden/tap/tcp-warden
 
 # Linux (Debian / Ubuntu package)
 # curl -fsSL -O https://github.com/routewarden/cli/releases/latest/download/tcp-warden_linux_amd64.deb
