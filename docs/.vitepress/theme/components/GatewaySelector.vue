@@ -10,6 +10,7 @@ const activeGateway = defineModel<GatewayId>({ required: true })
 
 <template>
   <div class="rw-dropdown-wrapper">
+    <span class="rw-gw-badge">GW:</span>
     <select
       id="gateway-select"
       v-model="activeGateway"
@@ -20,20 +21,7 @@ const activeGateway = defineModel<GatewayId>({ required: true })
         {{ g.label }}
       </option>
     </select>
-    <svg
-      class="rw-dropdown-chevron"
-      xmlns="http://www.w3.org/2000/svg"
-      width="14"
-      height="14"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-    >
-      <polyline points="6 9 12 15 18 9"></polyline>
-    </svg>
+    <span class="rw-dropdown-arrow" aria-hidden="true">▾</span>
   </div>
 </template>
 
@@ -42,6 +30,19 @@ const activeGateway = defineModel<GatewayId>({ required: true })
   position: relative;
   display: inline-flex;
   align-items: center;
+  font-family: var(--vp-font-family-mono);
+}
+
+.rw-gw-badge {
+  position: absolute;
+  left: 7px;
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--rw-c-cyan);
+  pointer-events: none;
+  user-select: none;
+  opacity: 0.9;
 }
 
 .rw-gateway-select {
@@ -49,34 +50,52 @@ const activeGateway = defineModel<GatewayId>({ required: true })
   -webkit-appearance: none;
   background: var(--vp-c-bg);
   border: 1px solid var(--vp-c-divider);
-  border-radius: 6px;
-  padding: 4px 26px 4px 10px;
-  font-family: var(--vp-font-family-base);
-  font-size: 12.5px;
+  border-radius: 3px;
+  padding: 3px 22px 3px 28px;
+  font-family: var(--vp-font-family-mono);
+  font-size: 11px;
   font-weight: 600;
+  letter-spacing: 0.04em;
   color: var(--vp-c-text-1);
   cursor: pointer;
   outline: none;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.15s ease;
+  line-height: 1.4;
 }
 
 .dark .rw-gateway-select {
-  background: rgba(30, 41, 59, 0.85);
-  border-color: rgba(255, 255, 255, 0.12);
+  background: #0c1019;
+  border-color: rgba(34, 211, 238, 0.28);
   color: #f1f5f9;
 }
 
-.rw-gateway-select:hover,
-.rw-gateway-select:focus {
-  border-color: var(--vp-c-brand-1);
-  box-shadow: 0 0 0 2px var(--vp-c-brand-soft);
+.rw-gateway-select:hover {
+  border-color: var(--rw-c-cyan);
+  background: rgba(34, 211, 238, 0.05);
 }
 
-.rw-dropdown-chevron {
+.dark .rw-gateway-select:hover {
+  background: #101624;
+  border-color: var(--rw-c-cyan);
+}
+
+.rw-gateway-select:focus {
+  border-color: var(--vp-c-brand-1);
+  box-shadow: 0 0 0 1px var(--vp-c-brand-1), 0 0 8px rgba(16, 185, 129, 0.3);
+}
+
+.rw-dropdown-arrow {
   position: absolute;
-  right: 8px;
+  right: 7px;
+  font-size: 10px;
+  font-weight: 700;
   pointer-events: none;
-  color: var(--vp-c-text-2);
-  transition: transform 0.2s ease;
+  color: var(--rw-c-cyan);
+  user-select: none;
+  transition: transform 0.15s ease;
+}
+
+.rw-dropdown-wrapper:hover .rw-dropdown-arrow {
+  color: var(--vp-c-brand-1);
 }
 </style>

@@ -177,8 +177,9 @@ const snippetFormat = defineModel<string>('snippetFormat', { required: true })
 }
 
 .dark .rw-editor-tab.active {
-  color: #38bdf8;
-  border-bottom-color: #38bdf8;
+  color: var(--vp-c-brand-1);
+  border-bottom-color: var(--vp-c-brand-1);
+  text-shadow: 0 0 12px rgba(16, 185, 129, 0.35);
 }
 
 /* Editor code body */

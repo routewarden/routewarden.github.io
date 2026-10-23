@@ -7,7 +7,7 @@
 .vp-doc div[class*='language-']:not(.rw-code-viewer-container div[class*='language-']) {
   background: var(--vp-c-bg-alt) !important;
   border: 1px solid var(--vp-c-divider) !important;
-  border-radius: 10px !important;
+  border-radius: 4px !important;
   overflow: hidden !important;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04) !important;
   margin: 1.25rem 0 !important;
@@ -17,9 +17,9 @@
 }
 
 .dark .vp-doc div[class*='language-']:not(.rw-code-viewer-container div[class*='language-']) {
-  background: #0d1322 !important;
-  border-color: rgba(255, 255, 255, 0.08) !important;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35) !important;
+  background: var(--vp-c-bg-soft) !important;
+  border-color: var(--vp-c-divider) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45) !important;
 }
 
 /* Header bar — fills the 38px reserved zone */
@@ -31,14 +31,14 @@
   left: 0;
   right: 0;
   height: 38px;
-  background: var(--vp-c-bg-soft);
+  background: var(--vp-c-bg-alt);
   border-bottom: 1px solid var(--vp-c-divider);
   z-index: 1;
 }
 
 .dark .vp-doc div[class*='language-']:not(.rw-code-viewer-container div[class*='language-'])::before {
-  background: rgba(15, 23, 42, 0.7);
-  border-bottom-color: rgba(255, 255, 255, 0.07);
+  background: var(--vp-c-bg-alt);
+  border-bottom-color: var(--vp-c-divider);
 }
 
 /* Terminal dots pseudo-element completely removed */
@@ -48,16 +48,16 @@
 .vp-doc .vp-code-group:not(.rw-code-viewer-container .vp-code-group) {
   background: var(--vp-c-bg-alt) !important;
   border: 1px solid var(--vp-c-divider) !important;
-  border-radius: 10px !important;
+  border-radius: 4px !important;
   overflow: hidden !important;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04) !important;
   margin: 1.25rem 0 !important;
 }
 
 .dark .vp-doc .vp-code-group:not(.rw-code-viewer-container .vp-code-group) {
-  background: #0d1322 !important;
-  border-color: rgba(255, 255, 255, 0.08) !important;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35) !important;
+  background: var(--vp-c-bg-soft) !important;
+  border-color: var(--vp-c-divider) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45) !important;
 }
 
 /* Remove borders, padding, and pseudo-elements from the inner code blocks */
@@ -91,8 +91,8 @@
 }
 
 .dark .vp-doc .vp-code-group .tabs {
-  background: rgba(15, 23, 42, 0.7) !important;
-  border-bottom-color: rgba(255, 255, 255, 0.07) !important;
+  background: var(--vp-c-bg-alt) !important;
+  border-bottom-color: var(--vp-c-divider) !important;
 }
 
 /* Style the VitePress tabs to look like our underline tabs */
@@ -136,8 +136,9 @@
 }
 
 .dark .vp-doc .vp-code-group .tabs input:checked + label {
-  color: #38bdf8 !important;
-  border-bottom-color: #38bdf8 !important;
+  color: var(--vp-c-brand-1) !important;
+  border-bottom-color: var(--vp-c-brand-1) !important;
+  text-shadow: 0 0 12px rgba(16, 185, 129, 0.35);
 }
 
 /* --- END VP-CODE-GROUP SUPPORT --- */
@@ -298,8 +299,8 @@
 }
 
 .dark .vp-doc div[class*='language-'] pre .line.highlighted {
-  background: rgba(56, 189, 248, 0.1) !important;
-  border-left-color: #38bdf8 !important;
+  background: var(--vp-c-brand-soft) !important;
+  border-left-color: var(--vp-c-brand-1) !important;
 }
 
 /* Ensure CodeViewer inside custom-blocks (tip, warning, info, etc.) never inherits background tints or colors */

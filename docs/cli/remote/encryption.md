@@ -40,6 +40,30 @@ const decryptedBatchSnippets = computed(() => ({
     { filename: 'Decrypted Event Batch Schema', lang: 'json', code: decrypted_batch.cleanCode, html: decrypted_batch.html, hasDiff: false },
   ],
 }))
+
+const encryption_flow = buildSnippet({
+  lang: 'text',
+  code: `[ Remote Shipper ]                                              [ Central Dashboard ]
+       │                                                                 │
+       │  1. Generate ephemeral X25519 keypair (priv_e, pub_e)           │
+       │  2. Compute shared_secret = ECDH(priv_e, server_pub)           │
+       │  3. Derive session_key = HKDF-SHA256(shared_secret)             │
+       │  4. Encrypt payload with AES-256-GCM (nonce, ciphertext, tag)   │
+       │                                                                 │
+       │     POST /api/v1/events                                         │
+       │     { ephemeral_pub, nonce, ciphertext }                        │
+       ├────────────────────────────────────────────────────────────────►│
+       │                                                                 │ 5. Compute shared_secret = ECDH(server_priv, ephemeral_pub)
+       │                                                                 │ 6. Derive session_key = HKDF-SHA256(shared_secret)
+       │                                                                 │ 7. Decrypt & verify tag with AES-256-GCM
+       │                                                                 │ 8. Ingest verified logs into RouteWarden SOC engine`,
+})
+
+const encryptionFlowSnippets = computed(() => ({
+  cli: [
+    { filename: 'Per-Batch Encryption Flow', lang: 'text', code: encryption_flow.cleanCode, html: encryption_flow.html, hasDiff: false },
+  ],
+}))
 </script>
 
 # End-to-End Cryptography & Security Model
@@ -67,22 +91,7 @@ RouteWarden relies strictly on audited, modern cryptographic primitives from the
 
 Each batch of security events is encrypted independently with an ephemeral keypair:
 
-```text
-[ Remote Shipper ]                                              [ Central Dashboard ]
-       │                                                                 │
-       │  1. Generate ephemeral X25519 keypair (priv_e, pub_e)           │
-       │  2. Compute shared_secret = ECDH(priv_e, server_pub)           │
-       │  3. Derive session_key = HKDF-SHA256(shared_secret)             │
-       │  4. Encrypt payload with AES-256-GCM (nonce, ciphertext, tag)   │
-       │                                                                 │
-       │     POST /api/v1/events                                         │
-       │     { ephemeral_pub, nonce, ciphertext }                        │
-       ├────────────────────────────────────────────────────────────────►│
-       │                                                                 │ 5. Compute shared_secret = ECDH(server_priv, ephemeral_pub)
-       │                                                                 │ 6. Derive session_key = HKDF-SHA256(shared_secret)
-       │                                                                 │ 7. Decrypt & verify tag with AES-256-GCM
-       │                                                                 │ 8. Ingest verified logs into RouteWarden SOC engine
-```
+<CodeViewer :snippets="encryptionFlowSnippets" />
 
 ### Properties of this Design:
 - **Perfect Forward Secrecy (PFS)**: A new ephemeral X25519 keypair is generated for every single batch. Even if a shipper node is physically compromised, past encrypted transmissions captured on the wire cannot be decrypted.

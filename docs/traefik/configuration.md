@@ -150,6 +150,34 @@ const auditLogSnippets = computed(() => ({
     { filename: 'routewarden_block.json', lang: 'json', code: audit_event.cleanCode, html: audit_event.html, hasDiff: false },
   ],
 }))
+
+// ─── Methods Inspection Snippets ───────────────────────────────────────────
+const wildcard_methods = buildSnippet({
+  lang: 'yaml',
+  code: `methods:
+  - "*"`,
+})
+
+const wildcardMethodsSnippets = computed(() => ({
+  traefik: [
+    { filename: 'traefik.yaml', lang: 'yaml', code: wildcard_methods.cleanCode, html: wildcard_methods.html, hasDiff: false },
+  ],
+}))
+
+const expanded_methods = buildSnippet({
+  lang: 'yaml',
+  code: `methods:
+  - "GET"
+  - "POST"
+  - "PUT"
+  - "PATCH"`,
+})
+
+const expandedMethodsSnippets = computed(() => ({
+  traefik: [
+    { filename: 'traefik.yaml', lang: 'yaml', code: expanded_methods.cleanCode, html: expanded_methods.html, hasDiff: false },
+  ],
+}))
 </script>
 
 # Traefik Warden: Configuration Reference
@@ -305,22 +333,13 @@ You can configure `methods` to inspect additional HTTP request verbs (e.g. `POST
 
 To inspect all incoming HTTP request methods without enumerating each verb individually, supply `"*"` or `"ALL"` (case-insensitive):
 
-```yaml
-methods:
-  - "*"
-```
+<CodeViewer :snippets="wildcardMethodsSnippets" />
 
 ### Automatic Method Expansion for Request Body Inspection
 
 When body inspection is enabled (`checkBody: true` or custom `checkBodyPatterns` configured) and `methods` is left at the default `["GET"]`, RouteWarden automatically expands `methods` to:
 
-```yaml
-methods:
-  - "GET"
-  - "POST"
-  - "PUT"
-  - "PATCH"
-```
+<CodeViewer :snippets="expandedMethodsSnippets" />
 
 This ensures that incoming payload-bearing mutation requests (`POST`, `PUT`, `PATCH`) are inspected automatically without requiring boilerplate configuration. If you explicitly specify `methods`, your custom list is preserved as configured.
 

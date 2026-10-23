@@ -31,20 +31,16 @@ function copy() {
     class="rw-copy-btn"
     :class="{ copied }"
     :title="copied ? 'Copied to clipboard' : title"
+    :aria-label="copied ? 'Copied to clipboard' : title"
     @click="copy"
   >
-    <span v-if="copied" class="rw-copy-text">
-      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="20 6 9 17 4 12"></polyline>
-      </svg>
-      Copied
+    <span v-if="copied" class="rw-copy-content">
+      <span class="rw-btn-glyph">✓</span>
+      <span>Copied</span>
     </span>
-    <span v-else class="rw-copy-text">
-      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-      </svg>
-      Copy
+    <span v-else class="rw-copy-content">
+      <span class="rw-btn-glyph">⎘</span>
+      <span>Copy</span>
     </span>
   </button>
 </template>
@@ -53,38 +49,55 @@ function copy() {
 .rw-copy-btn {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  justify-content: center;
+  font-family: var(--vp-font-family-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: var(--vp-c-text-2);
   background: var(--vp-c-bg);
   border: 1px solid var(--vp-c-divider);
-  border-radius: 6px;
-  padding: 4px 9px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--vp-c-text-2);
+  border-radius: 3px;
+  padding: 3px 8px;
   cursor: pointer;
+  outline: none;
   transition: all 0.15s ease;
+  line-height: 1.4;
+  white-space: nowrap;
 }
 
 .dark .rw-copy-btn {
-  background: rgba(30, 41, 59, 0.85);
-  border-color: rgba(255, 255, 255, 0.12);
-  color: var(--vp-c-text-2);
+  background: #0d121c;
+  border-color: rgba(148, 163, 184, 0.2);
+  color: #94a3b8;
+}
+
+.rw-copy-content {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.rw-btn-glyph {
+  font-size: 11.5px;
+  line-height: 1;
 }
 
 .rw-copy-btn:hover {
   border-color: var(--vp-c-brand-1);
   color: var(--vp-c-brand-1);
+  background: rgba(16, 185, 129, 0.08);
+}
+
+.dark .rw-copy-btn:hover {
+  background: rgba(16, 185, 129, 0.12);
+  border-color: var(--vp-c-brand-1);
 }
 
 .rw-copy-btn.copied {
-  background: rgba(16, 185, 129, 0.15);
-  border-color: #10b981;
-  color: #10b981;
-}
-
-.rw-copy-text {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
+  background: rgba(16, 185, 129, 0.15) !important;
+  border-color: var(--vp-c-brand-1) !important;
+  color: var(--vp-c-brand-1) !important;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.35) !important;
 }
 </style>

@@ -1021,6 +1021,21 @@ const immichArchSnippets = computed(() => ({
     { filename: 'Dual-Router Architecture', lang: 'mermaid', code: immich_mermaid_raw, html: immich_graph_svg, hasDiff: false },
   ],
 }))
+
+const stealth_response = buildSnippet({
+  lang: 'json',
+  code: `"response": {
+  "mode": "json",
+  "statusCode": 404,
+  "body": "{\\"error\\":\\"Not Found\\",\\"message\\":\\"Endpoint unavailable on public router\\"}"
+}`,
+})
+
+const stealthResponseSnippets = computed(() => ({
+  traefik: [
+    { filename: 'response-stealth.json', lang: 'json', code: stealth_response.cleanCode, html: stealth_response.html, hasDiff: false },
+  ],
+}))
 </script>
 
 # Case Study: Dual-Router Security for Immich Self-Hosted Photos
@@ -1117,13 +1132,7 @@ Because RouteWarden evaluates `allowPatterns` **before** testing block patterns,
 
 In our snippets, the recommended response is **`mode: json`** (or **`mode: html`**) with **`statusCode: 404`**:
 
-```json
-"response": {
-  "mode": "json",
-  "statusCode": 404,
-  "body": "{\"error\":\"Not Found\",\"message\":\"Endpoint unavailable on public router\"}"
-}
-```
+<CodeViewer :snippets="stealthResponseSnippets" />
 
 > [!IMPORTANT]
 > If your reverse proxy is placed behind an edge proxy or CDN (such as Cloudflare, Traefik edge gateway, AWS ALB, or NGINX), avoid using `mode: silentDrop`. 

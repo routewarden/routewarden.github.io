@@ -1,27 +1,90 @@
 /* ============================================================
-   Brand & Global Design Tokens
+   RouteWarden ASCII / TUI Theme Design Tokens
+   Theme: "ASCII Sentry" (Terminal Phosphor & Box-Drawing Edition)
    ============================================================ */
+
 :root {
-  --vp-c-brand-1: #2563eb;
-  --vp-c-brand-2: #1d4ed8;
-  --vp-c-brand-3: #1e40af;
-  --vp-c-brand-soft: rgba(37, 99, 235, 0.08);
+  /* Typography Families — Monospace everywhere for authentic ASCII aesthetic */
+  --vp-font-family-base: 'JetBrains Mono', ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Monaco, Consolas, monospace;
+  --vp-font-family-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Monaco, Consolas, monospace;
+  --rw-font-display: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --rw-font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* Light Mode Palette (Crisp Paper Terminal) */
+  --vp-c-bg: #f8fafc;
+  --vp-c-bg-soft: #ffffff;
+  --vp-c-bg-alt: #f1f5f9;
+  --vp-c-bg-elv: #ffffff;
 
   --vp-c-divider: #e2e8f0;
-  --vp-c-bg-soft: #f8fafc;
-  --vp-c-bg-alt: #f1f5f9;
+  --vp-c-gutter: #f1f5f9;
+
+  --vp-c-text-1: #0f172a;
+  --vp-c-text-2: #475569;
+  --vp-c-text-3: #64748b;
+
+  /* Terminal Brand Accents */
+  --vp-c-brand-1: #059669;
+  --vp-c-brand-2: #047857;
+  --vp-c-brand-3: #065f46;
+  --vp-c-brand-soft: rgba(5, 150, 105, 0.08);
+  --vp-c-brand-glow: rgba(5, 150, 105, 0.2);
+
+  /* Terminal Telemetry */
+  --rw-c-secure: #059669;
+  --rw-c-secure-bg: rgba(5, 150, 105, 0.08);
+  --rw-c-warn: #d97706;
+  --rw-c-warn-bg: rgba(217, 119, 6, 0.08);
+  --rw-c-threat: #e11d48;
+  --rw-c-threat-bg: rgba(225, 29, 72, 0.08);
+  --rw-c-cyan: #0891b2;
+  --rw-c-cyan-bg: rgba(8, 145, 178, 0.08);
+  --rw-c-indigo: #4f46e5;
+  --rw-c-indigo-bg: rgba(79, 70, 229, 0.08);
+
+  /* Terminal Borders & Geometry */
+  --rw-border-radius: 4px;
+  --rw-glass-bg: rgba(255, 255, 255, 0.94);
+  --rw-glass-border: 1px solid #e2e8f0;
+  --rw-card-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
 }
 
 .dark {
-  --vp-c-bg: #090d16;
-  --vp-c-bg-soft: #0f172a;
-  --vp-c-bg-alt: #131d33;
-  --vp-c-divider: #1e293b;
-  --vp-c-text-1: #f8fafc;
-  --vp-c-text-2: #94a3b8;
+  /* Dark Mode Palette (Terminal Phosphor & Deep Obsidian) */
+  --vp-c-bg: #0c0f17;
+  --vp-c-bg-soft: #111522;
+  --vp-c-bg-alt: #182035;
+  --vp-c-bg-elv: #1c243d;
 
-  --vp-c-brand-1: #38bdf8;
-  --vp-c-brand-2: #0ea5e9;
-  --vp-c-brand-3: #0284c7;
-  --vp-c-brand-soft: rgba(56, 189, 248, 0.12);
+  --vp-c-divider: #1c243d;
+  --vp-c-gutter: rgba(16, 185, 129, 0.06);
+
+  --vp-c-text-1: #e2e8f0;
+  --vp-c-text-2: #94a3b8;
+  --vp-c-text-3: #64748b;
+
+  /* Terminal Brand Accents (Soothing Phosphor Mint & Cyan) */
+  --vp-c-brand-1: #10b981;
+  --vp-c-brand-2: #059669;
+  --vp-c-brand-3: #047857;
+  --vp-c-brand-soft: rgba(16, 185, 129, 0.12);
+  --vp-c-brand-glow: rgba(16, 185, 129, 0.35);
+
+  /* Terminal Telemetry Status Colors */
+  --rw-c-secure: #10b981;
+  --rw-c-secure-bg: rgba(16, 185, 129, 0.12);
+  --rw-c-warn: #f59e0b;
+  --rw-c-warn-bg: rgba(245, 158, 11, 0.12);
+  --rw-c-threat: #f43f5e;
+  --rw-c-threat-bg: rgba(244, 63, 94, 0.14);
+  --rw-c-cyan: #22d3ee;
+  --rw-c-cyan-bg: rgba(34, 211, 238, 0.12);
+  --rw-c-indigo: #818cf8;
+  --rw-c-indigo-bg: rgba(129, 140, 248, 0.12);
+
+  /* Terminal Borders & Geometry */
+  --rw-border-radius: 4px;
+  --rw-glass-bg: rgba(17, 21, 34, 0.94);
+  --rw-glass-border: 1px solid #1c243d;
+  --rw-card-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 1px 1px rgba(16, 185, 129, 0.15);
 }

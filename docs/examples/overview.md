@@ -1,3 +1,21 @@
+<script setup>
+import { computed } from 'vue'
+import { buildSnippet } from '../.vitepress/theme/composables/useCodeSnippet'
+
+const clone_code = buildSnippet({
+  lang: 'bash',
+  code: `git clone https://github.com/routewarden/traefik-warden.git
+cd routewarden/examples/01-basic-sensitive-files
+docker compose up -d`,
+})
+
+const runnableSnippets = computed(() => ({
+  traefik: [
+    { filename: 'run-example.sh', lang: 'bash', code: clone_code.cleanCode, html: clone_code.html, hasDiff: false },
+  ],
+}))
+</script>
+
 # Examples & Cookbook Overview
 
 Browse ready-to-run configurations and production blueprints for RouteWarden across different deployment targets.
@@ -47,8 +65,4 @@ Browse ready-to-run configurations and production blueprints for RouteWarden acr
 
 All examples are checked directly into the [`examples/`](https://github.com/routewarden/traefik-warden/tree/main/examples) directory of the RouteWarden GitHub repository. You can clone the repo and run any scenario in seconds:
 
-```bash
-git clone https://github.com/routewarden/traefik-warden.git
-cd routewarden/examples/01-basic-sensitive-files
-docker compose up -d
-```
+<CodeViewer :snippets="runnableSnippets" />

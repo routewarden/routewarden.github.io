@@ -169,6 +169,17 @@ const apiSnippets = computed(() => ({
     { filename: 'caddy-api.json', lang: 'json', code: api_code.cleanCode, html: api_code.html, hasDiff: api_code.hasDiff },
   ],
 }))
+
+const order_error = buildSnippet({
+  lang: 'text',
+  code: `directive 'routewarden' is not an ordered HTTP handler, so it cannot be used here - try placing within a route block or using the order global option`,
+})
+
+const orderErrorSnippets = computed(() => ({
+  caddy: [
+    { filename: 'caddy.log', lang: 'text', code: order_error.cleanCode, html: order_error.html, hasDiff: false },
+  ],
+}))
 </script>
 
 # Caddy Warden: Caddyfile Reference
@@ -181,9 +192,7 @@ Comprehensive syntax and configuration options for **Caddy Warden** (`github.com
 
 Caddy evaluates HTTP handler directives strictly according to an internal order. Custom third-party directives like `routewarden` (or `route_warden`) do not have a hardcoded position in Caddy's directive list. If placed alongside handlers like `reverse_proxy` without ordering, Caddy fails at startup with:
 
-```text
-directive 'routewarden' is not an ordered HTTP handler, so it cannot be used here - try placing within a route block or using the order global option
-```
+<CodeViewer :snippets="orderErrorSnippets" />
 
 To resolve this, declare directive ordering in your Caddyfile's global options block:
 

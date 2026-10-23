@@ -1,169 +1,359 @@
 /* ============================================================
-   Homepage & Documentation Custom Layouts
+   Homepage & Documentation Layouts (ASCII / TUI Edition)
+   Theme: "ASCII Sentry" (Terminal Phosphor & Box-Drawing Frame)
    ============================================================ */
 
-/* Homepage Pipeline Grid */
+/* Global Headings Typography — Monospace throughout */
+h1, h2, h3, h4, h5, h6, .VPHero .name, .VPNavBarTitle {
+  font-family: var(--rw-font-mono) !important;
+  letter-spacing: -0.01em;
+}
+
+/* Markdown Headings Terminal Prefix */
+.vp-doc h2 {
+  font-family: var(--rw-font-mono);
+  font-weight: 700;
+  border-top: 1px solid var(--vp-c-divider);
+  padding-top: 24px;
+}
+
+.vp-doc h2::before {
+  content: '## ';
+  color: var(--vp-c-brand-1);
+  opacity: 0.75;
+}
+
+.vp-doc h3 {
+  font-family: var(--rw-font-mono);
+  font-weight: 700;
+}
+
+.vp-doc h3::before {
+  content: '### ';
+  color: var(--rw-c-cyan);
+  opacity: 0.75;
+}
+
+/* Terminal Scanline & Phosphor Wireframe Grid */
+.dark body {
+  background-color: var(--vp-c-bg);
+  background-image:
+    radial-gradient(circle at 50% -5%, rgba(16, 185, 129, 0.08) 0%, transparent 50%),
+    linear-gradient(rgba(16, 185, 129, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(16, 185, 129, 0.03) 1px, transparent 1px);
+  background-size: 100% 100%, 32px 32px, 32px 32px;
+  background-attachment: fixed;
+}
+
+/* Hero Section: The ASCII Banner replaces the default .VPHero .name */
+.VPHero .name {
+  display: none !important;
+}
+
+.VPHero .text {
+  font-family: var(--rw-font-mono) !important;
+  font-size: 1.15rem !important;
+  color: var(--vp-c-text-2) !important;
+  letter-spacing: 0.02em;
+  line-height: 1.5 !important;
+}
+
+.VPHero .tagline {
+  font-family: var(--rw-font-mono) !important;
+  font-size: 0.92rem !important;
+  line-height: 1.6 !important;
+  color: var(--vp-c-text-2) !important;
+}
+
+/* Terminal Action Buttons [ ... ] */
+.VPHero .actions .VPButton {
+  font-family: var(--rw-font-mono) !important;
+  font-size: 12.5px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.04em !important;
+  border-radius: 4px !important;
+  padding: 0 16px !important;
+  height: 38px !important;
+  line-height: 36px !important;
+  transition: all 0.15s ease !important;
+}
+
+.VPHero .actions .VPButton.brand {
+  border: 1px solid var(--vp-c-brand-1) !important;
+  background: var(--vp-c-bg-soft) !important;
+  color: var(--vp-c-brand-1) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.VPHero .actions .VPButton.brand:hover {
+  background: var(--vp-c-brand-1) !important;
+  color: #070a12 !important;
+  box-shadow: 0 0 16px var(--vp-c-brand-glow) !important;
+  transform: translateY(-1px);
+}
+
+.VPHero .actions .VPButton.alt {
+  border: 1px solid var(--vp-c-divider) !important;
+  background: var(--vp-c-bg-soft) !important;
+  color: var(--vp-c-text-1) !important;
+}
+
+.VPHero .actions .VPButton.alt:hover {
+  border-color: var(--vp-c-brand-1) !important;
+  color: var(--vp-c-brand-1) !important;
+  transform: translateY(-1px);
+}
+
+/* Feature Cards (Terminal Box Style) */
+.VPFeature {
+  border: 1px solid var(--vp-c-divider) !important;
+  background: var(--vp-c-bg-soft) !important;
+  border-radius: 4px !important;
+  transition: all 0.2s ease !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.VPFeature:hover {
+  border-color: var(--vp-c-brand-1) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 20px -4px rgba(0, 0, 0, 0.4), 0 0 1px 1px rgba(16, 185, 129, 0.2) !important;
+}
+
+.VPFeature .title {
+  font-family: var(--rw-font-mono) !important;
+  font-weight: 700 !important;
+  font-size: 15px !important;
+  letter-spacing: 0.02em;
+}
+
+.VPFeature .title::before {
+  content: '[+] ';
+  color: var(--vp-c-brand-1);
+}
+
+.VPFeature .details {
+  font-family: var(--rw-font-mono) !important;
+  font-size: 12.5px !important;
+  line-height: 1.55 !important;
+  color: var(--vp-c-text-2) !important;
+}
+
+/* Tactical Homepage Pipeline Grid (ASCII TUI Stages) */
 .home-pipeline {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 16px;
-  margin: 28px 0;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 14px;
+  margin: 32px 0;
 }
 
 .pipeline-step {
   background: var(--vp-c-bg-soft);
   border: 1px solid var(--vp-c-divider);
-  border-radius: 12px;
-  padding: 18px 20px;
-  transition: transform 0.2s ease, border-color 0.2s ease;
+  border-radius: 4px;
+  padding: 18px;
+  transition: all 0.2s ease;
+  position: relative;
 }
 
 .pipeline-step:hover {
   transform: translateY(-2px);
   border-color: var(--vp-c-brand-1);
+  box-shadow: 0 6px 20px -4px rgba(0, 0, 0, 0.4), 0 0 1px 1px rgba(16, 185, 129, 0.2);
 }
 
 .pipeline-num {
-  font-size: 12px;
+  font-family: var(--rw-font-mono);
+  font-size: 11px;
   font-weight: 700;
   color: var(--vp-c-brand-1);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 6px;
+  letter-spacing: 0.06em;
+  margin-bottom: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pipeline-num::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--vp-c-brand-1);
+  box-shadow: 0 0 8px var(--vp-c-brand-1);
 }
 
 .pipeline-title {
-  font-size: 16px;
-  font-weight: 600;
+  font-family: var(--rw-font-mono);
+  font-size: 14px;
+  font-weight: 700;
   margin-bottom: 8px;
   color: var(--vp-c-text-1);
+  letter-spacing: 0.02em;
 }
 
 .pipeline-desc {
-  font-size: 13px;
+  font-family: var(--rw-font-mono);
+  font-size: 12px;
   color: var(--vp-c-text-2);
-  line-height: 1.5;
+  line-height: 1.55;
 }
 
-/* Attack Cards Grid */
+/* Attack Cards Grid (TUI Attack Vector Cards) */
 .attack-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 16px;
-  margin: 24px 0;
+  gap: 14px;
+  margin: 28px 0;
 }
 
 .attack-card {
-  background: var(--vp-c-bg-alt);
+  background: var(--vp-c-bg-soft);
   border: 1px solid var(--vp-c-divider);
-  border-radius: 10px;
-  padding: 16px;
+  border-radius: 4px;
+  padding: 16px 18px;
+  transition: all 0.15s ease;
+}
+
+.attack-card:hover {
+  border-color: var(--rw-c-cyan);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px -4px rgba(34, 211, 238, 0.15);
 }
 
 .attack-card h4 {
+  font-family: var(--rw-font-mono);
   margin: 0 0 8px 0;
-  font-size: 15px;
+  font-size: 13.5px;
+  font-weight: 700;
   display: flex;
   align-items: center;
   gap: 8px;
+  color: var(--vp-c-text-1);
+}
+
+.attack-card h4::before {
+  content: '>';
+  color: var(--rw-c-cyan);
+  font-weight: 700;
 }
 
 .attack-card p {
-  font-size: 13px;
+  font-family: var(--rw-font-mono);
+  font-size: 12px;
   color: var(--vp-c-text-2);
   margin: 0;
-  line-height: 1.5;
+  line-height: 1.55;
 }
 
-/* Active Defense Gzip Bomb Banner */
+/* Active Defense Gzip Bomb Tactical ASCII Alert Banner */
 .bomb-callout {
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(249, 115, 22, 0.08) 100%);
-  border: 1px solid rgba(239, 68, 68, 0.35);
-  border-radius: 12px;
+  background: rgba(244, 63, 94, 0.06);
+  border: 1px solid rgba(244, 63, 94, 0.4);
+  border-radius: 4px;
   padding: 20px 24px;
-  margin: 24px 0 28px;
+  margin: 28px 0 32px;
   position: relative;
   overflow: hidden;
+  box-shadow: 0 8px 24px -6px rgba(244, 63, 94, 0.15);
+}
+
+.bomb-callout::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--rw-c-threat);
+  box-shadow: 0 0 10px var(--rw-c-threat);
 }
 
 .bomb-callout-header {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 10px;
+  gap: 12px;
+  margin-bottom: 12px;
 }
 
 .bomb-badge {
-  background: #ef4444;
+  background: var(--rw-c-threat);
   color: #fff;
-  font-size: 11px;
+  font-family: var(--rw-font-mono);
+  font-size: 10.5px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   padding: 2px 8px;
-  border-radius: 9999px;
+  border-radius: 3px;
   display: inline-block;
+  box-shadow: 0 0 10px rgba(244, 63, 94, 0.4);
 }
 
 .bomb-callout-title {
-  font-size: 16px;
+  font-family: var(--rw-font-mono);
+  font-size: 15px;
   font-weight: 700;
   color: var(--vp-c-text-1);
   margin: 0;
+  letter-spacing: 0.03em;
 }
 
 .bomb-callout-body {
-  font-size: 13.5px;
+  font-family: var(--rw-font-mono);
+  font-size: 12.5px;
   line-height: 1.6;
   color: var(--vp-c-text-2);
-  margin: 0 0 12px 0;
+  margin: 0 0 14px 0;
 }
 
 .bomb-callout-code {
-  background: var(--vp-c-bg-alt);
-  border: 1px solid var(--vp-c-divider);
-  border-radius: 8px;
-  padding: 10px 14px;
+  background: var(--vp-c-bg-soft);
+  border: 1px solid rgba(244, 63, 94, 0.25);
+  border-radius: 4px;
+  padding: 12px 16px;
   font-family: var(--vp-font-family-mono);
-  font-size: 12.5px;
-  color: var(--vp-c-brand-1);
+  font-size: 12px;
+  color: #fca5a5;
   overflow-x: auto;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
 .bomb-callout-warning {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
-  background: rgba(234, 179, 8, 0.1);
-  border: 1px solid rgba(234, 179, 8, 0.35);
-  border-radius: 8px;
-  padding: 10px 14px;
-  font-size: 12.5px;
-  line-height: 1.5;
+  gap: 10px;
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: 4px;
+  padding: 12px 16px;
+  font-size: 12px;
+  line-height: 1.55;
   color: var(--vp-c-text-1);
+  font-family: var(--rw-font-mono);
 }
 
 .bomb-callout-warning strong {
-  color: #eab308;
+  color: #fbbf24;
 }
 
-/* RouteWarden Syntax Highlighting Tokens (Light & Dark) */
+/* RouteWarden Cyber Syntax Highlighting Tokens (Light & Dark) */
 .tok-comment { color: #94a3b8; font-style: italic; }
-.dark .tok-comment { color: #64748b; }
-.tok-keyword { color: #7c3aed; font-weight: 600; }
-.dark .tok-keyword { color: #c084fc; }
-.tok-section { color: #6d28d9; font-weight: 700; }
-.dark .tok-section { color: #d8b4fe; }
+.dark .tok-comment { color: #64748b; font-style: italic; }
+.tok-keyword { color: #6d28d9; font-weight: 600; }
+.dark .tok-keyword { color: #c084fc; font-weight: 600; }
+.tok-section { color: #4338ca; font-weight: 700; }
+.dark .tok-section { color: #a5b4fc; font-weight: 700; }
 .tok-key { color: #0284c7; font-weight: 600; }
-.dark .tok-key { color: #38bdf8; }
+.dark .tok-key { color: #38bdf8; font-weight: 600; }
 .tok-str { color: #059669; }
 .dark .tok-str { color: #34d399; }
 .tok-num { color: #d97706; font-weight: 600; }
-.dark .tok-num { color: #fbbf24; }
-.tok-bool { color: #db2777; font-weight: 600; }
-.dark .tok-bool { color: #f472b6; }
-.tok-verb { color: #2563eb; font-weight: 700; }
-.dark .tok-verb { color: #60a5fa; }
+.dark .tok-num { color: #fbbf24; font-weight: 600; }
+.tok-bool { color: #e11d48; font-weight: 600; }
+.dark .tok-bool { color: #f472b6; font-weight: 600; }
+.tok-verb { color: #0284c7; font-weight: 700; }
+.dark .tok-verb { color: #22d3ee; font-weight: 700; }
 .tok-punct { color: var(--vp-c-text-3); }
 .tok-val { color: var(--vp-c-text-1); }
