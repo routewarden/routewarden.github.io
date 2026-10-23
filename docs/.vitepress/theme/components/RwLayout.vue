@@ -137,6 +137,7 @@ onUnmounted(() => {
       >
         <span class="rw-pulse-dot" aria-hidden="true"></span>
         <span class="rw-nav-label">[ PLAYGROUND ]</span>
+        <span class="rw-nav-label-mobile">PLAY</span>
       </button>
     </template>
 
@@ -315,21 +316,41 @@ onUnmounted(() => {
   }
 }
 
-@media (max-width: 960px) {
+.rw-nav-label-mobile {
+  display: none;
+}
+
+@media (max-width: 960px) and (min-width: 768px) {
+  .rw-nav-trigger {
+    height: 30px;
+    padding: 0 8px;
+    margin-left: 6px;
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 767px) {
   .rw-nav-label {
     display: none;
   }
 
+  .rw-nav-label-mobile {
+    display: inline;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+
   .rw-pulse-dot {
-    display: none;
+    width: 5px;
+    height: 5px;
   }
 
   .rw-nav-trigger {
     height: 30px;
-    padding: 0 8px;
-    justify-content: center;
-    align-items: center;
-    margin-left: 4px;
+    padding: 0 7px;
+    gap: 5px;
+    margin-left: 2px;
     border-radius: 4px;
     flex-shrink: 0;
   }

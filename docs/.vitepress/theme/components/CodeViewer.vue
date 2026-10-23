@@ -97,13 +97,6 @@ const currentHasDiff = computed(() => {
   return currentFiles.value.some(f => f.hasDiff)
 })
 
-// Calculate line count for terminal status bar
-const lineCount = computed(() => {
-  if (currentFile.value?.code) {
-    return currentFile.value.code.trim().split('\n').length
-  }
-  return 0
-})
 
 // Code string for Copy button (snippets or slot-extracted)
 const codeToCopy = computed(() => {
@@ -188,25 +181,8 @@ function handleGatewayChange(newGw: GatewayId) {
           <slot name="header-left" />
         </div>
 
-        <div class="rw-code-viewer-header-right">
-          <!-- Diff toggle — sleek minimal button -->
-          <button
-            v-if="currentHasDiff"
-            type="button"
-            class="rw-diff-btn"
-            :class="{ active: showDiff }"
-            title="Toggle diff highlighting"
-            @click="showDiff = !showDiff"
-          >
-            <span class="rw-diff-dot">●</span>
-            <span>Diff</span>
-          </button>
-
-          <!-- Copy Button -->
-          <CopyButton
-            v-if="codeToCopy"
-            :code="codeToCopy"
-          />
+        <div v-if="slots['header-right']" class="rw-code-viewer-header-right">
+          <slot name="header-right" />
         </div>
       </div>
 
@@ -274,9 +250,24 @@ function handleGatewayChange(newGw: GatewayId) {
           </span>
         </div>
         <div class="rw-footer-right">
-          <span v-if="lineCount > 0" class="rw-footer-lines">{{ lineCount }} LINES</span>
-          <span v-if="lineCount > 0" class="rw-footer-sep">│</span>
-          <span class="rw-footer-engine">ROUTEWARDEN-CORE</span>
+          <!-- Diff toggle — sleek minimal button -->
+          <button
+            v-if="currentHasDiff"
+            type="button"
+            class="rw-diff-btn"
+            :class="{ active: showDiff }"
+            title="Toggle diff highlighting"
+            @click="showDiff = !showDiff"
+          >
+            <span class="rw-diff-dot">●</span>
+            <span>Diff</span>
+          </button>
+
+          <!-- Copy Button -->
+          <CopyButton
+            v-if="codeToCopy"
+            :code="codeToCopy"
+          />
         </div>
       </div>
     </div>
@@ -751,7 +742,8 @@ function handleGatewayChange(newGw: GatewayId) {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 4px 12px;
+  padding: 4px 10px;
+  min-height: 34px;
   background: #f8fafc;
   border-top: 1px solid var(--vp-c-divider);
   font-family: var(--vp-font-family-mono);
@@ -760,6 +752,7 @@ function handleGatewayChange(newGw: GatewayId) {
   letter-spacing: 0.06em;
   color: var(--vp-c-text-3);
   user-select: none;
+  gap: 8px;
 }
 
 .dark .rw-code-viewer-footer {
@@ -773,6 +766,18 @@ function handleGatewayChange(newGw: GatewayId) {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+}
+
+.rw-footer-right {
+  margin-left: auto;
+}
+
+.rw-footer-right .rw-diff-btn,
+.rw-footer-right :deep(.rw-copy-btn) {
+  font-size: 10.5px;
+  padding: 2px 7px;
+  line-height: 1.35;
+  height: 22px;
 }
 
 .rw-footer-dot {
@@ -803,35 +808,17 @@ function handleGatewayChange(newGw: GatewayId) {
   font-weight: 700;
 }
 
-.rw-footer-lines {
-  color: var(--vp-c-text-2);
-}
-
-.rw-footer-engine {
-  color: var(--vp-c-text-3);
-  letter-spacing: 0.08em;
-}
-
 /* ── Mobile Responsive Adjustments ─────────────────────────── */
 @media (max-width: 640px) {
   .rw-code-viewer-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-    padding: 6px 10px;
-  }
-  .rw-code-viewer-header-left {
-    width: 100%;
-  }
-  .rw-code-viewer-header-right {
-    width: 100%;
-    justify-content: flex-end;
+    padding: 0 8px;
+    min-height: 36px;
   }
   .rw-code-viewer-footer {
-    font-size: 9px;
-    padding: 3px 8px;
+    font-size: 9.5px;
+    padding: 4px 8px;
   }
-  .rw-footer-engine {
+  .rw-footer-mode {
     display: none;
   }
 }

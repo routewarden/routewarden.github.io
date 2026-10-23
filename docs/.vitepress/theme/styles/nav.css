@@ -32,7 +32,7 @@
   transition: border-color 0.25s, background-color 0.25s;
 }
 
-.VPNavBar .container {
+.VPNavBar > .wrapper > .container {
   max-width: 1440px !important;
   margin: 0 auto !important;
   padding: 0 24px !important;
@@ -627,7 +627,7 @@
 
 /* Tablet & Medium Screen Refinements (768px - 1180px) */
 @media (min-width: 768px) and (max-width: 1180px) {
-  .VPNavBar .container {
+  .VPNavBar > .wrapper > .container {
     padding: 0 16px !important;
   }
 
@@ -655,13 +655,14 @@
     padding: 0 12px !important;
   }
 
-  .VPNavBar .container {
+  .VPNavBar > .wrapper > .container {
     padding: 0 !important;
     width: 100% !important;
     max-width: 100% !important;
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
+    height: var(--vp-nav-height) !important;
   }
 
   .VPNavBar .title {
@@ -673,8 +674,9 @@
     display: flex !important;
     align-items: center !important;
     min-width: 0 !important;
+    flex-shrink: 1 !important;
     overflow: hidden !important;
-    margin-right: 8px !important;
+    margin-right: 6px !important;
   }
 
   .VPNavBarTitle .title {
@@ -682,11 +684,29 @@
     white-space: nowrap !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+  }
+
+  .VPNavBarTitle .logo {
+    height: 22px !important;
+    width: 22px !important;
+    margin-right: 6px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .VPNavBarTitle .title span {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
   }
 
   .VPNavBar .content {
     flex-shrink: 0 !important;
     min-width: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
   .VPNavBar .content-body {
@@ -695,9 +715,15 @@
     justify-content: flex-end !important;
     gap: 6px !important;
     min-width: 0 !important;
+    flex-shrink: 0 !important;
   }
 
-  /* Explicitly hide desktop menu in navbar on mobile */
+  /* Explicitly hide desktop-only items in navbar on mobile */
+  .VPNavBar .content-body > .menu,
+  .VPNavBar .content-body > .translations,
+  .VPNavBar .content-body > .appearance,
+  .VPNavBar .content-body > .social-links,
+  .VPNavBar .content-body > .extra,
   .VPNavBarMenu {
     display: none !important;
   }
@@ -709,14 +735,37 @@
 
   .VPNavBarSearch .DocSearch-Button,
   .VPNavBarSearch .search-btn {
-    min-width: 30px !important;
-    width: 30px !important;
+    min-width: 32px !important;
+    width: 32px !important;
     height: 30px !important;
     padding: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
     justify-content: center !important;
     border-radius: 4px !important;
     background-color: transparent !important;
     border: 1px solid var(--vp-c-divider) !important;
+    transition: all 0.15s ease !important;
+  }
+
+  .VPNavBarSearch .DocSearch-Button:hover {
+    border-color: var(--vp-c-brand-1) !important;
+    background: rgba(16, 185, 129, 0.08) !important;
+  }
+
+  .VPNavBarSearch .DocSearch-Button-Container {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .VPNavBarSearch .vp-icon.DocSearch-Search-Icon {
+    margin: 0 !important;
+    width: 14px !important;
+    height: 14px !important;
+    color: var(--vp-c-text-2) !important;
   }
 
   .VPNavBarSearch .DocSearch-Button-Placeholder,
@@ -724,15 +773,91 @@
     display: none !important;
   }
 
+  /* ── Mobile Hamburger Toggle & Morphing Close 'X' Icon ── */
   .VPNavBarHamburger {
     display: flex !important;
     width: 32px !important;
-    height: 32px !important;
+    height: 30px !important;
     justify-content: center !important;
     align-items: center !important;
     padding: 0 !important;
     margin: 0 !important;
+    border-radius: 4px !important;
+    border: 1px solid var(--vp-c-divider) !important;
+    background: transparent !important;
     flex-shrink: 0 !important;
+    cursor: pointer !important;
+    transition: all 0.15s ease !important;
+  }
+
+  .VPNavBarHamburger:hover {
+    border-color: var(--vp-c-brand-1) !important;
+    background: rgba(16, 185, 129, 0.08) !important;
+  }
+
+  /* Hamburger internal bar container — strictly isolated from navbar container flex */
+  .VPNavBarHamburger .container {
+    position: relative !important;
+    width: 16px !important;
+    height: 14px !important;
+    overflow: hidden !important;
+    display: block !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .VPNavBarHamburger .top,
+  .VPNavBarHamburger .middle,
+  .VPNavBarHamburger .bottom {
+    position: absolute !important;
+    width: 16px !important;
+    height: 2px !important;
+    background-color: var(--vp-c-text-1) !important;
+    border-radius: 1px !important;
+    transition: top 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+                background-color 0.2s ease,
+                transform 0.22s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
+
+  .VPNavBarHamburger .top    { top: 0 !important; left: 0 !important; transform: translateX(0) !important; }
+  .VPNavBarHamburger .middle { top: 6px !important; left: 0 !important; transform: translateX(0) !important; opacity: 1 !important; }
+  .VPNavBarHamburger .bottom { top: 12px !important; left: 0 !important; transform: translateX(0) !important; }
+
+  /* Hover micro-slide animation when closed */
+  .VPNavBarHamburger:hover:not(.active) .top    { transform: translateX(2px) !important; }
+  .VPNavBarHamburger:hover:not(.active) .middle { transform: translateX(0) !important; }
+  .VPNavBarHamburger:hover:not(.active) .bottom { transform: translateX(3px) !important; }
+
+  /* ACTIVE (OPEN DRAWER -> CLEAN CLOSE 'X' ICON) */
+  .VPNavBarHamburger.active {
+    border-color: var(--vp-c-brand-1) !important;
+    background: rgba(16, 185, 129, 0.12) !important;
+  }
+
+  .VPNavBarHamburger.active .top {
+    top: 6px !important;
+    left: 0 !important;
+    transform: rotate(225deg) !important;
+    background-color: var(--vp-c-brand-1) !important;
+  }
+
+  .VPNavBarHamburger.active .middle {
+    top: 6px !important;
+    left: 0 !important;
+    transform: translateX(20px) !important;
+    opacity: 0 !important;
+  }
+
+  .VPNavBarHamburger.active .bottom {
+    top: 6px !important;
+    left: 0 !important;
+    transform: rotate(135deg) !important;
+    background-color: var(--vp-c-brand-1) !important;
+  }
+
+  .VPNavBarHamburger.active:hover .top,
+  .VPNavBarHamburger.active:hover .bottom {
+    background-color: var(--rw-c-cyan) !important;
   }
 
   /* Mobile Nav Screen Drawer (Terminal Console) */
@@ -746,14 +871,88 @@
     background-color: #0c0f17 !important;
   }
 
+  .VPNavScreen .container {
+    padding: 16px 20px 32px !important;
+    max-width: 480px !important;
+    margin: 0 auto !important;
+  }
+
+  .VPNavScreenMenuGroup {
+    border-bottom: 1px solid var(--vp-c-divider) !important;
+    font-family: var(--vp-font-family-mono) !important;
+  }
+
+  .VPNavScreenMenuGroup .button {
+    font-family: var(--vp-font-family-mono) !important;
+    font-size: 13.5px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.04em !important;
+    padding: 13px 4px 13px 0 !important;
+    color: var(--vp-c-text-1) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+  }
+
+  .VPNavScreenMenuGroup .button-text::before {
+    content: '> ';
+    color: var(--vp-c-brand-1);
+    font-weight: 800;
+  }
+
+  .VPNavScreenMenuGroup.open .button-text {
+    color: var(--vp-c-brand-1) !important;
+  }
+
+  .VPNavScreenMenuGroup .button-icon {
+    width: 14px !important;
+    height: 14px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: var(--vp-c-text-2) !important;
+    transition: transform 0.25s ease, color 0.2s ease !important;
+  }
+
+  .VPNavScreenMenuGroup.open .button-icon {
+    transform: rotate(45deg) !important;
+    color: var(--vp-c-brand-1) !important;
+  }
+
+  .VPNavScreenMenuGroupLink {
+    font-family: var(--vp-font-family-mono) !important;
+    font-size: 12.5px !important;
+    font-weight: 500 !important;
+    line-height: 1.5 !important;
+    padding: 7px 10px 7px 16px !important;
+    margin: 2px 0 !important;
+    border-radius: 4px !important;
+    color: var(--vp-c-text-2) !important;
+    transition: all 0.12s ease !important;
+    display: block !important;
+  }
+
+  .VPNavScreenMenuGroupLink:hover {
+    color: var(--vp-c-brand-1) !important;
+    background: rgba(16, 185, 129, 0.08) !important;
+  }
+
+  .VPNavScreenMenuGroupLink.active {
+    color: var(--vp-c-brand-1) !important;
+    font-weight: 700 !important;
+    border-left: 2px solid var(--vp-c-brand-1) !important;
+    background: rgba(16, 185, 129, 0.09) !important;
+  }
+
   .VPNavScreenMenuLink {
     font-family: var(--vp-font-family-mono) !important;
     font-size: 13.5px !important;
-    font-weight: 600 !important;
+    font-weight: 700 !important;
     letter-spacing: 0.04em !important;
-    padding: 12px 16px !important;
+    padding: 13px 16px !important;
     border-bottom: 1px solid var(--vp-c-divider) !important;
     color: var(--vp-c-text-1) !important;
+    display: block !important;
   }
 
   .VPNavScreenMenuLink::before {
@@ -764,6 +963,49 @@
 
   .VPNavScreenMenuLink.active {
     color: var(--vp-c-brand-1) !important;
+  }
+
+  .VPNavScreenAppearance {
+    padding-top: 16px !important;
+    margin-top: 8px !important;
+    border-top: 1px solid var(--vp-c-divider) !important;
+  }
+
+  .VPNavScreenSocialLinks {
+    padding-top: 16px !important;
+    display: flex !important;
+    justify-content: center !important;
+  }
+
+  /* Mobile Local Nav Subheader (Page Menu / On This Page) */
+  .VPLocalNav {
+    font-family: var(--vp-font-family-mono) !important;
+    border-bottom: 1px solid var(--vp-c-divider) !important;
+    background-color: var(--vp-c-bg) !important;
+  }
+
+  .dark .VPLocalNav {
+    background-color: #0c0f17 !important;
+  }
+
+  .VPLocalNav .menu {
+    font-family: var(--vp-font-family-mono) !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    color: var(--vp-c-text-1) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+  }
+
+  .VPLocalNav .menu:hover {
+    color: var(--vp-c-brand-1) !important;
+  }
+
+  .VPLocalNavOutlineDropdown button {
+    font-family: var(--vp-font-family-mono) !important;
+    font-size: 12px !important;
+    color: var(--vp-c-text-2) !important;
   }
 
   /* Prevent table overflow on small screens */
