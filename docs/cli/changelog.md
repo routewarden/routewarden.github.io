@@ -7,7 +7,30 @@ description: "Release history, new features, and bug fixes for the Routewarden C
 
 All notable changes to the Routewarden CLI (`rwarden`) are documented here. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and the CLI adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v5.3.2] - 2026-10-22 (Latest)
+## [v5.3.3] - 2026-10-23 (Latest)
+
+### Added
+- **Failed HTTP Call Forwarding (`--include-failed` / `-F`) Across All Proxies**:
+  - Added `--include-failed` (`-F`) CLI flag and `RW_INCLUDE_FAILED` environment variable to `rwarden push` and `rwarden-shipper`.
+  - Enables capturing and forwarding all failed HTTP requests (status $\ge 400$, including 4xx client errors like 400 Bad Request, 404 Not Found, and 5xx server errors like 500 Internal Server Error, 502 Bad Gateway, 503 Service Unavailable) across **Caddy** (`logger: "http.log.access"`), **Traefik** (JSON / Combined), and **NGINX** (JSON / Combined access logs), even if not matched by an explicit blocking rule.
+- **Full HTTP Access Traffic Shipping (`--all-traffic`)**:
+  - Added `--all-traffic` CLI flag and `RW_ALL_TRAFFIC` environment variable to forward all reverse proxy access logs including clean `200 OK` responses for complete centralized access auditing.
+- **Enrollment Telemetry Preference Persistence**:
+  - Added `--include-failed` (`-F`) and `--all-traffic` flags to `rwarden register` (`cli/register.go` and `cli/shipper/register.go`), saving telemetry filtering settings directly to `~/.routewarden/agent.json` (`"include_failed": true`, `"all_traffic": true`) so subsequent `rwarden push` invocations inherit the configured mode without manual flags.
+- **Failed HTTP Status Categorization in Central Dashboard**:
+  - Enhanced dashboard ingestion engine in `cli/observability/custom_dashboard.go` and `cli/observability/manager.go` to categorize unblocked status $\ge 400$ requests from Caddy, Traefik, and NGINX as `Verdict: "FAILED"` with rule `HTTP <status>`, providing SOC teams immediate visibility into client probing and upstream outages without polluting security incident counts as `ALLOW`.
+- **Flexible JSON Decoding for Custom Log Formats**:
+  - Added `flexibleInt` and `flexibleFloat` JSON decoders in `cli/push.go` and `cli/shipper/push.go` supporting quoted status codes (`"status": "404"`) and string latencies from custom reverse proxy logging formats without throwing unmarshal errors.
+
+### Changed
+- **Bandwidth-Optimized Default Telemetry Filtering**:
+  - Defaulted log streaming to security-only events (plugin mitigation actions `BLOCK`, `TARPIT`, `HONEYPOT`, and security status codes `403 Forbidden` and `429 Too Many Requests`), automatically dropping benign `200 OK` access logs to minimize network bandwidth and database size.
+- **Multi-Proxy Test Suite Coverage**:
+  - Expanded test suites in `cli/push_test.go`, `cli/shipper/push_test.go`, and `cli/observability/custom_dashboard_test.go` with a comprehensive 36-case status matrix (`101` through `504`), security tag overrides, corrupted log rejection, string status codes, and agent config persistence.
+
+---
+
+## [v5.3.2] - 2026-10-22
 
 ### Fixed
 - **Homebrew Cask Multi-Archive Mapping in GoReleaser**:
