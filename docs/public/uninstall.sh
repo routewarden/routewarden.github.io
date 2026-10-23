@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# RouteWarden CLI (rwarden) Universal Uninstaller
+# Routewarden CLI (rwarden) Universal Uninstaller
 # Usage: curl -fsSL https://routewarden.github.io/uninstall.sh | bash
 #
 # Automatically stops all background services (dashboard, push shipper, containers)
@@ -9,7 +9,7 @@ set -e
 
 BINARY="rwarden"
 
-echo "🛑 Stopping RouteWarden services and removing active containers..."
+echo "🛑 Stopping Routewarden services and removing active containers..."
 if command -v "${BINARY}" >/dev/null 2>&1; then
   "${BINARY}" stop >/dev/null 2>&1 || true
   "${BINARY}" cleanup >/dev/null 2>&1 || true
@@ -63,4 +63,4 @@ if [ -d "$HOME/.routewarden" ]; then
   rm -rf "$HOME/.routewarden"
 fi
 
-echo "👋 RouteWarden uninstallation complete."
+echo "👋 Routewarden uninstallation complete."

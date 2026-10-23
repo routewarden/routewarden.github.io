@@ -1,5 +1,5 @@
 ---
-title: Real-Time Security Dashboard — RouteWarden CLI
+title: Real-Time Security Dashboard — Routewarden CLI
 description: Ultra-lightweight real-time SOC security dashboard powered by embedded SQLite (~8MB RAM) with SSE streaming for Traefik, Caddy, NGINX, and TCP Warden.
 ---
 
@@ -9,7 +9,7 @@ import { buildSnippet } from '../.vitepress/theme/composables/useCodeSnippet'
 
 // ─── 0. Architecture Overview Mermaid & Diagram Snippet ─────────────────────
 const mermaid_raw = `flowchart LR
-    subgraph Gateways ["RouteWarden Gateways"]
+    subgraph Gateways ["Routewarden Gateways"]
         T["Traefik (routewarden=true)"]
         C["Caddy (routewarden=true)"]
         N["NGINX (routewarden=true)"]
@@ -21,7 +21,7 @@ const mermaid_raw = `flowchart LR
     end
 
     subgraph Engine ["Live Analytics & SQLite Engine"]
-        G["RouteWarden SOC Engine\\n(Embedded SQLite + SSE Stream)"]
+        G["Routewarden SOC Engine\\n(Embedded SQLite + SSE Stream)"]
     end
 
     subgraph UI ["Real-Time Dashboard"]
@@ -37,7 +37,7 @@ const mermaid_raw = `flowchart LR
     G -->|SSE & HTML| W`
 
 const arch_graph_svg = `<div class="rw-graph-container" style="padding:20px;text-align:center;">
-  <p style="color:#a1a1aa;">Real-time SOC Architecture: Gateways &rarr; rwarden monitor &rarr; RouteWarden SOC Engine &rarr; Web UI (http://localhost:7890)</p>
+  <p style="color:#a1a1aa;">Real-time SOC Architecture: Gateways &rarr; rwarden monitor &rarr; Routewarden SOC Engine &rarr; Web UI (http://localhost:7890)</p>
 </div>`
 
 const archSnippets = computed(() => ({
@@ -145,7 +145,7 @@ const discovery_compose = buildSnippet({
   traefik:
     image: traefik:v3.1
     labels:
-      # Opt-in for RouteWarden auto-discovery
+      # Opt-in for Routewarden auto-discovery
       - "routewarden=true"
 
   caddy:
@@ -257,7 +257,7 @@ const pruneApiSnippets = computed(() => ({
 
 # Real-Time Security Dashboard (`dashboard`)
 
-RouteWarden includes a turnkey, ultra-lightweight real-time security dashboard powered by RouteWarden's embedded Go server and SQLite persistence.
+Routewarden includes a turnkey, ultra-lightweight real-time security dashboard powered by Routewarden's embedded Go server and SQLite persistence.
 
 It provides an ultra-fast, live executive SOC dashboard consuming only **~8MB of RAM** with zero external dependencies.
 
@@ -265,7 +265,7 @@ It provides an ultra-fast, live executive SOC dashboard consuming only **~8MB of
 
 ## Performance & Resource Efficiency
 
-| Metric | Traditional Monitoring Stacks | RouteWarden SOC Dashboard |
+| Metric | Traditional Monitoring Stacks | Routewarden SOC Dashboard |
 |:---|:---|:---|
 | **Memory Footprint** | ~500 MB – 1.2 GB RAM | **~8 MB RAM** |
 | **Containers Required** | Multiple heavy containers | **0 containers** (runs in single binary) |
@@ -297,7 +297,7 @@ It provides an ultra-fast, live executive SOC dashboard consuming only **~8MB of
 - **Stream Pause / Resume**: Freeze table updates with **⏸ Pause** or <kbd>Space</kbd> to inspect active security events; incoming logs are buffered with a counter badge (`⏸ PAUSED (+N new)`).
 
 ### 3. Password Protection & Custom Auth Screen (`--auth`)
-- **Dedicated Cyber Auth Screen**: When `--auth <user:password>` is enabled, browser visits to `http://localhost:7890` are presented with a sleek, cyber-themed authentication screen (`/login`) complete with the RouteWarden shield logo, operator ID & access key inputs, password visibility toggle, and error messaging.
+- **Dedicated Cyber Auth Screen**: When `--auth <user:password>` is enabled, browser visits to `http://localhost:7890` are presented with a sleek, cyber-themed authentication screen (`/login`) complete with the Routewarden shield logo, operator ID & access key inputs, password visibility toggle, and error messaging.
 - **Session Cookie & Sign Out**: Successful login issues a secure session cookie (`routewarden_auth`) with 30-day persistence. Operators can sign out at any time via the **🚪 Sign Out** button in the dashboard header.
 - **Protected Endpoints**: Protects `GET /`, `/api/logs`, `/api/stream`, `/api/stats`, `/api/sources`, and `/api/ip-lookup`.
 - **Flexible Auth Channels**: Supports standard HTTP Basic Auth (`Authorization: Basic`), `Authorization: Bearer <token>`, session cookies, and query parameters (`?auth=` / `?token=`).
@@ -336,7 +336,7 @@ It provides an ultra-fast, live executive SOC dashboard consuming only **~8MB of
 
 ## Quick Start CLI Management (`rwarden dashboard`)
 
-The RouteWarden CLI embeds all dashboard assets, SQLite migrations, and templates directly in the binary. You can launch, inspect, and stop the dashboard with single commands:
+The Routewarden CLI embeds all dashboard assets, SQLite migrations, and templates directly in the binary. You can launch, inspect, and stop the dashboard with single commands:
 
 <CodeViewer :snippets="cliSnippets" />
 
@@ -365,7 +365,7 @@ If you prefer deploying the dashboard without the CLI binary, export the configu
 
 ## Reverse Proxy Deployment (Traefik, Caddy, NGINX)
 
-To expose RouteWarden's security dashboard publicly with SSL/TLS, custom domains (`soc.example.com`), and proper Server-Sent Events (SSE) streaming configuration without buffering issues, follow the dedicated guide:
+To expose Routewarden's security dashboard publicly with SSL/TLS, custom domains (`soc.example.com`), and proper Server-Sent Events (SSE) streaming configuration without buffering issues, follow the dedicated guide:
 
 👉 **[Reverse Proxy Setup Guide](/cli/dashboard/reverse-proxy)** — Complete configurations and Compose stacks for **Traefik**, **Caddy**, and **NGINX**.
 
@@ -373,7 +373,7 @@ To expose RouteWarden's security dashboard publicly with SSL/TLS, custom domains
 
 ## Storage & Data Retention REST API
 
-RouteWarden exposes dedicated REST endpoints to inspect telemetry storage metrics and execute on-demand pruning and database compaction.
+Routewarden exposes dedicated REST endpoints to inspect telemetry storage metrics and execute on-demand pruning and database compaction.
 
 ### 1. Get Storage Telemetry & Retention Policy (`GET /api/v1/storage`)
 

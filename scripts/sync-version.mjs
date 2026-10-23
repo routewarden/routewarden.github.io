@@ -195,7 +195,7 @@ export function syncVersion(options = {}) {
     }
   }
 
-  // ── 1. Synchronize Traefik & Core RouteWarden Files ─────────────────────────
+  // ── 1. Synchronize Traefik & Core Routewarden Files ─────────────────────────
   if (shouldSyncTraefik) {
     const { cleanVersion: traefikClean, semver: traefikSemver, seriesTag } = formatVersion(appVersions.traefik)
 
@@ -556,9 +556,9 @@ if (process.argv[1] && (path.resolve(process.argv[1]) === currentScriptPath || p
   const { updatedFiles, targetVersion, appVersions } = syncVersion(cliArgs)
 
   if (cliArgs.app) {
-    console.log(`Synced RouteWarden [${cliArgs.app}] version: ${targetVersion}`)
+    console.log(`Synced Routewarden [${cliArgs.app}] version: ${targetVersion}`)
   } else {
-    console.log(`Synced RouteWarden version: ${targetVersion}`)
+    console.log(`Synced Routewarden version: ${targetVersion}`)
   }
   console.log(`Active app versions:`, JSON.stringify(appVersions))
   console.log(`Successfully synced version to ${updatedFiles.length} file(s)!`)

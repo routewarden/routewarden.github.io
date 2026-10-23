@@ -10,7 +10,7 @@ import { buildSnippet } from '../../.vitepress/theme/composables/useCodeSnippet'
 // ─── 1. Installation Snippets ───────────────────────────────────────────────
 const install_cli = buildSnippet({
   lang: 'bash',
-  code: `# Install via RouteWarden CLI
+  code: `# Install via Routewarden CLI
 rwarden tcp plugins install minecraft
 
 # Or standalone binary
@@ -31,7 +31,7 @@ plugins:
 
 const installSnippets = computed(() => ({
   tcp: [
-    { filename: 'RouteWarden CLI', lang: 'bash', code: install_cli.cleanCode, html: install_cli.html, hasDiff: false },
+    { filename: 'Routewarden CLI', lang: 'bash', code: install_cli.cleanCode, html: install_cli.html, hasDiff: false },
     { filename: 'tcp-warden.yaml', lang: 'yaml', code: install_yaml.cleanCode, html: install_yaml.html, hasDiff: false },
   ]
 }))
@@ -60,7 +60,7 @@ const configSnippets = computed(() => ({
 // ─── 3. Network Architecture Snippets ───────────────────────────────────────
 const net_proxy_yaml = buildSnippet({
   lang: 'yaml',
-  code: `# tcp-warden.yaml — RouteWarden binds to standard Minecraft port 25565
+  code: `# tcp-warden.yaml — Routewarden binds to standard Minecraft port 25565
 services:
   mc_guard:
     listen: ":25565"
@@ -113,7 +113,7 @@ const netComposeSnippets = computed(() => ({
 // ─── 4. Testing & Verification Snippets ─────────────────────────────────────
 const test_slp = buildSnippet({
   lang: 'bash',
-  code: `# Query server status and ping through RouteWarden
+  code: `# Query server status and ping through Routewarden
 mcstatus 127.0.0.1:25565 status`
 })
 
@@ -170,17 +170,17 @@ Add a Minecraft guard service to `tcp-warden.yaml`:
 
 ## Network & Deployment Architecture
 
-Because Minecraft Java Edition operates on an unprivileged port (`25565`), firewall redirects (`nftables`/`iptables`) are not required. Deploy RouteWarden using either direct reverse proxying or container isolation:
+Because Minecraft Java Edition operates on an unprivileged port (`25565`), firewall redirects (`nftables`/`iptables`) are not required. Deploy Routewarden using either direct reverse proxying or container isolation:
 
 ### Option A: Direct Port Swapping (Bare-Metal / VM)
 
-Keep Paper/Purpur listening on loopback on an alternate port, and expose RouteWarden on standard port `:25565`:
+Keep Paper/Purpur listening on loopback on an alternate port, and expose Routewarden on standard port `:25565`:
 
 <CodeViewer :snippets="netProxySnippets" />
 
 ### Option B: Docker Compose Bridge Network
 
-In container stacks, publish port `25565` on RouteWarden while keeping the game server container private:
+In container stacks, publish port `25565` on Routewarden while keeping the game server container private:
 
 <CodeViewer :snippets="netComposeSnippets" />
 

@@ -222,7 +222,7 @@ function evaluateForVerb(methodName: string): VerbEvalResult {
     return {
       method: m,
       verdict: 'DISABLED',
-      statusTitle: 'Bypassed (RouteWarden disabled)',
+      statusTitle: 'Bypassed (Routewarden disabled)',
       badgeClass: 'verdict-pass',
       statusCode: 200,
       statusText: 'OK (Downstream)',
@@ -456,10 +456,10 @@ const simulatedResponse = computed(() => {
       body: JSON.stringify({
         status: 200,
         message: `HTTP verb ${testMethod.value} is not in inspected methods [${inspectedMethods.value.join(', ')}].`,
-        note: 'Request bypassed RouteWarden inspection and was forwarded to upstream backend.',
+        note: 'Request bypassed Routewarden inspection and was forwarded to upstream backend.',
         path: testPath.value
       }, null, 2),
-      note: `HTTP verb ${testMethod.value} is not in inspected methods. RouteWarden immediately passed this request through to the backend service.`
+      note: `HTTP verb ${testMethod.value} is not in inspected methods. Routewarden immediately passed this request through to the backend service.`
     }
   }
 
@@ -468,36 +468,36 @@ const simulatedResponse = computed(() => {
       statusCode: 200,
       statusText: 'OK (Downstream App)',
       headers: {
-        'Server': 'RouteWarden / Upstream App',
+        'Server': 'Routewarden / Upstream App',
         'X-RouteWarden-Verdict': ev.verdict,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({ message: 'Request permitted downstream', path: testPath.value, verdict: ev.verdict }, null, 2),
-      note: 'RouteWarden permitted this request to pass downstream.'
+      note: 'Routewarden permitted this request to pass downstream.'
     }
   }
 
   const code = statusCode.value || 403
   const headers: Record<string, string> = {
-    'Server': 'RouteWarden',
+    'Server': 'Routewarden',
     'X-RouteWarden-Blocked': 'true',
     'X-Content-Type-Options': 'nosniff'
   }
 
   if (responseMode.value === 'json') {
     headers['Content-Type'] = 'application/json; charset=utf-8'
-    const body = customBody.value || JSON.stringify({ error: 'Forbidden', status: code, message: 'Access denied by RouteWarden security policy' }, null, 2)
+    const body = customBody.value || JSON.stringify({ error: 'Forbidden', status: code, message: 'Access denied by Routewarden security policy' }, null, 2)
     return { statusCode: code, statusText: 'Forbidden', headers, body }
   }
 
   if (responseMode.value === 'text') {
     headers['Content-Type'] = 'text/plain; charset=utf-8'
-    return { statusCode: code, statusText: 'Forbidden', headers, body: customBody.value || 'Forbidden: Access denied by RouteWarden' }
+    return { statusCode: code, statusText: 'Forbidden', headers, body: customBody.value || 'Forbidden: Access denied by Routewarden' }
   }
 
   if (responseMode.value === 'html') {
     headers['Content-Type'] = 'text/html; charset=utf-8'
-    return { statusCode: code, statusText: 'Forbidden', headers, body: customBody.value || `<!DOCTYPE html>\n<html>\n<head><title>403 Forbidden</title></head>\n<body><h1>403 Forbidden</h1><p>Access denied by RouteWarden.</p></body>\n</html>` }
+    return { statusCode: code, statusText: 'Forbidden', headers, body: customBody.value || `<!DOCTYPE html>\n<html>\n<head><title>403 Forbidden</title></head>\n<body><h1>403 Forbidden</h1><p>Access denied by Routewarden.</p></body>\n</html>` }
   }
 
   if (responseMode.value === 'xml') {
@@ -533,7 +533,7 @@ const simulatedResponse = computed(() => {
       statusText: 'Connection Reset / Dropped',
       headers: {},
       body: '[TCP Connection Terminated Immediately via TCP RST (0 HTTP bytes)]',
-      note: 'RouteWarden uses Go http.Hijacker to abruptly terminate the raw TCP socket.'
+      note: 'Routewarden uses Go http.Hijacker to abruptly terminate the raw TCP socket.'
     }
   }
 
@@ -895,7 +895,7 @@ onMounted(() => {
       snippetFormat.value = pFmt as any
     }
   } catch (err) {
-    console.error('Failed to parse URL query params in RouteWarden playground:', err)
+    console.error('Failed to parse URL query params in Routewarden playground:', err)
   }
 })
 
@@ -1050,7 +1050,7 @@ onUnmounted(() => {
         'is-hidden': !isConsoleVisible && !isOutputExpanded
       }"
       role="region"
-      aria-label="RouteWarden Simulation Output Console"
+      aria-label="Routewarden Simulation Output Console"
     >
       <!-- Edge-to-Edge Sticky Console Bar (Always visible at bottom) -->
       <div

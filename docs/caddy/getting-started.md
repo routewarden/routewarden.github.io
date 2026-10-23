@@ -1,3 +1,8 @@
+---
+title: "Caddy Warden: Getting Started"
+description: "Quick start guide for installing and configuring the Routewarden plugin in Caddy v2."
+---
+
 <script setup>
 import { computed } from 'vue'
 import { buildSnippet } from '../.vitepress/theme/composables/useCodeSnippet'
@@ -126,7 +131,7 @@ const config_opt1_json = buildSnippet({
   "response": {
     "mode": "json",
     "statusCode": 403,
-    "body": "{\\"error\\":\\"Access Denied\\",\\"security\\":\\"RouteWarden Shield\\"}"
+    "body": "{\\"error\\":\\"Access Denied\\",\\"security\\":\\"Routewarden Shield\\"}"
   }
 }`,
 })
@@ -147,7 +152,7 @@ example.com {
         response { # [!code ++]
             mode json # [!code ++]
             status_code 403 # [!code ++]
-            body "{\\"error\\":\\"Access Denied\\",\\"security\\":\\"RouteWarden Shield\\"}" # [!code ++]
+            body "{\\"error\\":\\"Access Denied\\",\\"security\\":\\"Routewarden Shield\\"}" # [!code ++]
         } # [!code ++]
     } # [!code ++]
 
@@ -167,7 +172,7 @@ const config_opt1_api = buildSnippet({
   "response": {
     "mode": "json",
     "status_code": 403,
-    "body": "{\\"error\\":\\"Access Denied\\",\\"security\\":\\"RouteWarden Shield\\"}"
+    "body": "{\\"error\\":\\"Access Denied\\",\\"security\\":\\"Routewarden Shield\\"}"
   }
 }`,
 })
@@ -215,7 +220,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install RouteWarden CLI
+      - name: Install Routewarden CLI
         run: curl -sSfL https://routewarden.github.io/install.sh | sh
 
       - name: Validate & Generate Caddyfile Snippet
@@ -451,7 +456,7 @@ const jsonApiSnippets = computed(() => ({
 
 # Caddy Warden: Getting Started
 
-**Caddy Warden** (`github.com/routewarden/caddy-warden`) is the official **Caddy v2** security module from RouteWarden. It brings high-performance sensitive path defense, anti-evasion normalization, IP allowlisting, and active deception defenses to Caddy web servers.
+**Caddy Warden** (`github.com/routewarden/caddy-warden`) is the official **Caddy v2** security module from Routewarden. It brings high-performance sensitive path defense, anti-evasion normalization, IP allowlisting, and active deception defenses to Caddy web servers.
 
 ---
 
@@ -478,7 +483,7 @@ Caddy uses [xcaddy](https://github.com/caddyserver/xcaddy) to compile custom bui
 
 ### Using Docker Compose
 
-Run Caddy with RouteWarden alongside your upstream web services using a dedicated `Dockerfile`:
+Run Caddy with Routewarden alongside your upstream web services using a dedicated `Dockerfile`:
 
 <CodeViewer :snippets="composeSnippets" />
 
@@ -486,7 +491,7 @@ Run Caddy with RouteWarden alongside your upstream web services using a dedicate
 
 ## Configuration
 
-You can define RouteWarden security rules using **`routewarden.json` (Recommended Universal Schema)** as your single source of truth, directly in your **Caddyfile**, or via Caddy's dynamic **JSON API**.
+You can define Routewarden security rules using **`routewarden.json` (Recommended Universal Schema)** as your single source of truth, directly in your **Caddyfile**, or via Caddy's dynamic **JSON API**.
 
 ### Option 1: `routewarden.json` (Recommended Universal Schema)
 
@@ -502,7 +507,7 @@ You can define RouteWarden security rules using **`routewarden.json` (Recommende
 
 #### Using `routewarden.json` Directly via Generate Pipeline
 
-If you maintain `routewarden.json` as your single source of truth across Git repositories or multi-gateway environments, use the [RouteWarden CLI (`rwarden`)](/cli/) to validate rules offline and compile directly into Caddyfile directive blocks during your deployment pipeline:
+If you maintain `routewarden.json` as your single source of truth across Git repositories or multi-gateway environments, use the [Routewarden CLI (`rwarden`)](/cli/) to validate rules offline and compile directly into Caddyfile directive blocks during your deployment pipeline:
 
 <CodeViewer :snippets="pipelineSnippets" />
 
@@ -560,8 +565,8 @@ If you configure Caddy via its native JSON API:
 
 ## Related Links
 
-- [RouteWarden Core Architecture & Anti-Evasion Engine](/core/architecture)
-- [RouteWarden CLI Documentation](/cli/)
+- [Routewarden Core Architecture & Anti-Evasion Engine](/core/architecture)
+- [Routewarden CLI Documentation](/cli/)
 - [Response Modes Deep Dive (13 Actions)](/core/response-modes)
 - [Custom Path Patterns Reference](/core/custom-patterns)
 - [Caddy-Warden GitHub Repository](https://github.com/routewarden/caddy-warden)

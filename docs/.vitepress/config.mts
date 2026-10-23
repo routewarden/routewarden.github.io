@@ -42,10 +42,15 @@ const caddyLanguage = {
 }
 
 export default defineConfig({
-  title: 'RouteWarden',
+  title: 'Routewarden',
+  titleTemplate: ':title | Routewarden',
   description: 'Unified Edge & L4 Defense: Stop sensitive file leaks in Traefik, Caddy, NGINX, and protect non-HTTP services with TCP Warden.',
   base: '/',
   cleanUrls: true,
+  lastUpdated: true,
+  sitemap: {
+    hostname: 'https://routewarden.github.io'
+  },
   ignoreDeadLinks: [
     /^https?:\/\/localhost/,
   ],
@@ -70,7 +75,7 @@ export default defineConfig({
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Redirecting to RouteWarden Documentation...</title>
+  <title>Redirecting to Routewarden Documentation...</title>
   <meta http-equiv="refresh" content="0; url=/">
   <link rel="canonical" href="/">
   <script>
@@ -79,7 +84,7 @@ export default defineConfig({
   </script>
 </head>
 <body>
-  <p>Redirecting to <a href="/">RouteWarden Documentation</a>...</p>
+  <p>Redirecting to <a href="/">Routewarden Documentation</a>...</p>
 </body>
 </html>
 `
@@ -97,6 +102,50 @@ export default defineConfig({
       tcp_version: (versionData as any).tcp || (versionData as any).cli || defaultVer,
       cli_version: (versionData as any).cli || defaultVer,
     }
+
+    // Ensure fallback meta descriptions for SEO
+    if (!pageData.frontmatter.description) {
+      const rel = pageData.relativePath
+      if (rel.startsWith('traefik/')) {
+        pageData.description = 'Learn how to configure, test, and deploy Routewarden edge security middleware for Traefik reverse proxy.'
+      } else if (rel.startsWith('caddy/')) {
+        pageData.description = 'Complete guides and configuration directives for Routewarden plugin in Caddy v2 web server.'
+      } else if (rel.startsWith('nginx/')) {
+        pageData.description = 'Protect NGINX and OpenResty applications with Routewarden high-performance Lua security module.'
+      } else if (rel.startsWith('tcp/')) {
+        pageData.description = 'Protocol-aware Layer 4 reverse proxy and firewall protecting SSH, SMTP, DBs, and raw TCP streams.'
+      } else if (rel.startsWith('cli/')) {
+        pageData.description = 'Routewarden CLI (rwarden) reference for offline validation, local security dashboards, and live telemetry.'
+      } else if (rel.startsWith('examples/')) {
+        pageData.description = 'Production deployment patterns, Docker Compose templates, and real-world security case studies.'
+      } else if (rel.startsWith('core/') || rel.startsWith('reference/')) {
+        pageData.description = 'Deep dive into Routewarden anti-evasion path normalization, response deception modes, and architecture.'
+      }
+    }
+  },
+  transformHead({ pageData }) {
+    const head: any[] = []
+    const rawTitle = pageData.frontmatter.title || pageData.title || ''
+    const fullTitle = rawTitle && rawTitle !== 'Routewarden'
+      ? `${rawTitle} | Routewarden`
+      : 'Routewarden — Unified Edge & Protocol Security Suite'
+
+    const desc = pageData.frontmatter.description || pageData.description || 'Stop sensitive file leaks (.env, .git, backups) across Traefik, Caddy, and NGINX, and protect non-HTTP infrastructure with TCP Warden.'
+
+    const cleanPath = pageData.relativePath
+      .replace(/(?:^|\/)index\.md$/, '')
+      .replace(/\.md$/, '')
+    const canonicalUrl = cleanPath ? `https://routewarden.github.io/${cleanPath}` : 'https://routewarden.github.io/'
+
+    head.push(
+      ['link', { rel: 'canonical', href: canonicalUrl }],
+      ['meta', { property: 'og:title', content: fullTitle }],
+      ['meta', { property: 'og:description', content: desc }],
+      ['meta', { property: 'og:url', content: canonicalUrl }],
+      ['meta', { name: 'twitter:title', content: fullTitle }],
+      ['meta', { name: 'twitter:description', content: desc }]
+    )
+    return head
   },
   markdown: {
     languages: [
@@ -146,17 +195,63 @@ export default defineConfig({
       href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Space+Grotesk:wght@500;600;700&display=swap'
     }],
     ['meta', { name: 'theme-color', content: '#10b981' }],
-    ['meta', { name: 'author', content: 'RouteWarden Contributors' }],
-    ['meta', { name: 'keywords', content: 'traefik, caddy, nginx, openresty, tcp-warden, middleware, security, anti-evasion, ip whitelist, sensitive files, env protection, reverse proxy waf, layer 4 firewall' }],
+    ['meta', { name: 'author', content: 'Routewarden Contributors' }],
+    ['meta', { name: 'robots', content: 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1' }],
+    ['meta', { name: 'googlebot', content: 'index, follow' }],
+    ['meta', { name: 'keywords', content: 'routewarden, traefik, caddy, nginx, openresty, tcp-warden, middleware, security, anti-evasion, ip whitelist, sensitive files, env protection, reverse proxy waf, layer 4 firewall, protocol defense' }],
+    ['meta', { property: 'og:site_name', content: 'Routewarden' }],
+    ['meta', { property: 'og:locale', content: 'en_US' }],
     ['meta', { property: 'og:type', content: 'website' }],
-    ['meta', { property: 'og:title', content: 'RouteWarden — Unified Edge & Protocol Security Suite' }],
+    ['meta', { property: 'og:title', content: 'Routewarden — Unified Edge & Protocol Security Suite' }],
     ['meta', { property: 'og:description', content: 'Stop sensitive file leaks (.env, .git, backups) across Traefik, Caddy, and NGINX, and protect non-HTTP infrastructure with TCP Warden.' }],
     ['meta', { property: 'og:image', content: 'https://routewarden.github.io/banner.png' }],
+    ['meta', { property: 'og:image:alt', content: 'Routewarden — Unified Edge & Protocol Security Suite' }],
     ['meta', { property: 'og:url', content: 'https://routewarden.github.io/' }],
     ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
-    ['meta', { name: 'twitter:title', content: 'RouteWarden — Unified Edge & Protocol Security Suite' }],
+    ['meta', { name: 'twitter:title', content: 'Routewarden — Unified Edge & Protocol Security Suite' }],
     ['meta', { name: 'twitter:description', content: 'Ultra-fast sensitive path defense for web gateways and protocol-aware Layer 4 proxying for backend infrastructure.' }],
     ['meta', { name: 'twitter:image', content: 'https://routewarden.github.io/banner.png' }],
+    ['meta', { name: 'twitter:image:alt', content: 'Routewarden — Unified Edge & Protocol Security Suite' }],
+    [
+      'script',
+      { type: 'application/ld+json' },
+      JSON.stringify({
+        '@context': 'https://schema.org',
+        '@graph': [
+          {
+            '@type': 'WebSite',
+            '@id': 'https://routewarden.github.io/#website',
+            'url': 'https://routewarden.github.io/',
+            'name': 'Routewarden',
+            'description': 'Unified Edge & Protocol Security Suite for Traefik, Caddy, NGINX, and TCP Services',
+            'publisher': {
+              '@type': 'Organization',
+              'name': 'Routewarden',
+              'url': 'https://routewarden.github.io',
+              'logo': {
+                '@type': 'ImageObject',
+                'url': 'https://routewarden.github.io/icon.svg'
+              }
+            }
+          },
+          {
+            '@type': 'SoftwareApplication',
+            '@id': 'https://routewarden.github.io/#software',
+            'name': 'Routewarden',
+            'applicationCategory': 'SecurityApplication',
+            'operatingSystem': 'Linux, macOS, Windows',
+            'offers': {
+              '@type': 'Offer',
+              'price': '0',
+              'priceCurrency': 'USD'
+            },
+            'description': 'High-performance edge security plugin and protocol-aware proxy defending web gateways and Layer 4 services against sensitive route leakage and unauthorized probes.',
+            'softwareVersion': '1.6.0',
+            'url': 'https://routewarden.github.io/'
+          }
+        ]
+      })
+    ],
     // Cloudflare Web Analytics — only injected when the token secret is available at build time.
     // Omitting the script entirely when CF_ANALYTICS_TOKEN is empty avoids CORS rejections from
     // Cloudflare's RUM endpoint, which returns no Access-Control-Allow-Origin on invalid tokens.
@@ -171,7 +266,7 @@ export default defineConfig({
   ],
   themeConfig: {
     logo: '/icon.svg',
-    siteTitle: 'RouteWarden',
+    siteTitle: 'Routewarden',
     nav: [
       {
         text: 'Gateways',
@@ -181,7 +276,7 @@ export default defineConfig({
           { text: 'Traefik Warden', link: '/traefik/' },
           { text: 'Caddy Warden', link: '/caddy/' },
           { text: 'NGINX Warden', link: '/nginx/' },
-          { text: 'RouteWarden CLI (rwarden)', link: '/cli/' }
+          { text: 'Routewarden CLI (rwarden)', link: '/cli/' }
         ]
       },
       {
@@ -384,7 +479,7 @@ export default defineConfig({
             { text: 'Response Modes (13 Actions)', link: '/core/response-modes' },
             { text: 'Custom Regex Patterns', link: '/core/custom-patterns' },
             { text: 'Frequently Asked Questions (FAQ)', link: '/faq' },
-            { text: 'RouteWarden CLI Tool', link: '/cli/' },
+            { text: 'Routewarden CLI Tool', link: '/cli/' },
             { text: 'Changelog & Migrations', link: '/core/changelog' }
           ]
         },
@@ -448,7 +543,7 @@ export default defineConfig({
       ],
       '/cli/': [
         {
-          text: 'RouteWarden CLI (rwarden)',
+          text: 'Routewarden CLI (rwarden)',
           collapsed: false,
           items: [
             { text: 'Overview & Features', link: '/cli/' },
@@ -490,7 +585,7 @@ export default defineConfig({
           text: 'Interactive Tools & Utilities',
           collapsed: false,
           items: [
-            { text: 'RouteWarden CLI (`rwarden`)', link: '/cli/' },
+            { text: 'Routewarden CLI (`rwarden`)', link: '/cli/' },
             { text: 'Pattern & Response Playground', link: '/tools/pattern-checker' }
           ]
         }
@@ -500,7 +595,7 @@ export default defineConfig({
           text: 'Frequently Asked Questions',
           collapsed: false,
           items: [
-            { text: 'RouteWarden FAQ', link: '/faq' },
+            { text: 'Routewarden FAQ', link: '/faq' },
             { text: 'TCP Warden (L4) FAQ ➔', link: '/tcp/faq' }
           ]
         }
@@ -514,7 +609,7 @@ export default defineConfig({
             { text: 'Traefik Warden', link: '/traefik/' },
             { text: 'Caddy Warden', link: '/caddy/' },
             { text: 'NGINX Warden', link: '/nginx/' },
-            { text: 'RouteWarden CLI (rwarden)', link: '/cli/' }
+            { text: 'Routewarden CLI (rwarden)', link: '/cli/' }
           ]
         },
         {
@@ -536,7 +631,7 @@ export default defineConfig({
     },
     notFound: {
       title: 'PAGE NOT FOUND',
-      quote: 'RouteWarden caught an unmatched path or the resource has been moved.',
+      quote: 'Routewarden caught an unmatched path or the resource has been moved.',
       linkLabel: 'Return to Documentation',
       linkText: 'Go to Home'
     },
@@ -545,7 +640,7 @@ export default defineConfig({
     ],
     footer: {
       message: 'Released under the MIT License.',
-      copyright: 'Copyright © 2026 RouteWarden Contributors'
+      copyright: 'Copyright © 2026 Routewarden Contributors'
     }
   }
 })

@@ -1,6 +1,6 @@
 ---
-title: Reusing an Existing Logging Infrastructure — RouteWarden Dashboard
-description: How to pipe RouteWarden security analytics into your existing log forwarder, SIEM, or monitoring pipeline without deploying redundant containers.
+title: Reusing an Existing Logging Infrastructure — Routewarden Dashboard
+description: How to pipe Routewarden security analytics into your existing log forwarder, SIEM, or monitoring pipeline without deploying redundant containers.
 ---
 
 <script setup>
@@ -19,7 +19,7 @@ rwarden monitor --raw >> /var/log/central-security.log`,
 
 const existing_file = buildSnippet({
   lang: 'bash',
-  code: `# Tail an existing access log file into the RouteWarden dashboard
+  code: `# Tail an existing access log file into the Routewarden dashboard
 rwarden dashboard --file /var/log/nginx/access.log`,
 })
 

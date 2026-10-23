@@ -1,5 +1,6 @@
 ---
 title: Caddy Cookbook & Recipes
+description: "Real-world Caddy configuration examples with Routewarden for sensitive path protection and IP allowlisting."
 ---
 <script setup>
 import { computed, onMounted } from 'vue'
@@ -227,7 +228,7 @@ photos.example.com {
 
 # 2. PRIVATE SITE: Accessible strictly via internal VPN / Tailscale
 photos-internal.example.com {
-    # Full access without RouteWarden restrictions
+    # Full access without Routewarden restrictions
     reverse_proxy immich-server:2283
 }`,
 })

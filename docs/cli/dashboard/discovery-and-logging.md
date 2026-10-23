@@ -1,6 +1,6 @@
 ---
-title: Container Discovery & Opt-In Logging — RouteWarden Dashboard
-description: How RouteWarden discovers reverse proxies and daemons using pure opt-in Docker labels, extracts structured security events, and handles UDP logs.
+title: Container Discovery & Opt-In Logging — Routewarden Dashboard
+description: How Routewarden discovers reverse proxies and daemons using pure opt-in Docker labels, extracts structured security events, and handles UDP logs.
 ---
 
 <script setup>
@@ -38,14 +38,14 @@ const optin_compose = buildSnippet({
 
 const optin_cli = buildSnippet({
   lang: 'bash',
-  code: `# Run Traefik with RouteWarden logging enabled
+  code: `# Run Traefik with Routewarden logging enabled
 docker run -d \\
   --name my-gateway \\
   --label routewarden.logs=true \\
   -p 80:80 \\
   traefik:latest
 
-# Run TCP Warden daemon with RouteWarden logging enabled
+# Run TCP Warden daemon with Routewarden logging enabled
 docker run -d \\
   --name my-tcp-warden \\
   --label routewarden.logs=true \\
@@ -91,13 +91,13 @@ const udpSnippets = computed(() => ({
 
 # Container Discovery & Opt-In Logging
 
-RouteWarden automatically discovers Docker containers via `/var/run/docker.sock`. It operates on a **pure opt-in model** to eliminate log noise, avoid guessing based on container names, and ensure the dashboard never logs unrelated containers on your host.
+Routewarden automatically discovers Docker containers via `/var/run/docker.sock`. It operates on a **pure opt-in model** to eliminate log noise, avoid guessing based on container names, and ensure the dashboard never logs unrelated containers on your host.
 
 ---
 
 ## How to Enable Logging for a Container
 
-To send security logs from any gateway container (**Traefik**, **Caddy**, **NGINX**, or **TCP Warden**) to RouteWarden's dashboard, add the label `routewarden=true` (or `routewarden.logs=true`) to the container:
+To send security logs from any gateway container (**Traefik**, **Caddy**, **NGINX**, or **TCP Warden**) to Routewarden's dashboard, add the label `routewarden=true` (or `routewarden.logs=true`) to the container:
 
 <CodeViewer :snippets="optinSnippets" />
 
@@ -118,7 +118,7 @@ Relying on container name patterns (e.g. `traefik*`, `nginx*`) is fragile in rea
 
 ## UDP Log Support
 
-RouteWarden handles UDP logs across two key dimensions:
+Routewarden handles UDP logs across two key dimensions:
 
 ### 1. Layer 4 UDP Protocol Security Events
 
@@ -139,7 +139,7 @@ You can stream raw syslog or JSON events directly over network UDP (`127.0.0.1:1
 
 ## Structured Log Normalization
 
-When security events are ingested, RouteWarden normalizes diverse fields across different gateways into a unified schema:
+When security events are ingested, Routewarden normalizes diverse fields across different gateways into a unified schema:
 
 | Ingested Field | Normalized Stream Label | Description |
 |:---|:---|:---|
@@ -155,4 +155,4 @@ When security events are ingested, RouteWarden normalizes diverse fields across 
 | `matched_pattern` | `matched_pattern` (Structured Metadata) | Specific defense signature triggered |
 | `rule_id` | `rule_id` (Structured Metadata) | Unique rule identifier |
 
-By storing high-cardinality values (`client_ip`, `path`, `matched_pattern`) as **structured fields**, RouteWarden ensures forensic parsing remains blazing fast without memory bloat.
+By storing high-cardinality values (`client_ip`, `path`, `matched_pattern`) as **structured fields**, Routewarden ensures forensic parsing remains blazing fast without memory bloat.

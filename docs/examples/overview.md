@@ -1,3 +1,8 @@
+---
+title: "Examples & Cookbook Overview"
+description: "Overview of real-world deployment patterns and case studies for Routewarden edge security."
+---
+
 <script setup>
 import { computed } from 'vue'
 import { buildSnippet } from '../.vitepress/theme/composables/useCodeSnippet'
@@ -18,7 +23,7 @@ const runnableSnippets = computed(() => ({
 
 # Examples & Cookbook Overview
 
-Browse ready-to-run configurations and production blueprints for RouteWarden across different deployment targets.
+Browse ready-to-run configurations and production blueprints for Routewarden across different deployment targets.
 
 ---
 
@@ -32,7 +37,7 @@ Browse ready-to-run configurations and production blueprints for RouteWarden acr
 | [4. IP / Subnet Whitelisting](/examples/ip-whitelisting) | Allow internal corporate VPNs, office IPs, and developer subnets. | Traefik, Caddy & NGINX |
 | [5. Captcha Verification Challenge](/examples/captcha) | Challenge clients via Cloudflare Turnstile or hCaptcha on sensitive routes. | Traefik, Caddy & NGINX |
 | [6. Kubernetes IngressRoute](/examples/kubernetes) | Production Ingress and Middleware setups for Traefik CRDs, Caddy & NGINX Ingress. | Kubernetes (Traefik, Caddy & NGINX) |
-| [7. CrowdSec Integration & Security Logging](/examples/crowdsec) | Connect RouteWarden to CrowdSec for instant 1-strike attacker auto-bans. | Traefik, Caddy & NGINX + CrowdSec |
+| [7. CrowdSec Integration & Security Logging](/examples/crowdsec) | Connect Routewarden to CrowdSec for instant 1-strike attacker auto-bans. | Traefik, Caddy & NGINX + CrowdSec |
 
 ---
 
@@ -63,6 +68,6 @@ Browse ready-to-run configurations and production blueprints for RouteWarden acr
 
 ## In-Repo Runnable Code
 
-All examples are checked directly into the [`examples/`](https://github.com/routewarden/traefik-warden/tree/main/examples) directory of the RouteWarden GitHub repository. You can clone the repo and run any scenario in seconds:
+All examples are checked directly into the [`examples/`](https://github.com/routewarden/traefik-warden/tree/main/examples) directory of the Routewarden GitHub repository. You can clone the repo and run any scenario in seconds:
 
 <CodeViewer :snippets="runnableSnippets" />

@@ -1,5 +1,6 @@
 ---
 title: Example 5 – Captcha Challenge
+description: "How to present Cloudflare Turnstile, hCaptcha, or reCAPTCHA challenges to suspicious HTTP clients."
 ---
 
 <script setup>
@@ -354,7 +355,7 @@ const dockerSnippets = computed(() => ({
 
 # Example 5: Captcha Challenge (Turnstile / hCaptcha / reCAPTCHA)
 
-Instead of dropping connections or returning static error codes, RouteWarden can serve interactive Captcha challenges on sensitive paths using **Cloudflare Turnstile**, **hCaptcha**, or **Google reCAPTCHA**.
+Instead of dropping connections or returning static error codes, Routewarden can serve interactive Captcha challenges on sensitive paths using **Cloudflare Turnstile**, **hCaptcha**, or **Google reCAPTCHA**.
 
 ---
 
@@ -362,7 +363,7 @@ Instead of dropping connections or returning static error codes, RouteWarden can
 
 > [!TIP]
 > **No external `captcha.html` file is required!**  
-> RouteWarden has a **built-in, mobile-responsive dark-mode HTML template** embedded directly into the Go binary. When `mode: captcha` is enabled, RouteWarden automatically:
+> Routewarden has a **built-in, mobile-responsive dark-mode HTML template** embedded directly into the Go binary. When `mode: captcha` is enabled, Routewarden automatically:
 > 1. Injects the official provider JavaScript SDK.
 > 2. Renders the appropriate widget container.
 > 3. Populates your custom title and site key.

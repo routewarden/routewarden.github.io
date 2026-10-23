@@ -1,5 +1,6 @@
 ---
 title: "Traefik Warden — Traefik Middleware Plugin"
+description: "Overview and quick start guide for Routewarden Traefik HTTP security middleware plugin."
 ---
 
 <script setup>

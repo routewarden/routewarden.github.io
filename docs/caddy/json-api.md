@@ -1,5 +1,6 @@
 ---
 title: "Caddy Warden: JSON API Reference"
+description: "Configure Routewarden via Caddy v2 JSON API and dynamic configuration endpoints."
 ---
 <script setup>
 import { computed } from 'vue'

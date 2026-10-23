@@ -249,7 +249,7 @@ const udpSnippets = computed(() => ({
 
 # Plugin SDK & Lifecycle
 
-This reference details the Go interfaces, embedded manifest schemas, and lifecycle hooks provided by the **RouteWarden Plugin SDK** (`github.com/routewarden/cli/proxy/plugins/sdk`).
+This reference details the Go interfaces, embedded manifest schemas, and lifecycle hooks provided by the **Routewarden Plugin SDK** (`github.com/routewarden/cli/proxy/plugins/sdk`).
 
 ---
 

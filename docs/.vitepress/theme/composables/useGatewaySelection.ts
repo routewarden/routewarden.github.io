@@ -12,7 +12,7 @@ export const GATEWAYS: GatewayOption[] = [
   { id: 'caddy', label: 'Caddy' },
   { id: 'nginx', label: 'NGINX' },
   { id: 'tcp', label: 'TCP Warden' },
-  { id: 'cli', label: 'RouteWarden CLI' }
+  { id: 'cli', label: 'Routewarden CLI' }
 ]
 
 export const STORAGE_KEY_GW = 'routewarden_preferred_gateway'

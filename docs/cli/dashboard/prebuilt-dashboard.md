@@ -1,6 +1,6 @@
 ---
-title: Pre-Configured Security Dashboard & Panels — RouteWarden Dashboard
-description: Real-time threat telemetry panels, live SOC audit stream, SQLite persistence, GeoIP origins, top probed paths, and attack analytics in the RouteWarden Native SOC dashboard.
+title: Pre-Configured Security Dashboard & Panels — Routewarden Dashboard
+description: Real-time threat telemetry panels, live SOC audit stream, SQLite persistence, GeoIP origins, top probed paths, and attack analytics in the Routewarden Native SOC dashboard.
 ---
 
 <script setup>
@@ -10,7 +10,7 @@ import { buildSnippet } from '../../.vitepress/theme/composables/useCodeSnippet'
 // ─── Launch Snippet ─────────────────────────────────────────────────────────
 const launch_cmd = buildSnippet({
   lang: 'bash',
-  code: `# Launch RouteWarden security dashboard (auto-opens http://localhost:7890)
+  code: `# Launch Routewarden security dashboard (auto-opens http://localhost:7890)
 rwarden dashboard`,
 })
 
@@ -23,7 +23,7 @@ const launchSnippets = computed(() => ({
 
 # Pre-Configured SOC Dashboard & Telemetry Panels
 
-The RouteWarden Native SOC Dashboard comes pre-configured with a comprehensive set of real-time security panels designed to give instant visibility into scanner activity, credential stuffing, perimeter blocks, and geographical threat distributions.
+The Routewarden Native SOC Dashboard comes pre-configured with a comprehensive set of real-time security panels designed to give instant visibility into scanner activity, credential stuffing, perimeter blocks, and geographical threat distributions.
 
 <CodeViewer :snippets="launchSnippets" />
 
@@ -55,7 +55,7 @@ Rolling time-series chart showing 1-minute interval activity over the past 30 mi
 ### Section 04 // Global Threat Hotspots & Ingress Geography
 Interactive world map powered by Leaflet:
 - Displays coordinates and attack density heat for offending client IPs.
-- Resolved via RouteWarden's autonomous country engine combining offline CIDR/RIR databases with automatic MaxMind GeoLite2 discovery.
+- Resolved via Routewarden's autonomous country engine combining offline CIDR/RIR databases with automatic MaxMind GeoLite2 discovery.
 
 ### Section 05 // Intelligence Vectors & Hotspots
 Detailed threat intelligence panels:

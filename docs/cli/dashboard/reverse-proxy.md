@@ -1,6 +1,6 @@
 ---
-title: Reverse Proxy Setup — RouteWarden Dashboard
-description: Production guide for exposing RouteWarden's real-time SOC security dashboard behind Traefik, Caddy, and NGINX with SSL/TLS and real-time SSE streaming.
+title: Reverse Proxy Setup — Routewarden Dashboard
+description: Production guide for exposing Routewarden's real-time SOC security dashboard behind Traefik, Caddy, and NGINX with SSL/TLS and real-time SSE streaming.
 ---
 
 <script setup>
@@ -72,7 +72,7 @@ const caddy_subdomain = buildSnippet({
   lang: 'caddy',
   code: `# Caddyfile (Subdomain with Automatic Let's Encrypt TLS)
 soc.example.com {
-    # Reverse proxy to local RouteWarden dashboard
+    # Reverse proxy to local Routewarden dashboard
     reverse_proxy localhost:7890 {
         # Flush SSE chunks immediately for real-time telemetry (< 10ms)
         flush_interval -1
@@ -331,7 +331,7 @@ const verifySnippets = computed(() => ({
 // ─── 7. Environment Variable Snippets ───────────────────────────────────────
 const env_file_snippet = buildSnippet({
   lang: 'bash',
-  code: `# .env — Production Environment Configuration for RouteWarden
+  code: `# .env — Production Environment Configuration for Routewarden
 # ─────────────────────────────────────────────────────────────
 # Domain and Network
 DOMAIN=soc.example.com
@@ -399,7 +399,7 @@ rwarden dashboard up --detach
 
 # Option C: Systemd service (/etc/systemd/system/rwarden-dashboard.service)
 # [Unit]
-# Description=RouteWarden Real-Time SOC Security Dashboard
+# Description=Routewarden Real-Time SOC Security Dashboard
 # After=network.target
 #
 # [Service]
@@ -422,20 +422,20 @@ const envSnippets = computed(() => ({
 }))
 </script>
 
-# Reverse Proxy Setup for RouteWarden Dashboard
+# Reverse Proxy Setup for Routewarden Dashboard
 
-When deploying RouteWarden's security dashboard in production, placing it behind a reverse proxy provides:
+When deploying Routewarden's security dashboard in production, placing it behind a reverse proxy provides:
 
 - **HTTPS / TLS Encryption**: Automated certificate renewal with Let's Encrypt or ZeroSSL.
 - **Custom Domain Routing**: Expose the dashboard under `soc.example.com` or a subpath like `/routewarden`.
 - **IP Allowlisting & Zero Trust**: Restrict access to corporate VPNs, Tailscale, or Cloudflare Access while keeping edge ingestion endpoints accessible.
-- **Secure Host Isolation**: Bind RouteWarden internally to `127.0.0.1:7890` so the raw HTTP port is never exposed to the public internet.
+- **Secure Host Isolation**: Bind Routewarden internally to `127.0.0.1:7890` so the raw HTTP port is never exposed to the public internet.
 
 ---
 
 ## Critical Requirements for Live SSE Streaming
 
-RouteWarden streams real-time threat telemetry, KPIs, and live event rows to the browser using **Server-Sent Events (SSE)** at `/api/stream`.
+Routewarden streams real-time threat telemetry, KPIs, and live event rows to the browser using **Server-Sent Events (SSE)** at `/api/stream`.
 
 When routing through any reverse proxy, two settings are essential:
 
@@ -446,7 +446,7 @@ When routing through any reverse proxy, two settings are essential:
 
 ## 1. Localhost Isolation (Recommended)
 
-Before configuring your reverse proxy, ensure RouteWarden only listens on `127.0.0.1` so external users cannot bypass your proxy:
+Before configuring your reverse proxy, ensure Routewarden only listens on `127.0.0.1` so external users cannot bypass your proxy:
 
 <CodeViewer :snippets="bindSnippets" />
 
@@ -459,7 +459,7 @@ Traefik natively supports HTTP/2 and SSE streaming. Set the response buffering m
 <CodeViewer :snippets="traefikSnippets" />
 
 ### Key Traefik Directives:
-- **`loadbalancer.server.port=7890`**: Directs traffic to RouteWarden's internal HTTP server.
+- **`loadbalancer.server.port=7890`**: Directs traffic to Routewarden's internal HTTP server.
 - **`responseForwarding.flushInterval: "10ms"`** / **`maxResponseBodyBytes: 0`**: Ensures SSE messages are flushed downstream immediately upon receipt.
 
 ---
@@ -478,7 +478,7 @@ Caddy automatically provisions TLS certificates and handles HTTP/2 connection mu
 
 ## 4. NGINX Configuration
 
-NGINX is one of the most common production reverse proxies. For RouteWarden, disabling buffering and setting long connection timeouts is crucial:
+NGINX is one of the most common production reverse proxies. For Routewarden, disabling buffering and setting long connection timeouts is crucial:
 
 <CodeViewer :snippets="nginxSnippets" />
 
@@ -497,7 +497,7 @@ NGINX is one of the most common production reverse proxies. For RouteWarden, dis
 
 ## 5. Reverse Proxy with Remote Edge Nodes (`rwarden push`)
 
-If you are using RouteWarden's distributed log shipping (`rwarden push`), remote agents connect to the dashboard URL:
+If you are using Routewarden's distributed log shipping (`rwarden push`), remote agents connect to the dashboard URL:
 
 <CodeViewer :snippets="edgeConnectSnippets" />
 
@@ -509,7 +509,7 @@ If you are using RouteWarden's distributed log shipping (`rwarden push`), remote
 <CodeViewer :snippets="edgeProxySnippets" />
 
 ::: tip Built-In Cyber Auth
-RouteWarden includes its own built-in cyber authentication screen via `--auth <user:password>`. When using RouteWarden's built-in auth, the `/api/v1/*` endpoints and static assets are automatically whitelisted, so you do not need complex reverse proxy location blocks.
+Routewarden includes its own built-in cyber authentication screen via `--auth <user:password>`. When using Routewarden's built-in auth, the `/api/v1/*` endpoints and static assets are automatically whitelisted, so you do not need complex reverse proxy location blocks.
 :::
 
 ---
@@ -531,7 +531,7 @@ Once your reverse proxy is active, verify that SSE streaming and event ingestion
 
 ## 7. Environment Variables & `.env` Configuration
 
-To avoid exposing passwords, domain names, or secrets in shell history or version-controlled Compose files, RouteWarden reads configuration directly from environment variables.
+To avoid exposing passwords, domain names, or secrets in shell history or version-controlled Compose files, Routewarden reads configuration directly from environment variables.
 
 ### Environment Variable Reference
 

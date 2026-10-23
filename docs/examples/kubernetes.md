@@ -1,5 +1,6 @@
 ---
 title: Example 6 – Kubernetes Ingress & CRDs
+description: "Deploying Routewarden in Kubernetes using Traefik Middleware CRDs, Caddy ConfigMaps, and NGINX Ingress."
 ---
 
 <script setup>
@@ -216,13 +217,13 @@ const deployCommandsSnippets = computed(() => ({
 
 # Example 6: Kubernetes Ingress & CRDs
 
-Deploy RouteWarden inside Kubernetes clusters using Custom Resource Definitions (`Middleware`, `IngressRoute`) or native Kubernetes `Ingress` annotations and `ConfigMap` resources.
+Deploy Routewarden inside Kubernetes clusters using Custom Resource Definitions (`Middleware`, `IngressRoute`) or native Kubernetes `Ingress` annotations and `ConfigMap` resources.
 
 ---
 
 ## 1. Static Cluster Helm Configuration
 
-When using Traefik, ensure the RouteWarden plugin is enabled in Traefik's Helm chart values:
+When using Traefik, ensure the Routewarden plugin is enabled in Traefik's Helm chart values:
 
 <CodeViewer :snippets="helmSnippets" />
 

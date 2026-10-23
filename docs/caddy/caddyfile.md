@@ -1,5 +1,6 @@
 ---
 title: Caddyfile Directive & JSON Reference
+description: "Caddyfile directives, route ordering, and syntax examples for the Routewarden Caddy plugin."
 ---
 <script setup>
 import { computed } from 'vue'
@@ -199,11 +200,11 @@ To resolve this, declare directive ordering in your Caddyfile's global options b
 <CodeViewer :snippets="orderingSnippets" />
 
 > [!TIP]
-> **Using a `route` Block**: Alternatively, select the **Inside Route Block** tab in the CodeViewer above. Encapsulating RouteWarden and your upstream proxy inside a `route { ... }` block instructs Caddy to execute directives strictly in the order they are written, eliminating the need for global options.
+> **Using a `route` Block**: Alternatively, select the **Inside Route Block** tab in the CodeViewer above. Encapsulating Routewarden and your upstream proxy inside a `route { ... }` block instructs Caddy to execute directives strictly in the order they are written, eliminating the need for global options.
 
 > [!IMPORTANT]
 > **Using `handle` or `handle_path` Blocks?**
-> In Caddy, `handle` blocks take routing priority over standard handlers. If your site blocks encapsulate `reverse_proxy` inside a `handle` block, use **`order routewarden before handle`** or wrap your site inside a `route { ... }` block to prevent requests from bypassing RouteWarden. See the [Caddy Warden FAQ](./faq) for detailed examples.
+> In Caddy, `handle` blocks take routing priority over standard handlers. If your site blocks encapsulate `reverse_proxy` inside a `handle` block, use **`order routewarden before handle`** or wrap your site inside a `route { ... }` block to prevent requests from bypassing Routewarden. See the [Caddy Warden FAQ](./faq) for detailed examples.
 
 ---
 
@@ -218,7 +219,7 @@ To resolve this, declare directive ordering in your Caddyfile's global options b
 | Directive | Type | Default | Description |
 |---|---|---|---|
 | `config_file` | `string` | `""` | Path to a `routewarden.json` file loaded as the base config. Inline Caddyfile fields take precedence over the file. |
-| `enabled` | `bool` | `true` | Enables or disables RouteWarden inspection. |
+| `enabled` | `bool` | `true` | Enables or disables Routewarden inspection. |
 | `debug` | `bool` | `false` | Enables verbose diagnostic logging in Caddy's logger. |
 | `security_log` | `bool` | `true` | Emits single-line structured JSON security events on stdout for CrowdSec, SIEMs, or log aggregators on blocked requests. |
 | `enable_default_patterns` | `bool` | `true` | Blocks high-risk files (`.env`, `.git`, `.aws`, `.ssh`, `.sql`, `.bak`, etc.). |
@@ -230,7 +231,7 @@ To resolve this, declare directive ordering in your Caddyfile's global options b
 | `methods` | `list` | `["GET"]` | HTTP verbs to inspect (e.g. `methods GET POST`). Non-matching verbs bypass inspection. |
 
 > [!IMPORTANT]
-> **Inspecting Non-GET Methods (`methods`)**: By default, RouteWarden only inspects `GET` requests (`methods GET`). If you are blocking API endpoints, authentication routes (e.g. `POST /api/auth/login`), or administrative actions that accept `POST`, `PUT`, `DELETE`, or `PATCH`, you **must** configure `methods` to include them (e.g. `methods GET POST PUT DELETE PATCH HEAD`). Unlisted HTTP verbs bypass RouteWarden entirely and flow straight to the backend.
+> **Inspecting Non-GET Methods (`methods`)**: By default, Routewarden only inspects `GET` requests (`methods GET`). If you are blocking API endpoints, authentication routes (e.g. `POST /api/auth/login`), or administrative actions that accept `POST`, `PUT`, `DELETE`, or `PATCH`, you **must** configure `methods` to include them (e.g. `methods GET POST PUT DELETE PATCH HEAD`). Unlisted HTTP verbs bypass Routewarden entirely and flow straight to the backend.
 
 > [!TIP]
 > **CrowdSec Integration**: For automated attacker remediation using `security_log`, see the **[CrowdSec Integration Guide](/examples/crowdsec)**.
@@ -239,11 +240,11 @@ To resolve this, declare directive ordering in your Caddyfile's global options b
 
 ## 4. Config File (`config_file`)
 
-Instead of inlining every option in your Caddyfile, point RouteWarden at a shared `routewarden.json` file. Inline Caddyfile fields always override file values, so you can keep a single shared policy file and customize per-site behaviour in the Caddyfile.
+Instead of inlining every option in your Caddyfile, point Routewarden at a shared `routewarden.json` file. Inline Caddyfile fields always override file values, so you can keep a single shared policy file and customize per-site behaviour in the Caddyfile.
 
 <CodeViewer :snippets="configFileSnippets" />
 
-The `routewarden.json` file uses the standard RouteWarden JSON schema (view it with `rwarden schema` or the [CLI Schema](/cli/schema)):
+The `routewarden.json` file uses the standard Routewarden JSON schema (view it with `rwarden schema` or the [CLI Schema](/cli/schema)):
 
 ### Merge Semantics
 
@@ -307,7 +308,7 @@ When enabled (default), Caddy Warden immediately allows standard public resource
 
 > [!WARNING]
 > **`silent_drop` Behind Edge Proxies / CDNs (502 Bad Gateway)**:
-> In `silent_drop` mode, RouteWarden terminates the TCP socket immediately without sending an HTTP status line. If Caddy is deployed behind **Cloudflare, AWS ALB, NGINX, Traefik, or any reverse proxy / CDN**, the edge proxy detects an abrupt connection termination and presents a **`502 Bad Gateway`** error to the client.
+> In `silent_drop` mode, Routewarden terminates the TCP socket immediately without sending an HTTP status line. If Caddy is deployed behind **Cloudflare, AWS ALB, NGINX, Traefik, or any reverse proxy / CDN**, the edge proxy detects an abrupt connection termination and presents a **`502 Bad Gateway`** error to the client.
 > 
 > When debugging unexpected 502 errors or when clean client responses are required, switch to `mode json` or `mode html` with `status_code 403` or `404`.
 

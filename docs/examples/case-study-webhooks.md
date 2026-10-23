@@ -1,5 +1,6 @@
 ---
 title: Case Study – Zero-Trust Webhook Ingress
+description: "Securing GitHub, Stripe, and third-party webhook receivers with signature checking and IP allowlists."
 ---
 
 <script setup>
@@ -211,7 +212,7 @@ Because webhook handlers must be reachable over the public internet, developers 
 
 ## The Solution: Two-Layer Zero-Trust Defense
 
-With RouteWarden, you enforce a two-tier gatekeeper at the edge:
+With Routewarden, you enforce a two-tier gatekeeper at the edge:
 1. **IP Range Restriction (`allowedIps`)**: Only official CIDR blocks published by Stripe/GitHub can send payloads to `/webhooks/.*`.
 2. **Exact Allowlist (`allowPatterns`)**: Only designated production webhook endpoints (e.g. `/webhooks/stripe/v1`) are permitted; all internal or debug paths are blocked with `404 Not Found` or dropped silently (`silentDrop`).
 
@@ -223,7 +224,7 @@ With RouteWarden, you enforce a two-tier gatekeeper at the edge:
 
 > [!IMPORTANT]
 > **HTTP Methods Requirement**:
-> Webhook providers (such as Stripe, GitHub, Shopify, and Paddle) exclusively deliver event notifications using **`POST`** requests. Because RouteWarden inspects only `GET` requests by default, always explicitly define `methods GET POST PUT DELETE PATCH HEAD` (or `methods: ["GET", "POST"]`) so inbound webhook traffic and probes are evaluated against your allowlist and CIDR restrictions.
+> Webhook providers (such as Stripe, GitHub, Shopify, and Paddle) exclusively deliver event notifications using **`POST`** requests. Because Routewarden inspects only `GET` requests by default, always explicitly define `methods GET POST PUT DELETE PATCH HEAD` (or `methods: ["GET", "POST"]`) so inbound webhook traffic and probes are evaluated against your allowlist and CIDR restrictions.
 
 > [!WARNING]
 > **Edge Proxy & CDN Compatibility**:

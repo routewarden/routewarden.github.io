@@ -82,7 +82,7 @@ const scaffoldTreeSnippets = computed(() => ({
 Build, test, and package custom Layer 4 protocol inspectors for TCP Warden using Go.
 </p>
 
-TCP Warden is built on a modular plugin architecture. While the core daemon handles high-throughput Layer 4 transparent proxying, all protocol-specific inspectors (SSH, PostgreSQL, MySQL, Redis, MongoDB, SMTP, etc.) are independent plugins implementing the **RouteWarden Plugin SDK** (`github.com/routewarden/cli/proxy/plugins/sdk`).
+TCP Warden is built on a modular plugin architecture. While the core daemon handles high-throughput Layer 4 transparent proxying, all protocol-specific inspectors (SSH, PostgreSQL, MySQL, Redis, MongoDB, SMTP, etc.) are independent plugins implementing the **Routewarden Plugin SDK** (`github.com/routewarden/cli/proxy/plugins/sdk`).
 
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Example 4 – IP & CIDR Subnet Whitelisting
+description: "Configuring client IP allowlisting, CIDR blocks, and trusted reverse proxy headers in Routewarden."
 ---
 
 <script setup>
@@ -158,7 +159,7 @@ http {
       - "traefik.http.routers.admin.rule=Host(\`admin.localhost\`)"
       - "traefik.http.routers.admin.entrypoints=web"
       - "traefik.http.routers.admin.middlewares=admin-shield" # [!code ++]
-      # RouteWarden Configuration with IP Whitelist
+      # Routewarden Configuration with IP Whitelist
       - "traefik.http.middlewares.admin-shield.plugin.routewarden.enabled=true" # [!code ++]
       - "traefik.http.middlewares.admin-shield.plugin.routewarden.blockPatterns=(?i)^/admin(/.*)?$,(?i)^/metrics(/.*)?$" # [!code ++]
       - "traefik.http.middlewares.admin-shield.plugin.routewarden.allowedIps=10.0.0.0/8,192.168.1.100" # [!code ++]
@@ -241,13 +242,13 @@ const testingSnippets = computed(() => ({
 
 # Example 4: IP & CIDR Subnet Whitelisting
 
-RouteWarden allows you to declare trusted IPs and subnets (`allowedIps`) to bypass path blocking. This is ideal for internal management portals, company VPN gateways, and authorized vulnerability scanners.
+Routewarden allows you to declare trusted IPs and subnets (`allowedIps`) to bypass path blocking. This is ideal for internal management portals, company VPN gateways, and authorized vulnerability scanners.
 
 ---
 
 ## How IP Resolution Works
 
-RouteWarden evaluates client IPs in the following priority order:
+Routewarden evaluates client IPs in the following priority order:
 1. **`X-Forwarded-For`** header (first IP in list)
 2. **`X-Real-IP`** header
 3. Socket **`RemoteAddr`**

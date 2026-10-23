@@ -12,7 +12,7 @@ const before_handle_snippet = buildSnippet({
   lang: 'caddy',
   code: `{
     admin off
-    # Order RouteWarden ahead of routing directives
+    # Order Routewarden ahead of routing directives
     order routewarden before handle # [!code ++]
 }
 
@@ -43,7 +43,7 @@ const route_wrapper_snippet = buildSnippet({
   code: `api.example.com {
     # Wrapping inside route { ... } enforces top-to-bottom execution
     route { # [!code ++]
-        # 1. RouteWarden inspects and mitigates first
+        # 1. Routewarden inspects and mitigates first
         import routewarden # [!code ++]
 
         # 2. Compression
@@ -239,7 +239,7 @@ const edgeProxyResponseSnippets = computed(() => ({
 // ─── 7. Reusable Snippets Across Sites ──────────────────────────────────────
 const multi_site_caddy = buildSnippet({
   lang: 'caddy',
-  code: `# 1. Define reusable RouteWarden configuration snippet
+  code: `# 1. Define reusable Routewarden configuration snippet
 (routewarden_common) {
     routewarden {
         enable_default_allow_patterns true
@@ -283,10 +283,10 @@ Solutions to common Caddy integration edge cases, directive ordering conflicts, 
 
 ---
 
-## 1. Why is RouteWarden not blocking requests when my site uses `handle` blocks?
+## 1. Why is Routewarden not blocking requests when my site uses `handle` blocks?
 
 ### Symptom
-You test a blocked sensitive endpoint like `curl https://api.example.com/.env`, but instead of RouteWarden intercepting it, the request slips through to your backend application and returns a backend **`404 Not Found`** (with `Via: 1.1 Caddy` and a duration around `5-10ms`).
+You test a blocked sensitive endpoint like `curl https://api.example.com/.env`, but instead of Routewarden intercepting it, the request slips through to your backend application and returns a backend **`404 Not Found`** (with `Via: 1.1 Caddy` and a duration around `5-10ms`).
 
 ### Root Cause
 In Caddy's HTTP architecture, **`handle` and `handle_path` are routing directives with higher evaluation precedence than standard proxy handlers**. 
@@ -307,15 +307,15 @@ If your Caddyfile defines `order routewarden before reverse_proxy`, Caddy compil
 ## 2. Why do I get a `308 Permanent Redirect` when curling `http://api.example.com/.env`?
 
 ### Symptom
-Running `curl http://api.example.com/.env` returns `308 Permanent Redirect` to `https://api.example.com/.env` without RouteWarden blocking it or redirecting to your configured response target.
+Running `curl http://api.example.com/.env` returns `308 Permanent Redirect` to `https://api.example.com/.env` without Routewarden blocking it or redirecting to your configured response target.
 
 ### Root Cause
 When a domain name is specified without a scheme in a Caddyfile (e.g. `api.example.com { ... }`), Caddy enables **Automatic HTTPS**:
-1. Your actual site configuration (including RouteWarden, compression, and proxying) is bound exclusively to **HTTPS (port 443)**.
+1. Your actual site configuration (including Routewarden, compression, and proxying) is bound exclusively to **HTTPS (port 443)**.
 2. Caddy automatically starts an internal HTTP-to-HTTPS redirect server on **HTTP (port 80)**.
 3. This port 80 redirect server **does not run any of your site's middleware**. It immediately returns a `308 Permanent Redirect` to `https://`.
 
-If `curl` is run without `-L` (follow redirects), `curl` terminates at the port 80 redirect and **never reaches RouteWarden** on port 443.
+If `curl` is run without `-L` (follow redirects), `curl` terminates at the port 80 redirect and **never reaches Routewarden** on port 443.
 
 ### Solution
 
@@ -337,10 +337,10 @@ Caddy uses strict SNI and `Host` header routing. If your Caddyfile defines `api.
 
 ---
 
-## 4. How does directive ordering (`order`) work with RouteWarden?
+## 4. How does directive ordering (`order`) work with Routewarden?
 
 ### Recommended Global Directives Order
-In Caddy v2, plugins define where they should execute in the middleware chain. Starting in Caddy Warden v1.6.2, RouteWarden registers a default directive order automatically. 
+In Caddy v2, plugins define where they should execute in the middleware chain. Starting in Caddy Warden v1.6.2, Routewarden registers a default directive order automatically. 
 
 When configuring manual orders in the global options block:
 
@@ -354,9 +354,9 @@ When configuring manual orders in the global options block:
 
 ---
 
-## 5. How do I verify RouteWarden is compiled into my Caddy container?
+## 5. How do I verify Routewarden is compiled into my Caddy container?
 
-Verify that the Caddy binary inside your container includes the RouteWarden plugin module:
+Verify that the Caddy binary inside your container includes the Routewarden plugin module:
 
 <CodeViewer :snippets="dockerVerificationSnippets" />
 
@@ -365,7 +365,7 @@ Verify that the Caddy binary inside your container includes the RouteWarden plug
 ## 6. Why do I see a `502 Bad Gateway` when using `mode silent_drop` behind Cloudflare?
 
 ### Root Cause
-In `mode silent_drop`, RouteWarden hijacks the underlying TCP connection and closes it immediately (`conn.Close()`) without transmitting an HTTP status line. 
+In `mode silent_drop`, Routewarden hijacks the underlying TCP connection and closes it immediately (`conn.Close()`) without transmitting an HTTP status line. 
 
 If Caddy is behind an edge proxy or CDN (like **Cloudflare, AWS ALB, NGINX, or Traefik**), the edge proxy interprets the unexpected TCP socket termination as an upstream failure and returns **`502 Bad Gateway`** to the client.
 
@@ -376,7 +376,7 @@ When deploying behind a CDN or reverse proxy, use `mode json` or `mode html` wit
 
 ---
 
-## 7. How do I define a reusable RouteWarden snippet across multiple sites?
+## 7. How do I define a reusable Routewarden snippet across multiple sites?
 
 Define a snippet using parentheses `(routewarden)` and `import` it into each site block:
 

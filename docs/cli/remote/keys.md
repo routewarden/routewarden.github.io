@@ -1,6 +1,6 @@
 ---
 title: Remote Agent Key Management (rwarden keys)
-description: Generate, audit, and revoke distributed API authentication credentials for remote RouteWarden shippers.
+description: Generate, audit, and revoke distributed API authentication credentials for remote Routewarden shippers.
 ---
 
 <script setup>
@@ -107,9 +107,9 @@ const dirSnippets = computed(() => ({
 
 # Remote Agent Key Management (`rwarden keys`)
 
-To ensure secure communication across untrusted networks, RouteWarden enforces cryptographic authentication for all remote shippers. The `rwarden keys` subcommand provides complete lifecycle management for agent credentials.
+To ensure secure communication across untrusted networks, Routewarden enforces cryptographic authentication for all remote shippers. The `rwarden keys` subcommand provides complete lifecycle management for agent credentials.
 
-All key management commands run on the **central server** hosting the RouteWarden dashboard.
+All key management commands run on the **central server** hosting the Routewarden dashboard.
 
 ---
 

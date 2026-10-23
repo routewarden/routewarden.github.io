@@ -383,9 +383,9 @@ test('uninstall.sh runs cleanly when no rwarden installation is found', (t) => {
     encoding: 'utf8'
   })
 
-  assert.match(stdout, /Stopping RouteWarden services/)
+  assert.match(stdout, /Stopping Routewarden services/)
   assert.match(stdout, /No rwarden binary found in standard install locations/)
-  assert.match(stdout, /RouteWarden uninstallation complete/)
+  assert.match(stdout, /Routewarden uninstallation complete/)
 })
 
 test('uninstall.sh stops services, cleans containers, removes binary, and wipes ~/.routewarden', (t) => {
@@ -425,7 +425,7 @@ test('uninstall.sh stops services, cleans containers, removes binary, and wipes 
   // Verify stdout notifications
   assert.match(stdout, /Successfully uninstalled rwarden/)
   assert.ok(stdout.includes('Removing ~/.routewarden runtime data'), 'Expected runtime data cleanup message')
-  assert.match(stdout, /RouteWarden uninstallation complete/)
+  assert.match(stdout, /Routewarden uninstallation complete/)
 })
 
 test('uninstall.sh invokes docker rm -f routewarden-dashboard when docker CLI is available', (t) => {

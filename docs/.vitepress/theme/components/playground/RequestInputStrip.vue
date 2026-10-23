@@ -82,7 +82,7 @@ function clearPath() {
       <div
         class="rw-verdict-badge"
         :class="evaluation.badgeClass"
-        title="Live RouteWarden verdict for this request"
+        title="Live Routewarden verdict for this request"
       >
         <span class="rw-verdict-dot">●</span>
         <span class="rw-verdict-text">{{ evaluation.verdict }}</span>

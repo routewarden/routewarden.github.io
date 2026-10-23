@@ -13,7 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Fixed
 - **Directive Order Precedence (`reverse_proxy` Interception)**:
-  - Updated directive registration from `Before, "respond"` to `Before, "reverse_proxy"`. This ensures RouteWarden intercepts and blocks malicious requests before Caddy forwards them to upstream backend servers.
+  - Updated directive registration from `Before, "respond"` to `Before, "reverse_proxy"`. This ensures Routewarden intercepts and blocks malicious requests before Caddy forwards them to upstream backend servers.
 - **`config_file` Caddy Zap Logger Restoration**:
   - Fixed an issue where Caddy's provisioned Zap logger on `rw` was clobbered by the zero-value logger in `*rw = fileCfg`, restoring structured access and security logging for sites utilizing `config_file`.
 - **Caddyfile Parser HTTP Methods Defaulting**:
@@ -82,7 +82,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Key Highlights
 
 - **File-Based Configuration (`config_file`)**:
-  - Added new `config_file` Caddyfile directive and `config_file` JSON field to `RouteWarden`. When set, RouteWarden loads the specified `routewarden.json` as the base configuration during `Provision()`.
+  - Added new `config_file` Caddyfile directive and `config_file` JSON field to `Routewarden`. When set, Routewarden loads the specified `routewarden.json` as the base configuration during `Provision()`.
   - Inline Caddyfile / JSON API values take precedence over the file, enabling a shared policy file with per-site Caddyfile overrides.
   - Empty/omitted inline directives defer to the file — no need to repeat `block_patterns` just to change `mode`.
   - Missing or malformed files cause an immediate provisioning error with a descriptive message.
@@ -126,7 +126,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   - Restricts relative redirects strictly to single-slash prefixes (`/...`) and safely falls back to `/` if protocol-relative destinations are specified, mitigating open-redirect exploitation.
 - **Security Log Schema Normalization (`level: "warn"`)**:
   - Added `"level": "warn"`, `"status_code"`, and `"matched_pattern"` across both Caddy's Zap logger and stdout JSONL logs.
-  - Ensures full schema alignment with Traefik Warden, NGINX Warden, TCP Warden, and RouteWarden observability stacks.
+  - Ensures full schema alignment with Traefik Warden, NGINX Warden, TCP Warden, and Routewarden observability stacks.
 - **CI / Version Scripting Portability**:
   - Improved in-place sed editing in `scripts/update-version.sh` for reliable multi-platform execution across macOS (BSD) and Linux (GNU).
 
@@ -144,7 +144,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   - Added strict validation for `redirectUrl` in response handlers, enforcing `http://`, `https://`, or root-relative paths (`/...`).
   - Blocks unsafe URL schemes (e.g. `javascript:`) to eliminate open-redirect and client-side execution vectors.
 - **Silent Drop Connection Fallback**:
-  - Added non-hijackable connection fallback for `silentDrop`: if Caddy's HTTP hijacker cannot acquire the raw connection (e.g. over HTTP/2, HTTP/3, or wrapped response writers), RouteWarden responds with HTTP 200 OK and an empty body rather than leaking the blocking status code.
+  - Added non-hijackable connection fallback for `silentDrop`: if Caddy's HTTP hijacker cannot acquire the raw connection (e.g. over HTTP/2, HTTP/3, or wrapped response writers), Routewarden responds with HTTP 200 OK and an empty body rather than leaking the blocking status code.
 - **Captcha Template Error Handling**:
   - Added Zap structured error logging when CAPTCHA template rendering encounters an error, with an immediate fallback to a clean, well-formed HTML security challenge document.
 - **Flexible Silent Drop Directives**:
@@ -178,7 +178,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Key Highlights
 
-- **RouteWarden CLI (`rwarden generate --target caddy`)**:
+- **Routewarden CLI (`rwarden generate --target caddy`)**:
   - Added direct compilation from universal `routewarden.json` policy manifests into native `route_warden` Caddyfile blocks.
 - **Caddyfile Block Parsing Enhancements (`caddyfile.go`)**:
   - Enhanced parsing for nested response settings, headers, and custom tarpit/captcha properties.

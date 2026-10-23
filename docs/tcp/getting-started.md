@@ -10,7 +10,7 @@ import { buildSnippet } from '../.vitepress/theme/composables/useCodeSnippet'
 // ─── Deployment Snippets ────────────────────────────────────────────────────
 const cli_install = buildSnippet({
   lang: 'bash',
-  code: `# 1. Install RouteWarden CLI (includes L4 TCP/UDP proxy engine)
+  code: `# 1. Install Routewarden CLI (includes L4 TCP/UDP proxy engine)
 curl -fsSL https://routewarden.github.io/install.sh | bash
 
 # 2. Start TCP proxy in background (detached daemon mode)
@@ -91,7 +91,7 @@ const verify_health = buildSnippet({
   lang: 'bash',
   code: `# Health check
 curl -s http://127.0.0.1:9091/health
-# {"status":"ok","version":"5.3.2"}
+# {"status":"ok","version":"5.3.3"}
 
 # Active service stats
 curl -s http://127.0.0.1:9091/stats
@@ -136,7 +136,7 @@ const statusOutputSnippets = computed(() => ({
 # Getting Started with TCP Warden
 
 TCP Warden can be deployed in two convenient ways:
-1. **Built into RouteWarden CLI (`rwarden tcp`)**: Recommended for unified edge nodes with full daemon supervision, zero-downtime reloads, and multi-protocol tools.
+1. **Built into Routewarden CLI (`rwarden tcp`)**: Recommended for unified edge nodes with full daemon supervision, zero-downtime reloads, and multi-protocol tools.
 2. **Dedicated Minimal Binary / Container (`tcp-warden`)**: A standalone static binary and <15MB Alpine container (`ghcr.io/routewarden/tcp-warden:latest`) designed for lightweight L4-only edge bastions.
 
 ---

@@ -10,7 +10,7 @@ import { buildSnippet } from '../../.vitepress/theme/composables/useCodeSnippet'
 // ─── 1. Installation Snippets ───────────────────────────────────────────────
 const install_cli = buildSnippet({
   lang: 'bash',
-  code: `# Install via RouteWarden CLI
+  code: `# Install via Routewarden CLI
 rwarden tcp plugins install mysql
 
 # Or standalone binary
@@ -31,7 +31,7 @@ plugins:
 
 const installSnippets = computed(() => ({
   tcp: [
-    { filename: 'RouteWarden CLI', lang: 'bash', code: install_cli.cleanCode, html: install_cli.html, hasDiff: false },
+    { filename: 'Routewarden CLI', lang: 'bash', code: install_cli.cleanCode, html: install_cli.html, hasDiff: false },
     { filename: 'tcp-warden.yaml', lang: 'yaml', code: install_yaml.cleanCode, html: install_yaml.html, hasDiff: false },
   ]
 }))
@@ -63,7 +63,7 @@ const configSnippets = computed(() => ({
 // ─── 3. Network Architecture Snippets ───────────────────────────────────────
 const net_proxy_yaml = buildSnippet({
   lang: 'yaml',
-  code: `# tcp-warden.yaml — RouteWarden binds to standard port 3306
+  code: `# tcp-warden.yaml — Routewarden binds to standard port 3306
 services:
   mysql_bastion:
     listen: ":3306"
@@ -116,7 +116,7 @@ const netComposeSnippets = computed(() => ({
 // ─── 4. Testing & Verification Snippets ─────────────────────────────────────
 const test_legit = buildSnippet({
   lang: 'bash',
-  code: `# Verify legitimate login through RouteWarden
+  code: `# Verify legitimate login through Routewarden
 mysql -h 127.0.0.1 -P 3306 -u root -p`
 })
 
@@ -128,7 +128,7 @@ mysql -h 127.0.0.1 -P 3306 -u root --password=invalidpass`
 
 const test_bans = buildSnippet({
   lang: 'bash',
-  code: `# Check ban status via RouteWarden API
+  code: `# Check ban status via Routewarden API
 curl -s http://127.0.0.1:9091/api/v1/bans | jq .`
 })
 
@@ -185,17 +185,17 @@ Add a MySQL guard service to `tcp-warden.yaml`:
 
 ## Network & Deployment Architecture
 
-Because MySQL operates on an unprivileged port (`3306`), kernel packet redirection (`nftables`/`iptables`) is not required. Deploy RouteWarden using either direct reverse proxying or container network isolation:
+Because MySQL operates on an unprivileged port (`3306`), kernel packet redirection (`nftables`/`iptables`) is not required. Deploy Routewarden using either direct reverse proxying or container network isolation:
 
 ### Option A: Direct Reverse Proxy (Bare-Metal / VM)
 
-Bind RouteWarden to `:3306`, with MySQL listening on loopback on an alternate port or private subnet IP:
+Bind Routewarden to `:3306`, with MySQL listening on loopback on an alternate port or private subnet IP:
 
 <CodeViewer :snippets="netProxySnippets" />
 
 ### Option B: Docker Compose Bridge Isolation
 
-In containerized environments, publish port `3306` on RouteWarden while keeping the MySQL container completely internal:
+In containerized environments, publish port `3306` on Routewarden while keeping the MySQL container completely internal:
 
 <CodeViewer :snippets="netComposeSnippets" />
 

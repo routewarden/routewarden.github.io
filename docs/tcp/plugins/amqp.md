@@ -10,7 +10,7 @@ import { buildSnippet } from '../../.vitepress/theme/composables/useCodeSnippet'
 // ─── 1. Installation Snippets ───────────────────────────────────────────────
 const install_cli = buildSnippet({
   lang: 'bash',
-  code: `# Install via RouteWarden CLI
+  code: `# Install via Routewarden CLI
 rwarden tcp plugins install amqp
 
 # Or standalone binary
@@ -31,7 +31,7 @@ plugins:
 
 const installSnippets = computed(() => ({
   tcp: [
-    { filename: 'RouteWarden CLI', lang: 'bash', code: install_cli.cleanCode, html: install_cli.html, hasDiff: false },
+    { filename: 'Routewarden CLI', lang: 'bash', code: install_cli.cleanCode, html: install_cli.html, hasDiff: false },
     { filename: 'tcp-warden.yaml', lang: 'yaml', code: install_yaml.cleanCode, html: install_yaml.html, hasDiff: false },
   ]
 }))
@@ -65,7 +65,7 @@ const configSnippets = computed(() => ({
 // ─── 3. Network Architecture Snippets ───────────────────────────────────────
 const net_proxy_yaml = buildSnippet({
   lang: 'yaml',
-  code: `# tcp-warden.yaml — RouteWarden binds to standard AMQP port 5672
+  code: `# tcp-warden.yaml — Routewarden binds to standard AMQP port 5672
 services:
   rabbitmq_bastion:
     listen: ":5672"
@@ -126,7 +126,7 @@ amqp-declare-queue --url=amqp://guest:wrongpassword@127.0.0.1:5672/ -q test-queu
 
 const test_bans = buildSnippet({
   lang: 'bash',
-  code: `# Verify ban status via RouteWarden API
+  code: `# Verify ban status via Routewarden API
 curl -s http://127.0.0.1:9091/api/v1/bans | jq .`
 })
 
@@ -185,17 +185,17 @@ Add an AMQP guard service to `tcp-warden.yaml`:
 
 ## Network & Deployment Architecture
 
-Because AMQP operates on an unprivileged port (`5672`), packet redirection rules (`nftables`/`iptables`) are not required. Deploy RouteWarden using either direct reverse proxying or container network isolation:
+Because AMQP operates on an unprivileged port (`5672`), packet redirection rules (`nftables`/`iptables`) are not required. Deploy Routewarden using either direct reverse proxying or container network isolation:
 
 ### Option A: Direct Reverse Proxy (Bare-Metal / VM)
 
-Bind RouteWarden directly to `:5672`, with RabbitMQ listening on loopback on an alternate port or private subnet IP:
+Bind Routewarden directly to `:5672`, with RabbitMQ listening on loopback on an alternate port or private subnet IP:
 
 <CodeViewer :snippets="netProxySnippets" />
 
 ### Option B: Docker Compose Network Isolation
 
-Publish port `5672` on RouteWarden while keeping the RabbitMQ container completely private:
+Publish port `5672` on Routewarden while keeping the RabbitMQ container completely private:
 
 <CodeViewer :snippets="netComposeSnippets" />
 

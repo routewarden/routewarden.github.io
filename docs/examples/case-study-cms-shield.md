@@ -1,5 +1,6 @@
 ---
 title: Case Study – CMS Admin & Brute-Force Shielding
+description: "Securing WordPress, Drupal, and CMS platforms from automated exploit attempts using Routewarden."
 ---
 
 <script setup>
@@ -211,10 +212,10 @@ WordPress powers over 40% of the web, making it the number one target for automa
 ## The Solution: Two Tactical Approaches
 
 ### Approach A: Cloudflare Turnstile / hCaptcha Challenge
-Rather than blocking login entirely, RouteWarden intercepts requests to `wp-login.php` or `/admin` and presents an interactive bot verification challenge. Once solved, legitimate humans proceed to login while bots are stopped dead.
+Rather than blocking login entirely, Routewarden intercepts requests to `wp-login.php` or `/admin` and presents an interactive bot verification challenge. Once solved, legitimate humans proceed to login while bots are stopped dead.
 
 ### Approach B: Internal IP / VPN Bypass with 404 Cloaking
-If content creators always connect via a corporate VPN or office IP, RouteWarden returns `404 Not Found` to the rest of the world and allows only whitelisted subnets to reach administrative paths.
+If content creators always connect via a corporate VPN or office IP, Routewarden returns `404 Not Found` to the rest of the world and allows only whitelisted subnets to reach administrative paths.
 
 ---
 
@@ -224,4 +225,4 @@ If content creators always connect via a corporate VPN or office IP, RouteWarden
 
 > [!IMPORTANT]
 > **HTTP Methods Requirement**:
-> Attackers and credential stuffing scripts almost exclusively use **`POST`** to submit passwords to `wp-login.php` or execute multi-call amplification on `xmlrpc.php`. Because RouteWarden inspects only `GET` requests by default, always explicitly define `methods GET POST PUT DELETE PATCH HEAD` (or `methods: ["GET", "POST"]`) so POST attack traffic cannot bypass RouteWarden.
+> Attackers and credential stuffing scripts almost exclusively use **`POST`** to submit passwords to `wp-login.php` or execute multi-call amplification on `xmlrpc.php`. Because Routewarden inspects only `GET` requests by default, always explicitly define `methods GET POST PUT DELETE PATCH HEAD` (or `methods: ["GET", "POST"]`) so POST attack traffic cannot bypass Routewarden.

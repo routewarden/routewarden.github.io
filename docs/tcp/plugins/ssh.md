@@ -10,7 +10,7 @@ import { buildSnippet } from '../../.vitepress/theme/composables/useCodeSnippet'
 // ─── 1. Installation Snippets ───────────────────────────────────────────────
 const install_cli = buildSnippet({
   lang: 'bash',
-  code: `# Install via RouteWarden CLI
+  code: `# Install via Routewarden CLI
 rwarden tcp plugins install ssh
 
 # Or standalone binary
@@ -31,7 +31,7 @@ plugins:
 
 const installSnippets = computed(() => ({
   tcp: [
-    { filename: 'RouteWarden CLI', lang: 'bash', code: install_cli.cleanCode, html: install_cli.html, hasDiff: false },
+    { filename: 'Routewarden CLI', lang: 'bash', code: install_cli.cleanCode, html: install_cli.html, hasDiff: false },
     { filename: 'tcp-warden.yaml', lang: 'yaml', code: install_yaml.cleanCode, html: install_yaml.html, hasDiff: false },
   ]
 }))
@@ -51,7 +51,7 @@ const config_yaml = buildSnippet({
     ban_after_failures: 3
     ban_duration: "2h"
     plugin_config:
-      banner: "RouteWarden SSH Guard"
+      banner: "Routewarden SSH Guard"
       max_auth_tries: 3`
 })
 
@@ -64,19 +64,19 @@ const configSnippets = computed(() => ({
 // ─── 3. Network Architecture Snippets ───────────────────────────────────────
 const net_nftables = buildSnippet({
   lang: 'bash',
-  code: `# 1. Create RouteWarden NAT table
+  code: `# 1. Create Routewarden NAT table
 sudo nft add table ip routewarden_nat
 
 # 2. Add prerouting hook
 sudo nft add chain ip routewarden_nat prerouting '{ type nat hook prerouting priority dstnat; policy accept; }'
 
-# 3. Redirect external port 22 to RouteWarden port 2222
+# 3. Redirect external port 22 to Routewarden port 2222
 sudo nft add rule ip routewarden_nat prerouting iifname "eth0" tcp dport 22 redirect to :2222`
 })
 
 const net_iptables = buildSnippet({
   lang: 'bash',
-  code: `# 1. Redirect incoming external port 22 to RouteWarden port 2222
+  code: `# 1. Redirect incoming external port 22 to Routewarden port 2222
 sudo iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 22 -j REDIRECT --to-port 2222
 
 # 2. Persist rules across reboots (Debian/Ubuntu)
@@ -119,7 +119,7 @@ const net_compose = buildSnippet({
   routewarden:
     image: ghcr.io/routewarden/tcp-warden:latest
     ports:
-      - "22:2222"   # Map host SSH port 22 to RouteWarden port 2222
+      - "22:2222"   # Map host SSH port 22 to Routewarden port 2222
       - "9091:9091" # Management API
     volumes:
       - ./tcp-warden.yaml:/etc/routewarden/tcp-warden.yaml:ro
@@ -154,7 +154,7 @@ const netComposeSnippets = computed(() => ({
 // ─── 4. Testing & Verification Snippets ─────────────────────────────────────
 const test_legit = buildSnippet({
   lang: 'bash',
-  code: `# Connect legitimately to OpenSSH through RouteWarden
+  code: `# Connect legitimately to OpenSSH through Routewarden
 ssh -p 2222 user@127.0.0.1`
 })
 
@@ -166,7 +166,7 @@ ssh -p 2222 -o PreferredAuthentications=password -o PubkeyAuthentication=no wron
 
 const test_bans = buildSnippet({
   lang: 'bash',
-  code: `# Inspect active IP bans via RouteWarden API
+  code: `# Inspect active IP bans via Routewarden API
 curl -s http://127.0.0.1:9091/api/v1/bans | jq .`
 })
 
@@ -181,7 +181,7 @@ const testSnippets = computed(() => ({
 
 # SSH Protocol Guard (`ssh`)
 
-The **SSH Protocol Guard** plugin extends RouteWarden with deep Layer 4 and Layer 7 inspection for Secure Shell connections (RFC 4253). It validates client identification strings, terminates outdated or vulnerable SSH-1.x clients before cryptographic key exchange, and passively monitors upstream responses for authentication failures to automatically ban dictionary brute-force bots.
+The **SSH Protocol Guard** plugin extends Routewarden with deep Layer 4 and Layer 7 inspection for Secure Shell connections (RFC 4253). It validates client identification strings, terminates outdated or vulnerable SSH-1.x clients before cryptographic key exchange, and passively monitors upstream responses for authentication failures to automatically ban dictionary brute-force bots.
 
 ---
 
@@ -202,7 +202,7 @@ Install the plugin either via the command line or declaratively in your configur
 
 <CodeViewer :snippets="installSnippets" />
 
-RouteWarden will verify, download, and register the plugin automatically during boot.
+Routewarden will verify, download, and register the plugin automatically during boot.
 
 ---
 
@@ -216,12 +216,12 @@ Add an SSH guard service to `tcp-warden.yaml` under `services`:
 
 | Field | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `listen` | `string` | `":2222"` | Local address and port for RouteWarden to bind. |
+| `listen` | `string` | `":2222"` | Local address and port for Routewarden to bind. |
 | `upstream` | `string` | `"127.0.0.1:22"` | Target OpenSSH server address and port. |
 | `protocol` | `string` | `"ssh"` | Must be set to `"ssh"`. |
 | `max_auth_failures` | `int` | `3` | Number of failed authentication packets (`type 51`) before banning. |
 | `ban_duration` | `string` | `"2h"` | How long an offending IP address remains banned (`"30m"`, `"2h"`, `"24h"`). |
-| `plugin_config.banner` | `string` | `"RouteWarden SSH Guard"` | Optional custom identification string returned during initial handshake. |
+| `plugin_config.banner` | `string` | `"Routewarden SSH Guard"` | Optional custom identification string returned during initial handshake. |
 | `plugin_config.max_auth_tries` | `int` | `3` | Max auth attempts permitted per single connection. |
 
 ---
@@ -230,19 +230,19 @@ Add an SSH guard service to `tcp-warden.yaml` under `services`:
 
 ### Option A: Kernel Firewall Redirection (nftables / iptables)
 
-Leave OpenSSH listening on standard port `22` on `127.0.0.1`. Redirect external traffic arriving on your public interface (`eth0`) to RouteWarden port `2222`:
+Leave OpenSSH listening on standard port `22` on `127.0.0.1`. Redirect external traffic arriving on your public interface (`eth0`) to Routewarden port `2222`:
 
 <CodeViewer :snippets="netFirewallSnippets" />
 
 ### Option B: Port Swapping (Native OpenSSH Config)
 
-Bind OpenSSH to internal port `22222` on loopback, and let RouteWarden bind to `:22`:
+Bind OpenSSH to internal port `22222` on loopback, and let Routewarden bind to `:22`:
 
 <CodeViewer :snippets="netPortSwapSnippets" />
 
 ### Option C: Docker Compose Network Isolation
 
-Run the SSH server inside an isolated container network, exposing port `22` only through RouteWarden:
+Run the SSH server inside an isolated container network, exposing port `22` only through Routewarden:
 
 <CodeViewer :snippets="netComposeSnippets" />
 

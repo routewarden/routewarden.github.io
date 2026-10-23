@@ -10,7 +10,7 @@ import { buildSnippet } from '../../.vitepress/theme/composables/useCodeSnippet'
 // ─── 1. Installation Snippets ───────────────────────────────────────────────
 const install_cli = buildSnippet({
   lang: 'bash',
-  code: `# Install via RouteWarden CLI
+  code: `# Install via Routewarden CLI
 rwarden tcp plugins install tls_sni
 
 # Or standalone binary
@@ -31,7 +31,7 @@ plugins:
 
 const installSnippets = computed(() => ({
   tcp: [
-    { filename: 'RouteWarden CLI', lang: 'bash', code: install_cli.cleanCode, html: install_cli.html, hasDiff: false },
+    { filename: 'Routewarden CLI', lang: 'bash', code: install_cli.cleanCode, html: install_cli.html, hasDiff: false },
     { filename: 'tcp-warden.yaml', lang: 'yaml', code: install_yaml.cleanCode, html: install_yaml.html, hasDiff: false },
   ]
 }))
@@ -65,13 +65,13 @@ const configSnippets = computed(() => ({
 
 const net_nftables = buildSnippet({
   lang: 'bash',
-  code: `# Redirect incoming external HTTPS/TLS traffic on port 443 to RouteWarden port 8443
+  code: `# Redirect incoming external HTTPS/TLS traffic on port 443 to Routewarden port 8443
 sudo nft add rule ip routewarden_nat prerouting iifname "eth0" tcp dport 443 redirect to :8443`
 })
 
 const net_iptables = buildSnippet({
   lang: 'bash',
-  code: `# 1. Redirect incoming external port 443 to RouteWarden port 8443
+  code: `# 1. Redirect incoming external port 443 to Routewarden port 8443
 sudo iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 443 -j REDIRECT --to-port 8443
 
 # 2. Persist rules across reboots (Debian/Ubuntu)
@@ -84,7 +84,7 @@ const net_compose = buildSnippet({
   routewarden:
     image: ghcr.io/routewarden/tcp-warden:latest
     ports:
-      - "443:8443"  # Map host HTTPS/TLS port 443 to RouteWarden
+      - "443:8443"  # Map host HTTPS/TLS port 443 to Routewarden
       - "9091:9091" # Management API
     volumes:
       - ./tcp-warden.yaml:/etc/routewarden/tcp-warden.yaml:ro
@@ -93,7 +93,7 @@ const net_compose = buildSnippet({
 
   web-tls:
     image: caddy:alpine
-    # Do NOT publish host ports; RouteWarden transparently routes TLS SNI upstream`
+    # Do NOT publish host ports; Routewarden transparently routes TLS SNI upstream`
 })
 
 const netFirewallSnippets = computed(() => ({
@@ -184,7 +184,7 @@ Add a TLS SNI guard service to `tcp-warden.yaml`:
 
 ### Option A: Kernel Firewall Redirection (nftables / iptables)
 
-Redirect incoming external HTTPS/TLS traffic on port `443` to RouteWarden port `8443`:
+Redirect incoming external HTTPS/TLS traffic on port `443` to Routewarden port `8443`:
 
 <CodeViewer :snippets="netFirewallSnippets" />
 

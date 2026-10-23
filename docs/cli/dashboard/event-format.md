@@ -1,6 +1,6 @@
 ---
-title: Security Event Format & Query Reference — RouteWarden Dashboard
-description: Specification of RouteWarden structured security log events, CLI filter flags, and real-time query syntax.
+title: Security Event Format & Query Reference — Routewarden Dashboard
+description: Specification of Routewarden structured security log events, CLI filter flags, and real-time query syntax.
 ---
 
 <script setup>
@@ -44,7 +44,7 @@ const querySnippets = computed(() => ({
 
 # Security Event Format & Query Reference
 
-RouteWarden emits structured JSON events from all gateway plugins (Traefik, Caddy, NGINX, and TCP Warden). These events are normalized into Apache/Nginx Combined log format when ingested by the dashboard.
+Routewarden emits structured JSON events from all gateway plugins (Traefik, Caddy, NGINX, and TCP Warden). These events are normalized into Apache/Nginx Combined log format when ingested by the dashboard.
 
 <CodeViewer :snippets="querySnippets" />
 
@@ -61,7 +61,7 @@ RouteWarden emits structured JSON events from all gateway plugins (Traefik, Cadd
 | `path` | string | Normalized request path evaluated by the engine |
 | `rule` | string | Name or ID of the matched security rule |
 | `status` | int | HTTP status code returned to the client (403, 429, 200) |
-| `latency_ms` | float | Inspection latency incurred by the RouteWarden plugin |
+| `latency_ms` | float | Inspection latency incurred by the Routewarden plugin |
 
 ---
 

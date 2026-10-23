@@ -1,6 +1,6 @@
 ---
 title: End-to-End Cryptography & Security Model
-description: Deep dive into RouteWarden's asymmetric X25519 ECDH + AES-256-GCM encryption architecture for remote log shipping.
+description: Deep dive into Routewarden's asymmetric X25519 ECDH + AES-256-GCM encryption architecture for remote log shipping.
 ---
 
 <script setup>
@@ -56,7 +56,7 @@ const encryption_flow = buildSnippet({
        │                                                                 │ 5. Compute shared_secret = ECDH(server_priv, ephemeral_pub)
        │                                                                 │ 6. Derive session_key = HKDF-SHA256(shared_secret)
        │                                                                 │ 7. Decrypt & verify tag with AES-256-GCM
-       │                                                                 │ 8. Ingest verified logs into RouteWarden SOC engine`,
+       │                                                                 │ 8. Ingest verified logs into Routewarden SOC engine`,
 })
 
 const encryptionFlowSnippets = computed(() => ({
@@ -70,13 +70,13 @@ const encryptionFlowSnippets = computed(() => ({
 
 Security logs often contain sensitive operational data: customer IP addresses, authorization tokens in query strings, user agents, and internal API paths.
 
-In distributed deployments where edge nodes stream telemetry across the public Internet, standard TLS alone may be terminated by intermediate reverse proxies, CDNs, or load balancers. RouteWarden solves this by implementing **application-layer asymmetric end-to-end encryption**.
+In distributed deployments where edge nodes stream telemetry across the public Internet, standard TLS alone may be terminated by intermediate reverse proxies, CDNs, or load balancers. Routewarden solves this by implementing **application-layer asymmetric end-to-end encryption**.
 
 ---
 
 ## 1. Cryptographic Primitive Stack
 
-RouteWarden relies strictly on audited, modern cryptographic primitives from the Go standard library (`crypto/ecdh`, `crypto/aes`, `crypto/cipher`, `crypto/sha256`) with **zero third-party dependencies**:
+Routewarden relies strictly on audited, modern cryptographic primitives from the Go standard library (`crypto/ecdh`, `crypto/aes`, `crypto/cipher`, `crypto/sha256`) with **zero third-party dependencies**:
 
 | Layer | Primitive | Purpose |
 |:---|:---|:---|
@@ -106,7 +106,7 @@ The encrypted JSON payload sent to `POST /api/v1/events` has the following schem
 
 <CodeViewer :snippets="encryptedWireSnippets" />
 
-Once decrypted by the central server, the plaintext matches RouteWarden's internal batch schema:
+Once decrypted by the central server, the plaintext matches Routewarden's internal batch schema:
 
 <CodeViewer :snippets="decryptedBatchSnippets" />
 
@@ -115,10 +115,10 @@ Once decrypted by the central server, the plaintext matches RouteWarden's intern
 ## 4. Threat Model & Security FAQ
 
 ### Q: Why not just use HTTPS?
-Standard HTTPS terminates at the first reverse proxy, TLS load balancer, or Cloudflare/Fastly edge. In multi-tenant environments or cloud architectures where traffic passes through third-party infrastructure, your raw security logs are exposed in plaintext at each termination point. RouteWarden's application-layer encryption ensures that only the central dashboard holds the private key to read the logs.
+Standard HTTPS terminates at the first reverse proxy, TLS load balancer, or Cloudflare/Fastly edge. In multi-tenant environments or cloud architectures where traffic passes through third-party infrastructure, your raw security logs are exposed in plaintext at each termination point. Routewarden's application-layer encryption ensures that only the central dashboard holds the private key to read the logs.
 
 ### Q: Why not mutual TLS (mTLS)?
-While mTLS provides strong authentication, managing x509 certificate authorities, CRLs/OCSP, and client certificate rotation across hundreds of dynamic edge nodes is notoriously complex and error-prone. RouteWarden provides the same cryptographic guarantees with a lightweight, CrowdSec-style token + public key model.
+While mTLS provides strong authentication, managing x509 certificate authorities, CRLs/OCSP, and client certificate rotation across hundreds of dynamic edge nodes is notoriously complex and error-prone. Routewarden provides the same cryptographic guarantees with a lightweight, CrowdSec-style token + public key model.
 
 ### Q: What happens if an agent key is leaked?
 You can instantly revoke the key using `rwarden keys revoke <name>`. Because the server checks authorization on every request, the leaked key will be rejected immediately with HTTP 401.

@@ -1,5 +1,6 @@
 ---
 title: Example 2 – Global EntryPoint Shield
+description: "Attaching Routewarden globally to Traefik entryPoints across all Docker Compose services."
 ---
 
 <script setup>
@@ -84,7 +85,7 @@ traefik \\
   --experimental.plugins.routewarden.modulename=github.com/routewarden/traefik-warden \\
   --experimental.plugins.routewarden.version={{traefik_version}}` }),
 
-  caddy: buildSnippet({ lang: 'caddy', code: `# Caddyfile: Global RouteWarden Snippet applied across all sites
+  caddy: buildSnippet({ lang: 'caddy', code: `# Caddyfile: Global Routewarden Snippet applied across all sites
 (global_warden_shield) {
     routewarden {
         enable_default_patterns true
@@ -111,7 +112,7 @@ api.localhost {
     reverse_proxy backend:80
 }` }),
 
-  nginx: buildSnippet({ lang: 'nginx', code: `# nginx.conf: Global RouteWarden Shield across all server blocks
+  nginx: buildSnippet({ lang: 'nginx', code: `# nginx.conf: Global Routewarden Shield across all server blocks
 http {
     lua_package_path "/usr/local/openresty/site/lualib/?.lua;/etc/nginx/lua/lib/?.lua;;";
 
@@ -259,7 +260,7 @@ const dockerSnippets = computed(() => ({
 
 # Example 2: Global EntryPoint Shield
 
-Attaching RouteWarden directly to Traefik's entrypoint provides unified, cluster-wide protection across all services without requiring repetitive labels on individual containers.
+Attaching Routewarden directly to Traefik's entrypoint provides unified, cluster-wide protection across all services without requiring repetitive labels on individual containers.
 
 ---
 

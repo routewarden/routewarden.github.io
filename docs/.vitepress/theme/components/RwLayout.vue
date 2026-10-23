@@ -108,9 +108,9 @@ onUnmounted(() => {
 
 <template>
   <Layout>
-    <!-- Inject the RouteWarden ASCII banner into the home hero info section -->
+    <!-- Inject the Routewarden ASCII banner into the home hero info section -->
     <template #home-hero-info-before>
-      <div class="rw-ascii-hero-wrap" aria-label="RouteWarden ASCII Wordmark">
+      <div class="rw-ascii-hero-wrap" aria-label="Routewarden ASCII Wordmark">
         <pre class="rw-ascii-wordmark"><span class="hl">██████╗  ██████╗ ██╗   ██╗████████╗███████╗</span> <span class="sub">██╗    ██╗ █████╗ ██████╗ ██████╗ ███████╗███╗   ██╗</span>
 <span class="hl">██╔══██╗██╔═══██╗██║   ██║╚══██╔══╝██╔════╝</span> <span class="sub">██║    ██║██╔══██╗██╔══██╗██╔══██╗██╔════╝████╗  ██║</span>
 <span class="hl">██████╔╝██║   ██║██║   ██║   ██║   █████╗  </span> <span class="sub">██║ █╗ ██║███████║██████╔╝██║  ██║█████╗  ██╔██╗ ██║</span>

@@ -113,7 +113,7 @@ const methodsInput = defineModel<string>('methodsInput', { required: true })
         type="button"
         class="rw-toggle-chip"
         :class="{ active: enabled }"
-        title="Master switch for RouteWarden security middleware"
+        title="Master switch for Routewarden security middleware"
         @click="enabled = !enabled"
       >
         <span class="rw-toggle-switch">

@@ -10,7 +10,7 @@ import { buildSnippet } from '../../.vitepress/theme/composables/useCodeSnippet'
 // ─── 1. Installation Snippets ───────────────────────────────────────────────
 const install_cli = buildSnippet({
   lang: 'bash',
-  code: `# Install via RouteWarden CLI
+  code: `# Install via Routewarden CLI
 rwarden tcp plugins install http
 
 # Or standalone binary
@@ -31,7 +31,7 @@ plugins:
 
 const installSnippets = computed(() => ({
   tcp: [
-    { filename: 'RouteWarden CLI', lang: 'bash', code: install_cli.cleanCode, html: install_cli.html, hasDiff: false },
+    { filename: 'Routewarden CLI', lang: 'bash', code: install_cli.cleanCode, html: install_cli.html, hasDiff: false },
     { filename: 'tcp-warden.yaml', lang: 'yaml', code: install_yaml.cleanCode, html: install_yaml.html, hasDiff: false },
   ]
 }))
@@ -68,13 +68,13 @@ const configSnippets = computed(() => ({
 
 const net_nftables = buildSnippet({
   lang: 'bash',
-  code: `# Redirect incoming external traffic on port 80 to RouteWarden port 8081
+  code: `# Redirect incoming external traffic on port 80 to Routewarden port 8081
 sudo nft add rule ip routewarden_nat prerouting iifname "eth0" tcp dport 80 redirect to :8081`
 })
 
 const net_iptables = buildSnippet({
   lang: 'bash',
-  code: `# 1. Redirect incoming external port 80 to RouteWarden port 8081
+  code: `# 1. Redirect incoming external port 80 to Routewarden port 8081
 sudo iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 80 -j REDIRECT --to-port 8081
 
 # 2. Persist rules across reboots (Debian/Ubuntu)
@@ -87,8 +87,8 @@ const net_compose = buildSnippet({
   routewarden:
     image: ghcr.io/routewarden/tcp-warden:latest
     ports:
-      - "80:8081"   # Map host HTTP port 80 to RouteWarden
-      - "443:8443"  # Map host HTTPS port 443 to RouteWarden
+      - "80:8081"   # Map host HTTP port 80 to Routewarden
+      - "443:8443"  # Map host HTTPS port 443 to Routewarden
       - "9091:9091" # Management API
     volumes:
       - ./tcp-warden.yaml:/etc/routewarden/tcp-warden.yaml:ro
@@ -192,13 +192,13 @@ Add an HTTP guard service to `tcp-warden.yaml`:
 
 ### Option A: Kernel Firewall Redirection (nftables / iptables)
 
-Redirect incoming external traffic on port `80` to RouteWarden port `8081`:
+Redirect incoming external traffic on port `80` to Routewarden port `8081`:
 
 <CodeViewer :snippets="netFirewallSnippets" />
 
 ### Option B: Docker Compose Network Isolation
 
-Run the web server inside an isolated container network, exposing web traffic (HTTP `:80` and HTTPS `:443`) only through RouteWarden:
+Run the web server inside an isolated container network, exposing web traffic (HTTP `:80` and HTTPS `:443`) only through Routewarden:
 
 <CodeViewer :snippets="netComposeSnippets" />
 

@@ -1,5 +1,5 @@
 ---
-title: Commands Reference — RouteWarden CLI
+title: Commands Reference — Routewarden CLI
 description: Full CLI command reference for rwarden test, validate, schema, generate, and sandbox.
 ---
 
@@ -26,7 +26,7 @@ rwarden test -X POST /wp-config.php
 # Test custom HTTP headers (-H or --header, repeatable)
 rwarden test -H "X-Forwarded-Uri: /.env" /api
 
-# Test against a custom RouteWarden config file (-c or --config)
+# Test against a custom Routewarden config file (-c or --config)
 rwarden test -c routewarden.json /admin/dashboard
 
 # Test client IP whitelisting
@@ -462,11 +462,14 @@ const keysSnippets = computed(() => ({
 // ─── 16. Register Command ────────────────────────────────────────────────────
 const register_cmd = buildSnippet({
   lang: 'bash',
-  code: `# One-time registration with RouteWarden Central Dashboard
+  code: `# One-time registration with Routewarden Central Dashboard
 rwarden register --url http://198.51.100.10:7890 --key rw_sec_8f9a2b4c1e0d3f7a...
 
 # Register with flag aliases (-u and -k)
 rwarden register -u http://dashboard.internal:7890 -k rw_sec_8f9a...
+
+# Register and persist default filtering modes into agent.json
+rwarden register -u http://dashboard.internal:7890 -k rw_sec_8f9a... --include-failed
 
 # Store configuration in a custom file
 rwarden register --url http://dashboard.internal:7890 --key rw_sec_... --config /etc/routewarden/agent.json`,
@@ -654,7 +657,7 @@ Simulate candidate path extraction, normalization, and pattern matching on an ar
 
 ## 2. Validate Configurations (`validate`)
 
-Validate a RouteWarden JSON or TCP Warden YAML configuration file before deploying:
+Validate a Routewarden JSON or TCP Warden YAML configuration file before deploying:
 
 <CodeViewer :snippets="validateSnippets" />
 
@@ -666,7 +669,7 @@ Validate a RouteWarden JSON or TCP Warden YAML configuration file before deployi
 
 ## 3. Output JSON Schema (`schema`)
 
-Output the official RouteWarden JSON Schemas directly to stdout:
+Output the official Routewarden JSON Schemas directly to stdout:
 
 <CodeViewer :snippets="schemaSnippets" />
 
@@ -707,7 +710,7 @@ When running in sandbox mode, you can execute HTTP requests against `http://loca
 
 ## 6. Cleanup Sandbox Containers (`cleanup`)
 
-Stop and remove all running or detached RouteWarden sandbox test containers:
+Stop and remove all running or detached Routewarden sandbox test containers:
 
 <CodeViewer :snippets="cleanupSnippets" />
 
@@ -723,7 +726,7 @@ Check installed binary version:
 
 ## 8. Security Dashboard (`dashboard`)
 
-Launch and manage an ultra-lightweight, real-time security dashboard powered by RouteWarden's embedded SOC engine and SQLite persistence. It replaces heavy multi-container monitoring stacks with an in-memory dashboard consuming only **~8MB of RAM**:
+Launch and manage an ultra-lightweight, real-time security dashboard powered by Routewarden's embedded SOC engine and SQLite persistence. It replaces heavy multi-container monitoring stacks with an in-memory dashboard consuming only **~8MB of RAM**:
 
 <CodeViewer :snippets="dashboardSnippets" />
 
@@ -755,7 +758,7 @@ Launch and manage an ultra-lightweight, real-time security dashboard powered by 
 
 ## 9. Policy Static Analyzer & Linter (`audit`)
 
-Perform deep static analysis and linting on a RouteWarden policy file to catch ReDoS vulnerabilities, unescaped dots, universal wildcard traps, and header spoofing risks before deployment:
+Perform deep static analysis and linting on a Routewarden policy file to catch ReDoS vulnerabilities, unescaped dots, universal wildcard traps, and header spoofing risks before deployment:
 
 <CodeViewer :snippets="auditSnippets" />
 
@@ -771,7 +774,7 @@ Perform deep static analysis and linting on a RouteWarden policy file to catch R
 
 ## 10. Policy Diffing (`diff`)
 
-Compare two RouteWarden policy files and evaluate the security posture delta (e.g. relaxed, hardened, or neutral):
+Compare two Routewarden policy files and evaluate the security posture delta (e.g. relaxed, hardened, or neutral):
 
 <CodeViewer :snippets="diffSnippets" />
 
@@ -865,7 +868,7 @@ Output the standard system manual page formatted in roff/troff:
 
 ## 15. Manage Remote Agent API Keys (`keys`)
 
-Manage distributed enrollment keys for remote log shippers. When running a central RouteWarden security dashboard, use `rwarden keys` to create and revoke credentials:
+Manage distributed enrollment keys for remote log shippers. When running a central Routewarden security dashboard, use `rwarden keys` to create and revoke credentials:
 
 <CodeViewer :snippets="keysSnippets" />
 
@@ -887,7 +890,7 @@ Manage distributed enrollment keys for remote log shippers. When running a centr
 
 ## 16. Remote Agent Enrollment (`register`)
 
-Enroll a remote node with a central RouteWarden dashboard. This one-time handshake validates the agent token, downloads the central server's X25519 public key, and saves configuration to `~/.routewarden/agent.json`:
+Enroll a remote node with a central Routewarden dashboard. This one-time handshake validates the agent token, downloads the central server's X25519 public key, and saves configuration to `~/.routewarden/agent.json`:
 
 <CodeViewer :snippets="registerSnippets" />
 
@@ -895,15 +898,17 @@ Enroll a remote node with a central RouteWarden dashboard. This one-time handsha
 
 | Flag | Shorthand | Type | Required | Description |
 |:---|:---|:---|:---|:---|
-| `--url` | `-u` | string | **Yes** | RouteWarden Central Dashboard URL (e.g. `http://dashboard.internal:7890`) |
+| `--url` | `-u` | string | **Yes** | Routewarden Central Dashboard URL (e.g. `http://dashboard.internal:7890`) |
 | `--key` | `-k` | string | **Yes** | Remote agent authentication key (`rw_sec_...`) |
 | `--config` | — | string | No | Custom path to store agent configuration (default: `~/.routewarden/agent.json`) |
+| `--include-failed` | `-F` | bool | No | Persist default setting to ship all failed HTTP requests (status >= 400) |
+| `--all-traffic` | — | bool | No | Persist default setting to ship all HTTP access traffic |
 
 ---
 
 ## 17. Distributed Log Shipper (`push`)
 
-Stream live security events and gateway access logs from remote edge nodes, cloud servers, or local containers to the central RouteWarden dashboard with end-to-end asymmetric encryption (X25519 ECDH + AES-256-GCM):
+Stream live security events and gateway access logs from remote edge nodes, cloud servers, or local containers to the central Routewarden dashboard with end-to-end asymmetric encryption (X25519 ECDH + AES-256-GCM):
 
 <CodeViewer :snippets="pushSnippets" />
 
@@ -924,7 +929,9 @@ Stream live security events and gateway access logs from remote edge nodes, clou
 | `--queue-size` | — | int | `10000` | Maximum events to buffer in memory while disconnected from dashboard |
 | `--disconnect-timeout` | — | duration | `5m` | Duration disconnected from dashboard before dropping stale events |
 | `--ping-interval` | — | duration | `10s` | Interval between connection health pings when connected |
-| `--all-logs` | — | bool | `false` | Ship all raw container lines without filtering (default filters for RouteWarden events & access logs) |
+| `--include-failed` | `-F` | bool | `false` | Ship all failed HTTP requests (status >= 400: 4xx client errors, 5xx server errors) across Caddy, Traefik, and NGINX even without a blocking rule |
+| `--all-traffic` | — | bool | `false` | Ship all HTTP access traffic including successful 200 OK responses |
+| `--all-logs` | — | bool | `false` | Ship all raw container lines without filtering (default filters for Routewarden events & security blocks) |
 | `--url` | `-u` | string | `""` | Override central dashboard URL from registered config |
 | `--key` | `-k` | string | `""` | Override agent authentication key from registered config |
 | `--config` | — | string | `~/.routewarden/agent.json` | Custom path to agent configuration file |
@@ -933,7 +940,7 @@ Stream live security events and gateway access logs from remote edge nodes, clou
 
 ## 18. Daemon Process Management (`status`, `stop`)
 
-Manage background daemons spawned with `--detach` (`-d`). RouteWarden manages daemon state via PID files in `~/.routewarden/*.pid` and redirects detached logs to `~/.routewarden/*.log`:
+Manage background daemons spawned with `--detach` (`-d`). Routewarden manages daemon state via PID files in `~/.routewarden/*.pid` and redirects detached logs to `~/.routewarden/*.log`:
 
 <CodeViewer :snippets="daemonSnippets" />
 
@@ -949,7 +956,7 @@ Manage background daemons spawned with `--detach` (`-d`). RouteWarden manages da
 
 ## 19. L4 TCP/UDP Reverse Proxy (`tcp`)
 
-RouteWarden CLI natively integrates an ultra-high performance Layer 4 reverse proxy with protocol-aware inspection (HTTP, TLS SNI, SSH, Redis, PostgreSQL, MySQL), geo-fencing, IP ban persistence, rate limiting, and CrowdSec remediation:
+Routewarden CLI natively integrates an ultra-high performance Layer 4 reverse proxy with protocol-aware inspection (HTTP, TLS SNI, SSH, Redis, PostgreSQL, MySQL), geo-fencing, IP ban persistence, rate limiting, and CrowdSec remediation:
 
 <CodeViewer :snippets="tcpSnippets" />
 

@@ -11,16 +11,16 @@ import { buildSnippet } from '../.vitepress/theme/composables/useCodeSnippet'
 const arch_all = buildSnippet({
   lang: 'plaintext',
   code: `Pattern 1: nftables Redirection (Modern Linux Default)
-Client ──► [eth0 : Port 22] ──(nft PREROUTING)──► RouteWarden (:2222) ──► sshd (127.0.0.1:22)
+Client ──► [eth0 : Port 22] ──(nft PREROUTING)──► Routewarden (:2222) ──► sshd (127.0.0.1:22)
 
 Pattern 2: iptables / UFW / firewalld (Legacy / Cloud VMs)
-Client ──► [eth0 : Port 25] ──(iptables REDIRECT)──► RouteWarden (:2525) ──► postfix (127.0.0.1:25)
+Client ──► [eth0 : Port 25] ──(iptables REDIRECT)──► Routewarden (:2525) ──► postfix (127.0.0.1:25)
 
 Pattern 3: Direct Port Swapping (Reverse Proxy)
-Client ──► [Standard Port 5432] ──► RouteWarden (:5432) ──► postgres (127.0.0.1:5433)
+Client ──► [Standard Port 5432] ──► Routewarden (:5432) ──► postgres (127.0.0.1:5433)
 
 Pattern 4: Docker Network Isolation (Containerized Stacks)
-Client ──► [Host Port 6379] ──► RouteWarden ──(Internal Bridge)──► redis-server (no host ports)`
+Client ──► [Host Port 6379] ──► Routewarden ──(Internal Bridge)──► redis-server (no host ports)`
 })
 
 const arch_nftables = buildSnippet({
@@ -37,7 +37,7 @@ const arch_nftables = buildSnippet({
 │ [nftables PREROUTING Chain]                                                     │
 │       │                                                                         │
 │       ▼                                                                         │
-│ [RouteWarden L4 Proxy (:2222)] ──► Inspects Auth, GeoIP, Rate Limits, CrowdSec  │
+│ [Routewarden L4 Proxy (:2222)] ──► Inspects Auth, GeoIP, Rate Limits, CrowdSec  │
 │       │                                                                         │
 │       ▼ (Loopback forwards via lo interface — bypasses external prerouting hook) │
 │ [Backend Daemon (127.0.0.1:22)] ──► Legitimate connection approved              │
@@ -55,7 +55,7 @@ const arch_portswap = buildSnippet({
 │ [Standard Public Port (e.g. :5432, :6379, :3306)]                               │
 │       │                                                                         │
 │       ▼                                                                         │
-│ [RouteWarden L4 Reverse Proxy] ──► Inspects Wire Protocol & Tracks Failures     │
+│ [Routewarden L4 Reverse Proxy] ──► Inspects Wire Protocol & Tracks Failures     │
 │       │                                                                         │
 │       ▼                                                                         │
 │ [Backend Daemon Bound to 127.0.0.1:InternalPort (e.g. 127.0.0.1:5433)]          │
@@ -360,7 +360,7 @@ const priv_systemd = buildSnippet({
   lang: 'bash',
   code: `# /etc/systemd/system/tcp-warden.service
 [Unit]
-Description=RouteWarden TCP L4 Security Proxy
+Description=Routewarden TCP L4 Security Proxy
 After=network.target
 
 [Service]

@@ -1,5 +1,6 @@
 ---
 title: Case Study – Dual-Router Security for Immich
+description: "Protecting self-hosted Immich photo libraries while permitting mobile background synchronization."
 ---
 
 <script setup>
@@ -13,7 +14,7 @@ const traefikYaml = buildSnippet({
   code: `# dynamic_conf.yml
 http:
   middlewares:
-    # RouteWarden shield applied ONLY to the public-facing router
+    # Routewarden shield applied ONLY to the public-facing router
     immich-public-shield: # [!code ++]
       plugin: # [!code ++]
         routewarden: # [!code ++]
@@ -59,7 +60,7 @@ http:
       rule: "Host(\`photos-internal.example.com\`)"
       entryPoints:
         - internal
-      # No RouteWarden restriction: full admin and login functionality available
+      # No Routewarden restriction: full admin and login functionality available
       service: immich-service
 
   services:
@@ -117,7 +118,7 @@ const traefikLabels = buildSnippet({
   lang: 'docker',
   code: `# docker-compose.yaml — label-based configuration on immich-server container
 
-# Public Router with RouteWarden shield:
+# Public Router with Routewarden shield:
 - "traefik.enable=true"
 - "traefik.http.routers.immich-pub.rule=Host(\`photos.example.com\`)"
 - "traefik.http.routers.immich-pub.entrypoints=websecure"
@@ -222,14 +223,14 @@ photos.example.com {
 
 # 2. PRIVATE SITE: Accessible only via internal VPN / Tailscale / LAN
 photos-internal.example.com {
-    # Full access: no RouteWarden restrictions
+    # Full access: no Routewarden restrictions
     reverse_proxy immich-server:2283
 }`,
 })
 
 const caddyDockerCompose = buildSnippet({
   lang: 'yaml',
-  code: `# docker-compose.yaml — Caddy with RouteWarden plugin
+  code: `# docker-compose.yaml — Caddy with Routewarden plugin
 services:
   caddy:
     image: ghcr.io/routewarden/caddy:latest # [!code ++]
@@ -262,7 +263,7 @@ volumes:
 
 const caddyDockerfile = buildSnippet({
   lang: 'dockerfile',
-  code: `# Dockerfile — Build Caddy with RouteWarden plugin
+  code: `# Dockerfile — Build Caddy with Routewarden plugin
 FROM caddy:2-builder AS builder # [!code ++]
 
 RUN xcaddy build \\ # [!code ++]
@@ -308,7 +309,7 @@ data:
 
 const nginxConf = buildSnippet({
   lang: 'nginx',
-  code: `# nginx.conf — Dual-Site Architecture with RouteWarden Lua module
+  code: `# nginx.conf — Dual-Site Architecture with Routewarden Lua module
 http {
     lua_package_path "/usr/local/openresty/site/lualib/?.lua;/etc/nginx/lua/lib/?.lua;;";
 
@@ -363,7 +364,7 @@ http {
         listen 80;
         server_name photos-internal.example.com;
 
-        # Full access: no RouteWarden checks applied
+        # Full access: no Routewarden checks applied
         location / {
             proxy_pass http://immich-server:2283;
             proxy_set_header Host $host;
@@ -376,7 +377,7 @@ http {
 
 const nginxDockerCompose = buildSnippet({
   lang: 'yaml',
-  code: `# docker-compose.yaml — OpenResty + RouteWarden Lua module
+  code: `# docker-compose.yaml — OpenResty + Routewarden Lua module
 services:
   openresty:
     image: openresty/openresty:alpine # [!code ++]
@@ -404,7 +405,7 @@ networks:
 
 const nginxK8s = buildSnippet({
   lang: 'yaml',
-  code: `# nginx-ingress.yaml — NGINX Ingress with RouteWarden Lua snippet
+  code: `# nginx-ingress.yaml — NGINX Ingress with Routewarden Lua snippet
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -908,7 +909,7 @@ const immich_mermaid_raw = `flowchart TD
     EDGE -->|Host: photos.domain| PUB["<b>Public Router</b><br/>EntryPoint: websecure"]:::routerNode
     EDGE -->|Host: photos-lan.vpn| PRIV["<b>Private / VPN Router</b><br/>EntryPoint: internal (Tailscale / WireGuard)"]:::vpnNode
 
-    PUB --> SHIELD["<b>RouteWarden Shield (Zero-Trust Allowlist)</b><br/>• Allowlist: /share/*, /api/shared-links*, /api/server/media-types, /api/server/config, /api/server/features, /api/assets/*<br/>• Default-Deny: Intercepts all other routes (/, /auth/*, /admin*) with 404"]:::shieldNode
+    PUB --> SHIELD["<b>Routewarden Shield (Zero-Trust Allowlist)</b><br/>• Allowlist: /share/*, /api/shared-links*, /api/server/media-types, /api/server/config, /api/server/features, /api/assets/*<br/>• Default-Deny: Intercepts all other routes (/, /auth/*, /admin*) with 404"]:::shieldNode
 
     PRIV -->|Direct Full Admin Access| BACKEND["<b>Immich Server</b><br/>Upstream Backend Application"]:::upstreamNode
     SHIELD -->|Allowed Public Assets /share/*| BACKEND
@@ -986,19 +987,19 @@ const immich_graph_svg = `<div class="rw-graph-container">
     <text x="586" y="224" class="rw-g-desc">Rule: Host(\`photos-lan.domain.com\`) • EntryPoint: internal</text>
     <text x="586" y="240" class="rw-g-desc">Direct admin panel, background jobs, user management access</text>
 
-    <!-- Connector: Public Router -> RouteWarden Shield -->
+    <!-- Connector: Public Router -> Routewarden Shield -->
     <line x1="230" y1="252" x2="230" y2="284" stroke="#ef4444" stroke-width="2" marker-end="url(#immich-arr-rose)"/>
 
-    <!-- 4. RouteWarden Shield -->
+    <!-- 4. Routewarden Shield -->
     <rect x="60" y="284" width="340" height="88" rx="10" class="rw-g-box" fill="url(#immich-grad-shield)"/>
     <circle cx="86" cy="310" r="7" fill="#ef4444"/>
-    <text x="104" y="308" class="rw-g-card-title">RouteWarden Middleware Shield</text>
+    <text x="104" y="308" class="rw-g-card-title">Routewarden Middleware Shield</text>
     <text x="86" y="328" class="rw-g-desc">• Zero-Trust: Default-Deny (^/.*$) with stealth 404 cloaking</text>
     <text x="86" y="344" class="rw-g-desc">• Allowlist: /share/*, /api/shared-links*, /api/server/media-types, /api/server/config, /api/server/features, /api/assets/*</text>
     <text x="86" y="360" class="rw-g-desc">• Allowed paths pass safely: /share/*, /api/asset/*</text>
 
     <!-- Connectors to Upstream Backend -->
-    <!-- From RouteWarden Shield to Immich (Allowed Public Traffic) -->
+    <!-- From Routewarden Shield to Immich (Allowed Public Traffic) -->
     <path d="M 230 372 L 230 408" stroke="#0284c7" stroke-width="2" fill="none" marker-end="url(#immich-arr-cyan)"/>
     <rect x="155" y="380" width="150" height="18" rx="4" class="rw-g-pill"/>
     <text x="230" y="393" text-anchor="middle" class="rw-g-pill-txt" fill="#0284c7">Allowed Public Assets</text>
@@ -1040,7 +1041,7 @@ const stealthResponseSnippets = computed(() => ({
 
 # Case Study: Dual-Router Security for Immich Self-Hosted Photos
 
-This case study demonstrates a real-world production pattern: **securing a self-hosted web application with a dual-router architecture using RouteWarden**.
+This case study demonstrates a real-world production pattern: **securing a self-hosted web application with a dual-router architecture using Routewarden**.
 
 We use **[Immich](https://immich.app/)** (a self-hosted high-performance photo and video backup solution) as the primary example, though this pattern applies equally to Nextcloud, Jellyfin, Vaultwarden, Home Assistant, and internal SaaS tools.
 
@@ -1081,13 +1082,13 @@ When Immich generates public share links (e.g. for photo albums or partner shari
 ![Immich Server Settings](/immich-server-settings.png)
 
 > [!TIP]
-> Setting the **External domain** guarantees that whenever you create a public album or shareable link, Immich automatically prefixes links with your hardened public domain (`https://photos.domain/share/...`), which points to the RouteWarden-protected public router.
+> Setting the **External domain** guarantees that whenever you create a public album or shareable link, Immich automatically prefixes links with your hardened public domain (`https://photos.domain/share/...`), which points to the Routewarden-protected public router.
 
 ---
 
-## RouteWarden Dual-Router Configuration
+## Routewarden Dual-Router Configuration
 
-Select your gateway below to see the full configuration. Diff highlights show the RouteWarden-specific additions:
+Select your gateway below to see the full configuration. Diff highlights show the Routewarden-specific additions:
 
 <CodeViewer :snippets="snippets" />
 
@@ -1097,7 +1098,7 @@ Select your gateway below to see the full configuration. Diff highlights show th
 
 ### 1. HTTP Methods: Why `methods` is Mandatory
 
-By default, RouteWarden inspects only `GET` requests (`methods: ["GET"]`) to preserve performance for non-idempotent operations unless configured otherwise.
+By default, Routewarden inspects only `GET` requests (`methods: ["GET"]`) to preserve performance for non-idempotent operations unless configured otherwise.
 
 However, modern web applications like Immich execute credential checks and administrative operations using **`POST`**, **`PUT`**, and **`DELETE`**:
 - Login attempts: `POST /api/auth/login`
@@ -1105,7 +1106,7 @@ However, modern web applications like Immich execute credential checks and admin
 - User creations: `POST /api/users`
 
 > [!WARNING]
-> If you omit the `methods` directive, RouteWarden will inspect only `GET` requests. An attacker sending a `POST /api/auth/login` credential brute-force request would **completely bypass RouteWarden** and hit the Immich backend directly. Always explicitly define:
+> If you omit the `methods` directive, Routewarden will inspect only `GET` requests. An attacker sending a `POST /api/auth/login` credential brute-force request would **completely bypass Routewarden** and hit the Immich backend directly. Always explicitly define:
 > - **Caddy**: `methods GET POST PUT DELETE PATCH HEAD`
 > - **Traefik (YAML / TOML)**: `methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD"]`
 > - **NGINX (Lua)**: `methods = { "GET", "POST", "PUT", "DELETE", "PATCH", "HEAD" }`
@@ -1126,7 +1127,7 @@ When viewing public shares, the Immich web frontend requires access to a minimal
 - **`(?i)^/_app(/.*)?$`**: SvelteKit static bundles (JS, CSS, fonts).
 - **`(?i)^/(favicon\.ico|manifest\.json)$`**: Standard browser icons and web app manifest.
 
-Because RouteWarden evaluates `allowPatterns` **before** testing block patterns, all legitimate sharing interactions function seamlessly while every unlisted route is safely blocked.
+Because Routewarden evaluates `allowPatterns` **before** testing block patterns, all legitimate sharing interactions function seamlessly while every unlisted route is safely blocked.
 
 ### 3. Stealth Cloaking (404 Not Found) vs `silentDrop` (Avoid 502 Edge Errors)
 
@@ -1137,17 +1138,17 @@ In our snippets, the recommended response is **`mode: json`** (or **`mode: html`
 > [!IMPORTANT]
 > If your reverse proxy is placed behind an edge proxy or CDN (such as Cloudflare, Traefik edge gateway, AWS ALB, or NGINX), avoid using `mode: silentDrop`. 
 >
-> When RouteWarden drops or resets a TCP connection under `silentDrop`, the upstream edge proxy cannot complete the connection and will return an **`HTTP 502 Bad Gateway`** error page to the client. Using `mode: json` or `mode: html` with `statusCode: 404` returns a natural, stealthy "Not Found" response that mimics a non-existent route without causing edge proxy 502 errors.
+> When Routewarden drops or resets a TCP connection under `silentDrop`, the upstream edge proxy cannot complete the connection and will return an **`HTTP 502 Bad Gateway`** error page to the client. Using `mode: json` or `mode: html` with `statusCode: 404` returns a natural, stealthy "Not Found" response that mimics a non-existent route without causing edge proxy 502 errors.
 
 ### 4. Caddy Directive Ordering
 
-When using Caddy, you must register RouteWarden before Caddy's built-in `reverse_proxy` directive in the global options block:
+When using Caddy, you must register Routewarden before Caddy's built-in `reverse_proxy` directive in the global options block:
 
 <CodeViewer :snippets="caddyOrderSnippets" />
 
 Without this directive order, Caddy will fail to start with the error:
 `directive 'routewarden' is not an ordered HTTP handler`.
-Alternatively, you can encapsulate RouteWarden and your proxy inside an explicit `route { ... }` block.
+Alternatively, you can encapsulate Routewarden and your proxy inside an explicit `route { ... }` block.
 
 ### 5. Why Immich `/` Redirects to `/auth/login` (and How Zero-Trust Allowlisting Prevents Bypass)
 
@@ -1156,15 +1157,15 @@ By default, Immich has no public homepage at the root path (`/`). When an unauth
 2. The browser automatically follows the redirect and issues a `GET /auth/login` request.
 
 #### The Fragility of Traditional Denylisting (Blocklists)
-If your RouteWarden configuration relies solely on a blocklist (denylist) targeting specific paths (e.g., `^/api/auth/login`):
+If your Routewarden configuration relies solely on a blocklist (denylist) targeting specific paths (e.g., `^/api/auth/login`):
 - The initial request to `/` passes through to Immich, which issues the 302 redirect.
-- The redirected request to `/auth/login` does not start with `/api/`, so it bypasses RouteWarden entirely, causing Immich to render the full web login screen to public visitors.
+- The redirected request to `/auth/login` does not start with `/api/`, so it bypasses Routewarden entirely, causing Immich to render the full web login screen to public visitors.
 - Even if you manually add `/auth/login` to `blockPatterns`, any future endpoint or unexpected redirect introduced in upstream updates could create another bypass. Denylisting forces administrators to play an endless, error-prone game of "whack-a-mole".
 
 #### The Zero-Trust Inversion (Default-Deny)
-By inverting RouteWarden's security model to **Zero-Trust Allowlisting**:
-1. **Catch-All Block (`blockPatterns: ['(?i)^/.*$']`)**: RouteWarden enforces a strict default-deny policy across the entire domain. Any unlisted route—including the root path `/`, `/auth/login`, `/admin`, and internal APIs—is immediately intercepted and cloaked with a 404 Not Found at the edge proxy. Because the initial request to `/` never reaches Immich, Immich never gets the opportunity to return the 302 redirect.
-2. **Precedence-Based Allowlist (`allowPatterns`)**: Because RouteWarden evaluates `allowPatterns` *before* `blockPatterns`, only explicitly authorized public routes pass through to the Immich backend:
+By inverting Routewarden's security model to **Zero-Trust Allowlisting**:
+1. **Catch-All Block (`blockPatterns: ['(?i)^/.*$']`)**: Routewarden enforces a strict default-deny policy across the entire domain. Any unlisted route—including the root path `/`, `/auth/login`, `/admin`, and internal APIs—is immediately intercepted and cloaked with a 404 Not Found at the edge proxy. Because the initial request to `/` never reaches Immich, Immich never gets the opportunity to return the 302 redirect.
+2. **Precedence-Based Allowlist (`allowPatterns`)**: Because Routewarden evaluates `allowPatterns` *before* `blockPatterns`, only explicitly authorized public routes pass through to the Immich backend:
    - `(?i)^/share(/.*)?$`: Public album viewing and password verification (`POST /share/<key>`).
    - `(?i)^/api/shared-links(/.*)?$`: Shared link metadata API (`GET /api/shared-links/me?key=...`).
    - `(?i)^/api/server/media-types$`: Supported media MIME types query (`GET /api/server/media-types`).
@@ -1180,7 +1181,7 @@ This architecture is completely immune to upstream routing changes, new admin sc
 
 ## Alternative: Single Router with IP Whitelisting Bypass
 
-If you prefer using a single domain name (e.g. `photos.example.com`) without maintaining separate public and private hostnames or entrypoints, you can configure RouteWarden's **`allowedIps`** feature:
+If you prefer using a single domain name (e.g. `photos.example.com`) without maintaining separate public and private hostnames or entrypoints, you can configure Routewarden's **`allowedIps`** feature:
 
 <CodeViewer :snippets="alternativeSnippets" />
 

@@ -17,7 +17,7 @@ const GATEWAY_OPTIONS: { id: GatewayFamily; label: string }[] = [
   { id: 'traefik', label: 'Traefik' },
   { id: 'caddy', label: 'Caddy' },
   { id: 'nginx', label: 'NGINX' },
-  { id: 'cli', label: 'RouteWarden CLI' }
+  { id: 'cli', label: 'Routewarden CLI' }
 ]
 
 // Guard to prevent re-entrant gateway sync (e.g. from the storage/change listeners)

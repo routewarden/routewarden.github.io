@@ -1,5 +1,6 @@
 ---
 title: Case Study – Smart Home Mobile Ingress (Home Assistant)
+description: "Hardening Home Assistant and IoT reverse proxies against reconnaissance probes and brute-force scans."
 ---
 
 <script setup>
@@ -284,7 +285,7 @@ curl -i -X POST https://home.example.com/auth/token \\
 
 const haRwardenTests = buildSnippet({
   lang: 'bash',
-  code: `# Offline verification with the RouteWarden CLI (rwarden)
+  code: `# Offline verification with the Routewarden CLI (rwarden)
 
 # 1. Test mobile GPS webhook passes through cleanly
 rwarden test -c routewarden.json -X POST /api/webhook/d8f76e5a4b3c2d1e0f -b '{"gps":[37.77,-122.41]}'
@@ -353,7 +354,7 @@ Select your gateway below to inspect the production configuration:
 
 Mobile companion app webhooks transmit location updates and sensor payloads exclusively via **`POST`** requests.
 
-Because RouteWarden inspects only `GET` requests by default, omitting `methods` would mean inbound webhook traffic would not be evaluated against your `allowPatterns` and `blockPatterns`. Explicitly defining `methods GET POST PUT DELETE PATCH HEAD` ensures full coverage.
+Because Routewarden inspects only `GET` requests by default, omitting `methods` would mean inbound webhook traffic would not be evaluated against your `allowPatterns` and `blockPatterns`. Explicitly defining `methods GET POST PUT DELETE PATCH HEAD` ensures full coverage.
 
 ### 2. Secret Webhook Tokens
 
@@ -374,7 +375,7 @@ We recommend **`mode: json`** with **`statusCode: 404`**.
 
 ### 4. Caddy Directive Ordering
 
-When configuring RouteWarden in Caddy, ensure the module is registered before Caddy's built-in `reverse_proxy` directive in the global options block:
+When configuring Routewarden in Caddy, ensure the module is registered before Caddy's built-in `reverse_proxy` directive in the global options block:
 
 <CodeViewer :snippets="caddyOrderSnippets" />
 
@@ -392,14 +393,14 @@ Traditional denylists (blocklists) targeting `/auth` or `/api/config` fail becau
 
 By inverting to **Zero-Trust Allowlisting (Default-Deny)**:
 - **`blockPatterns: ['(?i)^/.*$']`**: Intercepts all inbound traffic at the reverse proxy. Requests to `/`, `/lovelace`, and administrative APIs never reach the Home Assistant container.
-- **`allowPatterns: ['(?i)^/api/webhook/[a-zA-Z0-9_-]+$']`**: Because RouteWarden evaluates `allowPatterns` *before* `blockPatterns`, valid mobile companion webhooks pass through seamlessly.
+- **`allowPatterns: ['(?i)^/api/webhook/[a-zA-Z0-9_-]+$']`**: Because Routewarden evaluates `allowPatterns` *before* `blockPatterns`, valid mobile companion webhooks pass through seamlessly.
 - **`allowedIps`**: Your internal LAN and Tailscale/WireGuard subnets bypass the catch-all block, preserving complete administrative control for trusted devices.
 
 ---
 
 ## Verification Matrix & Curl Tests
 
-Inspect live curl verification commands and offline RouteWarden CLI tests:
+Inspect live curl verification commands and offline Routewarden CLI tests:
 
 <CodeViewer :snippets="verificationSnippets" />
 

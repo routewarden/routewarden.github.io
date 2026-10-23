@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# RouteWarden CLI (rwarden) Universal Installer
+# Routewarden CLI (rwarden) Universal Installer
 # Usage: curl -fsSL https://routewarden.github.io/install.sh | bash
 #   (or: curl -fsSL https://raw.githubusercontent.com/routewarden/cli/main/install.sh | bash)
 #
@@ -51,8 +51,8 @@ echo "🔍 Detecting latest version of ${BINARY}..."
 LATEST_TAG=$(curl -s "https://api.github.com/repos/${OWNER}/${REPO}/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
 
 if [ -z "${LATEST_TAG}" ]; then
-  # Fallback to v5.3.2 if GitHub API rate limit is exceeded
-  LATEST_TAG="v5.3.2"
+  # Fallback to v5.3.3 if GitHub API rate limit is exceeded
+  LATEST_TAG="v5.3.3"
 fi
 
 VERSION="${LATEST_TAG#v}"

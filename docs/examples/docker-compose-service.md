@@ -1,5 +1,6 @@
 ---
 title: Example 3 – Service-Level Docker Compose
+description: "Attaching Routewarden to individual Docker Compose service routers using container labels."
 ---
 
 <script setup>
@@ -33,7 +34,7 @@ const s = {
     "statusCode": 403,
     "body": "{\\"error\\":\\"access_denied\\",\\"service\\":\\"web\\"}",
     "headers": {
-      "X-Protected-By": "RouteWarden"
+      "X-Protected-By": "Routewarden"
     }
   }
 }` }),
@@ -61,7 +62,7 @@ http:
             statusCode: 403
             body: '{"error":"access_denied","service":"web"}'
             headers:
-              X-Protected-By: "RouteWarden"
+              X-Protected-By: "Routewarden"
 
   routers:
     web-router:
@@ -93,7 +94,7 @@ http:
   body = '{"error":"access_denied","service":"web"}'
 
 [http.middlewares.service-warden.plugin.routewarden.response.headers]
-  X-Protected-By = "RouteWarden"` }),
+  X-Protected-By = "Routewarden"` }),
 
   traefik_labels: buildSnippet({ lang: 'docker', code: `# Docker Compose Labels
 - "traefik.enable=true"
@@ -109,7 +110,7 @@ http:
 - "traefik.http.middlewares.service-warden.plugin.routewarden.response.mode=json"
 - "traefik.http.middlewares.service-warden.plugin.routewarden.response.statusCode=403"
 - 'traefik.http.middlewares.service-warden.plugin.routewarden.response.body={"error":"access_denied","service":"web"}'
-- "traefik.http.middlewares.service-warden.plugin.routewarden.response.headers.X-Protected-By=RouteWarden"` }),
+- "traefik.http.middlewares.service-warden.plugin.routewarden.response.headers.X-Protected-By=Routewarden"` }),
 
   caddy: buildSnippet({ lang: 'caddy', code: `# Caddyfile: Service-specific custom rules and allowlist exceptions
 {
@@ -159,7 +160,7 @@ http {
                 mode = "json",
                 status_code = 403,
                 body = '{"error":"access_denied","service":"web"}',
-                headers = { ["X-Protected-By"] = "RouteWarden" }
+                headers = { ["X-Protected-By"] = "Routewarden" }
             }
         })
     }
@@ -194,7 +195,7 @@ http {
       - "traefik.http.middlewares.service-warden.plugin.routewarden.allowedIps=192.168.1.0/24,10.10.0.0/16" # [!code ++]
       - "traefik.http.middlewares.service-warden.plugin.routewarden.response.mode=json" # [!code ++]
       - "traefik.http.middlewares.service-warden.plugin.routewarden.response.statusCode=403" # [!code ++]
-      - "traefik.http.middlewares.service-warden.plugin.routewarden.response.headers.X-Protected-By=RouteWarden" # [!code ++]` }),
+      - "traefik.http.middlewares.service-warden.plugin.routewarden.response.headers.X-Protected-By=Routewarden" # [!code ++]` }),
 
   docker_caddy: buildSnippet({ lang: 'yaml', code: `services:
   caddy:
@@ -257,7 +258,7 @@ const dockerSnippets = computed(() => ({
 
 # Example 3: Service-Level Docker Compose
 
-When individual microservices require custom regex rules, sensitive directory exceptions, query inspection, or dedicated error payloads, configure RouteWarden at the service router level.
+When individual microservices require custom regex rules, sensitive directory exceptions, query inspection, or dedicated error payloads, configure Routewarden at the service router level.
 
 ---
 

@@ -1,5 +1,5 @@
 /**
- * Lightweight, privacy-first telemetry helper for RouteWarden Documentation & Playground.
+ * Lightweight, privacy-first telemetry helper for Routewarden Documentation & Playground.
  * Compatible with Cloudflare Web Analytics (zero cookies, GDPR/ePrivacy compliant).
  */
 

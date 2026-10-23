@@ -61,7 +61,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Key Highlights
 
 - **Large Request Body Disk Buffer Fallback (`ngx.req.get_body_file`)**:
-  - Fixed request body inspection bypass when payload size exceeds OpenResty's `client_body_buffer_size`. OpenResty buffers large request bodies to temporary disk files where `ngx.req.get_body_data()` returns `nil`. RouteWarden now reads up to `check_body_max_bytes` from `ngx.req.get_body_file()`, ensuring malicious payloads in large requests are inspected.
+  - Fixed request body inspection bypass when payload size exceeds OpenResty's `client_body_buffer_size`. OpenResty buffers large request bodies to temporary disk files where `ngx.req.get_body_data()` returns `nil`. Routewarden now reads up to `check_body_max_bytes` from `ngx.req.get_body_file()`, ensuring malicious payloads in large requests are inspected.
 - **Canonical Directive Standardization & Duplicate Alias Removal**:
   - Standardized OpenResty Lua configuration on canonical `enable_default_patterns` and `enable_default_allow_patterns`.
   - Standardized on `block_patterns` table replacing `path_patterns`.
@@ -79,7 +79,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   - Protocol-relative destinations are safely detected, discarded, and fallback to root `/`, preventing open-redirect exploitation.
 - **Security Log Schema Normalization (`level: "warn"`)**:
   - Added `"level": "warn"`, `"status_code"`, and `"matched_pattern"` across both standard JSON logger (`logger.lua`) and emergency fallback logging (`init.lua`).
-  - Ensures field parity with RouteWarden observability and SIEM pipelines.
+  - Ensures field parity with Routewarden observability and SIEM pipelines.
 - **CI / Version Scripting Portability**:
   - Improved in-place sed editing in `scripts/update-version.sh` for reliable multi-platform execution across macOS (BSD) and Linux (GNU).
 
@@ -135,7 +135,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Key Highlights
 
-- **RouteWarden CLI Compilation Target (`--target nginx`)**:
+- **Routewarden CLI Compilation Target (`--target nginx`)**:
   - `rwarden generate --target nginx` generates production-ready `init_by_lua_block` Lua configuration tables directly from `routewarden.json`.
 - **Enhanced Test Suites (`test_config.lua`)**:
   - Comprehensive unit test suites validating configuration tables, singular aliases, and CIDR checks.

@@ -1,5 +1,6 @@
 ---
 title: NGINX Configuration Reference
+description: "Configuration reference and Lua table options for Routewarden OpenResty / NGINX module."
 ---
 
 <script setup>
@@ -185,7 +186,7 @@ Configuration schema, options, and parameters for **NGINX Warden** (`github.com/
 
 ## 1. Lua Module Initialization
 
-Initialize RouteWarden using `routewarden.new(config)` within NGINX's `init_by_lua_block` or `init_worker_by_lua_block`. The returned instance is re-entrant and shared across request worker threads:
+Initialize Routewarden using `routewarden.new(config)` within NGINX's `init_by_lua_block` or `init_worker_by_lua_block`. The returned instance is re-entrant and shared across request worker threads:
 
 <CodeViewer :snippets="initSnippets" />
 
@@ -202,7 +203,7 @@ Initialize RouteWarden using `routewarden.new(config)` within NGINX's `init_by_l
 | Key | Type | Default | Description |
 |---|---|---|---|
 | `config_file` | `string` | `nil` | Path to a `routewarden.json` base configuration file. Inline Lua table options override file settings. |
-| `enabled` | `boolean` | `true` | Enables or disables RouteWarden inspection. |
+| `enabled` | `boolean` | `true` | Enables or disables Routewarden inspection. |
 | `debug` | `boolean` | `false` | When true, logs normalization transformations and rule matching details. |
 | `security_log` | `boolean` | `false` | Emits single-line structured JSON security events on stdout for CrowdSec and SIEM auto-ban. |
 | `enable_default_patterns` | `boolean` | `true` | Intercepts common exposure targets (`.env`, `.git`, `.aws`, database dumps, actuator, debug files). |
@@ -218,11 +219,11 @@ Initialize RouteWarden using `routewarden.new(config)` within NGINX's `init_by_l
 
 ## 4. Config File (`config_file`)
 
-Instead of writing all rules inline inside NGINX configuration blocks, point RouteWarden at a shared `routewarden.json` file. Inline Lua table fields override file values, so you can maintain a single shared security policy and customize behavior per virtual host:
+Instead of writing all rules inline inside NGINX configuration blocks, point Routewarden at a shared `routewarden.json` file. Inline Lua table fields override file values, so you can maintain a single shared security policy and customize behavior per virtual host:
 
 <CodeViewer :snippets="configFileSnippets" />
 
-The `routewarden.json` file uses the standard RouteWarden JSON schema (view it with `rwarden schema` or the [CLI Schema](/cli/schema)):
+The `routewarden.json` file uses the standard Routewarden JSON schema (view it with `rwarden schema` or the [CLI Schema](/cli/schema)):
 
 ### Merge Semantics
 
@@ -242,7 +243,7 @@ The `routewarden.json` file uses the standard RouteWarden JSON schema (view it w
 
 ## 5. Response Modes Table
 
-RouteWarden for NGINX supports 13 response modes matching the core engine:
+Routewarden for NGINX supports 13 response modes matching the core engine:
 
 | Mode | Key Settings | Action |
 |---|---|---|
@@ -264,7 +265,7 @@ RouteWarden for NGINX supports 13 response modes matching the core engine:
 
 ## 6. Client IP Resolution
 
-RouteWarden evaluates client addresses using the following priority:
+Routewarden evaluates client addresses using the following priority:
 1. `X-Forwarded-For` header (first non-internal IP)
 2. `X-Real-IP` header
 3. Socket address `ngx.var.remote_addr`

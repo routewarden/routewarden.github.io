@@ -305,7 +305,7 @@ const dockerCacheSnippets = computed(() => ({
 
 # Modular Protocol Plugins
 
-The core TCP Warden proxy engine in RouteWarden (`rwarden tcp` or standalone `tcp-warden`) is an ultra-lightweight, high-performance Layer 4 transparent security proxy (`generic` / `tcp`).
+The core TCP Warden proxy engine in Routewarden (`rwarden tcp` or standalone `tcp-warden`) is an ultra-lightweight, high-performance Layer 4 transparent security proxy (`generic` / `tcp`).
 
 All protocol-specific security inspectors (`ssh`, `smtp`, `pop3`, `imap`, `postgres`, `mysql`, `redis`, `http`, etc.) are modular plugins maintained in the dedicated **[`routewarden/plugins`](https://github.com/routewarden/plugins)** repository. This modular architecture ensures the core daemon remains minimal, zero-bloat, and rock-solid, while allowing operators to install only the protocols their infrastructure requires.
 

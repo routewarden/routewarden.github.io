@@ -1,6 +1,6 @@
 ---
-title: Standalone Docker Compose Deployment — RouteWarden Dashboard
-description: Deploy RouteWarden's native SOC security dashboard in production using standalone Docker Compose.
+title: Standalone Docker Compose Deployment — Routewarden Dashboard
+description: Deploy Routewarden's native SOC security dashboard in production using standalone Docker Compose.
 ---
 
 <script setup>
@@ -23,7 +23,7 @@ docker compose up -d
 
 const export_cmd_docker = buildSnippet({
   lang: 'bash',
-  code: `# Export configs using the RouteWarden CLI container image
+  code: `# Export configs using the Routewarden CLI container image
 # (no local rwarden binary required)
 docker run --rm \\
   -v "$(pwd)/dashboard:/data" \\
@@ -125,7 +125,7 @@ const multiSnippets = computed(() => ({
 
 # Standalone Docker Compose Deployment
 
-RouteWarden allows you to export and deploy the native real-time security dashboard as a standalone **Docker Compose** service without needing the `rwarden` binary installed on your production servers.
+Routewarden allows you to export and deploy the native real-time security dashboard as a standalone **Docker Compose** service without needing the `rwarden` binary installed on your production servers.
 
 ---
 
@@ -139,7 +139,7 @@ Export the embedded configuration files to any target directory:
 
 ## 2. Docker Compose Configuration
 
-The exported `docker-compose.yml` runs RouteWarden's native SOC dashboard consuming **~8MB of RAM** with zero external dependencies:
+The exported `docker-compose.yml` runs Routewarden's native SOC dashboard consuming **~8MB of RAM** with zero external dependencies:
 
 <CodeViewer :snippets="composeSnippets" />
 
