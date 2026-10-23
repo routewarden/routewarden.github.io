@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import type { ResponseMode } from './generator'
 
 export interface VerbEvalResult {
@@ -30,244 +31,336 @@ const captchaProvider = defineModel<'turnstile' | 'hcaptcha' | 'recaptcha'>('cap
 const captchaSiteKey = defineModel<string>('captchaSiteKey', { required: true })
 const captchaTitle = defineModel<string>('captchaTitle', { required: true })
 const testMethod = defineModel<string>('testMethod', { required: true })
+
+const isStatusDisabled = computed(() => {
+  return ['silentDrop', 'fakeSuccess', 'redirect', 'rateLimitChallenge'].includes(responseMode.value)
+})
 </script>
 
 <template>
-  <div class="rw-block">
-    <div class="rw-row-header">
-      <span class="rw-title">HTTP Response</span>
-      <div class="rw-resp-opts">
-        <label>
-          <span>Mode:</span>
+  <div class="rw-response-panel">
+    <!-- Header: Action Mode & HTTP Status -->
+    <div class="rw-resp-header">
+      <div class="rw-resp-header-left">
+        <span class="rw-resp-icon" aria-hidden="true">🛡️</span>
+        <span class="rw-resp-title">Response Mode &amp; Active Defense</span>
+      </div>
+
+      <div class="rw-resp-header-right">
+        <!-- Response Mode Selector -->
+        <div class="rw-select-wrap">
+          <span class="rw-sw-label">Mode:</span>
           <select v-model="responseMode" class="rw-mode-select">
-            <optgroup label="Standard Responses">
-              <option value="json">json</option>
-              <option value="html">html</option>
-              <option value="text">text</option>
-              <option value="xml">xml</option>
+            <optgroup label="Standard HTTP Responses">
+              <option value="json">JSON Object</option>
+              <option value="html">HTML Document</option>
+              <option value="text">Plain Text</option>
+              <option value="xml">XML Document</option>
             </optgroup>
-            <optgroup label="Traffic Routing">
-              <option value="redirect">redirect</option>
-              <option value="proxy">proxy (honeypot)</option>
+            <optgroup label="Active Defense Traps">
+              <option value="silentDrop">Silent Drop (TCP RST)</option>
+              <option value="gzipBomb">Gzip Decompression Bomb</option>
+              <option value="tarpit">Tarpit (Slow Drip)</option>
+              <option value="infiniteStream">Infinite Junk Stream</option>
             </optgroup>
-            <optgroup label="Active Defense & Traps">
-              <option value="silentDrop">silentDrop (TCP RST)</option>
-              <option value="gzipBomb">gzipBomb (zip bomb)</option>
-              <option value="tarpit">tarpit (slow drip)</option>
-              <option value="rateLimitChallenge">rateLimitChallenge (429)</option>
-              <option value="infiniteStream">infiniteStream (junk stream)</option>
-            </optgroup>
-            <optgroup label="Deception & Verification">
-              <option value="fakeSuccess">fakeSuccess (HTTP 200)</option>
-              <option value="captcha">captcha (Turnstile/hCaptcha)</option>
+            <optgroup label="Deception &amp; Verification">
+              <option value="fakeSuccess">Deceptive HTTP 200</option>
+              <option value="redirect">Sinkhole Redirect</option>
+              <option value="proxy">Honeypot Reverse Proxy</option>
+              <option value="captcha">Interactive CAPTCHA</option>
+              <option value="rateLimitChallenge">Rate Limit Challenge (429)</option>
             </optgroup>
           </select>
-        </label>
-        <label v-if="responseMode !== 'silentDrop' && responseMode !== 'fakeSuccess' && responseMode !== 'redirect' && responseMode !== 'rateLimitChallenge'">
-          <span>Status:</span>
-          <input v-model.number="statusCode" type="number" class="rw-small-num" />
-        </label>
+        </div>
+
+        <!-- Status Code Input -->
+        <div v-if="!isStatusDisabled" class="rw-status-wrap">
+          <span class="rw-sw-label">Status:</span>
+          <input
+            v-model.number="statusCode"
+            type="number"
+            min="200"
+            max="599"
+            class="rw-status-input"
+            title="HTTP Status code returned on block"
+          />
+        </div>
       </div>
     </div>
 
-    <!-- Mode-Specific Configuration Options -->
-    <div class="rw-mode-opts-panel">
-      <!-- Redirect Options -->
-      <div v-if="responseMode === 'redirect'" class="rw-mode-fields">
-        <span class="rw-opt-tag">Redirect Target:</span>
-        <input v-model="redirectUrl" class="rw-opt-input" placeholder="https://sinkhole.example.com/blocked" />
+    <!-- Active Defense Parameters Deck -->
+    <div class="rw-mode-config-card">
+      <!-- Redirect -->
+      <div v-if="responseMode === 'redirect'" class="rw-field-row">
+        <span class="rw-field-label">Redirect Target:</span>
+        <input
+          v-model="redirectUrl"
+          class="rw-field-input"
+          placeholder="https://sinkhole.example.com/blocked"
+        />
       </div>
 
-      <!-- Proxy Options -->
-      <div v-if="responseMode === 'proxy'" class="rw-mode-fields">
-        <span class="rw-opt-tag">Honeypot Proxy URL:</span>
-        <input v-model="proxyUrl" class="rw-opt-input" placeholder="http://honeypot-internal:8080" />
+      <!-- Proxy -->
+      <div v-if="responseMode === 'proxy'" class="rw-field-row">
+        <span class="rw-field-label">Honeypot Upstream:</span>
+        <input
+          v-model="proxyUrl"
+          class="rw-field-input"
+          placeholder="http://honeypot-internal:8080"
+        />
       </div>
 
-      <!-- Gzip Bomb Options -->
-      <div v-if="responseMode === 'gzipBomb'" class="rw-mode-fields">
-        <span class="rw-opt-tag">Payload Size:</span>
-        <div class="rw-opt-unit">
-          <input v-model.number="gzipBombMB" type="number" min="1" max="100" class="rw-small-num" />
-          <span>MB (expands to ~{{ gzipBombMB * 1000 }} MB in scanner memory)</span>
+      <!-- Gzip Bomb -->
+      <div v-if="responseMode === 'gzipBomb'" class="rw-field-row">
+        <span class="rw-field-label">Compressed Size:</span>
+        <div class="rw-unit-field">
+          <input v-model.number="gzipBombMB" type="number" min="1" max="100" class="rw-mini-num" />
+          <span class="rw-unit-text">MB (expands to ~{{ gzipBombMB * 1000 }} MB in scanner memory)</span>
         </div>
       </div>
 
-      <!-- Tarpit Options -->
-      <div v-if="responseMode === 'tarpit'" class="rw-mode-fields">
-        <span class="rw-opt-tag">Drip Delay:</span>
-        <div class="rw-opt-unit">
-          <input v-model.number="tarpitDelayMs" type="number" min="50" step="100" class="rw-small-num" />
-          <span>ms/byte</span>
+      <!-- Tarpit -->
+      <div v-if="responseMode === 'tarpit'" class="rw-field-row rw-wrap-row">
+        <div class="rw-sub-field">
+          <span class="rw-field-label">Drip Delay:</span>
+          <div class="rw-unit-field">
+            <input v-model.number="tarpitDelayMs" type="number" min="50" step="100" class="rw-mini-num" />
+            <span class="rw-unit-text">ms / byte</span>
+          </div>
         </div>
-        <span class="rw-opt-tag">Max Duration:</span>
-        <div class="rw-opt-unit">
-          <input v-model.number="tarpitMaxDurationSeconds" type="number" min="1" class="rw-small-num" />
-          <span>s</span>
-        </div>
-      </div>
-
-      <!-- Rate Limit Challenge Options -->
-      <div v-if="responseMode === 'rateLimitChallenge'" class="rw-mode-fields">
-        <span class="rw-opt-tag">Retry-After:</span>
-        <div class="rw-opt-unit">
-          <input v-model.number="retryAfterSeconds" type="number" min="1" class="rw-small-num" />
-          <span>seconds</span>
+        <div class="rw-sub-field">
+          <span class="rw-field-label">Max Duration:</span>
+          <div class="rw-unit-field">
+            <input v-model.number="tarpitMaxDurationSeconds" type="number" min="1" class="rw-mini-num" />
+            <span class="rw-unit-text">seconds</span>
+          </div>
         </div>
       </div>
 
-      <!-- Infinite Stream Options -->
-      <div v-if="responseMode === 'infiniteStream'" class="rw-mode-fields">
-        <span class="rw-opt-tag">Stream Cap:</span>
-        <div class="rw-opt-unit">
-          <input v-model.number="streamSizeMB" type="number" min="1" class="rw-small-num" />
-          <span>MB pseudo-random junk bytes</span>
+      <!-- Rate Limit Challenge -->
+      <div v-if="responseMode === 'rateLimitChallenge'" class="rw-field-row">
+        <span class="rw-field-label">Retry-After:</span>
+        <div class="rw-unit-field">
+          <input v-model.number="retryAfterSeconds" type="number" min="1" class="rw-mini-num" />
+          <span class="rw-unit-text">seconds</span>
         </div>
       </div>
 
-      <!-- Captcha Options -->
-      <div v-if="responseMode === 'captcha'" class="rw-mode-fields rw-wrap-fields">
-        <div class="rw-field-group">
-          <span class="rw-opt-tag">Provider:</span>
+      <!-- Infinite Stream -->
+      <div v-if="responseMode === 'infiniteStream'" class="rw-field-row">
+        <span class="rw-field-label">Stream Cap:</span>
+        <div class="rw-unit-field">
+          <input v-model.number="streamSizeMB" type="number" min="1" class="rw-mini-num" />
+          <span class="rw-unit-text">MB of chunked pseudo-random data</span>
+        </div>
+      </div>
+
+      <!-- CAPTCHA -->
+      <div v-if="responseMode === 'captcha'" class="rw-field-row rw-wrap-row">
+        <div class="rw-sub-field">
+          <span class="rw-field-label">Provider:</span>
           <select v-model="captchaProvider" class="rw-mini-select">
             <option value="turnstile">Cloudflare Turnstile</option>
             <option value="hcaptcha">hCaptcha</option>
-            <option value="recaptcha">reCAPTCHA v2</option>
+            <option value="recaptcha">Google reCAPTCHA v2</option>
           </select>
         </div>
-        <div class="rw-field-group rw-flex-1">
-          <span class="rw-opt-tag">Site Key:</span>
-          <input v-model="captchaSiteKey" class="rw-opt-input mono" placeholder="0x4AAAAAA..." />
+        <div class="rw-sub-field rw-flex-1">
+          <span class="rw-field-label">Site Key:</span>
+          <input v-model="captchaSiteKey" class="rw-field-input mono" placeholder="0x4AAAAAA..." />
         </div>
-        <div class="rw-field-group rw-flex-1">
-          <span class="rw-opt-tag">Title:</span>
-          <input v-model="captchaTitle" class="rw-opt-input" placeholder="Verification Title" />
+        <div class="rw-sub-field rw-flex-1">
+          <span class="rw-field-label">Page Title:</span>
+          <input v-model="captchaTitle" class="rw-field-input" placeholder="Verification Title" />
         </div>
       </div>
 
-      <!-- Silent Drop Note -->
-      <div v-if="responseMode === 'silentDrop'" class="rw-mode-fields rw-silent-note">
-        <span class="rw-badge-silent">TCP RST</span>
-        <span>Abruptly closes socket via Go <code>http.Hijacker</code>. Zero HTTP bytes, headers, or status codes sent.</span>
+      <!-- Silent Drop Notice -->
+      <div v-if="responseMode === 'silentDrop'" class="rw-silent-box">
+        <span class="rw-badge-tcp-rst">TCP RST</span>
+        <span class="rw-silent-text">
+          Abruptly terminates the raw TCP socket via Go <code>http.Hijacker</code>. Exactly 0 HTTP bytes, headers, or status codes sent to scanner.
+        </span>
       </div>
 
-      <!-- Custom Body Override for json/text/html/xml/fakeSuccess -->
-      <div v-if="['json', 'text', 'html', 'xml', 'fakeSuccess'].includes(responseMode)" class="rw-mode-fields">
-        <span class="rw-opt-tag">Custom Body:</span>
-        <input
-          v-model="customBody"
-          class="rw-opt-input"
-          :placeholder="responseMode === 'json' ? 'Leave empty for default JSON or type custom payload...' : 'Leave empty for default or type custom body...'"
-        />
-        <button v-if="customBody" type="button" class="rw-btn-reset-sm" title="Reset body" @click="customBody = ''">✕</button>
+      <!-- Custom Body Override -->
+      <div v-if="['json', 'text', 'html', 'xml', 'fakeSuccess'].includes(responseMode)" class="rw-field-row">
+        <span class="rw-field-label">Custom Payload:</span>
+        <div class="rw-custom-body-wrap">
+          <input
+            v-model="customBody"
+            class="rw-field-input"
+            :placeholder="responseMode === 'json' ? 'Leave empty for default JSON or enter custom payload...' : 'Leave empty for default or enter custom body...'"
+          />
+          <button
+            v-if="customBody"
+            type="button"
+            class="rw-btn-reset"
+            title="Reset to default payload"
+            @click="customBody = ''"
+          >✕</button>
+        </div>
       </div>
     </div>
 
-    <!-- Simulation Results for Each HTTP Verb -->
-    <div class="rw-verb-sim-section">
-      <div class="rw-sim-matrix-bar">
-        <div class="rw-sm-info">
-          <span class="rw-sm-title">⚡ Verdict for Each HTTP Verb:</span>
-          <span class="rw-sm-desc">Click any verb to inspect its live simulated response payload below</span>
+    <!-- Live HTTP Verb Evaluation Matrix -->
+    <div class="rw-verb-matrix-card">
+      <div class="rw-vm-header">
+        <div class="rw-vm-title-wrap">
+          <span class="rw-vm-title">⚡ HTTP Verb Security Matrix</span>
+          <span class="rw-vm-desc">— Live verdict for each method; click any verb to simulate</span>
         </div>
-        <div class="rw-sm-pills">
-          <button
-            v-for="ve in verbEvaluations"
-            :key="ve.method"
-            type="button"
-            class="rw-sim-pill"
-            :class="[
-              ve.badgeClass,
-              {
-                active: testMethod === ve.method,
-                uninspected: !ve.isInspected
-              }
-            ]"
-            :title="`Click to inspect HTTP ${ve.method} (${ve.reason})`"
-            @click="testMethod = ve.method"
-          >
-            <span class="rw-sp-dot">●</span>
-            <span class="rw-sp-name">{{ ve.method }}</span>
-            <span class="rw-sp-badge">{{ ve.verdict }}</span>
-            <span class="rw-sp-code">{{ ve.statusCode }}</span>
-          </button>
-        </div>
+      </div>
+
+      <div class="rw-matrix-chips">
+        <button
+          v-for="ve in verbEvaluations"
+          :key="ve.method"
+          type="button"
+          class="rw-matrix-pill"
+          :class="[
+            ve.badgeClass,
+            {
+              'is-active-method': testMethod === ve.method,
+              'is-uninspected': !ve.isInspected
+            }
+          ]"
+          :title="`Click to simulate HTTP ${ve.method} (${ve.reason})`"
+          @click="testMethod = ve.method"
+        >
+          <span class="rw-mp-dot">●</span>
+          <span class="rw-mp-name">{{ ve.method }}</span>
+          <span class="rw-mp-verdict">{{ ve.verdict }}</span>
+          <span class="rw-mp-code">{{ ve.statusCode }}</span>
+        </button>
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-.rw-block {
-  border: 1px solid var(--vp-c-divider);
-  border-radius: 8px;
-  background: var(--vp-c-bg-soft);
-  padding: 0.75rem 0.85rem;
+.rw-response-panel {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  background: var(--vp-c-bg-soft);
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 8px;
+  padding: 0.65rem 0.75rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
-.rw-row-header {
+.dark .rw-response-panel {
+  background: #0f1422;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Header */
+.rw-resp-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid var(--vp-c-divider);
   flex-wrap: wrap;
 }
 
-.rw-title {
+.rw-resp-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.rw-resp-icon {
   font-size: 12px;
-  font-weight: 600;
+}
+
+.rw-resp-title {
+  font-family: var(--vp-font-family-mono);
+  font-size: 11.5px;
+  font-weight: 700;
   color: var(--vp-c-text-1);
 }
 
-.rw-resp-opts {
+.rw-resp-header-right {
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  font-size: 11.5px;
+  flex-wrap: wrap;
 }
-.rw-resp-opts label {
+
+.rw-select-wrap, .rw-status-wrap {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
-  color: var(--vp-c-text-2);
+  gap: 0.3rem;
+  font-family: var(--vp-font-family-mono);
+  font-size: 11px;
 }
-.rw-mode-select, .rw-resp-opts select, .rw-small-num, .rw-mini-select {
-  padding: 3px 6px;
-  border: 1px solid var(--vp-c-divider);
+
+.rw-sw-label {
+  color: var(--vp-c-text-3);
+  font-weight: 600;
+}
+
+.rw-mode-select, .rw-mini-select {
+  padding: 2.5px 6px;
   border-radius: 4px;
+  border: 1px solid var(--vp-c-divider);
   background: var(--vp-c-bg);
   color: var(--vp-c-text-1);
+  font-family: var(--vp-font-family-mono);
   font-size: 11px;
   outline: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
 }
-.rw-small-num { width: 60px; }
 
-/* Mode options sub-panel */
-.rw-mode-opts-panel {
-  padding: 6px 8px;
+.rw-mode-select:focus, .rw-mini-select:focus {
+  border-color: var(--vp-c-brand-1);
+}
+
+.rw-status-input {
+  width: 58px;
+  padding: 2.5px 5px;
+  border-radius: 4px;
+  border: 1px solid var(--vp-c-divider);
+  background: var(--vp-c-bg);
+  color: var(--vp-c-text-1);
+  font-family: var(--vp-font-family-mono);
+  font-size: 11px;
+  text-align: center;
+  outline: none;
+}
+
+.rw-status-input:focus {
+  border-color: var(--vp-c-brand-1);
+}
+
+/* Parameters Card */
+.rw-mode-config-card {
+  background: var(--vp-c-bg);
   border: 1px solid var(--vp-c-divider);
   border-radius: 6px;
-  background: var(--vp-c-bg);
+  padding: 6px 8px;
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
 }
 
-.rw-mode-fields {
+.rw-field-row {
   display: flex;
   align-items: center;
-  gap: 0.45rem;
-  font-size: 11.5px;
+  gap: 0.5rem;
+  font-family: var(--vp-font-family-mono);
+  font-size: 11px;
 }
 
-.rw-wrap-fields {
+.rw-wrap-row {
   flex-wrap: wrap;
 }
 
-.rw-field-group {
+.rw-sub-field {
   display: flex;
   align-items: center;
   gap: 0.35rem;
@@ -275,90 +368,110 @@ const testMethod = defineModel<string>('testMethod', { required: true })
 
 .rw-flex-1 {
   flex: 1;
-  min-width: 130px;
+  min-width: 140px;
 }
 
-.rw-opt-tag {
+.rw-field-label {
   color: var(--vp-c-text-2);
-  font-size: 11px;
   font-weight: 600;
   white-space: nowrap;
 }
 
-.rw-opt-input {
+.rw-field-input {
   flex: 1;
   min-width: 120px;
   padding: 3px 6px;
-  border: 1px solid var(--vp-c-divider);
   border-radius: 4px;
+  border: 1px solid var(--vp-c-divider);
   background: var(--vp-c-bg-alt);
   color: var(--vp-c-text-1);
+  font-family: var(--vp-font-family-mono);
   font-size: 11px;
   outline: none;
 }
-.rw-opt-input.mono {
-  font-family: var(--vp-font-family-mono);
-}
-.rw-opt-input:focus {
+.rw-field-input:focus {
   border-color: var(--vp-c-brand-1);
 }
 
-.rw-opt-unit {
+.rw-custom-body-wrap {
   display: flex;
   align-items: center;
-  gap: 0.3rem;
-  color: var(--vp-c-text-2);
-  font-size: 11px;
+  gap: 4px;
+  flex: 1;
 }
 
-.rw-silent-note {
-  color: var(--vp-c-text-2);
-  font-size: 11px;
-  line-height: 1.4;
-}
-
-.rw-badge-silent {
-  display: inline-block;
-  padding: 1px 6px;
-  border-radius: 4px;
-  background: rgba(239, 68, 68, 0.15);
-  color: #dc2626;
-  font-size: 10px;
-  font-weight: 700;
-  white-space: nowrap;
-}
-.dark .rw-badge-silent {
-  color: #f87171;
-}
-
-.rw-btn-reset-sm {
+.rw-btn-reset {
   background: transparent;
   border: none;
   color: var(--vp-c-text-3);
-  font-size: 11px;
+  font-size: 10px;
   cursor: pointer;
   padding: 2px 4px;
+  border-radius: 3px;
 }
-.rw-btn-reset-sm:hover {
+.rw-btn-reset:hover {
+  background: var(--vp-c-bg-alt);
   color: var(--vp-c-text-1);
 }
 
-/* Simulation Results for Each Verb */
-.rw-verb-sim-section {
-  margin: 0.4rem 0 0.2rem;
+.rw-unit-field {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
 }
 
-.rw-sim-matrix-bar {
+.rw-mini-num {
+  width: 55px;
+  padding: 2.5px 5px;
+  border-radius: 4px;
+  border: 1px solid var(--vp-c-divider);
+  background: var(--vp-c-bg-alt);
+  color: var(--vp-c-text-1);
+  font-family: var(--vp-font-family-mono);
+  font-size: 11px;
+  text-align: center;
+  outline: none;
+}
+
+.rw-unit-text {
+  color: var(--vp-c-text-3);
+  font-size: 10.5px;
+}
+
+.rw-silent-box {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--vp-font-family-mono);
+  font-size: 11px;
+}
+
+.rw-badge-tcp-rst {
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: rgba(239, 68, 68, 0.15);
+  color: #dc2626;
+  font-weight: 700;
+  font-size: 10px;
+  flex-shrink: 0;
+}
+.dark .rw-badge-tcp-rst {
+  color: #f87171;
+}
+
+.rw-silent-text {
+  color: var(--vp-c-text-2);
+}
+
+/* Verb Matrix */
+.rw-verb-matrix-card {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
-  background: var(--vp-c-bg-soft);
-  border: 1px solid var(--vp-c-divider);
-  border-radius: 6px;
-  padding: 6px 8px;
+  gap: 0.35rem;
+  padding-top: 0.2rem;
 }
 
-.rw-sm-info {
+.rw-vm-header {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
@@ -366,98 +479,98 @@ const testMethod = defineModel<string>('testMethod', { required: true })
   flex-wrap: wrap;
 }
 
-.rw-sm-title {
+.rw-vm-title {
+  font-family: var(--vp-font-family-mono);
   font-size: 11px;
   font-weight: 700;
   color: var(--vp-c-text-1);
 }
 
-.rw-sm-desc {
+.rw-vm-desc {
+  font-family: var(--vp-font-family-mono);
   font-size: 10px;
   color: var(--vp-c-text-3);
 }
 
-.rw-sm-pills {
+.rw-matrix-chips {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.3rem;
   flex-wrap: wrap;
 }
 
-.rw-sim-pill {
+.rw-matrix-pill {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 3px 8px;
-  border-radius: 5px;
-  border: 1px solid transparent;
+  gap: 4px;
+  padding: 2.5px 7px;
+  border-radius: 4px;
+  border: 1px solid var(--vp-c-divider);
+  background: var(--vp-c-bg);
   font-family: var(--vp-font-family-mono);
   cursor: pointer;
   transition: all 0.15s ease;
   user-select: none;
-  background: var(--vp-c-bg);
 }
 
-.rw-sim-pill:hover {
+.rw-matrix-pill:hover {
   transform: translateY(-1px);
   filter: brightness(1.05);
 }
 
-.rw-sim-pill.active {
+.rw-matrix-pill.is-active-method {
   box-shadow: 0 0 0 2px var(--vp-c-brand-1);
   border-color: var(--vp-c-brand-1);
 }
 
-.rw-sp-dot {
-  font-size: 8px;
+.rw-mp-dot {
+  font-size: 7px;
 }
+.rw-matrix-pill.verdict-block .rw-mp-dot { color: #ef4444; }
+.rw-matrix-pill.verdict-allow .rw-mp-dot { color: #10b981; }
+.rw-matrix-pill.verdict-bypass .rw-mp-dot { color: #0ea5e9; }
+.rw-matrix-pill.verdict-pass .rw-mp-dot { color: #64748b; }
 
-.rw-sim-pill.verdict-block .rw-sp-dot { color: #ef4444; }
-.rw-sim-pill.verdict-allow .rw-sp-dot { color: #10b981; }
-.rw-sim-pill.verdict-bypass .rw-sp-dot { color: #0ea5e9; }
-.rw-sim-pill.verdict-pass .rw-sp-dot { color: #64748b; }
-
-.rw-sp-name {
-  font-size: 11px;
+.rw-mp-name {
+  font-size: 10.5px;
   font-weight: 700;
   color: var(--vp-c-text-1);
 }
 
-.rw-sp-badge {
+.rw-mp-verdict {
   font-size: 9px;
   font-weight: 800;
-  padding: 1px 4px;
+  padding: 0.5px 4px;
   border-radius: 3px;
   letter-spacing: 0.3px;
 }
-
-.rw-sim-pill.verdict-block .rw-sp-badge {
-  background: rgba(239, 68, 68, 0.2);
+.rw-matrix-pill.verdict-block .rw-mp-verdict {
+  background: rgba(239, 68, 68, 0.18);
   color: #dc2626;
 }
-.dark .rw-sim-pill.verdict-block .rw-sp-badge { color: #f87171; }
+.dark .rw-matrix-pill.verdict-block .rw-mp-verdict { color: #f87171; }
 
-.rw-sim-pill.verdict-allow .rw-sp-badge {
-  background: rgba(16, 185, 129, 0.2);
+.rw-matrix-pill.verdict-allow .rw-mp-verdict {
+  background: rgba(16, 185, 129, 0.18);
   color: #059669;
 }
-.dark .rw-sim-pill.verdict-allow .rw-sp-badge { color: #34d399; }
+.dark .rw-matrix-pill.verdict-allow .rw-mp-verdict { color: #34d399; }
 
-.rw-sim-pill.verdict-bypass .rw-sp-badge {
-  background: rgba(56, 189, 248, 0.2);
+.rw-matrix-pill.verdict-bypass .rw-mp-verdict {
+  background: rgba(14, 165, 233, 0.18);
   color: #0284c7;
 }
-.dark .rw-sim-pill.verdict-bypass .rw-sp-badge { color: #38bdf8; }
+.dark .rw-matrix-pill.verdict-bypass .rw-mp-verdict { color: #38bdf8; }
 
-.rw-sim-pill.verdict-pass .rw-sp-badge {
-  background: rgba(100, 116, 139, 0.2);
+.rw-matrix-pill.verdict-pass .rw-mp-verdict {
+  background: rgba(100, 116, 139, 0.18);
   color: #475569;
 }
-.dark .rw-sim-pill.verdict-pass .rw-sp-badge { color: #94a3b8; }
+.dark .rw-matrix-pill.verdict-pass .rw-mp-verdict { color: #94a3b8; }
 
-.rw-sp-code {
+.rw-mp-code {
   font-size: 9.5px;
+  color: var(--vp-c-text-3);
   font-weight: 600;
-  color: var(--vp-c-text-2);
 }
 </style>
