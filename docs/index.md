@@ -10,22 +10,22 @@ hero:
     alt: RouteWarden Logo
   actions:
     - theme: brand
-      text: TCP Warden (L4) ➔
+      text: "[ TCP Warden (L4) ➔ ]"
       link: /tcp/
     - theme: brand
-      text: Traefik Warden ➔
+      text: "[ Traefik Warden ➔ ]"
       link: /traefik/
     - theme: brand
-      text: Caddy Warden ➔
+      text: "[ Caddy Warden ➔ ]"
       link: /caddy/
     - theme: brand
-      text: NGINX Warden ➔
+      text: "[ NGINX Warden ➔ ]"
       link: /nginx/
     - theme: alt
-      text: CLI & Dashboard ➔
+      text: "[ CLI & Dashboard ➔ ]"
       link: /cli/
     - theme: alt
-      text: FAQs ➔
+      text: "[ FAQs ➔ ]"
       link: /faq
 
 features:
@@ -69,27 +69,27 @@ RouteWarden evaluates inbound HTTP requests in five stages:
 
 <div class="home-pipeline">
   <div class="pipeline-step">
-    <div class="pipeline-num">Stage 1</div>
+    <div class="pipeline-num">STAGE [01/05]</div>
     <div class="pipeline-title">HTTP Verb Filtering</div>
     <div class="pipeline-desc">Checks the request method against configured <code>methods</code> (default: <code>["GET"]</code>). Non-matching methods bypass inspection immediately.</div>
   </div>
   <div class="pipeline-step">
-    <div class="pipeline-num">Stage 2</div>
+    <div class="pipeline-num">STAGE [02/05]</div>
     <div class="pipeline-title">IP Allowlist Check</div>
     <div class="pipeline-desc">Checks client IP against <code>allowedIps</code> via socket <code>RemoteAddr</code>, <code>X-Forwarded-For</code>, or <code>X-Real-IP</code>. Trusted addresses bypass checks immediately.</div>
   </div>
   <div class="pipeline-step">
-    <div class="pipeline-num">Stage 3</div>
+    <div class="pipeline-num">STAGE [03/05]</div>
     <div class="pipeline-title">Anti-Evasion Normalization</div>
     <div class="pipeline-desc">Decodes multi-layer percent-encoding (<code>%252e%252e</code>), strips matrix parameters (<code>/;param/.env</code>), normalizes backslashes (<code>\</code>), and removes null bytes.</div>
   </div>
   <div class="pipeline-step">
-    <div class="pipeline-num">Stage 4</div>
+    <div class="pipeline-num">STAGE [04/05]</div>
     <div class="pipeline-title">Rule Evaluation</div>
     <div class="pipeline-desc">Evaluates safe exemptions (<code>allowPatterns</code>) first. If not exempted, checks built-in sensitive dictionaries and custom <code>blockPatterns</code>.</div>
   </div>
   <div class="pipeline-step">
-    <div class="pipeline-num">Stage 5</div>
+    <div class="pipeline-num">STAGE [05/05]</div>
     <div class="pipeline-title">Response Generation</div>
     <div class="pipeline-desc">Executes the configured response mode: custom JSON, HTML, redirect, silent drop, challenge verification, or gzip compression response.</div>
   </div>

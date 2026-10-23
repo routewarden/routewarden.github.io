@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { trackPlaygroundEvent } from '../telemetry'
 import {
   DEFAULT_BLOCK_RULES,
@@ -16,9 +16,10 @@ import {
 } from './playground/engine'
 import {
   generateGatewaySnippet,
-  type ResponseMode
+  type ResponseMode,
+  type SnippetOptions
 } from './playground/generator'
-import { highlightSnippet } from './playground/highlighter'
+import { buildSnippet, type SnippetLang } from '../composables/useCodeSnippet'
 import { useGatewaySelection, type GatewayId } from '../composables/useGatewaySelection'
 
 import RequestInputStrip from './playground/RequestInputStrip.vue'
@@ -26,7 +27,7 @@ import PatternColumn from './playground/PatternColumn.vue'
 import OptionsPanel from './playground/OptionsPanel.vue'
 import ResponseOptionsPanel, { type VerbEvalResult } from './playground/ResponseOptionsPanel.vue'
 import SimulatedResponseCard from './playground/SimulatedResponseCard.vue'
-import ExportEditorCard, { type FormatTab } from './playground/ExportEditorCard.vue'
+import CodeViewer, { type CodeViewerSnippet } from './CodeViewer.vue'
 
 // 1. Input state
 const testMethod = ref('GET')
@@ -102,10 +103,7 @@ const tarpitMaxDurationSeconds = ref(60)
 const streamSizeMB = ref(50)
 
 // 5. Shared gateway selection composable
-const { activeGateway: selectedGateway, gateways } = useGatewaySelection()
-
-// Filter out TCP Warden from Playground gateway choices since playground evaluates Layer 7 HTTP patterns
-const playgroundGateways = computed(() => gateways.filter(g => g.id !== 'tcp'))
+const { activeGateway: selectedGateway } = useGatewaySelection()
 
 type SnippetFormat = 'caddy' | 'nginx' | 'traefik_yaml' | 'traefik_toml' | 'docker' | 'k8s_traefik' | 'k8s_caddy' | 'k8s_nginx' | 'k8s' | 'cli_json' | 'cli_cmd'
 
@@ -124,34 +122,18 @@ function defaultFormatFor(gw: string): SnippetFormat {
 }
 
 const snippetFormat = ref<SnippetFormat>('traefik_yaml')
+const activeOutputTab = ref<'config' | 'response'>('config')
+const isOutputExpanded = ref(false)
+const isConsoleVisible = ref(true)
 
-const gatewayTabs = computed<FormatTab[]>(() => {
-  switch (selectedGateway.value) {
-    case 'caddy':
-      return [
-        { id: 'caddy', label: 'Caddyfile' },
-        { id: 'k8s_caddy', label: 'Kubernetes' }
-      ]
-    case 'nginx':
-      return [
-        { id: 'nginx', label: 'NGINX (Lua)' },
-        { id: 'k8s_nginx', label: 'Kubernetes' }
-      ]
-    case 'cli':
-      return [
-        { id: 'cli_json', label: 'routewarden.json' },
-        { id: 'cli_cmd', label: 'rwarden CLI' }
-      ]
-    case 'traefik':
-    default:
-      return [
-        { id: 'traefik_yaml', label: 'Traefik (YAML)' },
-        { id: 'traefik_toml', label: 'Traefik (TOML)' },
-        { id: 'docker', label: 'Docker' },
-        { id: 'k8s_traefik', label: 'Kubernetes (CRD)' }
-      ]
+function toggleOutput(force?: boolean) {
+  if (typeof force === 'boolean') {
+    isOutputExpanded.value = force
+  } else {
+    isOutputExpanded.value = !isOutputExpanded.value
   }
-})
+}
+
 
 // Sync selectedGateway -> snippetFormat
 watch(selectedGateway, (newGw) => {
@@ -626,7 +608,7 @@ const simulatedResponse = computed(() => {
   return { statusCode: code, statusText: 'Forbidden', headers, body: 'Access denied' }
 })
 
-const generatedSnippet = computed(() => {
+const snippetBaseOptions = computed<Omit<SnippetOptions, 'snippetFormat'>>(() => {
   const blockList = customBlockList.value
   const allowList = customAllowList.value
   const ipList = allowedIpsInput.value.split(',').map(s => s.trim()).filter(Boolean)
@@ -634,8 +616,7 @@ const generatedSnippet = computed(() => {
   const methodsList = inspectedMethods.value
   const hasCustomMethods = methodsList.length > 0 && !(methodsList.length === 1 && methodsList[0] === 'GET')
 
-  return generateGatewaySnippet({
-    snippetFormat: snippetFormat.value,
+  return {
     enabled: enabled.value,
     debug: debug.value,
     securityLog: securityLog.value,
@@ -664,35 +645,44 @@ const generatedSnippet = computed(() => {
     testMethod: testMethod.value,
     testPath: testPath.value,
     testIp: testIp.value
-  })
-})
-
-const highlightedSnippet = computed(() => {
-  return highlightSnippet(generatedSnippet.value, snippetFormat.value)
-})
-
-const formatFilename = computed(() => {
-  switch (snippetFormat.value) {
-    case 'caddy': return 'Caddyfile'
-    case 'nginx': return 'routewarden.conf'
-    case 'traefik_yaml': return 'routewarden.yml'
-    case 'traefik_toml': return 'routewarden.toml'
-    case 'docker': return 'docker-compose.yml'
-    case 'k8s':
-    case 'k8s_traefik': return 'traefik-middleware.yaml'
-    case 'k8s_caddy': return 'caddy-configmap.yaml'
-    case 'k8s_nginx': return 'nginx-ingress.yaml'
-    case 'cli_json': return 'routewarden.json'
-    case 'cli_cmd': return 'terminal'
-    default: return 'config'
   }
 })
 
-const isCaddyFormat = computed(() => snippetFormat.value === 'caddy' || snippetFormat.value === 'k8s_caddy')
-const isNginxFormat = computed(() => snippetFormat.value === 'nginx' || snippetFormat.value === 'k8s_nginx')
-const isTraefikFormat = computed(() => snippetFormat.value === 'traefik_yaml' || snippetFormat.value === 'traefik_toml' || snippetFormat.value === 'k8s_traefik' || snippetFormat.value === 'k8s')
-const isDockerFormat = computed(() => snippetFormat.value === 'docker')
-const isCliFormat = computed(() => snippetFormat.value === 'cli_json' || snippetFormat.value === 'cli_cmd')
+function makeSnippetFile(filename: string, format: string, lang: SnippetLang): CodeViewerSnippet {
+  const code = generateGatewaySnippet({
+    ...snippetBaseOptions.value,
+    snippetFormat: format
+  })
+  const built = buildSnippet({ code, lang })
+  return {
+    filename,
+    lang,
+    code: built.cleanCode,
+    html: built.html,
+    hasDiff: built.hasDiff
+  }
+}
+
+const gatewaySnippets = computed<Record<string, CodeViewerSnippet[]>>(() => ({
+  traefik: [
+    makeSnippetFile('traefik.yml', 'traefik_yaml', 'yaml'),
+    makeSnippetFile('routewarden.toml', 'traefik_toml', 'toml'),
+    makeSnippetFile('docker-compose.yml', 'docker', 'docker'),
+    makeSnippetFile('traefik-middleware.yaml', 'k8s_traefik', 'yaml')
+  ],
+  caddy: [
+    makeSnippetFile('Caddyfile', 'caddy', 'caddy'),
+    makeSnippetFile('caddy-configmap.yaml', 'k8s_caddy', 'yaml')
+  ],
+  nginx: [
+    makeSnippetFile('routewarden.conf', 'nginx', 'nginx'),
+    makeSnippetFile('nginx-ingress.yaml', 'k8s_nginx', 'yaml')
+  ],
+  cli: [
+    makeSnippetFile('routewarden.json', 'cli_json', 'json'),
+    makeSnippetFile('rwarden CLI', 'cli_cmd', 'bash')
+  ]
+}))
 
 // 6. Playground Deeplinking & Shareable URL
 const shareFeedback = ref(false)
@@ -778,8 +768,27 @@ async function copyShareLink() {
   } catch {}
 }
 
+let playgroundObserver: IntersectionObserver | null = null
+
 onMounted(() => {
   if (typeof window === 'undefined') return
+
+  if ('IntersectionObserver' in window) {
+    const el = document.querySelector('.rw-simple-tool')
+    if (el) {
+      playgroundObserver = new IntersectionObserver(
+        (entries) => {
+          const entry = entries[0]
+          isConsoleVisible.value = entry.isIntersecting
+        },
+        {
+          rootMargin: '120px 0px 120px 0px',
+          threshold: 0.01
+        }
+      )
+      playgroundObserver.observe(el)
+    }
+  }
 
   try {
     const params = new URLSearchParams(window.location.search)
@@ -889,114 +898,259 @@ onMounted(() => {
     console.error('Failed to parse URL query params in RouteWarden playground:', err)
   }
 })
+
+onUnmounted(() => {
+  if (playgroundObserver) {
+    playgroundObserver.disconnect()
+    playgroundObserver = null
+  }
+})
 </script>
 
 <template>
   <div class="rw-simple-tool">
-    <!-- 1. Input & Live Verdict Strip -->
-    <RequestInputStrip
-      v-model:testMethod="testMethod"
-      v-model:testPath="testPath"
-      v-model:testIp="testIp"
-      v-model:testForwardedFor="testForwardedFor"
-      :evaluation="evaluation"
-      :shareFeedback="shareFeedback"
-      @apply-preset="applyPreset"
-      @copy-share="copyShareLink"
-    />
-
-    <!-- 2 & 3. Patterns: Block & Allow side-by-side -->
-    <div class="rw-patterns-row">
-      <!-- 2. Block Patterns (Red Theme) -->
-      <PatternColumn
-        title="Block Patterns"
-        theme="block"
-        :patterns="customBlockList"
-        v-model:newPatternInput="newBlockInput"
-        placeholder="/admin/*, *.sql, .env..."
-        :isRegexDisabled="isBlockRegexDisabled"
-        :regexGenerated="blockRegexGenerated"
-        :patternMatchesTest="patternMatchesTest"
-        @add="addNewBlockPattern"
-        @remove="removeBlockPattern"
-        @generate-regex="generateBlockRegex"
-      />
-
-      <!-- 3. Allow Patterns (Green Theme) -->
-      <PatternColumn
-        title="Allow Patterns"
-        theme="allow"
-        :patterns="customAllowList"
-        v-model:newPatternInput="newAllowInput"
-        placeholder="/api/health, /public/*..."
-        :isRegexDisabled="isAllowRegexDisabled"
-        :regexGenerated="allowRegexGenerated"
-        :patternMatchesTest="patternMatchesTest"
-        @add="addNewAllowPattern"
-        @remove="removeAllowPattern"
-        @generate-regex="generateAllowRegex"
-      />
+    <!-- Top Console Banner -->
+    <div class="rw-tool-header">
+      <div class="rw-th-left">
+        <span class="rw-th-dot">●</span>
+        <span class="rw-th-title">ROUTEWARDEN SIMULATION LAB</span>
+        <span class="rw-th-badge">RE2 CORE v5.3</span>
+      </div>
+      <div class="rw-th-right">
+        <span class="rw-th-sub">Dual-Zone Interactive Sandbox</span>
+        <span class="rw-th-active-tag">ONLINE</span>
+      </div>
     </div>
 
-    <!-- 4. Built-in Flags & IPs -->
-    <OptionsPanel
-      v-model:enableDefaultPatterns="enableDefaultPatterns"
-      v-model:enableDefaultAllowPatterns="enableDefaultAllowPatterns"
-      v-model:checkQuery="checkQuery"
-      v-model:enabled="enabled"
-      v-model:debug="debug"
-      v-model:securityLog="securityLog"
-      v-model:checkHeadersInput="checkHeadersInput"
-      v-model:allowedIpsInput="allowedIpsInput"
-      v-model:trustedProxiesInput="trustedProxiesInput"
-      v-model:methodsInput="methodsInput"
-      :inspectedMethods="inspectedMethods"
-      :allStandardMethodsSelected="allStandardMethodsSelected"
-      @toggle-method="toggleInspectedMethod"
-      @toggle-all="toggleAllMethods"
-    />
+    <!-- ============================================================
+         STAGE 1: INPUTS & DETECTION POLICY
+         ============================================================ -->
+    <section class="rw-stage rw-stage-input" aria-label="Simulation Inputs and Policy Configuration">
+      <div class="rw-stage-banner">
+        <div class="rw-sb-left">
+          <span class="rw-stage-pill rw-pill-input">
+            <span class="rw-sp-dot">●</span>
+            STAGE 01 // INPUT
+          </span>
+          <span class="rw-stage-title">Traffic Simulation &amp; Security Policy</span>
+        </div>
+        <span class="rw-stage-hint">Incoming HTTP probe, evasion rules, IP whitelists, and active defense</span>
+      </div>
 
-    <!-- 5. Response Configuration & Simulated Output -->
-    <ResponseOptionsPanel
-      v-model:responseMode="responseMode"
-      v-model:statusCode="statusCode"
-      v-model:customBody="customBody"
-      v-model:redirectUrl="redirectUrl"
-      v-model:proxyUrl="proxyUrl"
-      v-model:gzipBombMB="gzipBombMB"
-      v-model:tarpitDelayMs="tarpitDelayMs"
-      v-model:tarpitMaxDurationSeconds="tarpitMaxDurationSeconds"
-      v-model:retryAfterSeconds="retryAfterSeconds"
-      v-model:streamSizeMB="streamSizeMB"
-      v-model:captchaProvider="captchaProvider"
-      v-model:captchaSiteKey="captchaSiteKey"
-      v-model:captchaTitle="captchaTitle"
-      v-model:testMethod="testMethod"
-      :verbEvaluations="verbEvaluations"
-    />
+      <div class="rw-stage-content">
+        <!-- 1. Hero Request Strip -->
+        <RequestInputStrip
+          v-model:testMethod="testMethod"
+          v-model:testPath="testPath"
+          v-model:testIp="testIp"
+          v-model:testForwardedFor="testForwardedFor"
+          :evaluation="evaluation"
+          :shareFeedback="shareFeedback"
+          @apply-preset="applyPreset"
+          @copy-share="copyShareLink"
+        />
 
-    <!-- Differentiated Copyable HTTP Output Card -->
-    <SimulatedResponseCard
-      :response="simulatedResponse"
-      :evaluation="evaluation"
-      :testMethod="testMethod"
-    />
+        <!-- 2 & 3. Patterns: Block & Allow side-by-side -->
+        <div class="rw-patterns-row">
+          <!-- Block Patterns (Red Theme) -->
+          <PatternColumn
+            title="Block Patterns"
+            theme="block"
+            :patterns="customBlockList"
+            v-model:newPatternInput="newBlockInput"
+            placeholder="/admin/*, *.sql, .env..."
+            :isRegexDisabled="isBlockRegexDisabled"
+            :regexGenerated="blockRegexGenerated"
+            :patternMatchesTest="patternMatchesTest"
+            @add="addNewBlockPattern"
+            @remove="removeBlockPattern"
+            @generate-regex="generateBlockRegex"
+          />
 
-    <!-- 6. Generated Gateway Configuration -->
-    <ExportEditorCard
-      v-model:selectedGateway="selectedGateway"
-      v-model:snippetFormat="snippetFormat"
-      :gateways="playgroundGateways"
-      :gatewayTabs="gatewayTabs"
-      :formatFilename="formatFilename"
-      :highlightedSnippet="highlightedSnippet"
-      :rawSnippet="generatedSnippet"
-      :isCaddyFormat="isCaddyFormat"
-      :isNginxFormat="isNginxFormat"
-      :isTraefikFormat="isTraefikFormat"
-      :isDockerFormat="isDockerFormat"
-      :isCliFormat="isCliFormat"
-    />
+          <!-- Allow Patterns (Green Theme) -->
+          <PatternColumn
+            title="Allow Patterns"
+            theme="allow"
+            :patterns="customAllowList"
+            v-model:newPatternInput="newAllowInput"
+            placeholder="/api/health, /public/*..."
+            :isRegexDisabled="isAllowRegexDisabled"
+            :regexGenerated="allowRegexGenerated"
+            :patternMatchesTest="patternMatchesTest"
+            @add="addNewAllowPattern"
+            @remove="removeAllowPattern"
+            @generate-regex="generateAllowRegex"
+          />
+        </div>
+
+        <!-- 4. Middleware Flags & Network Options -->
+        <OptionsPanel
+          v-model:enableDefaultPatterns="enableDefaultPatterns"
+          v-model:enableDefaultAllowPatterns="enableDefaultAllowPatterns"
+          v-model:checkQuery="checkQuery"
+          v-model:enabled="enabled"
+          v-model:debug="debug"
+          v-model:securityLog="securityLog"
+          v-model:checkHeadersInput="checkHeadersInput"
+          v-model:allowedIpsInput="allowedIpsInput"
+          v-model:trustedProxiesInput="trustedProxiesInput"
+          v-model:methodsInput="methodsInput"
+          :inspectedMethods="inspectedMethods"
+          :allStandardMethodsSelected="allStandardMethodsSelected"
+          @toggle-method="toggleInspectedMethod"
+          @toggle-all="toggleAllMethods"
+        />
+
+        <!-- 5. Response Mode & Traps -->
+        <ResponseOptionsPanel
+          v-model:responseMode="responseMode"
+          v-model:statusCode="statusCode"
+          v-model:customBody="customBody"
+          v-model:redirectUrl="redirectUrl"
+          v-model:proxyUrl="proxyUrl"
+          v-model:gzipBombMB="gzipBombMB"
+          v-model:tarpitDelayMs="tarpitDelayMs"
+          v-model:tarpitMaxDurationSeconds="tarpitMaxDurationSeconds"
+          v-model:retryAfterSeconds="retryAfterSeconds"
+          v-model:streamSizeMB="streamSizeMB"
+          v-model:captchaProvider="captchaProvider"
+          v-model:captchaSiteKey="captchaSiteKey"
+          v-model:captchaTitle="captchaTitle"
+          v-model:testMethod="testMethod"
+          :verbEvaluations="verbEvaluations"
+        />
+      </div>
+    </section>
+
+    <!-- ============================================================
+         TRANSITION BRIDGE: ENGINE EVALUATION
+         ============================================================ -->
+    <div class="rw-pipeline-bridge" aria-hidden="true">
+      <div class="rw-bridge-line"></div>
+      <button
+        type="button"
+        class="rw-bridge-badge"
+        @click="toggleOutput(true)"
+        :title="isOutputExpanded ? 'Simulation output console is currently expanded at bottom' : 'Click to open simulation output console'"
+      >
+        <span class="rw-bb-icon">⚡</span>
+        <span class="rw-bb-text">ROUTEWARDEN ENGINE EVALUATED</span>
+        <span class="rw-bb-action">({{ isOutputExpanded ? 'Console Expanded ▲' : 'Open Output Console ▲' }})</span>
+      </button>
+      <div class="rw-bridge-line"></div>
+    </div>
+
+    <!-- ============================================================
+         STAGE 2: FIXED STICKY COLLAPSIBLE OUTPUT CONSOLE (EDGE TO EDGE)
+         ============================================================ -->
+    <aside
+      class="rw-bottom-console"
+      :class="{
+        'is-expanded': isOutputExpanded,
+        'is-hidden': !isConsoleVisible && !isOutputExpanded
+      }"
+      role="region"
+      aria-label="RouteWarden Simulation Output Console"
+    >
+      <!-- Edge-to-Edge Sticky Console Bar (Always visible at bottom) -->
+      <div
+        class="rw-console-bar"
+        role="button"
+        tabindex="0"
+        :aria-expanded="isOutputExpanded"
+        title="Click to toggle simulation output console"
+        @click="toggleOutput()"
+        @keydown.enter.prevent="toggleOutput()"
+        @keydown.space.prevent="toggleOutput()"
+      >
+        <div class="rw-console-bar-inner">
+          <!-- Left: Live Badge, Verdict, and Evaluated Request -->
+          <div class="rw-cbar-left">
+            <div class="rw-verdict-badge" :class="evaluation.badgeClass">
+              <span class="rw-live-dot">●</span>
+              <span class="rw-vb-text">{{ evaluation.verdict }}</span>
+              <span class="rw-vb-code">{{ evaluation.statusCode }}</span>
+            </div>
+
+            <div class="rw-cbar-req">
+              <span class="rw-cbar-method">{{ testMethod }}</span>
+              <code class="rw-cbar-path" :title="evaluation.normalizedPath">{{ evaluation.normalizedPath }}</code>
+              <span
+                v-if="evaluation.transformations.length > 0"
+                class="rw-cbar-evasion-badge"
+                :title="evaluation.transformations.join(' ➔ ')"
+              >
+                {{ evaluation.transformations.length }} evasion{{ evaluation.transformations.length > 1 ? 's' : '' }}
+              </span>
+            </div>
+
+            <span class="rw-cbar-reason" :title="evaluation.reason">
+              {{ evaluation.reason }}
+            </span>
+          </div>
+
+          <!-- Right: View Mode Tabs & Expand/Minimize Toggle -->
+          <div class="rw-cbar-right" @click.stop>
+            <div class="rw-view-segmented" role="tablist" aria-label="Output view modes">
+              <button
+                type="button"
+                role="tab"
+                class="rw-seg-btn"
+                :class="{ active: activeOutputTab === 'config' }"
+                :aria-selected="activeOutputTab === 'config'"
+                title="View generated gateway configuration (Traefik, Caddy, NGINX, CLI)"
+                @click="activeOutputTab = 'config'; if (!isOutputExpanded) toggleOutput(true)"
+              >
+                <span class="rw-seg-icon">⚙</span>
+                <span>Gateway Config</span>
+              </button>
+              <button
+                type="button"
+                role="tab"
+                class="rw-seg-btn"
+                :class="{ active: activeOutputTab === 'response' }"
+                :aria-selected="activeOutputTab === 'response'"
+                title="View simulated HTTP response (Status, Headers, Body, Verdict)"
+                @click="activeOutputTab = 'response'; if (!isOutputExpanded) toggleOutput(true)"
+              >
+                <span class="rw-seg-icon">⇄</span>
+                <span>HTTP Response</span>
+              </button>
+            </div>
+
+            <button
+              type="button"
+              class="rw-btn-expand"
+              :class="{ 'is-expanded': isOutputExpanded }"
+              :title="isOutputExpanded ? 'Minimize output console' : 'Expand live output console'"
+              @click="toggleOutput()"
+            >
+              <span class="rw-chevron">{{ isOutputExpanded ? '▼' : '▲' }}</span>
+              <span class="rw-expand-label">{{ isOutputExpanded ? 'Minimize' : 'Expand' }}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Expandable Console Drawer (Scrollable) -->
+      <div v-show="isOutputExpanded" class="rw-console-drawer">
+        <div class="rw-drawer-inner">
+          <!-- Gateway Config View (Default) -->
+          <div v-if="activeOutputTab === 'config'" class="rw-single-pane">
+            <CodeViewer :snippets="gatewaySnippets" />
+          </div>
+
+          <!-- HTTP Response View -->
+          <div v-else-if="activeOutputTab === 'response'" class="rw-single-pane">
+            <SimulatedResponseCard
+              :response="simulatedResponse"
+              :evaluation="evaluation"
+              :testMethod="testMethod"
+            />
+          </div>
+        </div>
+      </div>
+    </aside>
   </div>
 </template>
 
@@ -1006,21 +1160,650 @@ onMounted(() => {
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
+  gap: 0.75rem;
   font-size: 13px;
   color: var(--vp-c-text-1);
-  padding: 0.25rem 0 calc(2rem + env(safe-area-inset-bottom, 0px));
+  padding: 0.25rem 0 calc(5.5rem + env(safe-area-inset-bottom, 0px));
 }
 
 .rw-simple-tool *, .rw-simple-tool *::before, .rw-simple-tool *::after {
   box-sizing: border-box;
 }
 
+/* Playground Console Header */
+.rw-tool-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 12px;
+  border-radius: 6px;
+  background: var(--vp-c-bg-soft);
+  border: 1px solid var(--vp-c-divider);
+  font-family: var(--vp-font-family-mono);
+  font-size: 11px;
+}
+
+.dark .rw-tool-header {
+  background: #090c14;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.rw-th-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rw-th-dot {
+  color: var(--vp-c-brand-1);
+  font-size: 9px;
+  animation: rw-pulse-glow 2s infinite ease-in-out;
+}
+
+@keyframes rw-pulse-glow {
+  0%, 100% { opacity: 1; filter: drop-shadow(0 0 4px var(--vp-c-brand-1)); }
+  50% { opacity: 0.4; filter: none; }
+}
+
+.rw-th-title {
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--vp-c-text-1);
+}
+
+.rw-th-badge {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 0.5px 5px;
+  border-radius: 3px;
+  background: rgba(16, 185, 129, 0.12);
+  color: var(--vp-c-brand-1);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.rw-th-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+}
+
+.rw-th-sub {
+  color: var(--vp-c-text-3);
+}
+
+.rw-th-active-tag {
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  padding: 1px 4px;
+  border-radius: 2px;
+  background: var(--vp-c-brand-1);
+  color: #070a12;
+}
+
+/* ============================================================
+   Stage 1 (INPUT) Container
+   ============================================================ */
+.rw-stage {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  border-radius: 10px;
+  padding: 0.85rem;
+  transition: all 0.25s ease;
+  box-sizing: border-box;
+}
+
+.rw-stage-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.rw-stage-input {
+  background: var(--vp-c-bg-alt);
+  border: 1px solid var(--vp-c-divider);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+.dark .rw-stage-input {
+  background: #0d1220;
+  border-color: rgba(56, 189, 248, 0.2);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+}
+
+.rw-stage-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 0.65rem;
+  border-bottom: 1px solid var(--vp-c-divider);
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.rw-stage-input .rw-stage-banner {
+  border-bottom-color: rgba(56, 189, 248, 0.2);
+}
+
+.rw-sb-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.rw-stage-pill {
+  font-family: var(--vp-font-family-mono);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.75px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.rw-pill-input {
+  background: rgba(14, 165, 233, 0.15);
+  color: #0284c7;
+  border: 1px solid rgba(14, 165, 233, 0.35);
+}
+.dark .rw-pill-input {
+  background: rgba(14, 165, 233, 0.2);
+  color: #38bdf8;
+  border-color: rgba(56, 189, 248, 0.4);
+}
+
+.rw-pill-output {
+  background: rgba(16, 185, 129, 0.15);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+}
+.dark .rw-pill-output {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+  border-color: rgba(52, 211, 153, 0.4);
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.25);
+}
+
+.rw-sp-dot {
+  font-size: 7px;
+}
+
+.rw-stage-title {
+  font-family: var(--vp-font-family-mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  color: var(--vp-c-text-1);
+}
+
+.rw-stage-hint {
+  font-family: var(--vp-font-family-mono);
+  font-size: 10.5px;
+  color: var(--vp-c-text-3);
+}
+
+/* Transition Bridge between Input and Output */
+.rw-pipeline-bridge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0.35rem 0;
+  user-select: none;
+}
+
+.rw-bridge-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--vp-c-divider), transparent);
+}
+.dark .rw-bridge-line {
+  background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.3), transparent);
+}
+
+.rw-bridge-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 14px;
+  border-radius: 20px;
+  background: var(--vp-c-bg-soft);
+  border: 1px dashed var(--vp-c-brand-1);
+  font-family: var(--vp-font-family-mono);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--vp-c-brand-1);
+  letter-spacing: 0.5px;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.15);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.rw-bridge-badge:hover {
+  background: var(--vp-c-brand-soft);
+  box-shadow: 0 0 16px var(--vp-c-brand-glow);
+  transform: translateY(-1px);
+}
+
+.rw-bb-icon {
+  font-size: 10px;
+}
+
+.rw-bb-action {
+  font-size: 9.5px;
+  color: var(--vp-c-text-2);
+  margin-left: 3px;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* ============================================================
+   STAGE 2: FIXED STICKY COLLAPSIBLE OUTPUT CONSOLE (EDGE TO EDGE)
+   ============================================================ */
+.rw-bottom-console {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  z-index: 40;
+  border-top: 1px solid var(--vp-c-divider);
+  border-bottom: none;
+  border-left: none;
+  border-right: none;
+  border-radius: 0;
+  background: var(--vp-c-bg);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
+  box-sizing: border-box;
+}
+
+.dark .rw-bottom-console {
+  background: rgba(9, 13, 22, 0.96);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top-color: rgba(16, 185, 129, 0.3);
+  box-shadow: 0 -8px 36px rgba(0, 0, 0, 0.7), 0 -1px 0 rgba(16, 185, 129, 0.3);
+}
+
+.rw-bottom-console.is-hidden {
+  transform: translateY(105%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Console Header Bar (Always sticky and visible at bottom) */
+.rw-console-bar {
+  width: 100%;
+  height: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  background: var(--vp-c-bg-soft);
+  border-bottom: 1px solid var(--vp-c-divider);
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s ease;
+  box-sizing: border-box;
+}
+
+.rw-bottom-console:not(.is-expanded) .rw-console-bar {
+  border-bottom: none;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  height: calc(44px + env(safe-area-inset-bottom, 0px));
+}
+
+.dark .rw-console-bar {
+  background: rgba(13, 18, 30, 0.95);
+  border-bottom-color: rgba(16, 185, 129, 0.2);
+}
+
+.rw-console-bar:hover {
+  background: var(--vp-c-bg-alt);
+}
+.dark .rw-console-bar:hover {
+  background: rgba(20, 27, 45, 0.95);
+}
+
+.rw-console-bar-inner {
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.rw-cbar-left {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Verdict Badge */
+.rw-verdict-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2.5px 8px;
+  border-radius: 4px;
+  font-family: var(--vp-font-family-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  flex-shrink: 0;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.rw-live-dot {
+  font-size: 7px;
+  line-height: 1;
+}
+
+.rw-verdict-badge.verdict-block {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #f87171;
+}
+.rw-verdict-badge.verdict-block .rw-live-dot {
+  color: #ef4444;
+  text-shadow: 0 0 6px rgba(239, 68, 68, 0.6);
+}
+
+.rw-verdict-badge.verdict-allow,
+.rw-verdict-badge.verdict-pass {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: #34d399;
+}
+.rw-verdict-badge.verdict-allow .rw-live-dot,
+.rw-verdict-badge.verdict-pass .rw-live-dot {
+  color: #10b981;
+  text-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+}
+
+.rw-verdict-badge.verdict-bypass {
+  background: rgba(14, 165, 233, 0.15);
+  border: 1px solid rgba(14, 165, 233, 0.35);
+  color: #38bdf8;
+}
+.rw-verdict-badge.verdict-bypass .rw-live-dot {
+  color: #0ea5e9;
+  text-shadow: 0 0 6px rgba(14, 165, 233, 0.6);
+}
+
+.rw-vb-text {
+  font-weight: 800;
+}
+
+.rw-vb-code {
+  opacity: 0.85;
+  font-weight: 600;
+  font-size: 10px;
+}
+
+/* HTTP Request readout */
+.rw-cbar-req {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex-shrink: 1;
+  overflow: hidden;
+  font-family: var(--vp-font-family-mono);
+  font-size: 11.5px;
+}
+
+.rw-cbar-method {
+  font-weight: 800;
+  color: var(--vp-c-brand-1);
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.rw-cbar-path {
+  color: var(--vp-c-text-1);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 240px;
+  min-width: 0;
+  flex-shrink: 1;
+  background: transparent;
+  padding: 0;
+}
+
+.rw-cbar-evasion-badge {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #0284c7;
+  background: rgba(14, 165, 233, 0.12);
+  border: 1px solid rgba(14, 165, 233, 0.3);
+  padding: 1px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  line-height: 1.3;
+}
+.dark .rw-cbar-evasion-badge {
+  color: #38bdf8;
+  background: rgba(14, 165, 233, 0.18);
+  border-color: rgba(56, 189, 248, 0.35);
+}
+
+.rw-cbar-reason {
+  display: none;
+  color: var(--vp-c-text-3);
+  font-family: var(--vp-font-family-mono);
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 240px;
+  min-width: 0;
+  flex-shrink: 1;
+  border-left: 1px solid var(--vp-c-divider);
+  padding-left: 8px;
+}
+
+@media (min-width: 1400px) {
+  .rw-cbar-reason {
+    display: inline-block;
+  }
+}
+
+.rw-cbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+/* Segmented View Switcher */
+.rw-view-segmented {
+  display: inline-flex;
+  align-items: center;
+  background: var(--vp-c-bg);
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 6px;
+  padding: 2px;
+  gap: 2px;
+}
+
+.dark .rw-view-segmented {
+  background: rgba(7, 10, 18, 0.8);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.rw-seg-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--vp-font-family-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: none;
+  background: transparent;
+  color: var(--vp-c-text-3);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
+.rw-seg-btn:hover {
+  color: var(--vp-c-text-1);
+}
+
+.rw-seg-btn.active {
+  background: var(--vp-c-brand-1);
+  color: #070a12;
+  font-weight: 700;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.rw-seg-icon {
+  font-size: 10px;
+}
+
+/* Expand / Collapse Button */
+.rw-btn-expand {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 5px;
+  border: 1px solid var(--vp-c-brand-1);
+  background: var(--vp-c-brand-soft);
+  color: var(--vp-c-brand-1);
+  font-family: var(--vp-font-family-mono);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
+.rw-btn-expand:hover {
+  background: var(--vp-c-brand-1);
+  color: #070a12;
+  box-shadow: 0 0 10px var(--vp-c-brand-glow);
+}
+
+.rw-btn-expand.is-expanded {
+  background: var(--vp-c-bg-alt);
+  border-color: var(--vp-c-divider);
+  color: var(--vp-c-text-2);
+}
+
+.rw-btn-expand.is-expanded:hover {
+  background: var(--vp-c-bg-soft);
+  color: var(--vp-c-text-1);
+  border-color: var(--vp-c-brand-1);
+}
+
+.rw-chevron {
+  font-size: 9px;
+  transition: transform 0.2s ease;
+}
+
+/* Expandable Drawer (Fixed Height) */
+.rw-console-drawer {
+  height: 480px;
+  max-height: calc(80vh - 44px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  background: var(--vp-c-bg);
+  animation: rw-drawer-slide-up 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dark .rw-console-drawer {
+  background: rgba(7, 10, 18, 0.98);
+}
+
+@keyframes rw-drawer-slide-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.rw-drawer-inner {
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 0.85rem 1rem calc(0.85rem + env(safe-area-inset-bottom, 0px));
+  box-sizing: border-box;
+  height: 100%;
+}
+
+
+
+.rw-single-pane {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* CodeViewer Integration inside Console Drawer */
+.rw-console-drawer :deep(.rw-code-viewer-container) {
+  margin: 0 !important;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.rw-console-drawer :deep(.rw-code-viewer-box) {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-radius: 8px;
+}
+
+.rw-console-drawer :deep(.rw-code-viewer-body) {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.rw-console-drawer :deep(.rw-code-viewer-body pre) {
+  overflow: visible !important;
+}
+
+.rw-console-drawer :deep(.rw-snippet-html) {
+  min-height: 0;
+}
+
 /* Patterns Row: 2-Column Side-by-Side */
 .rw-patterns-row {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
-  gap: 0.85rem;
+  gap: 0.65rem;
   width: 100%;
   min-width: 0;
   container-type: inline-size;
@@ -1035,6 +1818,37 @@ onMounted(() => {
 @media (max-width: 900px) {
   .rw-patterns-row {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .rw-cbar-reason {
+    display: none !important;
+  }
+  .rw-cbar-evasion-badge {
+    display: none;
+  }
+  .rw-console-bar-inner {
+    padding: 0 0.65rem;
+    gap: 0.4rem;
+  }
+}
+
+@media (max-width: 540px) {
+  .rw-cbar-path {
+    max-width: 120px;
+  }
+  .rw-view-segmented {
+    padding: 1px;
+    gap: 1px;
+  }
+  .rw-seg-btn {
+    padding: 2.5px 6px;
+    font-size: 9.5px;
+  }
+  .rw-btn-expand {
+    padding: 3px 8px;
+    font-size: 10px;
   }
 }
 </style>

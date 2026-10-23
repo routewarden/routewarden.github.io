@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, useSlots } from 'vue'
 import { useGatewaySelection, type GatewayId } from '../composables/useGatewaySelection'
-import GatewaySelector from './GatewaySelector.vue'
 import CopyButton from './CopyButton.vue'
 
 export interface CodeViewerSnippet {
@@ -27,7 +26,11 @@ const props = withDefaults(
 const slots = useSlots()
 const { activeGateway, activeTabIndex, gateways } = useGatewaySelection()
 
-// Diff toggle — OFF by default so diff highlights show
+const headerRef = ref<HTMLElement | null>(null)
+const bodyRef = ref<HTMLElement | null>(null)
+const tabsMountRef = ref<HTMLElement | null>(null)
+
+// Diff toggle — ON by default so diff highlights show
 const showDiff = ref(true)
 
 // Available gateway keys detected from either snippets prop or available slots
@@ -38,7 +41,7 @@ const availableGateways = computed(() => {
     Object.keys(props.snippets).forEach(key => recognized.add(key))
   }
 
-  // Also check named slots like #traefik, #caddy, #nginx, #cli
+  // Also check named slots like #traefik, #caddy, #nginx, #cli, #tcp
   gateways.forEach(g => {
     if (slots[g.id]) {
       recognized.add(g.id)
@@ -49,6 +52,9 @@ const availableGateways = computed(() => {
   const filtered = gateways.filter(g => recognized.has(g.id))
   return filtered.length > 0 ? filtered : gateways
 })
+
+// Whether this CodeViewer has multiple gateways to pick between
+const hasMultipleGateways = computed(() => availableGateways.value.length > 1)
 
 // If activeGateway is present among availableGateways, use it.
 // Otherwise, auto-select the first available gateway for this code viewer so it never renders empty.
@@ -66,6 +72,9 @@ const currentFiles = computed<CodeViewerSnippet[]>(() => {
   if (!entry) return []
   return Array.isArray(entry) ? entry : [entry]
 })
+
+// Whether the active gateway has multiple files
+const hasMultipleFiles = computed(() => currentFiles.value.length > 1)
 
 // Local tab index for this specific code viewer
 const activeFileIndex = ref(0)
@@ -88,6 +97,17 @@ const currentHasDiff = computed(() => {
   return currentFiles.value.some(f => f.hasDiff)
 })
 
+
+// Code string for Copy button (snippets or slot-extracted)
+const codeToCopy = computed(() => {
+  if (currentFile.value?.code) return currentFile.value.code
+  if (bodyRef.value) {
+    const codeEl = bodyRef.value.querySelector('pre code') || bodyRef.value.querySelector('pre')
+    return codeEl ? codeEl.textContent || '' : ''
+  }
+  return ''
+})
+
 // When switching gateways via the selector in this CodeViewer, update page gateway
 function handleGatewayChange(newGw: GatewayId) {
   activeFileIndex.value = 0
@@ -98,13 +118,34 @@ function handleGatewayChange(newGw: GatewayId) {
 <template>
   <div class="rw-code-viewer-container">
     <div class="rw-code-viewer-box">
-      <!-- Header bar with tabs, Gateway Selector, diff toggle, and Copy button -->
+      <!-- ── Streamlined Topbar Header ────────────────────────────────────── -->
       <div class="rw-code-viewer-header" ref="headerRef">
         <div class="rw-code-viewer-header-left">
-          <!-- File tabs — shown for any snippets-based content (1 or more files) -->
+          <!-- Case 1: Multiple Gateways -> Render Gateway Tabs as first-class tabs -->
           <div
-            v-if="currentFiles.length > 0"
-            class="rw-file-tabs"
+            v-if="hasMultipleGateways"
+            class="rw-tab-bar"
+            role="tablist"
+            aria-label="Gateway configurations"
+          >
+            <button
+              v-for="gw in availableGateways"
+              :key="gw.id"
+              role="tab"
+              type="button"
+              class="rw-tab"
+              :class="{ active: effectiveGateway === gw.id }"
+              :aria-selected="effectiveGateway === gw.id"
+              @click="handleGatewayChange(gw.id)"
+            >
+              {{ gw.label }}
+            </button>
+          </div>
+
+          <!-- Case 2: Single Gateway with Multiple Files -> Render File Tabs -->
+          <div
+            v-else-if="hasMultipleFiles"
+            class="rw-tab-bar"
             role="tablist"
             aria-label="Configuration files"
           >
@@ -113,13 +154,24 @@ function handleGatewayChange(newGw: GatewayId) {
               :key="file.filename"
               role="tab"
               type="button"
-              class="rw-file-tab"
+              class="rw-tab"
               :class="{ active: safeFileIndex === idx }"
               :aria-selected="safeFileIndex === idx"
               @click="activeFileIndex = idx"
             >
-              <span class="rw-tab-title">{{ file.filename }}</span>
+              {{ file.filename }}
             </button>
+          </div>
+
+          <!-- Case 3: Single Gateway with Single File -> Clean File Title -->
+          <div v-else-if="currentFile" class="rw-single-file-title">
+            <span class="rw-filename">{{ currentFile.filename }}</span>
+            <span v-if="currentFile.lang" class="rw-lang-pill">{{ currentFile.lang }}</span>
+          </div>
+
+          <!-- Fallback: Slot-based or Markdown code-group mount point -->
+          <div v-else class="rw-single-file-title">
+            <span class="rw-filename">Config</span>
           </div>
 
           <!-- Mount point for lifted inner markdown tabs -->
@@ -129,32 +181,29 @@ function handleGatewayChange(newGw: GatewayId) {
           <slot name="header-left" />
         </div>
 
-        <div class="rw-code-viewer-header-right">
-          <!-- Diff toggle — only shown when current gateway has diff content -->
-          <label v-if="currentHasDiff" class="rw-diff-toggle" title="Toggle diff highlighting">
-            <input
-              type="checkbox"
-              v-model="showDiff"
-              class="rw-diff-checkbox"
-            />
-            <span class="rw-diff-toggle-label">Diff</span>
-          </label>
-
-          <GatewaySelector
-            v-if="availableGateways.length > 1"
-            :gateways="availableGateways"
-            :model-value="effectiveGateway"
-            @update:model-value="handleGatewayChange"
-          />
-
-          <CopyButton
-            v-if="currentFile"
-            :code="currentFile.code"
-          />
+        <div v-if="slots['header-right']" class="rw-code-viewer-header-right">
+          <slot name="header-right" />
         </div>
       </div>
 
-      <!-- Code block content -->
+      <!-- ── Secondary Sub-file Bar (Only when Multi-Gateway AND Multi-File) ─ -->
+      <div v-if="hasMultipleGateways && hasMultipleFiles" class="rw-subfile-bar">
+        <span class="rw-subfile-label">File:</span>
+        <div class="rw-subfile-pills">
+          <button
+            v-for="(file, idx) in currentFiles"
+            :key="file.filename"
+            type="button"
+            class="rw-subfile-pill"
+            :class="{ active: safeFileIndex === idx }"
+            @click="activeFileIndex = idx"
+          >
+            {{ file.filename }}
+          </button>
+        </div>
+      </div>
+
+      <!-- ── Code Block Content ───────────────────────────────────────────── -->
       <div class="rw-code-viewer-body" :class="{ 'rw-hide-diff': !showDiff }" ref="bodyRef">
         <!-- If snippets prop is passed with pre-rendered HTML -->
         <div
@@ -187,6 +236,40 @@ function handleGatewayChange(newGw: GatewayId) {
           </div>
         </div>
       </div>
+
+      <!-- ── Terminal Telemetry Status Bar (Footer) ───────────────────────── -->
+      <div class="rw-code-viewer-footer">
+        <div class="rw-footer-left">
+          <span class="rw-footer-dot">●</span>
+          <span class="rw-footer-mode">READONLY</span>
+          <span class="rw-footer-sep">│</span>
+          <span class="rw-footer-encoding">UTF-8</span>
+          <span v-if="currentFile?.lang" class="rw-footer-lang-item">
+            <span class="rw-footer-sep">│</span>
+            <span class="rw-footer-lang">{{ currentFile.lang.toUpperCase() }}</span>
+          </span>
+        </div>
+        <div class="rw-footer-right">
+          <!-- Diff toggle — sleek minimal button -->
+          <button
+            v-if="currentHasDiff"
+            type="button"
+            class="rw-diff-btn"
+            :class="{ active: showDiff }"
+            title="Toggle diff highlighting"
+            @click="showDiff = !showDiff"
+          >
+            <span class="rw-diff-dot">●</span>
+            <span>Diff</span>
+          </button>
+
+          <!-- Copy Button -->
+          <CopyButton
+            v-if="codeToCopy"
+            :code="codeToCopy"
+          />
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -194,37 +277,43 @@ function handleGatewayChange(newGw: GatewayId) {
 <style scoped>
 .rw-code-viewer-container {
   margin: 1.5rem 0;
+  font-family: var(--vp-font-family-mono);
 }
 
 .rw-code-viewer-box {
   background: var(--vp-c-bg-alt);
   border: 1px solid var(--vp-c-divider);
-  border-radius: 10px;
+  border-radius: 4px;
   overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .dark .rw-code-viewer-box {
-  background: #0d1322;
-  border-color: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+  background: #080b11;
+  border-color: rgba(16, 185, 129, 0.22);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(16, 185, 129, 0.02);
 }
 
+.dark .rw-code-viewer-box:hover {
+  border-color: rgba(16, 185, 129, 0.35);
+}
+
+/* ── Topbar Header Bar ──────────────────────────────────────── */
 .rw-code-viewer-header {
   display: flex;
   align-items: stretch;
   justify-content: space-between;
-  padding: 0 14px;
-  background: var(--vp-c-bg-soft);
+  padding: 0 10px;
+  background: #f1f5f9;
   border-bottom: 1px solid var(--vp-c-divider);
   gap: 12px;
-  flex-wrap: wrap;
   min-height: 38px;
 }
 
 .dark .rw-code-viewer-header {
-  background: rgba(15, 23, 42, 0.7);
-  border-bottom-color: rgba(255, 255, 255, 0.07);
+  background: #0d121c;
+  border-bottom-color: rgba(148, 163, 184, 0.16);
 }
 
 .rw-code-viewer-header-left {
@@ -235,120 +324,251 @@ function handleGatewayChange(newGw: GatewayId) {
   max-width: 100%;
   flex: 1;
   min-width: 0;
+  scrollbar-width: none;
 }
 
-.rw-file-tabs {
+.rw-code-viewer-header-left::-webkit-scrollbar {
+  display: none;
+}
+
+/* Tab Bar Navigation */
+.rw-tab-bar {
   display: inline-flex;
   align-items: stretch;
   gap: 0;
   overflow-x: auto;
+  scrollbar-width: none;
 }
 
-.rw-file-tab {
+.rw-tab-bar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Individual Tab */
+.rw-tab {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 0 12px;
+  justify-content: center;
+  padding: 0 14px;
   height: 100%;
   min-height: 38px;
   font-family: var(--vp-font-family-mono);
   font-size: 12px;
   font-weight: 500;
-  color: var(--vp-c-text-3);
+  color: var(--vp-c-text-2);
   background: transparent;
   border: none;
   border-bottom: 2px solid transparent;
   cursor: pointer;
-  transition: color 0.15s ease, border-color 0.15s ease;
+  transition: all 0.15s ease;
   white-space: nowrap;
+  letter-spacing: 0.02em;
 }
 
-.rw-file-tab:hover {
+.rw-tab:hover {
   color: var(--vp-c-text-1);
+  background: rgba(255, 255, 255, 0.03);
   border-bottom-color: var(--vp-c-divider);
 }
 
-.dark .rw-file-tab:hover {
-  border-bottom-color: rgba(255, 255, 255, 0.15);
+.dark .rw-tab:hover {
+  background: rgba(34, 211, 238, 0.04);
+  border-bottom-color: rgba(34, 211, 238, 0.25);
 }
 
-.rw-file-tab.active {
-  color: var(--vp-c-brand-1);
+/* Active Tab */
+.rw-tab.active {
+  color: var(--vp-c-brand-1) !important;
+  font-weight: 700 !important;
+  border-bottom-color: var(--vp-c-brand-1) !important;
+  background: rgba(16, 185, 129, 0.06) !important;
+}
+
+.dark .rw-tab.active {
+  color: var(--vp-c-brand-1) !important;
+  border-bottom-color: var(--vp-c-brand-1) !important;
+  background: #090e17 !important;
+  text-shadow: 0 0 10px rgba(16, 185, 129, 0.35);
+}
+
+/* Single File Title (when no tabs needed) */
+.rw-single-file-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 8px;
+  height: 100%;
+  min-height: 38px;
+  font-family: var(--vp-font-family-mono);
+  font-size: 12px;
   font-weight: 600;
-  border-bottom-color: var(--vp-c-brand-1);
+  color: var(--vp-c-text-1);
+  user-select: none;
 }
 
-.dark .rw-file-tab.active {
-  color: #38bdf8;
-  border-bottom-color: #38bdf8;
+.rw-filename {
+  letter-spacing: 0.02em;
+  color: var(--vp-c-text-1);
 }
 
+.rw-lang-pill {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--rw-c-cyan);
+  background: rgba(34, 211, 238, 0.08);
+  border: 1px solid rgba(34, 211, 238, 0.25);
+  padding: 1px 5px;
+  border-radius: 2px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* Header Right Actions */
 .rw-code-viewer-header-right {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   flex-shrink: 0;
-  padding: 6px 0;
+  padding: 0;
 }
 
-/* Diff toggle checkbox */
-.rw-diff-toggle {
+/* Diff Toggle Button */
+.rw-diff-btn {
   display: inline-flex;
   align-items: center;
   gap: 5px;
+  padding: 3px 8px;
+  border-radius: 3px;
+  font-family: var(--vp-font-family-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
   cursor: pointer;
   user-select: none;
-  padding: 2px 6px;
-  border-radius: 4px;
-  border: 1px solid var(--vp-c-divider);
   background: var(--vp-c-bg);
-  transition: border-color 0.15s ease, background 0.15s ease;
+  border: 1px solid var(--vp-c-divider);
+  color: var(--vp-c-text-3);
+  transition: all 0.15s ease;
+  line-height: 1.4;
 }
 
-.rw-diff-toggle:hover {
+.dark .rw-diff-btn {
+  background: #0d121c;
+  border-color: rgba(148, 163, 184, 0.2);
+}
+
+.rw-diff-dot {
+  font-size: 8px;
+  line-height: 1;
+  color: var(--vp-c-text-3);
+  transition: color 0.15s ease;
+}
+
+.rw-diff-btn:hover {
+  border-color: var(--rw-c-cyan);
+  color: var(--rw-c-cyan);
+}
+
+.rw-diff-btn.active {
+  color: var(--vp-c-brand-1);
+  border-color: rgba(16, 185, 129, 0.35);
+  background: rgba(16, 185, 129, 0.08);
+}
+
+.rw-diff-btn.active .rw-diff-dot {
+  color: var(--vp-c-brand-1);
+  text-shadow: 0 0 6px var(--vp-c-brand-1);
+}
+
+.dark .rw-diff-btn.active {
+  background: rgba(16, 185, 129, 0.12);
   border-color: var(--vp-c-brand-1);
 }
 
-.dark .rw-diff-toggle {
+/* ── Secondary Sub-file Bar ─────────────────────────────────── */
+.rw-subfile-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  background: rgba(0, 0, 0, 0.02);
+  border-bottom: 1px solid var(--vp-c-divider);
+  font-family: var(--vp-font-family-mono);
+  font-size: 11px;
+}
+
+.dark .rw-subfile-bar {
+  background: #0a0e16;
+  border-bottom-color: rgba(148, 163, 184, 0.1);
+}
+
+.rw-subfile-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--vp-c-text-3);
+}
+
+.rw-subfile-pills {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  overflow-x: auto;
+}
+
+.rw-subfile-pill {
+  font-family: var(--vp-font-family-mono);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 3px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--vp-c-text-2);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.rw-subfile-pill:hover {
+  color: var(--vp-c-text-1);
   background: rgba(255, 255, 255, 0.04);
 }
 
-.rw-diff-checkbox {
-  width: 11px;
-  height: 11px;
-  accent-color: var(--vp-c-brand-1);
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-.rw-diff-toggle-label {
-  font-family: var(--vp-font-family-mono);
-  font-size: 10.5px;
+.rw-subfile-pill.active {
+  color: var(--vp-c-brand-1);
   font-weight: 600;
-  color: var(--vp-c-text-2);
-  letter-spacing: 0.03em;
+  background: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.3);
 }
 
+/* ── Code Body Area ─────────────────────────────────────────── */
 .rw-code-viewer-body {
   min-width: 0;
+  background: #ffffff;
+}
+
+.dark .rw-code-viewer-body {
+  background: #080b11;
 }
 
 .rw-raw-pre {
   margin: 0 !important;
-  padding: 12px 18px !important;
+  padding: 14px 18px !important;
   background: transparent !important;
   font-family: var(--vp-font-family-mono);
-  font-size: 13px !important;
-  line-height: 1.5 !important;
+  font-size: 12.5px !important;
+  line-height: 1.55 !important;
   overflow-x: auto;
 }
 
-/* Snippet HTML rendering — mirrors VitePress code block styles */
+/* Snippet HTML rendering */
 .rw-snippet-html {
   min-width: 0;
 }
 
-/* Reset all inner markdown blocks & code-groups when placed inside CodeViewer */
+/* Reset all inner markdown blocks & code-groups inside CodeViewer */
 .rw-code-viewer-container :deep(.rw-slot-body div[class*='language-']),
 .rw-code-viewer-container :deep(.rw-slot-body .vp-code-group),
 .rw-code-viewer-container :deep(.rw-slot-body .vp-code-group div[class*='language-']) {
@@ -371,7 +591,7 @@ function handleGatewayChange(newGw: GatewayId) {
   display: none !important;
 }
 
-/* Hide the duplicate copy button from the inner code block */
+/* Hide duplicate copy button from the inner code block */
 .rw-code-viewer-container :deep(.rw-slot-body div[class*='language-'] .copy) {
   display: none !important;
 }
@@ -384,11 +604,10 @@ function handleGatewayChange(newGw: GatewayId) {
 /* Snippet HTML — pre block styling */
 .rw-code-viewer-container :deep(.rw-snippet-html pre) {
   margin: 0 !important;
-  padding: 12px 0 !important;
+  padding: 14px 0 !important;
   background: transparent !important;
   font-family: var(--vp-font-family-mono);
-  font-size: 13px !important;
-  /* No line-height here — each .line span owns its own height */
+  font-size: 12.5px !important;
   overflow-x: auto;
 }
 
@@ -414,10 +633,11 @@ function handleGatewayChange(newGw: GatewayId) {
   width: 100%;
   box-sizing: border-box;
   padding: 0 18px;
-  line-height: 1.5;
+  line-height: 1.55;
+  font-family: var(--vp-font-family-mono);
 }
 
-/* Empty lines get a compact gap (same as VitePress) */
+/* Empty lines get a compact gap */
 .rw-code-viewer-container :deep(.rw-snippet-html .line:empty) {
   height: 0.75em;
 }
@@ -427,6 +647,7 @@ function handleGatewayChange(newGw: GatewayId) {
   padding: 0 18px 0 28px;
 }
 
+/* Added lines (diff +) */
 .rw-code-viewer-container :deep(.rw-snippet-html .line.diff.add) {
   background: rgba(16, 185, 129, 0.1);
   border-left: 3px solid #10b981;
@@ -437,10 +658,10 @@ function handleGatewayChange(newGw: GatewayId) {
 .rw-code-viewer-container :deep(.rw-snippet-html .line.diff.add::before) {
   content: '+';
   position: absolute;
-  left: 7px;
+  left: 8px;
   top: 0;
   font-size: 11.5px;
-  font-weight: 700;
+  font-weight: 800;
   color: #10b981;
   line-height: inherit;
   user-select: none;
@@ -449,36 +670,47 @@ function handleGatewayChange(newGw: GatewayId) {
 
 .dark .rw-code-viewer-container :deep(.rw-snippet-html .line.diff.add) {
   background: rgba(16, 185, 129, 0.13);
-  border-left-color: #34d399;
+  border-left-color: #10b981;
 }
 
 .dark .rw-code-viewer-container :deep(.rw-snippet-html .line.diff.add::before) {
-  color: #34d399;
+  color: #10b981;
+  text-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
 }
 
+/* Removed lines (diff -) */
 .rw-code-viewer-container :deep(.rw-snippet-html .line.diff.remove) {
-  background: rgba(239, 68, 68, 0.08);
-  border-left: 3px solid #ef4444;
+  background: rgba(244, 63, 94, 0.08);
+  border-left: 3px solid #f43f5e;
   padding: 0 18px 0 25px;
   position: relative;
-  opacity: 0.7;
+  opacity: 0.75;
 }
 
 .rw-code-viewer-container :deep(.rw-snippet-html .line.diff.remove::before) {
   content: '-';
   position: absolute;
-  left: 7px;
+  left: 8px;
   top: 0;
   font-size: 11.5px;
-  font-weight: 700;
-  color: #ef4444;
+  font-weight: 800;
+  color: #f43f5e;
   line-height: inherit;
   user-select: none;
   pointer-events: none;
 }
 
-/* === Diff hidden state === */
-/* When showDiff is false, suppress all diff styling so code reads as plain text */
+.dark .rw-code-viewer-container :deep(.rw-snippet-html .line.diff.remove) {
+  background: rgba(244, 63, 94, 0.12);
+  border-left-color: #f43f5e;
+}
+
+.dark .rw-code-viewer-container :deep(.rw-snippet-html .line.diff.remove::before) {
+  color: #f43f5e;
+  text-shadow: 0 0 6px rgba(244, 63, 94, 0.5);
+}
+
+/* Diff hidden state */
 .rw-hide-diff :deep(.rw-snippet-html pre.has-diff .line),
 .rw-hide-diff :deep(.rw-snippet-html pre:has(.line.diff) .line),
 .dark .rw-hide-diff :deep(.rw-snippet-html pre.has-diff .line),
@@ -505,18 +737,89 @@ function handleGatewayChange(newGw: GatewayId) {
   content: none !important;
 }
 
+/* ── Terminal Telemetry Status Bar (Footer) ─────────────────── */
+.rw-code-viewer-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 10px;
+  min-height: 34px;
+  background: #f8fafc;
+  border-top: 1px solid var(--vp-c-divider);
+  font-family: var(--vp-font-family-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--vp-c-text-3);
+  user-select: none;
+  gap: 8px;
+}
+
+.dark .rw-code-viewer-footer {
+  background: #06090e;
+  border-top-color: rgba(148, 163, 184, 0.12);
+  color: #64748b;
+}
+
+.rw-footer-left,
+.rw-footer-right {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rw-footer-right {
+  margin-left: auto;
+}
+
+.rw-footer-right .rw-diff-btn,
+.rw-footer-right :deep(.rw-copy-btn) {
+  font-size: 10.5px;
+  padding: 2px 7px;
+  line-height: 1.35;
+  height: 22px;
+}
+
+.rw-footer-dot {
+  color: var(--vp-c-brand-1);
+  font-size: 7px;
+  text-shadow: 0 0 4px var(--vp-c-brand-1);
+}
+
+.rw-footer-mode {
+  color: var(--vp-c-text-2);
+}
+
+.rw-footer-sep {
+  color: var(--vp-c-divider);
+  font-weight: 400;
+}
+
+.dark .rw-footer-sep {
+  color: rgba(255, 255, 255, 0.1);
+}
+
+.rw-footer-encoding {
+  color: var(--vp-c-text-3);
+}
+
+.rw-footer-lang {
+  color: var(--rw-c-cyan);
+  font-weight: 700;
+}
+
+/* ── Mobile Responsive Adjustments ─────────────────────────── */
 @media (max-width: 640px) {
   .rw-code-viewer-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
+    padding: 0 8px;
+    min-height: 36px;
   }
-  .rw-code-viewer-header-left {
-    width: 100%;
+  .rw-code-viewer-footer {
+    font-size: 9.5px;
+    padding: 4px 8px;
   }
-  .rw-code-viewer-header-right {
-    width: 100%;
-    justify-content: space-between;
+  .rw-footer-mode {
+    display: none;
   }
 }
 </style>

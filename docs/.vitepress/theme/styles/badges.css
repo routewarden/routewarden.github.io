@@ -1,100 +1,145 @@
 /* ============================================================
-   Gateway & Technology Badges
+   Gateway & Technology Badges (Cyber-Sentry Edition)
    ============================================================ */
+
+.badge-tcp,
+.badge-cli,
+.badge-traefik,
+.badge-caddy,
+.badge-nginx,
+.badge-docker,
+.badge-json {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--rw-font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 3px;
+  backdrop-filter: blur(8px);
+  transition: all 0.15s ease;
+}
+
+.badge-tcp::before,
+.badge-cli::before,
+.badge-traefik::before,
+.badge-caddy::before,
+.badge-nginx::before,
+.badge-docker::before,
+.badge-json::before {
+  content: '[';
+  opacity: 0.65;
+  margin-right: -1px;
+}
+
+.badge-tcp::after,
+.badge-cli::after,
+.badge-traefik::after,
+.badge-caddy::after,
+.badge-nginx::after,
+.badge-docker::after,
+.badge-json::after {
+  content: ']';
+  opacity: 0.65;
+  margin-left: -1px;
+}
+
+.badge-tcp:hover,
+.badge-cli:hover,
+.badge-traefik:hover,
+.badge-caddy:hover,
+.badge-nginx:hover,
+.badge-docker:hover,
+.badge-json:hover {
+  transform: translateY(-1px);
+}
+
+/* TCP Warden (L4 Firewall) */
+.badge-tcp {
+  background: rgba(8, 145, 178, 0.08);
+  color: #0891b2;
+  border: 1px solid rgba(8, 145, 178, 0.25);
+}
+.dark .badge-tcp {
+  background: rgba(34, 211, 238, 0.12);
+  color: #22d3ee;
+  border-color: rgba(34, 211, 238, 0.35);
+  box-shadow: 0 0 10px rgba(34, 211, 238, 0.15);
+}
+
+/* RouteWarden CLI */
+.badge-cli {
+  background: rgba(79, 70, 229, 0.08);
+  color: #4f46e5;
+  border: 1px solid rgba(79, 70, 229, 0.25);
+}
+.dark .badge-cli {
+  background: rgba(129, 140, 248, 0.12);
+  color: #818cf8;
+  border-color: rgba(129, 140, 248, 0.35);
+  box-shadow: 0 0 10px rgba(129, 140, 248, 0.15);
+}
+
+/* Traefik */
 .badge-traefik {
-  display: inline-flex;
-  align-items: center;
-  font-family: var(--vp-font-family-mono);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  padding: 2px 8px;
-  border-radius: 4px;
-  background: rgba(37, 99, 235, 0.08);
-  color: #2563eb;
-  border: 1px solid rgba(37, 99, 235, 0.25);
+  background: rgba(2, 132, 199, 0.08);
+  color: #0284c7;
+  border: 1px solid rgba(2, 132, 199, 0.25);
 }
-
 .dark .badge-traefik {
-  background: rgba(56, 189, 248, 0.1);
+  background: rgba(56, 189, 248, 0.12);
   color: #38bdf8;
-  border-color: rgba(56, 189, 248, 0.3);
+  border-color: rgba(56, 189, 248, 0.35);
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.15);
 }
 
+/* Caddy */
 .badge-caddy {
-  display: inline-flex;
-  align-items: center;
-  font-family: var(--vp-font-family-mono);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  padding: 2px 8px;
-  border-radius: 4px;
-  background: rgba(16, 185, 129, 0.08);
+  background: rgba(5, 150, 105, 0.08);
   color: #059669;
-  border: 1px solid rgba(16, 185, 129, 0.25);
-}
-
-.dark .badge-caddy {
-  background: rgba(52, 211, 153, 0.1);
-  color: #34d399;
-  border-color: rgba(52, 211, 153, 0.3);
-}
-
-.badge-nginx {
-  display: inline-flex;
-  align-items: center;
-  font-family: var(--vp-font-family-mono);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  padding: 2px 8px;
-  border-radius: 4px;
-  background: rgba(16, 185, 129, 0.08);
-  color: #047857;
   border: 1px solid rgba(5, 150, 105, 0.25);
 }
-
-.dark .badge-nginx {
-  background: rgba(52, 211, 153, 0.1);
+.dark .badge-caddy {
+  background: rgba(52, 211, 153, 0.12);
   color: #34d399;
-  border-color: rgba(52, 211, 153, 0.3);
+  border-color: rgba(52, 211, 153, 0.35);
+  box-shadow: 0 0 10px rgba(52, 211, 153, 0.15);
 }
 
+/* NGINX */
+.badge-nginx {
+  background: rgba(4, 120, 87, 0.08);
+  color: #047857;
+  border: 1px solid rgba(4, 120, 87, 0.25);
+}
+.dark .badge-nginx {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+  border-color: rgba(16, 185, 129, 0.35);
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.15);
+}
+
+/* Docker */
 .badge-docker {
-  display: inline-flex;
-  align-items: center;
-  font-family: var(--vp-font-family-mono);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  padding: 2px 8px;
-  border-radius: 4px;
   background: rgba(14, 165, 233, 0.08);
   color: #0284c7;
   border: 1px solid rgba(14, 165, 233, 0.25);
 }
-
 .dark .badge-docker {
-  background: rgba(56, 189, 248, 0.1);
+  background: rgba(56, 189, 248, 0.12);
   color: #38bdf8;
-  border-color: rgba(56, 189, 248, 0.3);
+  border-color: rgba(56, 189, 248, 0.35);
 }
 
+/* JSON / Schema */
 .badge-json {
-  display: inline-flex;
-  align-items: center;
-  font-family: var(--vp-font-family-mono);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  padding: 2px 8px;
-  border-radius: 4px;
-  background: rgba(245, 158, 11, 0.1);
+  background: rgba(217, 119, 6, 0.08);
   color: #d97706;
-  border: 1px solid rgba(245, 158, 11, 0.3);
+  border: 1px solid rgba(217, 119, 6, 0.25);
 }
-
 .dark .badge-json {
   background: rgba(251, 191, 36, 0.12);
   color: #fbbf24;

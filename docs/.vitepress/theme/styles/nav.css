@@ -1,15 +1,37 @@
 /* ============================================================
-   Navigation & Topbar Redesign (Modern Minimalist)
+   RouteWarden ASCII / TUI Navigation & Sidebar Theme
+   Theme: "ASCII Sentry" (Terminal Topbar & Side Nav Console)
    ============================================================ */
 
+/* ── Top Runner Bar ────────────────────────────────────────── */
 .VPNav {
   /* Do NOT apply backdrop-filter, filter, or transform to .VPNav!
      Those properties create a new containing block for position: fixed elements,
      which traps the mobile nav drawer (.VPNavScreen) inside .VPNav with 0px height. */
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  z-index: var(--vp-z-index-nav, 30) !important;
+  pointer-events: none !important;
   background-color: transparent !important;
 }
 
+.VPNav::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, var(--vp-c-brand-1) 25%, #22d3ee 60%, transparent 100%);
+  z-index: 100;
+  pointer-events: none;
+}
+
+/* ── Topbar Chrome (.VPNavBar) ─────────────────────────────── */
 .VPNavBar {
+  pointer-events: auto !important;
   backdrop-filter: blur(16px) saturate(180%) !important;
   -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
   border-bottom: 1px solid var(--vp-c-divider) !important;
@@ -17,18 +39,12 @@
   transition: border-color 0.25s, background-color 0.25s;
 }
 
-/* Ensure mobile nav screen drawer has proper background, scroll, and stacking */
-.VPNavScreen {
-  pointer-events: auto !important;
-}
-
-.VPNavBar .container {
+.VPNavBar > .wrapper > .container {
   max-width: 1440px !important;
   margin: 0 auto !important;
   padding: 0 24px !important;
 }
 
-/* Content flex container expansion */
 .VPNavBar .content {
   min-width: 0 !important;
   flex-grow: 1 !important;
@@ -43,42 +59,182 @@
   box-sizing: border-box !important;
 }
 
-/* Brand Title & Logo Alignment */
-.VPNavBarTitle .title {
-  font-weight: 700 !important;
-  letter-spacing: -0.015em !important;
-  font-size: 15.5px !important;
+/* ── Brand Title: > RouteWarden_ ───────────────────────────── */
+.VPNavBarTitle {
+  display: flex !important;
+  align-items: center !important;
 }
 
-/* Menu Links & Dropdown Buttons (Desktop only >= 768px) */
+.VPNavBarTitle .title {
+  font-family: var(--vp-font-family-mono) !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.04em !important;
+  font-size: 14.5px !important;
+  color: var(--vp-c-text-1) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+
+.VPNavBarTitle .title::before {
+  content: '>';
+  color: var(--vp-c-brand-1);
+  font-weight: 800;
+}
+
+.VPNavBarTitle .title::after {
+  content: '_';
+  color: var(--vp-c-brand-1);
+  font-weight: 700;
+  animation: rw-cursor-blink 1.2s infinite;
+}
+
+@keyframes rw-cursor-blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+/* ── Topbar Menu Links (Desktop) ───────────────────────────── */
 @media (min-width: 768px) {
   .VPNavBarMenu {
     display: flex !important;
     align-items: center !important;
     flex-shrink: 0 !important;
-    gap: 2px !important;
+    gap: 4px !important;
   }
 
   .VPNavBarMenuLink,
   .VPNavBarMenuGroup > button,
   .VPNavBarMenuGroup > .button {
-    padding: 0 10px !important;
-    font-size: 13.5px !important;
-    font-weight: 500 !important;
-    color: var(--vp-c-text-1) !important;
-    transition: color 0.2s ease !important;
+    font-family: var(--vp-font-family-mono) !important;
+    font-size: 12.5px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.03em !important;
+    padding: 4px 10px !important;
+    border-radius: 4px !important;
+    color: var(--vp-c-text-2) !important;
+    transition: all 0.15s ease !important;
   }
 
   .VPNavBarMenuLink:hover,
   .VPNavBarMenuGroup > button:hover,
   .VPNavBarMenuGroup > .button:hover {
     color: var(--vp-c-brand-1) !important;
+    background: var(--vp-c-brand-soft) !important;
+  }
+
+  .VPNavBarMenuLink.active,
+  .VPNavBarMenuGroup.active > button,
+  .VPNavBarMenuGroup.active > .button {
+    color: var(--vp-c-brand-1) !important;
+    background: var(--vp-c-brand-soft) !important;
+    text-shadow: 0 0 10px rgba(16, 185, 129, 0.45);
   }
 }
 
-/* ============================================================
-   Modern Search Bar - Responsive & Overflow Protected
-   ============================================================ */
+/* ── Dropdown Flyout Menus (.VPMenu) ────────────────────────── */
+.VPMenu {
+  background: var(--vp-c-bg-soft) !important;
+  border: 1px solid var(--vp-c-divider) !important;
+  border-radius: 4px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), 0 0 1px 1px rgba(16, 185, 129, 0.15) !important;
+  padding: 4px !important;
+  font-family: var(--vp-font-family-mono) !important;
+}
+
+.dark .VPMenu {
+  background: #0d121c !important;
+  border-color: rgba(16, 185, 129, 0.3) !important;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6), 0 0 1px 1px rgba(16, 185, 129, 0.2) !important;
+}
+
+/* Reset outer wrapper div so it has zero background/padding */
+.VPMenuLink {
+  margin: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+}
+
+.VPMenuLink:hover {
+  background: transparent !important;
+  padding: 0 !important;
+}
+
+/* Single unified hover effect on the clickable link itself */
+.VPMenuLink .link {
+  display: flex !important;
+  align-items: center !important;
+  font-family: var(--vp-font-family-mono) !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  border-radius: 3px !important;
+  padding: 6px 10px !important;
+  line-height: 1.4 !important;
+  color: var(--vp-c-text-2) !important;
+  background: transparent !important;
+  transition: all 0.15s ease !important;
+  margin: 1px 0 !important;
+  white-space: nowrap !important;
+}
+
+/* Bullet connector on normal items */
+.VPMenuLink .link:not(.active)::before {
+  content: '· ';
+  color: var(--vp-c-text-3);
+  font-weight: 700;
+  margin-right: 4px;
+  transition: color 0.15s ease;
+}
+
+.VPMenuLink .link:not(.active):hover::before {
+  color: var(--rw-c-cyan);
+}
+
+/* Single clean hover box */
+.VPMenuLink .link:hover {
+  background: var(--vp-c-brand-soft) !important;
+  color: var(--vp-c-brand-1) !important;
+  padding-left: 14px !important;
+  text-shadow: 0 0 8px rgba(16, 185, 129, 0.35) !important;
+}
+
+.dark .VPMenuLink .link:hover {
+  background: rgba(16, 185, 129, 0.12) !important;
+}
+
+/* Active item state */
+.VPMenuLink .link.active {
+  color: var(--vp-c-brand-1) !important;
+  font-weight: 700 !important;
+  background: rgba(16, 185, 129, 0.08) !important;
+  text-shadow: 0 0 8px rgba(16, 185, 129, 0.3) !important;
+}
+
+.VPMenuLink .link.active::before {
+  content: '> ';
+  color: var(--vp-c-brand-1);
+  font-weight: 800;
+  margin-right: 2px;
+}
+
+/* Group headings if present in flyout */
+.VPMenuGroup .title {
+  font-family: var(--vp-font-family-mono) !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  color: var(--rw-c-cyan) !important;
+  padding: 6px 10px 2px !important;
+}
+
+.VPMenuGroup + .VPMenuGroup {
+  border-top: 1px dashed var(--vp-c-divider) !important;
+  margin-top: 4px !important;
+  padding-top: 4px !important;
+}
+
+/* ── Topbar Search Bar (Terminal Prompt Style) ─────────────── */
 @media (min-width: 768px) {
   .VPNavBarSearch {
     display: flex !important;
@@ -109,13 +265,14 @@
     width: 100% !important;
     max-width: 100% !important;
     flex: 1 1 auto !important;
-    height: 38px !important;
-    padding: 0 12px !important;
-    border-radius: 19px !important;
-    background: rgba(243, 244, 246, 0.75) !important;
-    border: 1px solid rgba(229, 231, 235, 0.9) !important;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    height: 32px !important;
+    padding: 0 10px !important;
+    border-radius: 4px !important;
+    font-family: var(--vp-font-family-mono) !important;
+    background: var(--vp-c-bg-soft) !important;
+    border: 1px solid var(--vp-c-divider) !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+    transition: all 0.15s ease !important;
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
@@ -138,39 +295,32 @@
   .VPNavBarSearch .search-icon {
     flex-shrink: 0 !important;
     display: inline-block !important;
-    width: 15px !important;
-    height: 15px !important;
-  }
-
-  .dark .VPNavBarSearch .DocSearch-Button,
-  .dark .VPNavBarSearch .search-btn,
-  .dark .VPNavBarSearch .VPNavBarSearch-button,
-  .dark .VPNavBarSearch button {
-    background: rgba(30, 41, 59, 0.5) !important;
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
+    width: 14px !important;
+    height: 14px !important;
+    color: var(--vp-c-brand-1) !important;
   }
 
   .VPNavBarSearch button:hover,
   .VPNavBarSearch:focus-within button {
     border-color: var(--vp-c-brand-1) !important;
-    background: #ffffff !important;
-    box-shadow: 0 0 0 3px var(--vp-c-brand-soft), 0 2px 8px rgba(99, 102, 241, 0.08) !important;
+    background: var(--vp-c-bg-alt) !important;
+    box-shadow: 0 0 0 2px var(--vp-c-brand-soft), 0 0 12px var(--vp-c-brand-glow) !important;
   }
 
   .dark .VPNavBarSearch button:hover,
   .dark .VPNavBarSearch:focus-within button {
     border-color: var(--vp-c-brand-1) !important;
-    background: rgba(30, 41, 59, 0.9) !important;
-    box-shadow: 0 0 0 3px var(--vp-c-brand-soft), 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+    background: var(--vp-c-bg-alt) !important;
+    box-shadow: 0 0 0 2px var(--vp-c-brand-soft), 0 0 16px -2px var(--vp-c-brand-glow) !important;
   }
 
   .VPNavBarSearch .search-btn-placeholder,
   .VPNavBarSearch .DocSearch-Button-Placeholder {
-    font-size: 13px !important;
+    font-family: var(--vp-font-family-mono) !important;
+    font-size: 11.5px !important;
     font-weight: 500 !important;
     color: var(--vp-c-text-2) !important;
-    letter-spacing: -0.01em !important;
+    letter-spacing: 0.02em !important;
     white-space: nowrap !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
@@ -186,13 +336,13 @@
     justify-content: center !important;
     gap: 2px !important;
     padding: 0 5px !important;
-    height: 20px !important;
-    border-radius: 4px !important;
+    height: 18px !important;
+    border-radius: 3px !important;
     border: 1px solid var(--vp-c-divider) !important;
     background: var(--vp-c-bg) !important;
-    font-size: 11px !important;
+    font-size: 10px !important;
     font-weight: 600 !important;
-    font-family: var(--vp-font-family-mono), system-ui, -apple-system, sans-serif !important;
+    font-family: var(--vp-font-family-mono) !important;
     color: var(--vp-c-text-3) !important;
     flex-shrink: 0 !important;
     margin-left: auto !important;
@@ -203,8 +353,8 @@
 
   .dark .VPNavBarSearch .DocSearch-Button-Keys,
   .dark .VPNavBarSearch .search-btn-keys {
-    background: rgba(15, 23, 42, 0.8) !important;
-    border-color: rgba(255, 255, 255, 0.1) !important;
+    background: var(--vp-c-bg) !important;
+    border-color: var(--vp-c-divider) !important;
   }
 
   .VPNavBarSearch .DocSearch-Button-Key {
@@ -215,18 +365,9 @@
     background: transparent !important;
     padding: 0 !important;
     margin: 0 !important;
-    width: auto !important;
-    height: auto !important;
-    line-height: 1 !important;
     box-shadow: none !important;
     color: inherit !important;
     font-size: inherit !important;
-  }
-
-  .VPNavBarSearch .DocSearch-Button-Key + .DocSearch-Button-Key {
-    border: none !important;
-    padding: 0 !important;
-    margin: 0 !important;
   }
 
   .VPNavBarSearch .DocSearch-Button-Key:first-child {
@@ -235,23 +376,290 @@
 
   .VPNavBarSearch .DocSearch-Button-Key:first-child:after {
     content: 'Ctrl';
-    font-size: 10px !important;
+    font-size: 9.5px !important;
     font-family: inherit !important;
     font-weight: 600 !important;
     color: inherit !important;
-    line-height: 1 !important;
   }
 
   .mac .VPNavBarSearch .DocSearch-Button-Key:first-child:after,
   :root.mac .VPNavBarSearch .DocSearch-Button-Key:first-child:after {
     content: '⌘' !important;
-    font-size: 12px !important;
+    font-size: 11px !important;
+  }
+}
+
+/* ============================================================
+   Side Navigation Simplified (.VPSidebar)
+   Clean, Fast-Scanning, High-Contrast Terminal Hierarchy
+   ============================================================ */
+
+.VPSidebar {
+  background-color: var(--vp-c-bg-soft) !important;
+  border-right: 1px solid var(--vp-c-divider) !important;
+  font-family: var(--vp-font-family-mono) !important;
+  scrollbar-width: thin;
+}
+
+.dark .VPSidebar {
+  background-color: #0c0f17 !important;
+  border-right: 1px solid var(--vp-c-divider) !important;
+}
+
+/* ── Group Spacing & Clean Boundaries ─────────────────────── */
+.VPSidebar .group {
+  padding-bottom: 4px !important;
+}
+
+.VPSidebar .group + .group {
+  border-top: 1px solid var(--vp-c-divider) !important;
+  padding-top: 14px !important;
+  margin-top: 14px !important;
+}
+
+.dark .VPSidebar .group + .group {
+  border-top-color: rgba(148, 163, 184, 0.12) !important;
+}
+
+/* ── Section Header (Level 0) ─────────────────────────────── */
+.VPSidebarItem.level-0 > .item {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 6px 10px !important;
+  margin-bottom: 4px !important;
+  border-radius: 4px !important;
+  background: transparent !important;
+  border: none !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+}
+
+.VPSidebarItem.level-0 > .item:hover {
+  background: rgba(255, 255, 255, 0.03) !important;
+}
+
+.dark .VPSidebarItem.level-0 > .item:hover {
+  background: rgba(255, 255, 255, 0.04) !important;
+}
+
+.VPSidebarItem.level-0 > .item .text {
+  font-family: var(--vp-font-family-mono) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  color: var(--vp-c-text-2) !important;
+  transition: color 0.15s ease !important;
+}
+
+/* Primary/active section title is brighter */
+.VPSidebarItem.level-0.has-active > .item .text,
+.VPSidebar div.group:first-of-type > .VPSidebarItem.level-0 > .item .text,
+.VPSidebar .group:first-child > .VPSidebarItem.level-0 > .item .text {
+  color: var(--vp-c-text-1) !important;
+}
+
+.VPSidebarItem.level-0 > .item:hover .text {
+  color: var(--vp-c-brand-1) !important;
+}
+
+/* ── Clean Rotating Chevron Caret ──────────────────────────── */
+.VPSidebarItem .caret {
+  width: 20px !important;
+  height: 20px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin-left: auto !important;
+  margin-right: 0 !important;
+  border-radius: 3px !important;
+  border: none !important;
+  background: transparent !important;
+  color: var(--vp-c-text-3) !important;
+  cursor: pointer !important;
+  transition: color 0.15s ease !important;
+}
+
+.VPSidebarItem .caret .caret-icon {
+  display: block !important;
+  width: 14px !important;
+  height: 14px !important;
+  fill: currentColor !important;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.VPSidebarItem .caret:hover {
+  color: var(--vp-c-brand-1) !important;
+  background: rgba(16, 185, 129, 0.08) !important;
+}
+
+/* ── Subtle Tree Guide Line & Nested Items ────────────────── */
+.VPSidebarItem.level-0 > .items {
+  border-left: 1px solid rgba(148, 163, 184, 0.14) !important;
+  margin-left: 12px !important;
+  padding-left: 6px !important;
+  margin-top: 2px !important;
+  margin-bottom: 8px !important;
+}
+
+.dark .VPSidebarItem.level-0 > .items {
+  border-left-color: rgba(148, 163, 184, 0.14) !important;
+}
+
+.VPSidebarItem.level-1 > .items {
+  border-left: 1px solid rgba(148, 163, 184, 0.1) !important;
+  margin-left: 8px !important;
+  padding-left: 6px !important;
+  margin-top: 2px !important;
+  margin-bottom: 4px !important;
+}
+
+/* ── Navigation Links (Level 1, Level 2, Level 3) ──────────── */
+.VPSidebarItem.level-1 .item,
+.VPSidebarItem.level-2 .item,
+.VPSidebarItem.level-3 .item {
+  border-radius: 4px !important;
+  padding: 5px 10px !important;
+  margin: 1px 0 !important;
+  position: relative !important;
+  transition: all 0.12s ease !important;
+}
+
+.VPSidebarItem.level-1 .text,
+.VPSidebarItem.level-2 .text,
+.VPSidebarItem.level-3 .text {
+  font-family: var(--vp-font-family-mono) !important;
+  font-size: 13px !important;
+  font-weight: 450 !important;
+  line-height: 1.5 !important;
+  color: var(--vp-c-text-2) !important;
+  transition: color 0.12s ease !important;
+}
+
+/* Hover State */
+.VPSidebarItem.level-1 .item:hover,
+.VPSidebarItem.level-2 .item:hover,
+.VPSidebarItem.level-3 .item:hover {
+  background: rgba(255, 255, 255, 0.03) !important;
+}
+
+.dark .VPSidebarItem.level-1 .item:hover,
+.dark .VPSidebarItem.level-2 .item:hover,
+.dark .VPSidebarItem.level-3 .item:hover {
+  background: rgba(255, 255, 255, 0.04) !important;
+}
+
+.VPSidebarItem.level-1 .item:hover .text,
+.VPSidebarItem.level-2 .item:hover .text,
+.VPSidebarItem.level-3 .item:hover .text {
+  color: var(--vp-c-text-1) !important;
+}
+
+/* Active Page State */
+.VPSidebarItem.is-active > .item {
+  background: rgba(16, 185, 129, 0.09) !important;
+  border-left: 2px solid var(--vp-c-brand-1) !important;
+  border-radius: 0 4px 4px 0 !important;
+  padding-left: 8px !important;
+}
+
+.dark .VPSidebarItem.is-active > .item {
+  background: rgba(16, 185, 129, 0.1) !important;
+}
+
+.VPSidebarItem.is-active > .item .text {
+  color: var(--vp-c-brand-1) !important;
+  font-weight: 600 !important;
+}
+
+/* Hide default indicator bar to avoid overlap with border-left */
+.VPSidebarItem .indicator {
+  display: none !important;
+}
+
+/* ── On-This-Page Right Table of Contents (.VPDocAside) ────── */
+.VPDocAside {
+  font-family: var(--vp-font-family-mono) !important;
+}
+
+.VPDocAsideOutline .outline-title {
+  font-family: var(--vp-font-family-mono) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  color: var(--vp-c-text-2) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  margin-bottom: 10px !important;
+}
+
+.VPDocAsideOutline .outline-title::before {
+  content: '>';
+  color: var(--rw-c-cyan);
+  font-weight: 700;
+}
+
+.VPDocAsideOutline .outline-link {
+  font-family: var(--vp-font-family-mono) !important;
+  font-size: 12px !important;
+  line-height: 1.6 !important;
+  color: var(--vp-c-text-2) !important;
+  transition: all 0.15s ease !important;
+}
+
+.VPDocAsideOutline .outline-link:hover {
+  color: var(--vp-c-brand-1) !important;
+  transform: translateX(2px) !important;
+}
+
+.VPDocAsideOutline .outline-link.active {
+  color: var(--vp-c-brand-1) !important;
+  font-weight: 700 !important;
+  text-shadow: 0 0 8px rgba(16, 185, 129, 0.35) !important;
+}
+
+.VPDocAsideOutline .outline-link.active::before {
+  content: '● ';
+  color: var(--vp-c-brand-1) !important;
+  font-size: 8px !important;
+  vertical-align: middle !important;
+}
+
+/* ============================================================
+   Mobile & Responsive Adjustments
+   ============================================================ */
+
+/* Mobile & Tablet Fixed Topbar Layout (< 960px) */
+@media (max-width: 959px) {
+  /* Offset content on pages without subheader so it is not hidden under the fixed topbar */
+  .VPContent.is-home,
+  .VPContent:not(.has-sidebar) {
+    padding-top: var(--vp-nav-height) !important;
+  }
+
+  /* Subheader (Menu / On This Page) on doc pages sits under the fixed topbar and stays sticky */
+  .VPLocalNav {
+    position: -webkit-sticky !important;
+    position: sticky !important;
+    top: var(--vp-nav-height) !important;
+    margin-top: var(--vp-nav-height) !important;
+    z-index: calc(var(--vp-z-index-nav, 30) - 1) !important;
+  }
+
+  /* Slide-in sidebar opens right below the topbar */
+  .VPSidebar {
+    top: var(--vp-nav-height) !important;
+    height: calc(100vh - var(--vp-nav-height)) !important;
+    height: calc(100dvh - var(--vp-nav-height)) !important;
   }
 }
 
 /* Tablet & Medium Screen Refinements (768px - 1180px) */
 @media (min-width: 768px) and (max-width: 1180px) {
-  .VPNavBar .container {
+  .VPNavBar > .wrapper > .container {
     padding: 0 16px !important;
   }
 
@@ -261,7 +669,6 @@
     max-width: 160px !important;
   }
 
-  /* When navbar is tight, hide placeholder text so icon + shortcut key badge fit perfectly without overflow */
   .VPNavBarSearch .DocSearch-Button-Placeholder {
     display: none !important;
   }
@@ -270,23 +677,24 @@
   .VPNavBarMenuGroup > button,
   .VPNavBarMenuGroup > .button {
     padding: 0 6px !important;
-    font-size: 13px !important;
+    font-size: 12px !important;
   }
 }
 
-/* Mobile optimizations (< 768px) */
+/* Mobile Screens (< 768px) */
 @media (max-width: 767px) {
   .VPNavBar .wrapper {
     padding: 0 12px !important;
   }
 
-  .VPNavBar .container {
+  .VPNavBar > .wrapper > .container {
     padding: 0 !important;
     width: 100% !important;
     max-width: 100% !important;
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
+    height: var(--vp-nav-height) !important;
   }
 
   .VPNavBar .title {
@@ -298,20 +706,39 @@
     display: flex !important;
     align-items: center !important;
     min-width: 0 !important;
+    flex-shrink: 1 !important;
     overflow: hidden !important;
-    margin-right: 8px !important;
+    margin-right: 6px !important;
   }
 
   .VPNavBarTitle .title {
-    font-size: 14.5px !important;
+    font-size: 13.5px !important;
     white-space: nowrap !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+  }
+
+  .VPNavBarTitle .logo {
+    height: 22px !important;
+    width: 22px !important;
+    margin-right: 6px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .VPNavBarTitle .title span {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
   }
 
   .VPNavBar .content {
     flex-shrink: 0 !important;
     min-width: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
   .VPNavBar .content-body {
@@ -320,9 +747,15 @@
     justify-content: flex-end !important;
     gap: 6px !important;
     min-width: 0 !important;
+    flex-shrink: 0 !important;
   }
 
-  /* Explicitly hide desktop menu in navbar on mobile */
+  /* Explicitly hide desktop-only items in navbar on mobile */
+  .VPNavBar .content-body > .menu,
+  .VPNavBar .content-body > .translations,
+  .VPNavBar .content-body > .appearance,
+  .VPNavBar .content-body > .social-links,
+  .VPNavBar .content-body > .extra,
   .VPNavBarMenu {
     display: none !important;
   }
@@ -336,12 +769,35 @@
   .VPNavBarSearch .search-btn {
     min-width: 32px !important;
     width: 32px !important;
-    height: 32px !important;
+    height: 30px !important;
     padding: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
     justify-content: center !important;
-    border-radius: 8px !important;
+    border-radius: 4px !important;
     background-color: transparent !important;
     border: 1px solid var(--vp-c-divider) !important;
+    transition: all 0.15s ease !important;
+  }
+
+  .VPNavBarSearch .DocSearch-Button:hover {
+    border-color: var(--vp-c-brand-1) !important;
+    background: rgba(16, 185, 129, 0.08) !important;
+  }
+
+  .VPNavBarSearch .DocSearch-Button-Container {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .VPNavBarSearch .vp-icon.DocSearch-Search-Icon {
+    margin: 0 !important;
+    width: 14px !important;
+    height: 14px !important;
+    color: var(--vp-c-text-2) !important;
   }
 
   .VPNavBarSearch .DocSearch-Button-Placeholder,
@@ -349,15 +805,239 @@
     display: none !important;
   }
 
+  /* ── Mobile Hamburger Toggle & Morphing Close 'X' Icon ── */
   .VPNavBarHamburger {
     display: flex !important;
-    width: 36px !important;
-    height: 36px !important;
+    width: 32px !important;
+    height: 30px !important;
     justify-content: center !important;
     align-items: center !important;
     padding: 0 !important;
     margin: 0 !important;
+    border-radius: 4px !important;
+    border: 1px solid var(--vp-c-divider) !important;
+    background: transparent !important;
     flex-shrink: 0 !important;
+    cursor: pointer !important;
+    transition: all 0.15s ease !important;
+  }
+
+  .VPNavBarHamburger:hover {
+    border-color: var(--vp-c-brand-1) !important;
+    background: rgba(16, 185, 129, 0.08) !important;
+  }
+
+  /* Hamburger internal bar container — strictly isolated from navbar container flex */
+  .VPNavBarHamburger .container {
+    position: relative !important;
+    width: 16px !important;
+    height: 14px !important;
+    overflow: hidden !important;
+    display: block !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .VPNavBarHamburger .top,
+  .VPNavBarHamburger .middle,
+  .VPNavBarHamburger .bottom {
+    position: absolute !important;
+    width: 16px !important;
+    height: 2px !important;
+    background-color: var(--vp-c-text-1) !important;
+    border-radius: 1px !important;
+    transition: top 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+                background-color 0.2s ease,
+                transform 0.22s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
+
+  .VPNavBarHamburger .top    { top: 0 !important; left: 0 !important; transform: translateX(0) !important; }
+  .VPNavBarHamburger .middle { top: 6px !important; left: 0 !important; transform: translateX(0) !important; opacity: 1 !important; }
+  .VPNavBarHamburger .bottom { top: 12px !important; left: 0 !important; transform: translateX(0) !important; }
+
+  /* Hover micro-slide animation when closed */
+  .VPNavBarHamburger:hover:not(.active) .top    { transform: translateX(2px) !important; }
+  .VPNavBarHamburger:hover:not(.active) .middle { transform: translateX(0) !important; }
+  .VPNavBarHamburger:hover:not(.active) .bottom { transform: translateX(3px) !important; }
+
+  /* ACTIVE (OPEN DRAWER -> CLEAN CLOSE 'X' ICON) */
+  .VPNavBarHamburger.active {
+    border-color: var(--vp-c-brand-1) !important;
+    background: rgba(16, 185, 129, 0.12) !important;
+  }
+
+  .VPNavBarHamburger.active .top {
+    top: 6px !important;
+    left: 0 !important;
+    transform: rotate(225deg) !important;
+    background-color: var(--vp-c-brand-1) !important;
+  }
+
+  .VPNavBarHamburger.active .middle {
+    top: 6px !important;
+    left: 0 !important;
+    transform: translateX(20px) !important;
+    opacity: 0 !important;
+  }
+
+  .VPNavBarHamburger.active .bottom {
+    top: 6px !important;
+    left: 0 !important;
+    transform: rotate(135deg) !important;
+    background-color: var(--vp-c-brand-1) !important;
+  }
+
+  .VPNavBarHamburger.active:hover .top,
+  .VPNavBarHamburger.active:hover .bottom {
+    background-color: var(--rw-c-cyan) !important;
+  }
+
+  /* Mobile Nav Screen Drawer (Terminal Console) */
+  .VPNavScreen {
+    pointer-events: auto !important;
+    background-color: var(--vp-c-bg) !important;
+    font-family: var(--vp-font-family-mono) !important;
+  }
+
+  .dark .VPNavScreen {
+    background-color: #0c0f17 !important;
+  }
+
+  .VPNavScreen .container {
+    padding: 16px 20px 32px !important;
+    max-width: 480px !important;
+    margin: 0 auto !important;
+  }
+
+  .VPNavScreenMenuGroup {
+    border-bottom: 1px solid var(--vp-c-divider) !important;
+    font-family: var(--vp-font-family-mono) !important;
+  }
+
+  .VPNavScreenMenuGroup .button {
+    font-family: var(--vp-font-family-mono) !important;
+    font-size: 13.5px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.04em !important;
+    padding: 13px 4px 13px 0 !important;
+    color: var(--vp-c-text-1) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+  }
+
+  .VPNavScreenMenuGroup .button-text::before {
+    content: '> ';
+    color: var(--vp-c-brand-1);
+    font-weight: 800;
+  }
+
+  .VPNavScreenMenuGroup.open .button-text {
+    color: var(--vp-c-brand-1) !important;
+  }
+
+  .VPNavScreenMenuGroup .button-icon {
+    width: 14px !important;
+    height: 14px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: var(--vp-c-text-2) !important;
+    transition: transform 0.25s ease, color 0.2s ease !important;
+  }
+
+  .VPNavScreenMenuGroup.open .button-icon {
+    transform: rotate(45deg) !important;
+    color: var(--vp-c-brand-1) !important;
+  }
+
+  .VPNavScreenMenuGroupLink {
+    font-family: var(--vp-font-family-mono) !important;
+    font-size: 12.5px !important;
+    font-weight: 500 !important;
+    line-height: 1.5 !important;
+    padding: 7px 10px 7px 16px !important;
+    margin: 2px 0 !important;
+    border-radius: 4px !important;
+    color: var(--vp-c-text-2) !important;
+    transition: all 0.12s ease !important;
+    display: block !important;
+  }
+
+  .VPNavScreenMenuGroupLink:hover {
+    color: var(--vp-c-brand-1) !important;
+    background: rgba(16, 185, 129, 0.08) !important;
+  }
+
+  .VPNavScreenMenuGroupLink.active {
+    color: var(--vp-c-brand-1) !important;
+    font-weight: 700 !important;
+    border-left: 2px solid var(--vp-c-brand-1) !important;
+    background: rgba(16, 185, 129, 0.09) !important;
+  }
+
+  .VPNavScreenMenuLink {
+    font-family: var(--vp-font-family-mono) !important;
+    font-size: 13.5px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.04em !important;
+    padding: 13px 16px !important;
+    border-bottom: 1px solid var(--vp-c-divider) !important;
+    color: var(--vp-c-text-1) !important;
+    display: block !important;
+  }
+
+  .VPNavScreenMenuLink::before {
+    content: '> ';
+    color: var(--vp-c-brand-1);
+    font-weight: 800;
+  }
+
+  .VPNavScreenMenuLink.active {
+    color: var(--vp-c-brand-1) !important;
+  }
+
+  .VPNavScreenAppearance {
+    padding-top: 16px !important;
+    margin-top: 8px !important;
+    border-top: 1px solid var(--vp-c-divider) !important;
+  }
+
+  .VPNavScreenSocialLinks {
+    padding-top: 16px !important;
+    display: flex !important;
+    justify-content: center !important;
+  }
+
+  /* Mobile Local Nav Subheader (Page Menu / On This Page) */
+  .VPLocalNav {
+    font-family: var(--vp-font-family-mono) !important;
+    border-bottom: 1px solid var(--vp-c-divider) !important;
+    background-color: var(--vp-c-bg) !important;
+  }
+
+  .dark .VPLocalNav {
+    background-color: #0c0f17 !important;
+  }
+
+  .VPLocalNav .menu {
+    font-family: var(--vp-font-family-mono) !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    color: var(--vp-c-text-1) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+  }
+
+  .VPLocalNav .menu:hover {
+    color: var(--vp-c-brand-1) !important;
+  }
+
+  .VPLocalNavOutlineDropdown button {
+    font-family: var(--vp-font-family-mono) !important;
+    font-size: 12px !important;
+    color: var(--vp-c-text-2) !important;
   }
 
   /* Prevent table overflow on small screens */

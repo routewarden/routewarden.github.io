@@ -41,206 +41,299 @@ async function copyResponse() {
 </script>
 
 <template>
-  <div class="rw-copyable-card rw-http-box" :class="`card-${evaluation.badgeClass}`">
-    <div class="rw-card-header">
-      <div class="rw-card-header-left">
-        <span class="rw-proto">{{ testMethod }} {{ evaluation.normalizedPath }}</span>
-        <span class="rw-status-num">
+  <div class="rw-http-inspector" :class="`card-${evaluation.badgeClass}`">
+    <!-- Terminal Titlebar -->
+    <div class="rw-inspector-header">
+      <div class="rw-ih-left">
+        <span class="rw-ih-dots" aria-hidden="true">
+          <span class="dot dot-red"></span>
+          <span class="dot dot-yellow"></span>
+          <span class="dot dot-green"></span>
+        </span>
+        <span class="rw-ih-badge">LIVE RESPONSE</span>
+        <span class="rw-ih-req">{{ testMethod }} {{ evaluation.normalizedPath }}</span>
+        <span class="rw-ih-status">
           {{ response.statusCode }} {{ response.statusText }}
         </span>
-        <span class="rw-reason-dim">— {{ evaluation.reason }}</span>
+        <span class="rw-ih-reason" :title="evaluation.reason">— {{ evaluation.reason }}</span>
       </div>
-      <div class="rw-card-header-right">
+
+      <div class="rw-ih-right">
         <button
           type="button"
-          class="rw-btn-copy-card"
+          class="rw-btn-copy-http"
           :class="{ copied: copyResponseSuccess }"
-          title="Copy raw HTTP response"
+          title="Copy raw HTTP response (status, headers, body)"
           @click="copyResponse"
         >
-          {{ copyResponseSuccess ? 'Copied' : 'Copy HTTP' }}
+          <span class="rw-copy-icon">{{ copyResponseSuccess ? '✓' : '⎘' }}</span>
+          <span>{{ copyResponseSuccess ? 'Copied' : 'Copy HTTP' }}</span>
         </button>
       </div>
     </div>
 
-    <!-- Key HTTP Headers -->
-    <div v-if="Object.keys(response.headers).length > 0" class="rw-http-headers">
-      <div v-for="(val, key) in response.headers" :key="key" class="rw-hdr-line">
-        <span class="rw-hdr-name">{{ key }}:</span>
-        <span class="rw-hdr-val">{{ val }}</span>
+    <!-- HTTP Headers Table/Chips -->
+    <div v-if="Object.keys(response.headers).length > 0" class="rw-headers-pane">
+      <div class="rw-headers-list">
+        <div v-for="(val, key) in response.headers" :key="key" class="rw-hdr-row">
+          <span class="rw-hdr-key">{{ key }}:</span>
+          <span class="rw-hdr-val">{{ val }}</span>
+        </div>
       </div>
     </div>
 
-    <pre class="rw-http-body" tabindex="0" title="Simulated HTTP response payload"><code>{{ response.body }}</code></pre>
+    <!-- HTTP Body Preview -->
+    <div class="rw-body-pane">
+      <pre class="rw-body-pre" tabindex="0" title="Simulated HTTP response body"><code>{{ response.body }}</code></pre>
+    </div>
 
-    <div v-if="response.note" class="rw-http-note">
-      💡 {{ response.note }}
+    <!-- Security Advisory Note (Defense Explanation) -->
+    <div v-if="response.note" class="rw-defense-note">
+      <span class="rw-dn-icon">💡</span>
+      <span class="rw-dn-text">{{ response.note }}</span>
     </div>
   </div>
 </template>
 
 <style scoped>
-.rw-copyable-card {
-  border: 1px solid var(--vp-c-divider);
-  border-radius: 6px;
+.rw-http-inspector {
   background: var(--vp-c-bg);
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   transition: all 0.2s ease;
+  font-family: var(--vp-font-family-mono);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
-.rw-copyable-card.card-verdict-block {
+.dark .rw-http-inspector {
+  background: #090c14;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Card Verdict Theming */
+.rw-http-inspector.card-verdict-block {
   border-color: rgba(239, 68, 68, 0.35);
 }
-.rw-copyable-card.card-verdict-block .rw-card-header {
+.rw-http-inspector.card-verdict-block .rw-inspector-header {
   background: rgba(239, 68, 68, 0.06);
-  border-color: rgba(239, 68, 68, 0.2);
+  border-bottom-color: rgba(239, 68, 68, 0.2);
 }
-.rw-copyable-card.card-verdict-block .rw-status-num {
+.rw-http-inspector.card-verdict-block .rw-ih-status {
   color: #dc2626;
-  font-weight: 700;
 }
-.dark .rw-copyable-card.card-verdict-block .rw-status-num {
+.dark .rw-http-inspector.card-verdict-block .rw-ih-status {
   color: #f87171;
 }
 
-.rw-copyable-card.card-verdict-allow {
+.rw-http-inspector.card-verdict-allow {
   border-color: rgba(16, 185, 129, 0.35);
 }
-.rw-copyable-card.card-verdict-allow .rw-card-header {
+.rw-http-inspector.card-verdict-allow .rw-inspector-header {
   background: rgba(16, 185, 129, 0.06);
-  border-color: rgba(16, 185, 129, 0.2);
+  border-bottom-color: rgba(16, 185, 129, 0.2);
 }
-.rw-copyable-card.card-verdict-allow .rw-status-num {
+.rw-http-inspector.card-verdict-allow .rw-ih-status {
   color: #059669;
-  font-weight: 700;
 }
-.dark .rw-copyable-card.card-verdict-allow .rw-status-num {
+.dark .rw-http-inspector.card-verdict-allow .rw-ih-status {
   color: #34d399;
 }
 
-.rw-copyable-card.card-verdict-bypass {
+.rw-http-inspector.card-verdict-bypass {
   border-color: rgba(14, 165, 233, 0.35);
 }
-.rw-copyable-card.card-verdict-bypass .rw-card-header {
+.rw-http-inspector.card-verdict-bypass .rw-inspector-header {
   background: rgba(14, 165, 233, 0.06);
-  border-color: rgba(14, 165, 233, 0.2);
+  border-bottom-color: rgba(14, 165, 233, 0.2);
 }
-.rw-copyable-card.card-verdict-bypass .rw-status-num {
+.rw-http-inspector.card-verdict-bypass .rw-ih-status {
   color: #0284c7;
-  font-weight: 700;
 }
-.dark .rw-copyable-card.card-verdict-bypass .rw-status-num {
+.dark .rw-http-inspector.card-verdict-bypass .rw-ih-status {
   color: #38bdf8;
 }
 
-.rw-copyable-card.card-verdict-pass {
-  border-color: rgba(100, 116, 139, 0.35);
+.rw-http-inspector.card-verdict-pass {
+  border-color: rgba(100, 116, 139, 0.3);
 }
-.rw-copyable-card.card-verdict-pass .rw-card-header {
+.rw-http-inspector.card-verdict-pass .rw-inspector-header {
   background: rgba(100, 116, 139, 0.06);
-  border-color: rgba(100, 116, 139, 0.2);
+  border-bottom-color: rgba(100, 116, 139, 0.2);
 }
-.rw-copyable-card.card-verdict-pass .rw-status-num {
-  color: #475569;
-  font-weight: 700;
+.rw-http-inspector.card-verdict-pass .rw-ih-status {
+  color: #64748b;
 }
-.dark .rw-copyable-card.card-verdict-pass .rw-status-num {
+.dark .rw-http-inspector.card-verdict-pass .rw-ih-status {
   color: #94a3b8;
 }
 
-.rw-card-header {
+/* Header */
+.rw-inspector-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
-  padding: 4px 8px;
-  background: var(--vp-c-bg-alt);
+  padding: 4px 10px;
+  background: var(--vp-c-bg-soft);
   border-bottom: 1px solid var(--vp-c-divider);
-  flex-wrap: wrap;
-  transition: all 0.2s ease;
+  min-height: 34px;
+  box-sizing: border-box;
 }
 
-.rw-card-header-left {
+.rw-ih-left {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  font-family: var(--vp-font-family-mono);
-  font-size: 11.5px;
+  gap: 6px;
+  font-size: 11px;
   font-weight: 600;
-  flex-wrap: wrap;
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
 }
 
-.rw-card-header-right {
-  display: flex;
+.rw-ih-dots {
+  display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+.dot-red { background: #ef4444; }
+.dot-yellow { background: #f59e0b; }
+.dot-green { background: #10b981; }
+
+.rw-ih-badge {
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--vp-c-brand-1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  flex-shrink: 0;
 }
 
-.rw-proto { color: var(--vp-c-text-2); font-size: 10.5px; }
-.rw-status-num { color: #059669; font-weight: 600; }
-.rw-reason-dim {
+.rw-ih-req {
   color: var(--vp-c-text-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+  min-width: 0;
+  flex-shrink: 1;
+}
+
+.rw-ih-status {
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.rw-ih-reason {
+  color: var(--vp-c-text-3);
   font-size: 10.5px;
-  font-weight: normal;
+  font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  min-width: 0;
+  flex: 1;
 }
 
-.rw-btn-copy-card {
+.rw-ih-right {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+.rw-btn-copy-http {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font-size: 10.5px;
   font-weight: 600;
   padding: 2px 7px;
   border-radius: 4px;
   border: 1px solid var(--vp-c-divider);
   background: var(--vp-c-bg);
-  color: var(--vp-c-text-1);
+  color: var(--vp-c-text-2);
   cursor: pointer;
   transition: all 0.15s ease;
   white-space: nowrap;
 }
-.rw-btn-copy-card:hover {
+
+.rw-btn-copy-http:hover {
   border-color: var(--vp-c-brand-1);
   color: var(--vp-c-brand-1);
 }
-.rw-btn-copy-card.copied {
+
+.rw-btn-copy-http.copied {
   background: #059669 !important;
   color: #fff !important;
   border-color: #059669 !important;
 }
 
-.rw-http-headers {
-  padding: 4px 8px;
-  background: var(--vp-c-bg-soft);
-  border-bottom: 1px dashed var(--vp-c-divider);
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
+.rw-copy-icon {
+  font-size: 10px;
 }
 
-.rw-hdr-line {
-  font-family: var(--vp-font-family-mono);
-  font-size: 10.5px;
-  line-height: 1.35;
-  display: flex;
-  gap: 0.35rem;
+/* Headers Pane */
+.rw-headers-pane {
+  padding: 4px 10px;
+  background: var(--vp-c-bg-soft);
+  border-bottom: 1px dashed var(--vp-c-divider);
 }
-.rw-hdr-name {
+
+.rw-headers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5px;
+}
+
+.rw-hdr-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 10.5px;
+  line-height: 1.4;
+}
+
+.rw-hdr-key {
   color: var(--vp-c-brand-1);
   font-weight: 600;
 }
+
 .rw-hdr-val {
   color: var(--vp-c-text-2);
   word-break: break-all;
 }
 
-.rw-http-body {
+/* Body Pane */
+.rw-body-pane {
+  padding: 6px 10px;
+  background: transparent;
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.rw-body-pre {
   margin: 0 !important;
-  padding: 6px 8px !important;
+  padding: 0 !important;
   background: transparent !important;
-  font-family: var(--vp-font-family-mono);
+  font-family: inherit;
   font-size: 11px;
+  line-height: 1.5;
   color: var(--vp-c-text-1);
   white-space: pre-wrap;
   word-break: break-all;
@@ -249,11 +342,23 @@ async function copyResponse() {
   outline: none;
 }
 
-.rw-http-note {
-  padding: 4px 8px;
+/* Security Note */
+.rw-defense-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
   background: var(--vp-c-bg-alt);
   border-top: 1px solid var(--vp-c-divider);
   font-size: 10.5px;
   color: var(--vp-c-text-2);
+}
+
+.rw-dn-icon {
+  font-size: 11px;
+}
+
+.rw-dn-text {
+  line-height: 1.35;
 }
 </style>

@@ -92,6 +92,44 @@ const quickStartSnippets = computed(() => ({
     { filename: 'Docker CLI', lang: 'bash', code: quick_cli.cleanCode, html: quick_cli.html, hasDiff: false },
   ]
 }))
+
+const pipeline_diagram = buildSnippet({
+  lang: 'text',
+  code: `[ Inbound Client Connection ]
+               │
+               ▼
+[ Stage 1: Connection Limits ] ────► Drops if service is over capacity
+               │
+               ▼
+[ Stage 2: Failure Tracker   ] ────► Drops or tarpits banned brute-force IPs
+               │
+               ▼
+[ Stage 3: CrowdSec Sync (Opt) ] ────► Blocks globally known malicious IPs (if enabled)
+               │
+               ▼
+[ Stage 4: Subnet Filtering  ] ────► Enforces allow / deny CIDR lists (e.g. VPN only)
+               │
+               ▼
+[ Stage 5: Geo-Blocking      ] ────► Blocks traffic from restricted countries
+               │
+               ▼
+[ Stage 6: Rate Limiting     ] ────► Throttles connection bursts per client IP
+               │
+               ▼
+[ Stage 7: Protocol Engine   ] ────► Inspects protocol payloads & commands
+               │                     (SSH, SMTP, Postgres, Redis, etc.)
+               ▼
+[ Stage 8: Audit Log & SSE   ] ────► Emits structured JSONL logs & live alerts
+               │
+               ▼
+[ Forward to Upstream Server ]`,
+})
+
+const pipelineDiagramSnippets = computed(() => ({
+  tcp: [
+    { filename: '8-Stage Security Pipeline', lang: 'text', code: pipeline_diagram.cleanCode, html: pipeline_diagram.html, hasDiff: false },
+  ],
+}))
 </script>
 
 # TCP Warden
@@ -145,36 +183,7 @@ Most reverse proxies (like Traefik, Caddy, or NGINX) are built to protect web tr
 
 Whenever a client connects, TCP Warden passes the socket through an **8-stage security pipeline**. If a connection violates any rule, it is dropped or redirected to a high-latency tarpit before consuming backend resources:
 
-```
-[ Inbound Client Connection ]
-               │
-               ▼
-[ Stage 1: Connection Limits ] ────► Drops if service is over capacity
-               │
-               ▼
-[ Stage 2: Failure Tracker   ] ────► Drops or tarpits banned brute-force IPs
-               │
-               ▼
-[ Stage 3: CrowdSec Sync (Opt) ] ────► Blocks globally known malicious IPs (if enabled)
-               │
-               ▼
-[ Stage 4: Subnet Filtering  ] ────► Enforces allow / deny CIDR lists (e.g. VPN only)
-               │
-               ▼
-[ Stage 5: Geo-Blocking      ] ────► Blocks traffic from restricted countries
-               │
-               ▼
-[ Stage 6: Rate Limiting     ] ────► Throttles connection bursts per client IP
-               │
-               ▼
-[ Stage 7: Protocol Engine   ] ────► Inspects protocol payloads & commands
-               │                     (SSH, SMTP, Postgres, Redis, etc.)
-               ▼
-[ Stage 8: Audit Log & SSE   ] ────► Emits structured JSONL logs & live alerts
-               │
-               ▼
-[ Forward to Upstream Server ]
-```
+<CodeViewer :snippets="pipelineDiagramSnippets" />
 
 ### Pipeline Stages Explained
 

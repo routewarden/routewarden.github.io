@@ -154,21 +154,10 @@ const composeCompanionSnippets = computed(() => ({
     { filename: 'docker-compose.yml (Remote Edge Companion)', lang: 'yaml', code: compose_companion.cleanCode, html: compose_companion.html, hasDiff: false },
   ],
 }))
-</script>
 
-# Distributed Remote Streaming
-
-RouteWarden supports a distributed agent model inspired by CrowdSec. You can deploy reverse proxies (Traefik, Caddy, NGINX) across multiple edge nodes, cloud virtual machines, and Kubernetes clusters, and stream their live security telemetry to a central RouteWarden dashboard.
-
-> [!TIP]
-> **Dedicated Guide Available**: For the comprehensive multi-page guide covering architecture, key generation, enrollment, daemons, and cryptography, visit the [Remote Monitoring & Log Streaming Guide](/cli/remote/).
-
----
-
-## Architecture Overview
-
-```text
-┌──────────────────────────────────────┐       ┌──────────────────────────────────────┐
+const arch_diagram = buildSnippet({
+  lang: 'text',
+  code: `┌──────────────────────────────────────┐       ┌──────────────────────────────────────┐
 │        Remote Server A (Edge)        │       │        Remote Server B (Cloud)       │
 │  [Traefik / Caddy / NGINX Container] │       │  [Traefik / Caddy / NGINX Container] │
 │                   │                  │       │                   │                  │
@@ -186,8 +175,28 @@ RouteWarden supports a distributed agent model inspired by CrowdSec. You can dep
     │  • Appends events to RouteWarden SOC engine & SSE stream                    │
     │  • Live Header Status Ribbon:                                               │
     │    🟢 [🐳 local-gateway] [🌐 edge-prod-01 (198.51.100.4)] [🌐 cloud-node]  │
-    └─────────────────────────────────────────────────────────────────────────────┘
-```
+    └─────────────────────────────────────────────────────────────────────────────┘`,
+})
+
+const archDiagramSnippets = computed(() => ({
+  cli: [
+    { filename: 'Streaming Topology', lang: 'text', code: arch_diagram.cleanCode, html: arch_diagram.html, hasDiff: false },
+  ],
+}))
+</script>
+
+# Distributed Remote Streaming
+
+RouteWarden supports a distributed agent model inspired by CrowdSec. You can deploy reverse proxies (Traefik, Caddy, NGINX) across multiple edge nodes, cloud virtual machines, and Kubernetes clusters, and stream their live security telemetry to a central RouteWarden dashboard.
+
+> [!TIP]
+> **Dedicated Guide Available**: For the comprehensive multi-page guide covering architecture, key generation, enrollment, daemons, and cryptography, visit the [Remote Monitoring & Log Streaming Guide](/cli/remote/).
+
+---
+
+## Architecture Overview
+
+<CodeViewer :snippets="archDiagramSnippets" />
 
 ### Key Security Features
 1. **Asymmetric End-to-End Encryption**: The central server holds the master X25519 private key. Each batch is encrypted by the client using an ephemeral X25519 keypair and AES-256-GCM. Logs cannot be inspected by intermediate proxies or network observers.

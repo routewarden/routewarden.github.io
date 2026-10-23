@@ -83,6 +83,27 @@ const customConfigSnippets = computed(() => ({
     { filename: 'Custom Config (--config)', lang: 'bash', code: custom_cfg_cmd.cleanCode, html: custom_cfg_cmd.html, hasDiff: false },
   ],
 }))
+
+const handshake_flow = buildSnippet({
+  lang: 'text',
+  code: `[ Remote Host ]                                         [ Central Dashboard ]
+       │                                                         │
+       │   POST /api/v1/register (Authorization: Bearer <key>)   │
+       ├────────────────────────────────────────────────────────►│
+       │                                                         │ 1. Validate SHA-256(token)
+       │                                                         │ 2. Check revocation status
+       │                                                         │ 3. Fetch server public key
+       │   200 OK { agent_id, agent_name, public_key }           │
+       │◄────────────────────────────────────────────────────────┤
+       │                                                         │
+  Save ~/.routewarden/agent.json (0600)                          │`,
+})
+
+const handshakeFlowSnippets = computed(() => ({
+  cli: [
+    { filename: 'Enrollment Handshake Flow', lang: 'text', code: handshake_flow.cleanCode, html: handshake_flow.html, hasDiff: false },
+  ],
+}))
 </script>
 
 # Remote Agent Enrollment (`rwarden register`)
@@ -107,19 +128,7 @@ Output:
 
 ## 2. What Happens During Registration?
 
-```text
-[ Remote Host ]                                         [ Central Dashboard ]
-       │                                                         │
-       │   POST /api/v1/register (Authorization: Bearer <key>)   │
-       ├────────────────────────────────────────────────────────►│
-       │                                                         │ 1. Validate SHA-256(token)
-       │                                                         │ 2. Check revocation status
-       │                                                         │ 3. Fetch server public key
-       │   200 OK { agent_id, agent_name, public_key }           │
-       │◄────────────────────────────────────────────────────────┤
-       │                                                         │
-  Save ~/.routewarden/agent.json (0600)                          │
-```
+<CodeViewer :snippets="handshakeFlowSnippets" />
 
 1. **Authentication**: The client sends an HTTP POST request to `/api/v1/register` containing your agent secret key in the `Authorization: Bearer` header.
 2. **Server Verification**: The central dashboard computes the SHA-256 hash of the received token and matches it against `api_keys.json`.

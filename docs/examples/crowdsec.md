@@ -549,15 +549,24 @@ const verificationSnippets = computed(() => ({
     { filename: 'routewarden_block.json', lang: 'json', code: structuredAuditEvent.cleanCode, html: structuredAuditEvent.html, hasDiff: false },
   ],
 }))
+
+const flowBanner = buildSnippet({
+  lang: 'text',
+  code: `Attacker Probes /.env ──► RouteWarden Blocks & Emits JSON ──► CrowdSec Parses & Bans Attacker IP`,
+})
+
+const flowBannerSnippets = computed(() => ({
+  traefik: [
+    { filename: 'Defense Pipeline Flow', lang: 'text', code: flowBanner.cleanCode, html: flowBanner.html, hasDiff: false },
+  ],
+}))
 </script>
 
 # CrowdSec Integration & Security Logging
 
 Connect RouteWarden to [CrowdSec](https://crowdsec.net/) to automatically turn blocked reconnaissance scans into immediate firewall bans across your entire infrastructure.
 
-```
-Attacker Probes /.env ──► RouteWarden Blocks & Emits JSON ──► CrowdSec Parses & Bans Attacker IP
-```
+<CodeViewer :snippets="flowBannerSnippets" />
 
 ---
 
