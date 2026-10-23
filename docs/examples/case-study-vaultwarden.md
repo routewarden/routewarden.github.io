@@ -151,71 +151,11 @@ http {
   "response": {
     "mode": "json",
     "statusCode": 404,
-    "body": "{\\"error\\":\\"Not Found\\",\\"message\\":\\"The requested resource was not found\\"}"
+    "body": "{\"error\":\"Not Found\",\"message\":\"The requested resource was not found\"}"
   }
 }` }),
-}
 
-const snippets = computed(() => ({
-  traefik: [
-    { filename: 'traefik.yaml', lang: 'yaml', code: s.traefik_yaml.cleanCode, html: s.traefik_yaml.html, hasDiff: s.traefik_yaml.hasDiff },
-    { filename: 'traefik.toml', lang: 'toml', code: s.traefik_toml.cleanCode, html: s.traefik_toml.html, hasDiff: s.traefik_toml.hasDiff },
-    { filename: 'docker-compose.yaml', lang: 'docker', code: s.traefik_labels.cleanCode, html: s.traefik_labels.html, hasDiff: s.traefik_labels.hasDiff },
-  ],
-  caddy: [
-    { filename: 'Caddyfile', lang: 'caddy', code: s.caddy.cleanCode, html: s.caddy.html, hasDiff: s.caddy.hasDiff },
-  ],
-  nginx: [
-    { filename: 'nginx.conf', lang: 'nginx', code: s.nginx.cleanCode, html: s.nginx.html, hasDiff: s.nginx.hasDiff },
-  ],
-  cli: [
-    { filename: 'routewarden.json', lang: 'json', code: s.cli.cleanCode, html: s.cli.html, hasDiff: s.cli.hasDiff },
-  ],
-}))
-</script>
-
-# Case Study: Self-Hosted Cloud & Vault Protection (Vaultwarden & Nextcloud)
-
-This case study demonstrates how to secure critical self-hosted services like **Vaultwarden** (Bitwarden-compatible password manager) and **Nextcloud** without interfering with day-to-day mobile synchronization or public file sharing.
-
----
-
-## The Threat Model: Vaultwarden
-
-Vaultwarden is one of the most popular self-hosted password managers. To allow mobile apps and browser extensions to sync passwords, the `/api/*` and `/identity/*` endpoints must be reachable over the internet.
-
-However, the `/admin` portal (which allows creating/deleting accounts, viewing server logs, and changing master secrets) represents an existential security risk if probed by external attackers.
-
-### The Objective
-1. **Public Traffic**: Can reach `/api/*`, `/identity/*`, and the web vault for ordinary password synchronization.
-2. **Admin Portal (`/admin`)**: Fully locked down and invisible (returning `404 Not Found`) unless the connection originates from a trusted internal VPN subnet (e.g., Tailscale `100.64.0.0/10` or WireGuard).
-
----
-
-## Configuration (Traefik, Caddy & NGINX)
-
-<CodeViewer :snippets="snippets" />
-
----
-
-## Advanced Architecture: Public Vaultwarden with "Send Only" Allowed
-
-A common security requirement is exposing **only the Bitwarden Send feature** to public recipients while keeping the rest of the vault (user login, vault sync, ciphers, and admin console) strictly private to your VPN.
-
-### The Challenge with Password-Protected Sends
-When a recipient unlocks a password-protected Send, the client sends a `POST` request to `/identity/connect/token` with `grant_type=send_access`. A full vault login also targets `/identity/connect/token` with `grant_type=password`.
-
-### Solution with Zero-Trust Allowlisting and `check_body`
-Using RouteWarden's allowlisting and request body inspection across Caddy, Traefik, and NGINX:
-1. **Zero-Trust Allowlist (`allow_patterns` / `allowPatterns`)**: Permit strictly public Send viewing (`/api/sends/*`), the token unlock API (`/identity/connect/token`), and frontend static assets.
-2. **Default-Deny Catch-All (`block_patterns` / `blockPatterns`)**: Catch-all regex `(?i)^/.*$` blocks all unlisted routes—including the root path `/`, vault sync, ciphers, and admin panel.
-3. **Payload Inspection (`check_body` & `check_body_patterns`)**: Guard `/identity/connect/token` by blocking `(?i)grant_type=password` while permitting `grant_type=send_access`.
-4. **VPN Subnets (`allowed_ips` / `allowedIps`)**: Trusted Tailscale / WireGuard subnets bypass the catch-all block, retaining full vault access for authorized users.
-
-#### 1. Caddy (`Caddyfile`)
-
-```caddy
-{
+  send_caddy: buildSnippet({ lang: 'caddy', code: `{
     order routewarden before reverse_proxy
 }
 
@@ -247,12 +187,9 @@ vault.example.com {
     }
 
     reverse_proxy vaultwarden:80
-}
-```
+}` }),
 
-#### 2. Traefik (`dynamic.yml`)
-
-```yaml
+  send_traefik_yaml: buildSnippet({ lang: 'yaml', code: `# dynamic.yml
 http:
   middlewares:
     vaultwarden-send-only:
@@ -268,7 +205,7 @@ http:
             - '(?i)^/api/sends(/.*)?$'
             - '(?i)^/identity/connect/token$'
             - '(?i)^/(app|images|fonts|locales|scripts)(/.*)?$'
-            - '(?i)^/(favicon\.ico|manifest\.json)$'
+            - '(?i)^/(favicon\\.ico|manifest\\.json)$'
           # 2. Catch-all: default-deny all other routes (blocks root web vault, sync, ciphers, admin)
           blockPatterns:
             - '(?i)^/.*$'
@@ -288,40 +225,34 @@ http:
 
   routers:
     vault-router:
-      rule: "Host(`vault.example.com`)"
+      rule: "Host(\`vault.example.com\`)"
       entryPoints:
         - websecure
       middlewares:
         - vaultwarden-send-only
-      service: vaultwarden-service
-```
+      service: vaultwarden-service` }),
 
-#### 3. Docker Compose Labels (Traefik)
-
-```yaml
+  send_traefik_labels: buildSnippet({ lang: 'docker', code: `# docker-compose.yml
 services:
   vaultwarden:
     image: vaultwarden/server:latest
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.vault.rule=Host(`vault.example.com`)"
+      - "traefik.http.routers.vault.rule=Host(\`vault.example.com\`)"
       - "traefik.http.routers.vault.entrypoints=websecure"
       - "traefik.http.routers.vault.middlewares=vaultwarden-shield@docker"
       - "traefik.http.middlewares.vaultwarden-shield.plugin.routewarden.enabled=true"
       - "traefik.http.middlewares.vaultwarden-shield.plugin.routewarden.methods=GET,POST"
-      - "traefik.http.middlewares.vaultwarden-shield.plugin.routewarden.allowPatterns=(?i)^/api/sends(/.*)?$,(?i)^/identity/connect/token$,(?i)^/(app|images|fonts|locales|scripts)(/.*)?$,(?i)^/(favicon\\.ico|manifest\\.json)$"
+      - "traefik.http.middlewares.vaultwarden-shield.plugin.routewarden.allowPatterns=(?i)^/api/sends(/.*)?$,(?i)^/identity/connect/token$,(?i)^/(app|images|fonts|locales|scripts)(/.*)?$,(?i)^/(favicon\\\\.ico|manifest\\\\.json)$"
       - "traefik.http.middlewares.vaultwarden-shield.plugin.routewarden.blockPatterns=(?i)^/.*$"
       - "traefik.http.middlewares.vaultwarden-shield.plugin.routewarden.checkBody=true"
       - "traefik.http.middlewares.vaultwarden-shield.plugin.routewarden.checkBodyPatterns=(?i)grant_type=password"
       - "traefik.http.middlewares.vaultwarden-shield.plugin.routewarden.allowedIps=100.64.0.0/10,10.8.0.0/24,127.0.0.1"
       - "traefik.http.middlewares.vaultwarden-shield.plugin.routewarden.response.mode=json"
       - "traefik.http.middlewares.vaultwarden-shield.plugin.routewarden.response.statusCode=404"
-      - "traefik.http.middlewares.vaultwarden-shield.plugin.routewarden.response.body={\"error\":\"Not Found\",\"message\":\"The requested resource was not found\"}"
-```
+      - "traefik.http.middlewares.vaultwarden-shield.plugin.routewarden.response.body={\"error\":\"Not Found\",\"message\":\"The requested resource was not found\"}"` }),
 
-#### 4. NGINX / OpenResty (`nginx.conf`)
-
-```nginx
+  send_nginx: buildSnippet({ lang: 'nginx', code: `# nginx.conf
 http {
     lua_package_path "/usr/local/openresty/site/lualib/?.lua;;";
 
@@ -371,15 +302,9 @@ http {
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         }
     }
-}
-```
+}` }),
 
-#### 5. Testing with RouteWarden CLI (`rwarden`)
-
-Validate rules offline before deploying:
-
-```bash
-# 1. Test public password-protected Send unlock (Allowed)
+  send_cli_test: buildSnippet({ lang: 'bash', code: `# 1. Test public password-protected Send unlock (Allowed)
 rwarden test -c routewarden.json -X POST /identity/connect/token -b "grant_type=send_access"
 
 # 2. Test root web vault access (Blocked by Default-Deny)
@@ -389,8 +314,93 @@ rwarden test -c routewarden.json -X GET /
 rwarden test -c routewarden.json -X POST /identity/connect/token -b "grant_type=password&username=admin"
 
 # 4. Test VPN client bypassing restriction (Allowed)
-rwarden test -c routewarden.json -X POST /identity/connect/token -b "grant_type=password&username=admin" --ip 100.64.1.20
-```
+rwarden test -c routewarden.json -X POST /identity/connect/token -b "grant_type=password&username=admin" --ip 100.64.1.20` }),
+}
+
+const snippets = computed(() => ({
+  traefik: [
+    { filename: 'traefik.yaml', lang: 'yaml', code: s.traefik_yaml.cleanCode, html: s.traefik_yaml.html, hasDiff: s.traefik_yaml.hasDiff },
+    { filename: 'traefik.toml', lang: 'toml', code: s.traefik_toml.cleanCode, html: s.traefik_toml.html, hasDiff: s.traefik_toml.hasDiff },
+    { filename: 'docker-compose.yaml', lang: 'docker', code: s.traefik_labels.cleanCode, html: s.traefik_labels.html, hasDiff: s.traefik_labels.hasDiff },
+  ],
+  caddy: [
+    { filename: 'Caddyfile', lang: 'caddy', code: s.caddy.cleanCode, html: s.caddy.html, hasDiff: s.caddy.hasDiff },
+  ],
+  nginx: [
+    { filename: 'nginx.conf', lang: 'nginx', code: s.nginx.cleanCode, html: s.nginx.html, hasDiff: s.nginx.hasDiff },
+  ],
+  cli: [
+    { filename: 'routewarden.json', lang: 'json', code: s.cli.cleanCode, html: s.cli.html, hasDiff: s.cli.hasDiff },
+  ],
+}))
+
+const sendSnippets = computed(() => ({
+  traefik: [
+    { filename: 'dynamic.yml', lang: 'yaml', code: s.send_traefik_yaml.cleanCode, html: s.send_traefik_yaml.html, hasDiff: s.send_traefik_yaml.hasDiff },
+    { filename: 'docker-compose.yml', lang: 'docker', code: s.send_traefik_labels.cleanCode, html: s.send_traefik_labels.html, hasDiff: s.send_traefik_labels.hasDiff },
+  ],
+  caddy: [
+    { filename: 'Caddyfile', lang: 'caddy', code: s.send_caddy.cleanCode, html: s.send_caddy.html, hasDiff: s.send_caddy.hasDiff },
+  ],
+  nginx: [
+    { filename: 'nginx.conf', lang: 'nginx', code: s.send_nginx.cleanCode, html: s.send_nginx.html, hasDiff: s.send_nginx.hasDiff },
+  ],
+}))
+
+const sendTestSnippets = computed(() => ({
+  cli: [
+    { filename: 'test-commands.sh', lang: 'bash', code: s.send_cli_test.cleanCode, html: s.send_cli_test.html, hasDiff: false },
+  ],
+}))
+</script>
+
+# Case Study: Self-Hosted Cloud & Vault Protection (Vaultwarden & Nextcloud)
+
+This case study demonstrates how to secure critical self-hosted services like **Vaultwarden** (Bitwarden-compatible password manager) and **Nextcloud** without interfering with day-to-day mobile synchronization or public file sharing.
+
+---
+
+## The Threat Model: Vaultwarden
+
+Vaultwarden is one of the most popular self-hosted password managers. To allow mobile apps and browser extensions to sync passwords, the `/api/*` and `/identity/*` endpoints must be reachable over the internet.
+
+However, the `/admin` portal (which allows creating/deleting accounts, viewing server logs, and changing master secrets) represents an existential security risk if probed by external attackers.
+
+### The Objective
+1. **Public Traffic**: Can reach `/api/*`, `/identity/*`, and the web vault for ordinary password synchronization.
+2. **Admin Portal (`/admin`)**: Fully locked down and invisible (returning `404 Not Found`) unless the connection originates from a trusted internal VPN subnet (e.g., Tailscale `100.64.0.0/10` or WireGuard).
+
+---
+
+## Configuration (Traefik, Caddy & NGINX)
+
+<CodeViewer :snippets="snippets" />
+
+---
+
+## Advanced Architecture: Public Vaultwarden with "Send Only" Allowed
+
+A common security requirement is exposing **only the Bitwarden Send feature** to public recipients while keeping the rest of the vault (user login, vault sync, ciphers, and admin console) strictly private to your VPN.
+
+### The Challenge with Password-Protected Sends
+When a recipient unlocks a password-protected Send, the client sends a `POST` request to `/identity/connect/token` with `grant_type=send_access`. A full vault login also targets `/identity/connect/token` with `grant_type=password`.
+
+### Solution with Zero-Trust Allowlisting and `check_body`
+Using RouteWarden's allowlisting and request body inspection across Caddy, Traefik, and NGINX:
+1. **Zero-Trust Allowlist (`allow_patterns` / `allowPatterns`)**: Permit strictly public Send viewing (`/api/sends/*`), the token unlock API (`/identity/connect/token`), and frontend static assets.
+2. **Default-Deny Catch-All (`block_patterns` / `blockPatterns`)**: Catch-all regex `(?i)^/.*$` blocks all unlisted routes—including the root path `/`, vault sync, ciphers, and admin panel.
+3. **Payload Inspection (`check_body` & `check_body_patterns`)**: Guard `/identity/connect/token` by blocking `(?i)grant_type=password` while permitting `grant_type=send_access`.
+4. **VPN Subnets (`allowed_ips` / `allowedIps`)**: Trusted Tailscale / WireGuard subnets bypass the catch-all block, retaining full vault access for authorized users.
+
+#### Gateway Configuration (Traefik, Caddy & NGINX)
+
+<CodeViewer :snippets="sendSnippets" />
+
+#### Testing with RouteWarden CLI (`rwarden`)
+
+Validate rules offline before deploying:
+
+<CodeViewer :snippets="sendTestSnippets" />
 
 #### Verification Matrix
 

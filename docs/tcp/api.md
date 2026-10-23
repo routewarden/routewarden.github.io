@@ -198,6 +198,18 @@ const eventsSnippets = computed(() => ({
     { filename: 'Live Output (SSE)', lang: 'sse', code: events_output.cleanCode, html: events_output.html, hasDiff: false },
   ]
 }))
+
+const unix_socket_cmd = buildSnippet({
+  lang: 'bash',
+  code: `curl --unix-socket /var/run/routewarden/tcp-warden.sock http://localhost/stats
+curl -N --unix-socket /var/run/routewarden/tcp-warden.sock http://localhost/events`,
+})
+
+const unixSocketSnippets = computed(() => ({
+  tcp: [
+    { filename: 'Unix Socket IPC', lang: 'bash', code: unix_socket_cmd.cleanCode, html: unix_socket_cmd.html, hasDiff: false },
+  ],
+}))
 </script>
 
 # HTTP API & Live Events
@@ -213,10 +225,7 @@ Use it to:
 
 ::: tip Unix Domain Socket Support
 For secure local IPC without exposing TCP ports, query the daemon directly via Unix domain socket:
-```bash
-curl --unix-socket /var/run/routewarden/tcp-warden.sock http://localhost/stats
-curl -N --unix-socket /var/run/routewarden/tcp-warden.sock http://localhost/events
-```
+<CodeViewer :snippets="unixSocketSnippets" />
 :::
 
 ::: info Dual Route Prefixes

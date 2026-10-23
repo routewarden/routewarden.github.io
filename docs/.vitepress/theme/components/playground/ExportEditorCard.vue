@@ -24,13 +24,19 @@ const props = defineProps<{
 
 const selectedGateway = defineModel<GatewayId>('selectedGateway', { required: true })
 const snippetFormat = defineModel<string>('snippetFormat', { required: true })
+
+const lineCount = computed(() => {
+  if (!props.rawSnippet) return 0
+  return props.rawSnippet.trim().split('\n').length
+})
 </script>
 
 <template>
   <div class="rw-editor-box">
-    <!-- Header bar: format tabs + Gateway dropdown + Filename badge + copy button -->
+    <!-- Header bar: format tabs + Gateway dropdown + Filename badge -->
     <div class="rw-editor-header">
       <div class="rw-editor-header-left">
+        <span class="rw-editor-brand-tag">CONFIG SNIPPET</span>
         <!-- Underline-style format tabs for the active gateway -->
         <div class="rw-editor-tabs" role="tablist" aria-label="Export format">
           <button
@@ -70,18 +76,30 @@ const snippetFormat = defineModel<string>('snippetFormat', { required: true })
           <span class="rw-fn-dot">●</span>
           {{ formatFilename }}
         </span>
-
-        <!-- Copy button -->
-        <CopyButton
-          :code="rawSnippet"
-          title="Copy generated configuration"
-        />
       </div>
     </div>
 
     <!-- Code panel with syntax highlighting -->
     <div class="rw-editor-body">
       <pre class="rw-export-pre" tabindex="0" title="Generated configuration snippet"><code v-html="highlightedSnippet"></code></pre>
+    </div>
+
+    <!-- Bottom Status Bar -->
+    <div class="rw-editor-footer">
+      <div class="rw-footer-left">
+        <span class="rw-footer-badge">
+          <span class="rw-footer-dot">●</span>
+          <span>READY TO DEPLOY</span>
+        </span>
+        <span class="rw-footer-stats">{{ lineCount }} lines</span>
+      </div>
+
+      <div class="rw-footer-right">
+        <CopyButton
+          :code="rawSnippet"
+          title="Copy generated configuration"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -90,26 +108,29 @@ const snippetFormat = defineModel<string>('snippetFormat', { required: true })
 .rw-editor-box {
   background: var(--vp-c-bg-alt);
   border: 1px solid var(--vp-c-divider);
-  border-radius: 10px;
+  border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .dark .rw-editor-box {
-  background: #0d1322;
+  background: #090c14;
   border-color: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
 .rw-editor-header {
   display: flex;
   align-items: stretch;
   justify-content: space-between;
-  padding: 0 14px;
+  padding: 0 10px;
   background: var(--vp-c-bg-soft);
   border-bottom: 1px solid var(--vp-c-divider);
-  gap: 12px;
-  min-height: 38px;
+  gap: 8px;
+  min-height: 34px;
   flex-wrap: wrap;
 }
 
@@ -121,17 +142,38 @@ const snippetFormat = defineModel<string>('snippetFormat', { required: true })
 .rw-editor-header-left {
   display: flex;
   align-items: stretch;
-  gap: 12px;
+  gap: 8px;
   overflow-x: auto;
   min-width: 0;
+  flex: 1;
+  scrollbar-width: none;
+}
+.rw-editor-header-left::-webkit-scrollbar {
+  display: none;
+}
+
+.rw-editor-brand-tag {
+  font-family: var(--vp-font-family-mono);
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--vp-c-brand-1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  margin-right: 4px;
+  align-self: center;
+  white-space: nowrap;
 }
 
 .rw-editor-header-right {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   flex-shrink: 0;
-  padding: 6px 0;
+  padding: 4px 0;
+  margin-left: auto;
 }
 
 /* Editor underline tabs */
@@ -145,12 +187,12 @@ const snippetFormat = defineModel<string>('snippetFormat', { required: true })
 .rw-editor-tab {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 0 11px;
+  gap: 4px;
+  padding: 0 9px;
   height: 100%;
-  min-height: 38px;
+  min-height: 34px;
   font-family: var(--vp-font-family-mono);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
   color: var(--vp-c-text-3);
   background: transparent;
@@ -177,22 +219,26 @@ const snippetFormat = defineModel<string>('snippetFormat', { required: true })
 }
 
 .dark .rw-editor-tab.active {
-  color: #38bdf8;
-  border-bottom-color: #38bdf8;
+  color: var(--vp-c-brand-1);
+  border-bottom-color: var(--vp-c-brand-1);
+  text-shadow: 0 0 10px rgba(16, 185, 129, 0.35);
 }
 
 /* Editor code body */
 .rw-editor-body {
   overflow-x: auto;
+  overflow-y: auto;
   background: transparent;
+  flex: 1;
+  min-height: 0;
 }
 
 .rw-export-pre {
   margin: 0 !important;
-  padding: 12px 18px !important;
+  padding: 10px 14px !important;
   background: transparent !important;
   font-family: var(--vp-font-family-mono);
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1.5;
   color: var(--vp-c-text-1);
   white-space: pre-wrap;
@@ -205,12 +251,12 @@ const snippetFormat = defineModel<string>('snippetFormat', { required: true })
 /* Filename Label Gateway Differentiation */
 .rw-filename-label {
   font-family: var(--vp-font-family-mono);
-  font-size: 10.5px;
+  font-size: 10px;
   font-weight: 600;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 1.5px 7px;
+  gap: 4px;
+  padding: 1px 6px;
   border-radius: 4px;
   background: var(--vp-c-bg);
   border: 1px solid var(--vp-c-divider);
@@ -218,19 +264,7 @@ const snippetFormat = defineModel<string>('snippetFormat', { required: true })
 }
 
 .rw-fn-dot {
-  font-size: 8px;
-}
-
-.rw-filename-label.fn-json {
-  background: rgba(245, 158, 11, 0.08);
-  border-color: rgba(245, 158, 11, 0.3);
-  color: #d97706;
-}
-.rw-filename-label.fn-json .rw-fn-dot {
-  color: #f59e0b;
-}
-.dark .rw-filename-label.fn-json {
-  color: #fbbf24;
+  font-size: 7px;
 }
 
 .rw-filename-label.fn-caddy {
@@ -238,47 +272,79 @@ const snippetFormat = defineModel<string>('snippetFormat', { required: true })
   border-color: rgba(16, 185, 129, 0.3);
   color: #059669;
 }
-.rw-filename-label.fn-caddy .rw-fn-dot {
-  color: #10b981;
-}
-.dark .rw-filename-label.fn-caddy {
-  color: #34d399;
-}
+.rw-filename-label.fn-caddy .rw-fn-dot { color: #10b981; }
+.dark .rw-filename-label.fn-caddy { color: #34d399; }
 
 .rw-filename-label.fn-nginx {
   background: rgba(16, 185, 129, 0.08);
   border-color: rgba(5, 150, 105, 0.3);
   color: #047857;
 }
-.rw-filename-label.fn-nginx .rw-fn-dot {
-  color: #059669;
-}
-.dark .rw-filename-label.fn-nginx {
-  color: #34d399;
-}
+.rw-filename-label.fn-nginx .rw-fn-dot { color: #059669; }
+.dark .rw-filename-label.fn-nginx { color: #34d399; }
 
 .rw-filename-label.fn-traefik {
   background: rgba(37, 99, 235, 0.08);
   border-color: rgba(37, 99, 235, 0.3);
   color: #2563eb;
 }
-.rw-filename-label.fn-traefik .rw-fn-dot {
-  color: #3b82f6;
-}
-.dark .rw-filename-label.fn-traefik {
-  color: #38bdf8;
-}
+.rw-filename-label.fn-traefik .rw-fn-dot { color: #3b82f6; }
+.dark .rw-filename-label.fn-traefik { color: #38bdf8; }
 
 .rw-filename-label.fn-docker {
   background: rgba(14, 165, 233, 0.08);
   border-color: rgba(14, 165, 233, 0.3);
   color: #0284c7;
 }
-.rw-filename-label.fn-docker .rw-fn-dot {
-  color: #0ea5e9;
+.rw-filename-label.fn-docker .rw-fn-dot { color: #0ea5e9; }
+.dark .rw-filename-label.fn-docker { color: #38bdf8; }
+
+.rw-filename-label.fn-cli {
+  background: rgba(245, 158, 11, 0.08);
+  border-color: rgba(245, 158, 11, 0.3);
+  color: #d97706;
 }
-.dark .rw-filename-label.fn-docker {
-  color: #38bdf8;
+.rw-filename-label.fn-cli .rw-fn-dot { color: #f59e0b; }
+.dark .rw-filename-label.fn-cli { color: #fbbf24; }
+
+/* Bottom Status Bar */
+.rw-editor-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 10px;
+  background: var(--vp-c-bg-soft);
+  border-top: 1px solid var(--vp-c-divider);
+  font-family: var(--vp-font-family-mono);
+  font-size: 10.5px;
+}
+
+.rw-footer-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rw-footer-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 700;
+  font-size: 9px;
+  color: var(--vp-c-brand-1);
+}
+
+.rw-footer-dot {
+  font-size: 7px;
+}
+
+.rw-footer-stats {
+  color: var(--vp-c-text-3);
+}
+
+.rw-footer-right {
+  display: flex;
+  align-items: center;
 }
 </style>
 

@@ -178,6 +178,81 @@ const discoverySnippets = computed(() => ({
     { filename: 'Docker CLI & Direct Target', lang: 'bash', code: discovery_cli.cleanCode, html: discovery_cli.html, hasDiff: false },
   ],
 }))
+
+// ─── 4. REST Storage & Prune API Snippets ──────────────────────────────────
+const storage_req = buildSnippet({
+  lang: 'bash',
+  code: `curl -s http://localhost:7890/api/v1/storage`,
+})
+
+const storage_res = buildSnippet({
+  lang: 'json',
+  code: `{
+  "storage": {
+    "event_count": 24190,
+    "database_size_bytes": 14884864,
+    "database_size_human": "14.2 MB",
+    "oldest_event": "2026-09-22T08:14:00Z",
+    "newest_event": "2026-10-22T04:15:30Z"
+  },
+  "policy": {
+    "retention_period": "720h0m0s",
+    "retention_days": 30,
+    "max_events": 100000,
+    "prune_interval": "1h0m0s",
+    "max_log_size": "50.0 MB",
+    "auto_vacuum": true
+  },
+  "retention": {
+    "retention_period": "720h0m0s",
+    "retention_days": 30,
+    "max_events": 100000,
+    "prune_interval": "1h0m0s",
+    "last_pruned_at": "2026-10-22T04:00:00Z",
+    "last_pruned_count": 342,
+    "total_pruned": 1820
+  },
+  "access_log": {
+    "size_bytes": 4194304,
+    "size_human": "4.0 MB"
+  }
+}`,
+})
+
+const storageApiSnippets = computed(() => ({
+  cli: [
+    { filename: 'HTTP Request', lang: 'bash', code: storage_req.cleanCode, html: storage_req.html, hasDiff: false },
+    { filename: 'response.json', lang: 'json', code: storage_res.cleanCode, html: storage_res.html, hasDiff: false },
+  ],
+}))
+
+const prune_req = buildSnippet({
+  lang: 'bash',
+  code: `curl -s -X POST http://localhost:7890/api/v1/prune`,
+})
+
+const prune_res = buildSnippet({
+  lang: 'json',
+  code: `{
+  "status": "ok",
+  "pruned_events": 342,
+  "timestamp": "2026-10-22T04:20:15Z",
+  "storage": {
+    "event_count": 23848,
+    "database_size_bytes": 12582912,
+    "database_size_human": "12.0 MB",
+    "oldest_event": "2026-09-22T08:14:00Z",
+    "newest_event": "2026-10-22T04:15:30Z"
+  }
+}`,
+})
+
+const pruneApiSnippets = computed(() => ({
+  cli: [
+    { filename: 'HTTP Request', lang: 'bash', code: prune_req.cleanCode, html: prune_req.html, hasDiff: false },
+    { filename: 'response.json', lang: 'json', code: prune_res.cleanCode, html: prune_res.html, hasDiff: false },
+  ],
+}))
 </script>
 
 # Real-Time Security Dashboard (`dashboard`)
@@ -304,67 +379,13 @@ RouteWarden exposes dedicated REST endpoints to inspect telemetry storage metric
 
 Queries live SQLite database file footprint, stored row counts, oldest/newest timestamps, active retention policy, and access log status:
 
-```bash
-curl -s http://localhost:7890/api/v1/storage
-```
-
-**Response Example:**
-```json
-{
-  "storage": {
-    "event_count": 24190,
-    "database_size_bytes": 14884864,
-    "database_size_human": "14.2 MB",
-    "oldest_event": "2026-09-22T08:14:00Z",
-    "newest_event": "2026-10-22T04:15:30Z"
-  },
-  "policy": {
-    "retention_period": "720h0m0s",
-    "retention_days": 30,
-    "max_events": 100000,
-    "prune_interval": "1h0m0s",
-    "max_log_size": "50.0 MB",
-    "auto_vacuum": true
-  },
-  "retention": {
-    "retention_period": "720h0m0s",
-    "retention_days": 30,
-    "max_events": 100000,
-    "prune_interval": "1h0m0s",
-    "last_pruned_at": "2026-10-22T04:00:00Z",
-    "last_pruned_count": 342,
-    "total_pruned": 1820
-  },
-  "access_log": {
-    "size_bytes": 4194304,
-    "size_human": "4.0 MB"
-  }
-}
-```
+<CodeViewer :snippets="storageApiSnippets" />
 
 ### 2. Trigger On-Demand Pruning & Compacting (`POST /api/v1/prune`)
 
 Executes an immediate prune pass according to configured retention and maximum event capacity, followed by a SQLite `VACUUM` to compact database pages:
 
-```bash
-curl -s -X POST http://localhost:7890/api/v1/prune
-```
-
-**Response Example:**
-```json
-{
-  "status": "ok",
-  "pruned_events": 342,
-  "timestamp": "2026-10-22T04:20:15Z",
-  "storage": {
-    "event_count": 23848,
-    "database_size_bytes": 12582912,
-    "database_size_human": "12.0 MB",
-    "oldest_event": "2026-09-22T08:14:00Z",
-    "newest_event": "2026-10-22T04:15:30Z"
-  }
-}
-```
+<CodeViewer :snippets="pruneApiSnippets" />
 
 ---
 

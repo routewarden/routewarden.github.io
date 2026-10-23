@@ -115,6 +115,22 @@ const verifySnippets = computed(() => ({
     { filename: 'Live Events (SSE)', lang: 'bash', code: verify_events.cleanCode, html: verify_events.html, hasDiff: verify_events.hasDiff },
   ]
 }))
+
+const status_output = buildSnippet({
+  lang: 'text',
+  code: `🛡️  TCP Warden Daemon Status (http://127.0.0.1:9091)
+----------------------------------------------------------------------
+SERVICE        PROTOCOL   ACTIVE CONNS   TOTAL ALLOWED   TOTAL BLOCKED
+----------------------------------------------------------------------
+ssh            ssh        0              12              1
+smtp           smtp       0              5               0`,
+})
+
+const statusOutputSnippets = computed(() => ({
+  tcp: [
+    { filename: 'Daemon Status Output', lang: 'text', code: status_output.cleanCode, html: status_output.html, hasDiff: false },
+  ],
+}))
 </script>
 
 # Getting Started with TCP Warden
@@ -148,14 +164,8 @@ TCP Warden exposes an HTTP management endpoint on port `9091` (configurable via 
 <CodeViewer :snippets="verifySnippets" />
 
 Output of `rwarden tcp status` (or `tcp-warden status`):
-```
-🛡️  TCP Warden Daemon Status (http://127.0.0.1:9091)
-----------------------------------------------------------------------
-SERVICE        PROTOCOL   ACTIVE CONNS   TOTAL ALLOWED   TOTAL BLOCKED
-----------------------------------------------------------------------
-ssh            ssh        0              12              1
-smtp           smtp       0              5               0
-```
+
+<CodeViewer :snippets="statusOutputSnippets" />
 
 ---
 

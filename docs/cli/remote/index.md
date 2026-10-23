@@ -57,14 +57,10 @@ const step3Snippets = computed(() => ({
     { filename: 'Remote Node Shipper', lang: 'bash', code: step3_cmd.cleanCode, html: step3_cmd.html, hasDiff: false },
   ],
 }))
-</script>
 
-# Remote Monitoring & Log Streaming
-
-RouteWarden features a distributed agent model inspired by CrowdSec. Rather than requiring heavy collectors (like Fluentd, Vector, or Logstash) that consume 200MB+ RAM and wear out edge flash storage, `rwarden` provides a native, ultra-lightweight distributed telemetry pipeline:
-
-```text
-┌──────────────────────────────────────┐       ┌──────────────────────────────────────┐
+const arch_diagram = buildSnippet({
+  lang: 'text',
+  code: `┌──────────────────────────────────────┐       ┌──────────────────────────────────────┐
 │        Remote Server A (Edge)        │       │        Remote Server B (Cloud)       │
 │  [Traefik / Caddy / NGINX Container] │       │  [Traefik / Caddy / NGINX Container] │
 │                   │                  │       │                   │                  │
@@ -82,8 +78,21 @@ RouteWarden features a distributed agent model inspired by CrowdSec. Rather than
     │  • Appends events to RouteWarden SOC engine & SSE stream                    │
     │  • Live Header Status Ribbon:                                               │
     │    🟢 [🐳 local-gateway] [🌐 edge-prod-01 (198.51.100.4)] [🌐 cloud-node]  │
-    └─────────────────────────────────────────────────────────────────────────────┘
-```
+    └─────────────────────────────────────────────────────────────────────────────┘`,
+})
+
+const archDiagramSnippets = computed(() => ({
+  cli: [
+    { filename: 'Streaming Topology', lang: 'text', code: arch_diagram.cleanCode, html: arch_diagram.html, hasDiff: false },
+  ],
+}))
+</script>
+
+# Remote Monitoring & Log Streaming
+
+RouteWarden features a distributed agent model inspired by CrowdSec. Rather than requiring heavy collectors (like Fluentd, Vector, or Logstash) that consume 200MB+ RAM and wear out edge flash storage, `rwarden` provides a native, ultra-lightweight distributed telemetry pipeline:
+
+<CodeViewer :snippets="archDiagramSnippets" />
 
 ---
 

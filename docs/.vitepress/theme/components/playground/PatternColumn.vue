@@ -24,109 +24,144 @@ const isBlock = computed(() => props.theme === 'block')
 
 <template>
   <div
-    class="rw-block rw-pattern-col"
-    :class="isBlock ? 'rw-pattern-block-col' : 'rw-pattern-allow-col'"
+    class="rw-pattern-panel"
+    :class="isBlock ? 'panel-block' : 'panel-allow'"
   >
-    <div class="rw-row-header">
-      <div class="rw-header-title-group">
-        <span
-          class="rw-title"
-          :class="isBlock ? 'rw-title-block' : 'rw-title-allow'"
-        >
-          {{ isBlock ? 'Block Patterns' : 'Allow Patterns' }}
-          (<code>{{ isBlock ? 'blockPatterns' : 'allowPatterns' }}</code>)
+    <!-- Header: Title + Config Key + Counter -->
+    <div class="rw-panel-header">
+      <div class="rw-header-left">
+        <span class="rw-header-icon" aria-hidden="true">{{ isBlock ? '🚫' : '🛡️' }}</span>
+        <span class="rw-header-title">
+          {{ isBlock ? 'Blocklist Rules' : 'Allowlist Rules' }}
         </span>
+        <code class="rw-config-key">{{ isBlock ? 'blockPatterns' : 'allowPatterns' }}</code>
+      </div>
+
+      <div class="rw-header-right">
         <span
-          v-if="patterns.length"
-          class="rw-count"
-          :class="isBlock ? 'red' : 'green'"
+          class="rw-rule-counter"
+          :class="patterns.length > 0 ? (isBlock ? 'counter-red' : 'counter-green') : 'counter-empty'"
         >
-          {{ patterns.length }}
+          {{ patterns.length }} {{ patterns.length === 1 ? 'rule' : 'rules' }}
         </span>
       </div>
     </div>
 
-    <!-- Clean Input with Regex / From URL & Add -->
+    <!-- Inline Add Bar -->
     <form
-      class="rw-inline-add"
-      :class="isBlock ? 'rw-inline-add-block' : 'rw-inline-add-allow'"
+      class="rw-add-form"
       @submit.prevent="emit('add')"
     >
-      <input
-        v-model="newPatternInput"
-        :placeholder="placeholder"
-        autocomplete="off"
-        spellcheck="false"
-      />
-      <button
-        type="button"
-        class="rw-btn-regex-act"
-        :class="[
-          { active: regexGenerated },
-          isBlock ? '' : 'green'
-        ]"
-        :disabled="isRegexDisabled"
-        :title="newPatternInput.trim() ? 'Convert pattern to RE2 regex' : 'Generate regex from URL input above'"
-        @click="emit('generate-regex')"
-      >
-        {{ regexGenerated ? 'Regex' : (newPatternInput.trim() ? 'To Regex' : 'From URL') }}
-      </button>
+      <div class="rw-add-input-wrap">
+        <input
+          v-model="newPatternInput"
+          :placeholder="placeholder"
+          class="rw-pattern-input"
+          autocomplete="off"
+          spellcheck="false"
+          :aria-label="isBlock ? 'New block pattern' : 'New allow pattern'"
+        />
+        <button
+          type="button"
+          class="rw-btn-re2"
+          :class="[
+            { active: regexGenerated },
+            isBlock ? 're2-red' : 're2-green'
+          ]"
+          :disabled="isRegexDisabled"
+          :title="newPatternInput.trim() ? 'Compile pattern to RE2 regex' : 'Compile regex from the current test URL path'"
+          @click="emit('generate-regex')"
+        >
+          <span class="rw-re2-icon">{{ regexGenerated ? '✓' : '⚡' }}</span>
+          <span>{{ regexGenerated ? 'Compiled' : (newPatternInput.trim() ? 'To RE2' : 'From URL') }}</span>
+        </button>
+      </div>
+
       <button
         type="submit"
-        :class="isBlock ? 'rw-btn-add-block' : 'rw-btn-add-allow'"
+        class="rw-btn-add"
+        :class="isBlock ? 'btn-add-block' : 'btn-add-allow'"
         :disabled="!newPatternInput.trim()"
       >
         + Add
       </button>
     </form>
 
-    <!-- Active Pattern Chips with Interactive Match Highlighting -->
-    <div v-if="patterns.length > 0" class="rw-chips">
-      <span
+    <!-- Pattern Chips List -->
+    <div v-if="patterns.length > 0" class="rw-chips-grid">
+      <div
         v-for="(p, i) in patterns"
         :key="i"
-        class="rw-chip"
+        class="rw-rule-chip"
         :class="[
-          isBlock ? 'red' : 'green',
-          isBlock ? { 'chip-matched': patternMatchesTest(p) } : { 'chip-matched-green': patternMatchesTest(p) }
+          isBlock ? 'chip-block' : 'chip-allow',
+          { 'is-matched': patternMatchesTest(p) }
         ]"
-        :title="patternMatchesTest(p) ? 'Matches the current test URL above!' : ''"
+        :title="patternMatchesTest(p) ? 'Matches the current test URL!' : ''"
       >
         <span
           v-if="patternMatchesTest(p)"
-          class="rw-match-dot"
+          class="rw-matched-indicator"
           :class="{ green: !isBlock }"
-        >●</span>
-        <code>{{ p }}</code>
-        <button type="button" title="Remove pattern" @click="emit('remove', i)">✕</button>
+        >
+          ● MATCHED
+        </span>
+        <code class="rw-chip-text">{{ p }}</code>
+        <button
+          type="button"
+          class="rw-btn-del-chip"
+          title="Remove rule"
+          @click="emit('remove', i)"
+        >✕</button>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div v-else class="rw-empty-notice">
+      <span class="rw-en-icon">ℹ</span>
+      <span>
+        {{ isBlock
+          ? 'No custom block rules. Built-in sensitive files (.env, .git, *.sql) are active.'
+          : 'No allowlist overrides. Requests pass through to standard blocklist inspection.'
+        }}
       </span>
     </div>
   </div>
 </template>
 
 <style scoped>
-.rw-block {
+.rw-pattern-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  background: var(--vp-c-bg-soft);
   border: 1px solid var(--vp-c-divider);
   border-radius: 8px;
-  background: var(--vp-c-bg-soft);
-  padding: 0.75rem 0.85rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.rw-pattern-col {
-  height: 100%;
-  min-width: 0;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  padding: 0.65rem 0.75rem;
   transition: all 0.2s ease;
-  overflow: hidden;
+  min-width: 0;
 }
 
-.rw-row-header {
+.panel-block {
+  border-color: rgba(239, 68, 68, 0.25);
+  background: rgba(239, 68, 68, 0.02);
+}
+.dark .panel-block {
+  border-color: rgba(239, 68, 68, 0.25);
+  background: rgba(239, 68, 68, 0.04);
+}
+
+.panel-allow {
+  border-color: rgba(16, 185, 129, 0.25);
+  background: rgba(16, 185, 129, 0.02);
+}
+.dark .panel-allow {
+  border-color: rgba(16, 185, 129, 0.25);
+  background: rgba(16, 185, 129, 0.04);
+}
+
+/* Header */
+.rw-panel-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -134,216 +169,282 @@ const isBlock = computed(() => props.theme === 'block')
   flex-wrap: wrap;
 }
 
-.rw-header-title-group {
+.rw-header-left {
   display: flex;
   align-items: center;
   gap: 0.4rem;
+  min-width: 0;
 }
 
-.rw-title {
+.rw-header-icon {
   font-size: 12px;
-  font-weight: 600;
-  color: var(--vp-c-text-1);
 }
 
-.rw-count {
+.rw-header-title {
+  font-family: var(--vp-font-family-mono);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+.panel-block .rw-header-title { color: #dc2626; }
+.dark .panel-block .rw-header-title { color: #f87171; }
+.panel-allow .rw-header-title { color: #059669; }
+.dark .panel-allow .rw-header-title { color: #34d399; }
+
+.rw-config-key {
+  font-family: var(--vp-font-family-mono);
+  font-size: 10px;
+  color: var(--vp-c-text-3);
+  background: var(--vp-c-bg);
+  padding: 1px 4px;
+  border-radius: 3px;
+  border: 1px solid var(--vp-c-divider);
+}
+
+.rw-rule-counter {
+  font-family: var(--vp-font-family-mono);
   font-size: 10px;
   font-weight: 700;
-  padding: 1px 5px;
+  padding: 1px 6px;
   border-radius: 10px;
 }
-.rw-count.red { background: rgba(239,68,68,0.12); color: #dc2626; }
-.dark .rw-count.red { color: #f87171; }
-.rw-count.green { background: rgba(16,185,129,0.12); color: #059669; }
-.dark .rw-count.green { color: #34d399; }
-
-/* Block column styles */
-.rw-pattern-block-col {
-  border-color: rgba(239, 68, 68, 0.32) !important;
-  background: rgba(239, 68, 68, 0.02) !important;
+.counter-red {
+  background: rgba(239, 68, 68, 0.12);
+  color: #dc2626;
 }
-.dark .rw-pattern-block-col {
-  border-color: rgba(248, 113, 113, 0.32) !important;
-  background: rgba(239, 68, 68, 0.05) !important;
+.dark .counter-red {
+  color: #f87171;
 }
-
-.rw-title-block {
-  color: #dc2626 !important;
-  font-weight: 700;
+.counter-green {
+  background: rgba(16, 185, 129, 0.12);
+  color: #059669;
 }
-.dark .rw-title-block {
-  color: #f87171 !important;
+.dark .counter-green {
+  color: #34d399;
+}
+.counter-empty {
+  background: var(--vp-c-bg-alt);
+  color: var(--vp-c-text-3);
 }
 
-/* Allow column styles */
-.rw-pattern-allow-col {
-  border-color: rgba(16, 185, 129, 0.32) !important;
-  background: rgba(16, 185, 129, 0.02) !important;
-}
-.dark .rw-pattern-allow-col {
-  border-color: rgba(52, 211, 153, 0.32) !important;
-  background: rgba(16, 185, 129, 0.05) !important;
-}
-
-.rw-title-allow {
-  color: #059669 !important;
-  font-weight: 700;
-}
-.dark .rw-title-allow {
-  color: #34d399 !important;
-}
-
-.rw-inline-add {
+/* Inline Add Form */
+.rw-add-form {
   display: flex;
   align-items: center;
   gap: 0.35rem;
 }
-.rw-inline-add input {
+
+.rw-add-input-wrap {
+  display: flex;
+  align-items: center;
   flex: 1;
   min-width: 0;
-  padding: 4px 7px;
+  background: var(--vp-c-bg);
   border: 1px solid var(--vp-c-divider);
   border-radius: 4px;
-  background: var(--vp-c-bg);
-  color: var(--vp-c-text-1);
-  font-family: var(--vp-font-family-mono);
-  font-size: 11.5px;
-  outline: none;
+  padding: 2px 4px;
   transition: all 0.15s ease;
 }
 
-.rw-inline-add-block input:focus {
-  border-color: #ef4444 !important;
-  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.15);
+.panel-block .rw-add-input-wrap:focus-within {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.12);
 }
-.rw-inline-add-allow input:focus {
-  border-color: #10b981 !important;
-  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.15);
+.panel-allow .rw-add-input-wrap:focus-within {
+  border-color: #10b981;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.12);
 }
 
-.rw-btn-regex-act {
+.rw-pattern-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: var(--vp-font-family-mono);
+  font-size: 11.5px;
+  color: var(--vp-c-text-1);
+  padding: 3px 4px;
+}
+.rw-pattern-input::placeholder {
+  color: var(--vp-c-text-3);
+  opacity: 0.6;
+}
+
+.rw-btn-re2 {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-family: var(--vp-font-family-mono);
   font-size: 10px;
   font-weight: 600;
-  padding: 4px 7px;
-  border-radius: 4px;
+  padding: 2px 6px;
+  border-radius: 3px;
   border: 1px solid var(--vp-c-divider);
-  background: var(--vp-c-bg);
+  background: var(--vp-c-bg-alt);
   color: var(--vp-c-text-2);
   cursor: pointer;
   white-space: nowrap;
   transition: all 0.15s ease;
 }
-.rw-btn-regex-act:hover:not(:disabled) {
+.rw-btn-re2:hover:not(:disabled) {
   border-color: var(--vp-c-brand-1);
   color: var(--vp-c-brand-1);
 }
-.rw-btn-regex-act.active {
-  background: var(--vp-c-brand-soft);
-  border-color: var(--vp-c-brand-1);
-  color: var(--vp-c-brand-1);
+.rw-btn-re2.active {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: #10b981;
+  color: #10b981;
 }
-.rw-btn-regex-act:disabled {
+.rw-btn-re2:disabled {
   opacity: 0.45;
   cursor: not-allowed;
 }
 
-.rw-btn-add-block, .rw-btn-add-allow {
+.rw-btn-add {
+  font-family: var(--vp-font-family-mono);
   font-size: 11px;
-  font-weight: 600;
-  padding: 4px 9px;
+  font-weight: 700;
+  padding: 4px 10px;
   border-radius: 4px;
   border: none;
   color: #fff;
   cursor: pointer;
   white-space: nowrap;
-  transition: filter 0.15s ease;
-}
-.rw-btn-add-block {
-  background: #dc2626 !important;
-}
-.rw-btn-add-block:hover:not(:disabled) {
-  filter: brightness(1.1);
-}
-.dark .rw-btn-add-block {
-  background: #ef4444 !important;
+  transition: filter 0.15s ease, opacity 0.15s ease;
 }
 
-.rw-btn-add-allow {
-  background: #059669 !important;
+.btn-add-block {
+  background: #dc2626;
 }
-.rw-btn-add-allow:hover:not(:disabled) {
+.dark .btn-add-block {
+  background: #ef4444;
+}
+.btn-add-block:hover:not(:disabled) {
   filter: brightness(1.1);
 }
-.dark .rw-btn-add-allow {
-  background: #10b981 !important;
+
+.btn-add-allow {
+  background: #059669;
+}
+.dark .btn-add-allow {
+  background: #10b981;
+}
+.btn-add-allow:hover:not(:disabled) {
+  filter: brightness(1.1);
 }
 
-.rw-btn-add-block:disabled, .rw-btn-add-allow:disabled {
-  opacity: 0.5;
+.rw-btn-add:disabled {
+  opacity: 0.45;
   cursor: not-allowed;
 }
 
-.rw-chips {
+/* Pattern Chips Grid */
+.rw-chips-grid {
   display: flex;
   flex-wrap: wrap;
   gap: 0.35rem;
+  margin-top: 0.15rem;
 }
 
-.rw-chip {
+.rw-rule-chip {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 2px 6px;
+  gap: 5px;
+  padding: 2px 7px;
   border-radius: 4px;
-  font-size: 11px;
-  border: 1px solid var(--vp-c-divider);
-  background: var(--vp-c-bg);
-  transition: all 0.15s ease;
-}
-.rw-chip code {
-  font-size: 10.5px;
   font-family: var(--vp-font-family-mono);
+  font-size: 11px;
+  background: var(--vp-c-bg);
+  border: 1px solid var(--vp-c-divider);
+  transition: all 0.15s ease;
+  max-width: 100%;
 }
-.rw-chip button {
+
+.chip-block {
+  border-color: rgba(239, 68, 68, 0.25);
+  color: #dc2626;
+}
+.dark .chip-block {
+  color: #f87171;
+}
+
+.chip-block.is-matched {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: #ef4444;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
+}
+
+.chip-allow {
+  border-color: rgba(16, 185, 129, 0.25);
+  color: #059669;
+}
+.dark .chip-allow {
+  color: #34d399;
+}
+
+.chip-allow.is-matched {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: #10b981;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+}
+
+.rw-matched-indicator {
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  padding: 0 3px;
+  border-radius: 2px;
+  background: rgba(239, 68, 68, 0.25);
+  color: #dc2626;
+}
+.dark .rw-matched-indicator {
+  color: #fca5a5;
+}
+.rw-matched-indicator.green {
+  background: rgba(16, 185, 129, 0.25);
+  color: #059669;
+}
+.dark .rw-matched-indicator.green {
+  color: #6ee7b7;
+}
+
+.rw-chip-text {
+  font-size: 11px;
+  font-family: inherit;
+  word-break: break-all;
+}
+
+.rw-btn-del-chip {
   background: transparent;
   border: none;
   color: var(--vp-c-text-3);
   font-size: 10px;
   cursor: pointer;
-  padding: 0;
+  padding: 0 2px;
   line-height: 1;
+  transition: color 0.15s ease;
 }
-.rw-chip button:hover {
+.rw-btn-del-chip:hover {
   color: var(--vp-c-text-1);
 }
 
-.rw-chip.red {
-  border-color: rgba(239, 68, 68, 0.25);
-  color: #dc2626;
-}
-.dark .rw-chip.red { color: #f87171; }
-.rw-chip.red.chip-matched {
-  background: rgba(239, 68, 68, 0.12);
-  border-color: #ef4444;
-  box-shadow: 0 0 0 1px #ef4444;
-}
-
-.rw-chip.green {
-  border-color: rgba(16, 185, 129, 0.25);
-  color: #059669;
-}
-.dark .rw-chip.green { color: #34d399; }
-.rw-chip.green.chip-matched-green {
-  background: rgba(16, 185, 129, 0.12);
-  border-color: #10b981;
-  box-shadow: 0 0 0 1px #10b981;
+/* Empty Notice */
+.rw-empty-notice {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--vp-font-family-mono);
+  font-size: 10.5px;
+  color: var(--vp-c-text-3);
+  padding: 4px 6px;
+  background: var(--vp-c-bg);
+  border-radius: 4px;
+  border: 1px dashed var(--vp-c-divider);
 }
 
-.rw-match-dot {
-  font-size: 8px;
-  color: #ef4444;
-}
-.rw-match-dot.green {
-  color: #10b981;
+.rw-en-icon {
+  font-size: 10px;
+  color: var(--vp-c-brand-1);
 }
 </style>

@@ -143,6 +143,19 @@ const selfTestSnippets = computed(() => ({
     { filename: 'plugin.go', lang: 'go', code: selftest_go.cleanCode, html: selftest_go.html, hasDiff: false },
   ]
 }))
+
+const pipe_diagram = buildSnippet({
+  lang: 'text',
+  code: `[ Test Code ] ──(Write)──► clientA ◄═══ net.Pipe() ═══► clientB ──► [ Inspector.Run() ]
+                                                                             │
+[ Test Code ] ◄──(Read)───   upB   ◄═══ net.Pipe() ═══►   upA   ◄────────────┘`,
+})
+
+const pipeSnippets = computed(() => ({
+  tcp: [
+    { filename: 'net.Pipe() Duplex Testing Architecture', lang: 'text', code: pipe_diagram.cleanCode, html: pipe_diagram.html, hasDiff: false },
+  ],
+}))
 </script>
 
 # Plugin Testing & QA
@@ -161,11 +174,7 @@ Go's standard library provides **`net.Pipe()`**, which creates a synchronous, in
 - **Instant Execution**: In-memory pipes transfer bytes in microseconds.
 - **Deterministic**: Network timing, partial reads, and disconnects can be simulated reliably.
 
-```
-[ Test Code ] ──(Write)──► clientA ◄═══ net.Pipe() ═══► clientB ──► [ Inspector.Run() ]
-                                                                             │
-[ Test Code ] ◄──(Read)───   upB   ◄═══ net.Pipe() ═══►   upA   ◄────────────┘
-```
+<CodeViewer :snippets="pipeSnippets" />
 
 ---
 

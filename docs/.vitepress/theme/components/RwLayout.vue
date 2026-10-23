@@ -108,6 +108,24 @@ onUnmounted(() => {
 
 <template>
   <Layout>
+    <!-- Inject the RouteWarden ASCII banner into the home hero info section -->
+    <template #home-hero-info-before>
+      <div class="rw-ascii-hero-wrap" aria-label="RouteWarden ASCII Wordmark">
+        <pre class="rw-ascii-wordmark"><span class="hl">██████╗  ██████╗ ██╗   ██╗████████╗███████╗</span> <span class="sub">██╗    ██╗ █████╗ ██████╗ ██████╗ ███████╗███╗   ██╗</span>
+<span class="hl">██╔══██╗██╔═══██╗██║   ██║╚══██╔══╝██╔════╝</span> <span class="sub">██║    ██║██╔══██╗██╔══██╗██╔══██╗██╔════╝████╗  ██║</span>
+<span class="hl">██████╔╝██║   ██║██║   ██║   ██║   █████╗  </span> <span class="sub">██║ █╗ ██║███████║██████╔╝██║  ██║█████╗  ██╔██╗ ██║</span>
+<span class="hl">██╔══██╗██║   ██║██║   ██║   ██║   ██╔══╝  </span> <span class="sub">██║███╗██║██╔══██║██╔══██╗██║  ██║██╔══╝  ██║╚██╗██║</span>
+<span class="hl">██║  ██║╚██████╔╝╚██████╔╝   ██║   ███████╗</span> <span class="sub">╚███╔███╔╝██║  ██║██║  ██║██████╔╝███████╗██║ ╚████║</span>
+<span class="hl">╚═╝  ╚═╝ ╚═════╝  ╚═════╝    ╚═╝   ╚══════╝</span> <span class="sub"> ╚══╝╚══╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═════╝ ╚══════╝╚═╝  ╚═══╝</span></pre>
+        <div class="rw-ascii-status-line">
+          <span class="rw-tui-prompt">&gt;</span>
+          <span class="rw-tui-tag tag-green">● LIVE DEFENSE</span>
+          <span class="rw-tui-tag">[ L4 SHIELD: ONLINE ]</span>
+          <span class="rw-tui-tag">[ RE2 ENGINE: v5.3.2 ]</span>
+        </div>
+      </div>
+    </template>
+
     <!-- Inject the Playground button into the navbar via the nav-bar-content-after slot -->
     <template #nav-bar-content-after>
       <button
@@ -118,16 +136,8 @@ onUnmounted(() => {
         @click="toggle"
       >
         <span class="rw-pulse-dot" aria-hidden="true"></span>
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="currentColor"
-          class="rw-nav-icon"
-          aria-hidden="true"
-        >
-          <path d="M8 5v14l11-7z" />
-        </svg>
-        <span class="rw-nav-label">Playground</span>
+        <span class="rw-nav-label">[ PLAYGROUND ]</span>
+        <span class="rw-nav-label-mobile">PLAY</span>
       </button>
     </template>
 
@@ -147,8 +157,8 @@ onUnmounted(() => {
           <!-- Panel Header -->
           <div class="rw-panel-header">
             <div class="rw-panel-title-wrap">
-              <div class="rw-panel-badge">INTERACTIVE TOOL</div>
-              <h2 class="rw-panel-title">Pattern &amp; Response Playground</h2>
+              <div class="rw-panel-badge">&gt; TERMINAL SIMULATOR // RE2 ENGINE</div>
+              <h2 class="rw-panel-title">[ Pattern &amp; Response Playground ]</h2>
             </div>
             <button
               type="button"
@@ -174,39 +184,95 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-/* Sleek Modern Accent Playground Pill */
+/* ASCII Wordmark Banner */
+.rw-ascii-hero-wrap {
+  margin: 0 0 16px 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.rw-ascii-hero-wrap::-webkit-scrollbar {
+  display: none;
+}
+
+.rw-ascii-wordmark {
+  font-family: var(--vp-font-family-mono);
+  font-size: clamp(5px, 0.76vw, 9.5px);
+  line-height: 1.15;
+  font-weight: 700;
+  white-space: pre;
+  margin: 0 0 10px 0;
+  color: var(--vp-c-text-1);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.rw-ascii-wordmark .hl {
+  color: var(--vp-c-brand-1);
+  text-shadow: 0 0 10px rgba(16, 185, 129, 0.45);
+}
+
+.rw-ascii-wordmark .sub {
+  color: #22d3ee;
+  text-shadow: 0 0 10px rgba(34, 211, 238, 0.45);
+}
+
+.rw-ascii-status-line {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-family: var(--vp-font-family-mono);
+  font-size: 11px;
+}
+
+.rw-tui-prompt {
+  color: var(--vp-c-brand-1);
+  font-weight: 700;
+}
+
+.rw-tui-tag {
+  background: var(--vp-c-bg-soft);
+  border: 1px solid var(--vp-c-divider);
+  padding: 2px 7px;
+  border-radius: 3px;
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  color: var(--vp-c-text-2);
+}
+
+.rw-tui-tag.tag-green {
+  border-color: rgba(16, 185, 129, 0.35);
+  color: var(--vp-c-brand-1);
+  background: var(--vp-c-brand-soft);
+}
+
+/* Terminal Bracket Nav Trigger Button */
 .rw-nav-trigger {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   margin-left: 10px;
-  padding: 0 12px;
-  height: 32px;
-  border-radius: 16px;
-  background: var(--vp-c-brand-soft);
-  border: 1px solid rgba(99, 102, 241, 0.25);
+  padding: 0 10px;
+  height: 30px;
+  border-radius: 4px;
+  background: var(--vp-c-bg-soft);
+  border: 1px solid var(--vp-c-divider);
   color: var(--vp-c-brand-1);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  font-family: var(--vp-font-family-mono);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.15s ease;
   white-space: nowrap;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-}
-
-.dark .rw-nav-trigger {
-  background: rgba(99, 102, 241, 0.12);
-  border-color: rgba(129, 140, 248, 0.3);
-  color: #a5b4fc;
 }
 
 .rw-nav-trigger:hover {
   background: var(--vp-c-brand-1);
   border-color: var(--vp-c-brand-1);
-  color: #ffffff !important;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.28);
+  color: #070a12 !important;
+  box-shadow: 0 0 12px var(--vp-c-brand-glow);
 }
 
 .rw-nav-trigger:hover .rw-nav-icon {
@@ -250,31 +316,43 @@ onUnmounted(() => {
   }
 }
 
-@media (max-width: 960px) {
+.rw-nav-label-mobile {
+  display: none;
+}
+
+@media (max-width: 960px) and (min-width: 768px) {
+  .rw-nav-trigger {
+    height: 30px;
+    padding: 0 8px;
+    margin-left: 6px;
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 767px) {
   .rw-nav-label {
     display: none;
   }
 
+  .rw-nav-label-mobile {
+    display: inline;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+
   .rw-pulse-dot {
-    display: none;
+    width: 5px;
+    height: 5px;
   }
 
   .rw-nav-trigger {
-    width: 32px;
-    min-width: 32px;
-    height: 32px;
-    padding: 0;
-    justify-content: center;
-    align-items: center;
-    margin-left: 4px;
-    gap: 0;
-    border-radius: 50%;
+    height: 30px;
+    padding: 0 7px;
+    gap: 5px;
+    margin-left: 2px;
+    border-radius: 4px;
     flex-shrink: 0;
-  }
-
-  .rw-nav-icon {
-    width: 11px;
-    height: 11px;
   }
 }
 
@@ -300,7 +378,8 @@ onUnmounted(() => {
   height: 100vh;
   height: 100dvh;
   background: var(--vp-c-bg);
-  box-shadow: -8px 0 40px rgba(0, 0, 0, 0.15);
+  border-left: 1px solid var(--vp-c-divider);
+  box-shadow: -8px 0 40px rgba(0, 0, 0, 0.45);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -332,14 +411,16 @@ onUnmounted(() => {
 }
 
 .rw-panel-badge {
-  font-size: 10px;
+  font-family: var(--rw-font-mono);
+  font-size: 10.5px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.08em;
   color: var(--vp-c-brand-1);
 }
 
 .rw-panel-title {
+  font-family: var(--rw-font-display);
   margin: 0 !important;
   font-size: 1.15rem !important;
   font-weight: 700 !important;

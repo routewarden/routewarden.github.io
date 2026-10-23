@@ -340,6 +340,25 @@ const entrypointSnippets = computed(() => ({
     { filename: 'docker-compose.yml', lang: ep_cli.lang, code: ep_cli.cleanCode, html: ep_cli.html, hasDiff: ep_cli.hasDiff },
   ],
 }))
+
+const localPluginsTree = buildSnippet({
+  lang: 'text',
+  code: `/plugins-local/
+└── src/
+    └── github.com/
+        └── routewarden/
+            └── traefik-warden/
+                ├── .traefik.yml
+                ├── config.go
+                ├── routewarden.go
+                └── ...`,
+})
+
+const localPluginsTreeSnippets = computed(() => ({
+  traefik: [
+    { filename: 'Directory Structure', lang: 'text', code: localPluginsTree.cleanCode, html: localPluginsTree.html, hasDiff: false },
+  ],
+}))
 </script>
 
 # Traefik Warden: Getting Started
@@ -384,17 +403,7 @@ For standard deployments with internet connectivity, Traefik automatically downl
 For **air-gapped networks**, private enterprise environments without internet access, or local development, Traefik can load RouteWarden directly from disk without external downloads using `localPlugins`.
 
 Traefik strictly requires the plugin directory inside the container to match the Go module path under `/plugins-local/src/`:
-```plaintext
-/plugins-local/
-└── src/
-    └── github.com/
-        └── routewarden/
-            └── traefik-warden/
-                ├── .traefik.yml
-                ├── config.go
-                ├── routewarden.go
-                └── ...
-```
+<CodeViewer :snippets="localPluginsTreeSnippets" />
 
 Mount the repository and declare it in your static configuration:
 

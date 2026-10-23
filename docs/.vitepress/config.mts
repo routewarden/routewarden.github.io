@@ -1,6 +1,5 @@
 import { defineConfig } from 'vitepress'
 import versionData from '../version.json' with { type: 'json' }
-import versionsRegistry from '../versions.json' with { type: 'json' }
 
 // Cloudflare Web Analytics token — only set in CI via GitHub Actions secret.
 // When absent (local dev), the beacon script is NOT injected at all to avoid
@@ -140,7 +139,13 @@ export default defineConfig({
   head: [
     ['link', { rel: 'icon', type: 'image/svg+xml', href: '/icon.svg' }],
     ['link', { rel: 'alternate icon', type: 'image/x-icon', href: '/favicon.ico' }],
-    ['meta', { name: 'theme-color', content: '#6366f1' }],
+    ['link', { rel: 'preconnect', href: 'https://fonts.googleapis.com' }],
+    ['link', { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' }],
+    ['link', {
+      rel: 'stylesheet',
+      href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Space+Grotesk:wght@500;600;700&display=swap'
+    }],
+    ['meta', { name: 'theme-color', content: '#10b981' }],
     ['meta', { name: 'author', content: 'RouteWarden Contributors' }],
     ['meta', { name: 'keywords', content: 'traefik, caddy, nginx, openresty, tcp-warden, middleware, security, anti-evasion, ip whitelist, sensitive files, env protection, reverse proxy waf, layer 4 firewall' }],
     ['meta', { property: 'og:type', content: 'website' }],
@@ -170,12 +175,13 @@ export default defineConfig({
     nav: [
       {
         text: 'Gateways',
-        activeMatch: '^/(traefik|caddy|nginx|tcp)/',
+        activeMatch: '^/(traefik|caddy|nginx|tcp|cli)/',
         items: [
           { text: 'TCP Warden (L4 Firewall)', link: '/tcp/' },
           { text: 'Traefik Warden', link: '/traefik/' },
           { text: 'Caddy Warden', link: '/caddy/' },
-          { text: 'NGINX Warden', link: '/nginx/' }
+          { text: 'NGINX Warden', link: '/nginx/' },
+          { text: 'RouteWarden CLI (rwarden)', link: '/cli/' }
         ]
       },
       {
@@ -189,92 +195,64 @@ export default defineConfig({
           { text: 'Production Case Studies', link: '/examples/case-study-immich' },
           { text: 'Common Recipes & Compose', link: '/examples/basic-sensitive-files' },
           { text: 'Interactive Pattern Checker', link: '/tools/pattern-checker' },
-          { text: 'Frequently Asked Questions (FAQ)', link: '/faq' }
-        ]
-      },
-      {
-        text: 'CLI',
-        link: '/cli/',
-        activeMatch: '^/cli/'
-      },
-      {
-        text: 'FAQ',
-        link: '/faq',
-        activeMatch: '^/faq'
-      },
-      {
-        text: versionsRegistry.current,
-        activeMatch: '^/v(0|1)\\.',
-        items: [
-          ...versionsRegistry.versions.map(v => ({ text: v.text, link: v.link })),
-          { text: 'Changelog & Migrations', link: '/core/changelog' },
-          { text: 'Traefik Plugin Catalog', link: 'https://plugins.traefik.io/plugins/6aae41dd5b5ee35d8bd24ca5/route-warden' }
+          { text: 'Frequently Asked Questions (FAQ)', link: '/faq' },
+          { text: 'Changelog & Version History', link: '/core/changelog' }
         ]
       }
     ],
     sidebar: {
       '/tcp/': [
         {
-          text: 'TCP Warden (L4 Proxy & Firewall)',
+          text: 'TCP Warden (L4 Firewall)',
           collapsed: false,
           items: [
             { text: 'Overview & Architecture', link: '/tcp/' },
             { text: 'Getting Started & Docker', link: '/tcp/getting-started' },
             { text: 'Configuration Reference', link: '/tcp/configuration' },
-            { text: 'Log Levels', link: '/tcp/log-levels' },
-            { text: 'Network & Firewall Integrations', link: '/tcp/network-integrations' },
             { text: 'Modular Protocol Plugins', link: '/tcp/plugins' },
-            { text: 'CrowdSec Integration (Optional)', link: '/tcp/crowdsec' },
-            { text: 'FAQ & Comparisons', link: '/tcp/faq' },
+            { text: 'Network & Firewall Integrations', link: '/tcp/network-integrations' },
             { text: 'Management API & SSE', link: '/tcp/api' },
-            { text: 'CLI Commands Reference', link: '/tcp/cli' }
+            { text: 'CLI Commands Reference', link: '/tcp/cli' },
+            { text: 'Log Levels & Telemetry', link: '/tcp/log-levels' },
+            { text: 'CrowdSec Integration', link: '/tcp/crowdsec' },
+            { text: 'FAQ & Comparisons', link: '/tcp/faq' }
           ]
         },
         {
-          text: 'Plugin Development Guide',
-          collapsed: false,
+          text: 'Official Protocol Guards (21)',
+          collapsed: true,
           items: [
-            { text: 'Overview & Quick Start', link: '/tcp/plugin-development/' },
-            { text: 'SDK & Lifecycle Reference', link: '/tcp/plugin-development/sdk-lifecycle' },
-            { text: 'In-Memory Testing & QA', link: '/tcp/plugin-development/testing' },
-            { text: 'Packaging & Publishing', link: '/tcp/plugin-development/publishing' }
-          ]
-        },
-        {
-          text: 'Official Plugins',
-          collapsed: false,
-          items: [
-            { text: 'DNS Guard (UDP & TCP)', link: '/tcp/plugins/dns' },
-            { text: 'BitTorrent Guard (TCP & UDP)', link: '/tcp/plugins/bittorrent' },
             { text: 'SSH Guard', link: '/tcp/plugins/ssh' },
             { text: 'PostgreSQL Guard', link: '/tcp/plugins/postgres' },
             { text: 'MySQL & MariaDB Guard', link: '/tcp/plugins/mysql' },
             { text: 'Redis & Valkey Guard', link: '/tcp/plugins/redis' },
             { text: 'MongoDB Wire Guard', link: '/tcp/plugins/mongodb' },
-            { text: 'HTTP & WebSocket Guard', link: '/tcp/plugins/http' },
             { text: 'TLS SNI Router & Filter', link: '/tcp/plugins/tls-sni' },
+            { text: 'HTTP & WebSocket Guard', link: '/tcp/plugins/http' },
+            { text: 'DNS Guard (UDP & TCP)', link: '/tcp/plugins/dns' },
             { text: 'SMTP Mail Guard', link: '/tcp/plugins/smtp' },
             { text: 'POP3 Mail Guard', link: '/tcp/plugins/pop3' },
             { text: 'IMAP4 Mail Guard', link: '/tcp/plugins/imap' },
-            { text: 'FTP Control Guard', link: '/tcp/plugins/ftp' },
-            { text: 'LDAP & Active Directory', link: '/tcp/plugins/ldap' },
+            { text: 'MQTT IoT Broker Guard', link: '/tcp/plugins/mqtt' },
             { text: 'AMQP & RabbitMQ Guard', link: '/tcp/plugins/amqp' },
             { text: 'Memcached Cache Guard', link: '/tcp/plugins/memcached' },
-            { text: 'MQTT IoT Broker Guard', link: '/tcp/plugins/mqtt' },
             { text: 'VNC Remote Desktop Guard', link: '/tcp/plugins/vnc' },
             { text: 'Minecraft Game Guard', link: '/tcp/plugins/minecraft' },
+            { text: 'BitTorrent Guard (TCP & UDP)', link: '/tcp/plugins/bittorrent' },
+            { text: 'LDAP & Active Directory', link: '/tcp/plugins/ldap' },
+            { text: 'FTP Control Guard', link: '/tcp/plugins/ftp' },
             { text: 'Generic Layer 4 Proxy', link: '/tcp/plugins/generic' },
             { text: 'Echo Stream Filter', link: '/tcp/plugins/echo-filter' }
           ]
         },
         {
-          text: 'Gateways & Ecosystem',
-          collapsed: false,
+          text: 'Plugin Development SDK',
+          collapsed: true,
           items: [
-            { text: 'Traefik Warden', link: '/traefik/' },
-            { text: 'Caddy Warden', link: '/caddy/' },
-            { text: 'NGINX Warden', link: '/nginx/' },
-            { text: 'Core Architecture', link: '/core/architecture' }
+            { text: 'Overview & Quick Start', link: '/tcp/plugin-development/' },
+            { text: 'SDK & Lifecycle Reference', link: '/tcp/plugin-development/sdk-lifecycle' },
+            { text: 'In-Memory Testing & QA', link: '/tcp/plugin-development/testing' },
+            { text: 'Packaging & Publishing', link: '/tcp/plugin-development/publishing' }
           ]
         }
       ],
@@ -293,17 +271,18 @@ export default defineConfig({
           ]
         },
         {
-          text: 'References',
-          collapsed: false,
+          text: 'Advanced Security & Engine',
+          collapsed: true,
           items: [
-            { text: 'Custom Paths & Regex Guide', link: '/reference/custom-paths' },
-            { text: 'Response Modes Reference', link: '/reference/response-modes' },
-            { text: 'Anti-Evasion Engine', link: '/reference/anti-evasion' }
+            { text: 'Anti-Evasion Normalization', link: '/core/anti-evasion' },
+            { text: 'Response Modes (13 Actions)', link: '/core/response-modes' },
+            { text: 'Custom Regex Patterns', link: '/core/custom-patterns' },
+            { text: 'System Architecture', link: '/core/architecture' }
           ]
         },
         {
           text: 'Production Case Studies',
-          collapsed: false,
+          collapsed: true,
           items: [
             { text: '1. Immich Dual-Router', link: '/examples/case-study-immich' },
             { text: '2. Zero-Trust Webhooks', link: '/examples/case-study-webhooks' },
@@ -314,16 +293,6 @@ export default defineConfig({
             { text: '7. Media Streaming (Jellyfin/Plex)', link: '/examples/case-study-media' },
             { text: '8. Smart Home (Home Assistant)', link: '/examples/case-study-home-assistant' },
             { text: '9. CrowdSec Auto-Ban Shield', link: '/examples/crowdsec' }
-          ]
-        },
-        {
-          text: 'Core Engine',
-          collapsed: false,
-          items: [
-            { text: 'System Architecture', link: '/core/architecture' },
-            { text: 'Anti-Evasion Engine', link: '/core/anti-evasion' },
-            { text: 'Response Modes (13 Actions)', link: '/core/response-modes' },
-            { text: 'Custom Regex Patterns', link: '/core/custom-patterns' }
           ]
         }
       ],
@@ -342,17 +311,18 @@ export default defineConfig({
           ]
         },
         {
-          text: 'References',
-          collapsed: false,
+          text: 'Advanced Security & Engine',
+          collapsed: true,
           items: [
-            { text: 'Custom Paths & Regex Guide', link: '/reference/custom-paths' },
-            { text: 'Response Modes Reference', link: '/reference/response-modes' },
-            { text: 'Anti-Evasion Engine', link: '/reference/anti-evasion' }
+            { text: 'Anti-Evasion Normalization', link: '/core/anti-evasion' },
+            { text: 'Response Modes (13 Actions)', link: '/core/response-modes' },
+            { text: 'Custom Regex Patterns', link: '/core/custom-patterns' },
+            { text: 'System Architecture', link: '/core/architecture' }
           ]
         },
         {
           text: 'Production Case Studies',
-          collapsed: false,
+          collapsed: true,
           items: [
             { text: '1. Immich Dual-Router', link: '/examples/case-study-immich' },
             { text: '2. Zero-Trust Webhooks', link: '/examples/case-study-webhooks' },
@@ -363,16 +333,6 @@ export default defineConfig({
             { text: '7. Media Streaming (Jellyfin/Plex)', link: '/examples/case-study-media' },
             { text: '8. Smart Home (Home Assistant)', link: '/examples/case-study-home-assistant' },
             { text: '9. CrowdSec Auto-Ban Shield', link: '/examples/crowdsec' }
-          ]
-        },
-        {
-          text: 'Core Engine',
-          collapsed: false,
-          items: [
-            { text: 'System Architecture', link: '/core/architecture' },
-            { text: 'Anti-Evasion Engine', link: '/core/anti-evasion' },
-            { text: 'Response Modes (13 Actions)', link: '/core/response-modes' },
-            { text: 'Custom Regex Patterns', link: '/core/custom-patterns' }
           ]
         }
       ],
@@ -389,17 +349,18 @@ export default defineConfig({
           ]
         },
         {
-          text: 'References',
-          collapsed: false,
+          text: 'Advanced Security & Engine',
+          collapsed: true,
           items: [
-            { text: 'Custom Paths & Regex Guide', link: '/reference/custom-paths' },
-            { text: 'Response Modes Reference', link: '/reference/response-modes' },
-            { text: 'Anti-Evasion Engine', link: '/reference/anti-evasion' }
+            { text: 'Anti-Evasion Normalization', link: '/core/anti-evasion' },
+            { text: 'Response Modes (13 Actions)', link: '/core/response-modes' },
+            { text: 'Custom Regex Patterns', link: '/core/custom-patterns' },
+            { text: 'System Architecture', link: '/core/architecture' }
           ]
         },
         {
           text: 'Production Case Studies',
-          collapsed: false,
+          collapsed: true,
           items: [
             { text: '1. Immich Dual-Router', link: '/examples/case-study-immich' },
             { text: '2. Zero-Trust Webhooks', link: '/examples/case-study-webhooks' },
@@ -410,16 +371,6 @@ export default defineConfig({
             { text: '7. Media Streaming (Jellyfin/Plex)', link: '/examples/case-study-media' },
             { text: '8. Smart Home (Home Assistant)', link: '/examples/case-study-home-assistant' },
             { text: '9. CrowdSec Auto-Ban Shield', link: '/examples/crowdsec' }
-          ]
-        },
-        {
-          text: 'Core Engine',
-          collapsed: false,
-          items: [
-            { text: 'System Architecture', link: '/core/architecture' },
-            { text: 'Anti-Evasion Engine', link: '/core/anti-evasion' },
-            { text: 'Response Modes (13 Actions)', link: '/core/response-modes' },
-            { text: 'Custom Regex Patterns', link: '/core/custom-patterns' }
           ]
         }
       ],
@@ -438,17 +389,8 @@ export default defineConfig({
           ]
         },
         {
-          text: 'References',
-          collapsed: false,
-          items: [
-            { text: 'Custom Paths & Regex Guide', link: '/reference/custom-paths' },
-            { text: 'Response Modes Reference', link: '/reference/response-modes' },
-            { text: 'Anti-Evasion Engine', link: '/reference/anti-evasion' }
-          ]
-        },
-        {
           text: 'Production Case Studies',
-          collapsed: false,
+          collapsed: true,
           items: [
             { text: '1. Immich Dual-Router', link: '/examples/case-study-immich' },
             { text: '2. Zero-Trust Webhooks', link: '/examples/case-study-webhooks' },
@@ -460,27 +402,9 @@ export default defineConfig({
             { text: '8. Smart Home (Home Assistant)', link: '/examples/case-study-home-assistant' },
             { text: '9. CrowdSec Auto-Ban Shield', link: '/examples/crowdsec' }
           ]
-        },
-        {
-          text: 'Gateways',
-          collapsed: false,
-          items: [
-            { text: 'Traefik Plugin Docs ➔', link: '/traefik/' },
-            { text: 'Caddy Module Docs ➔', link: '/caddy/' },
-            { text: 'NGINX Module Docs ➔', link: '/nginx/' }
-          ]
         }
       ],
       '/examples/': [
-        {
-          text: 'References',
-          collapsed: false,
-          items: [
-            { text: 'Custom Paths & Regex Guide', link: '/reference/custom-paths' },
-            { text: 'Response Modes Reference', link: '/reference/response-modes' },
-            { text: 'Anti-Evasion Engine', link: '/reference/anti-evasion' }
-          ]
-        },
         {
           text: 'Production Case Studies',
           collapsed: false,
@@ -498,7 +422,7 @@ export default defineConfig({
           ]
         },
         {
-          text: 'General Recipes',
+          text: 'General Recipes & Compose',
           collapsed: false,
           items: [
             { text: '1. Basic Sensitive Files', link: '/examples/basic-sensitive-files' },
@@ -508,52 +432,17 @@ export default defineConfig({
             { text: '5. Captcha Challenge', link: '/examples/captcha' },
             { text: '6. Kubernetes IngressRoute', link: '/examples/kubernetes' }
           ]
-        },
-        {
-          text: 'Gateways & Core',
-          collapsed: false,
-          items: [
-            { text: 'Traefik Plugin ➔', link: '/traefik/' },
-            { text: 'Caddy Module ➔', link: '/caddy/' },
-            { text: 'NGINX Module ➔', link: '/nginx/' },
-            { text: 'Core Architecture ➔', link: '/core/architecture' }
-          ]
         }
       ],
       '/reference/': [
         {
-          text: 'References',
+          text: 'Core Engine Reference',
           collapsed: false,
           items: [
-            { text: 'Custom Paths & Regex Guide', link: '/reference/custom-paths' },
-            { text: 'Response Modes Reference', link: '/reference/response-modes' },
-            { text: 'Anti-Evasion Engine', link: '/reference/anti-evasion' }
-          ]
-        },
-        {
-          text: 'Production Case Studies',
-          collapsed: false,
-          items: [
-            { text: 'Overview', link: '/examples/overview' },
-            { text: '1. Immich Dual-Router Shield', link: '/examples/case-study-immich' },
-            { text: '2. Zero-Trust Webhooks', link: '/examples/case-study-webhooks' },
-            { text: '3. Observability Cloaking', link: '/examples/case-study-observability' },
-            { text: '4. CMS & WordPress Shield', link: '/examples/case-study-cms-shield' },
-            { text: '5. Password Vaults (Vaultwarden)', link: '/examples/case-study-vaultwarden' },
-            { text: '6. Honeypots & Gzip Bombs', link: '/examples/case-study-honeypot-staging' },
-            { text: '7. Media Streaming (Jellyfin/Plex)', link: '/examples/case-study-media' },
-            { text: '8. Smart Home (Home Assistant)', link: '/examples/case-study-home-assistant' },
-            { text: '9. CrowdSec Auto-Ban Shield', link: '/examples/crowdsec' }
-          ]
-        },
-        {
-          text: 'Gateways & Core',
-          collapsed: false,
-          items: [
-            { text: 'Traefik Plugin ➔', link: '/traefik/' },
-            { text: 'Caddy Module ➔', link: '/caddy/' },
-            { text: 'NGINX Module ➔', link: '/nginx/' },
-            { text: 'Core Architecture ➔', link: '/core/architecture' }
+            { text: 'System Architecture', link: '/core/architecture' },
+            { text: 'Anti-Evasion Engine', link: '/core/anti-evasion' },
+            { text: 'Response Modes Reference', link: '/core/response-modes' },
+            { text: 'Custom Paths & Regex Guide', link: '/core/custom-patterns' }
           ]
         }
       ],
@@ -570,20 +459,8 @@ export default defineConfig({
           ]
         },
         {
-          text: 'Remote Monitoring & Streaming',
-          collapsed: false,
-          items: [
-            { text: 'Architecture & Overview', link: '/cli/remote/' },
-            { text: 'Key Management (rwarden keys)', link: '/cli/remote/keys' },
-            { text: 'Agent Enrollment (rwarden register)', link: '/cli/remote/registration' },
-            { text: 'Log Shipper (rwarden push)', link: '/cli/remote/shipper' },
-            { text: 'End-to-End Cryptography', link: '/cli/remote/encryption' },
-            { text: 'Multi-Node & Docker Compose', link: '/cli/remote/multi-node' }
-          ]
-        },
-        {
           text: 'Security Dashboard',
-          collapsed: false,
+          collapsed: true,
           items: [
             { text: 'Overview & Architecture', link: '/cli/dashboard' },
             { text: 'Container Discovery & Logging', link: '/cli/dashboard/discovery-and-logging' },
@@ -596,22 +473,15 @@ export default defineConfig({
           ]
         },
         {
-          text: 'Tools & Playground',
-          collapsed: false,
+          text: 'Remote Monitoring & Streaming',
+          collapsed: true,
           items: [
-            { text: 'Pattern & Response Playground', link: '/tools/pattern-checker' },
-            { text: 'Frequently Asked Questions (FAQ)', link: '/faq' }
-          ]
-        },
-        {
-          text: 'Gateways & Ecosystem',
-          collapsed: false,
-          items: [
-            { text: 'TCP Warden (L4) ➔', link: '/tcp/' },
-            { text: 'Traefik Warden ➔', link: '/traefik/' },
-            { text: 'Caddy Warden ➔', link: '/caddy/' },
-            { text: 'NGINX Warden ➔', link: '/nginx/' },
-            { text: 'Core Architecture ➔', link: '/core/architecture' }
+            { text: 'Architecture & Overview', link: '/cli/remote/' },
+            { text: 'Key Management (rwarden keys)', link: '/cli/remote/keys' },
+            { text: 'Agent Enrollment (rwarden register)', link: '/cli/remote/registration' },
+            { text: 'Log Shipper (rwarden push)', link: '/cli/remote/shipper' },
+            { text: 'End-to-End Cryptography', link: '/cli/remote/encryption' },
+            { text: 'Multi-Node & Docker Compose', link: '/cli/remote/multi-node' }
           ]
         }
       ],
@@ -623,16 +493,6 @@ export default defineConfig({
             { text: 'RouteWarden CLI (`rwarden`)', link: '/cli/' },
             { text: 'Pattern & Response Playground', link: '/tools/pattern-checker' }
           ]
-        },
-        {
-          text: 'Gateways & Core',
-          collapsed: false,
-          items: [
-            { text: 'Traefik Plugin Docs ➔', link: '/traefik/' },
-            { text: 'Caddy Module Docs ➔', link: '/caddy/' },
-            { text: 'NGINX Module Docs ➔', link: '/nginx/' },
-            { text: 'Core Architecture ➔', link: '/core/architecture' }
-          ]
         }
       ],
       '/faq': [
@@ -643,35 +503,6 @@ export default defineConfig({
             { text: 'RouteWarden FAQ', link: '/faq' },
             { text: 'TCP Warden (L4) FAQ ➔', link: '/tcp/faq' }
           ]
-        },
-        {
-          text: 'Core Engine',
-          collapsed: false,
-          items: [
-            { text: 'System Architecture', link: '/core/architecture' },
-            { text: 'Anti-Evasion Normalization', link: '/core/anti-evasion' },
-            { text: 'Response Modes (13 Actions)', link: '/core/response-modes' },
-            { text: 'Custom Regex Patterns', link: '/core/custom-patterns' }
-          ]
-        },
-        {
-          text: 'Tools & Dashboard',
-          collapsed: false,
-          items: [
-            { text: 'RouteWarden CLI (`rwarden`)', link: '/cli/' },
-            { text: 'Security Dashboard', link: '/cli/dashboard' },
-            { text: 'Pattern & Response Playground', link: '/tools/pattern-checker' }
-          ]
-        },
-        {
-          text: 'Gateways',
-          collapsed: false,
-          items: [
-            { text: 'Traefik Warden', link: '/traefik/' },
-            { text: 'Caddy Warden', link: '/caddy/' },
-            { text: 'NGINX Warden', link: '/nginx/' },
-            { text: 'TCP Warden (L4 Firewall)', link: '/tcp/' }
-          ]
         }
       ],
       '/': [
@@ -679,45 +510,23 @@ export default defineConfig({
           text: 'Gateways',
           collapsed: false,
           items: [
-            { text: 'RouteWarden for Traefik', link: '/traefik/' },
-            { text: 'Caddy-Warden for Caddy', link: '/caddy/' },
-            { text: 'RouteWarden for NGINX', link: '/nginx/' }
-          ]
-        },
-        {
-          text: 'References',
-          collapsed: false,
-          items: [
-            { text: 'Frequently Asked Questions (FAQ)', link: '/faq' },
-            { text: 'Custom Paths & Regex Guide', link: '/reference/custom-paths' },
-            { text: 'Response Modes Reference', link: '/reference/response-modes' },
-            { text: 'Anti-Evasion Engine', link: '/reference/anti-evasion' }
+            { text: 'TCP Warden (L4 Firewall)', link: '/tcp/' },
+            { text: 'Traefik Warden', link: '/traefik/' },
+            { text: 'Caddy Warden', link: '/caddy/' },
+            { text: 'NGINX Warden', link: '/nginx/' },
+            { text: 'RouteWarden CLI (rwarden)', link: '/cli/' }
           ]
         },
         {
           text: 'Core Defense Engine',
-          collapsed: false,
+          collapsed: true,
           items: [
             { text: 'System Architecture', link: '/core/architecture' },
             { text: 'Anti-Evasion Engine', link: '/core/anti-evasion' },
-            { text: 'Response Modes Engine', link: '/core/response-modes' },
-            { text: 'Custom Path Patterns', link: '/core/custom-patterns' },
-            { text: 'Changelog & Migrations', link: '/core/changelog' }
-          ]
-        },
-        {
-          text: 'Production Case Studies',
-          collapsed: false,
-          items: [
-            { text: '1. Immich Dual-Router', link: '/examples/case-study-immich' },
-            { text: '2. Zero-Trust Webhooks', link: '/examples/case-study-webhooks' },
-            { text: '3. Observability Cloaking', link: '/examples/case-study-observability' },
-            { text: '4. CMS & WordPress Shield', link: '/examples/case-study-cms-shield' },
-            { text: '5. Password Vaults (Vaultwarden)', link: '/examples/case-study-vaultwarden' },
-            { text: '6. Honeypots & Gzip Bombs', link: '/examples/case-study-honeypot-staging' },
-            { text: '7. Media Streaming (Jellyfin/Plex)', link: '/examples/case-study-media' },
-            { text: '8. Smart Home (Home Assistant)', link: '/examples/case-study-home-assistant' },
-            { text: '9. CrowdSec Auto-Ban Shield', link: '/examples/crowdsec' }
+            { text: 'Response Modes (13 Actions)', link: '/core/response-modes' },
+            { text: 'Custom Regex Patterns', link: '/core/custom-patterns' },
+            { text: 'Frequently Asked Questions (FAQ)', link: '/faq' },
+            { text: 'Changelog & Version History', link: '/core/changelog' }
           ]
         }
       ]

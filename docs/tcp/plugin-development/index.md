@@ -42,6 +42,38 @@ const pipelineSnippets = computed(() => ({
     { filename: 'Verification Pipeline', lang: 'bash', code: pipeline_log.cleanCode, html: pipeline_log.html, hasDiff: false },
   ]
 }))
+
+const flow_diagram = buildSnippet({
+  lang: 'text',
+  code: `[ Inbound TCP Client ] ──► [ Plugin Inspector.Run() ] ──► [ Upstream Server ]
+                                     │
+                  ┌──────────────────┴──────────────────┐
+                  ▼                                     ▼
+         ctx.OnAuthFailure()                   ctx.OnSecurityEvent()
+   (Tracks failures & auto-bans)             (Emits JSONL audit log)`,
+})
+
+const flowSnippets = computed(() => ({
+  tcp: [
+    { filename: 'Inspection & Forwarding Lifecycle', lang: 'text', code: flow_diagram.cleanCode, html: flow_diagram.html, hasDiff: false },
+  ],
+}))
+
+const scaffold_tree = buildSnippet({
+  lang: 'text',
+  code: `echo_guard/
+├── plugin.yaml          # Metadata, manifest schema, and default configuration
+├── plugin.go            # Plugin lifecycle, validation, and embedded manifest
+├── inspector.go         # Active wire protocol inspection and proxy loop
+├── plugin_test.go       # In-memory unit tests using net.Pipe()
+└── README.md            # Documentation and usage instructions`,
+})
+
+const scaffoldTreeSnippets = computed(() => ({
+  tcp: [
+    { filename: 'Plugin Directory Structure', lang: 'text', code: scaffold_tree.cleanCode, html: scaffold_tree.html, hasDiff: false },
+  ],
+}))
 </script>
 
 # Plugin Development
@@ -62,14 +94,7 @@ Think of a plugin as a **security guard** stationed between incoming client sock
 2. **Threat Mitigation**: If malicious payloads, unauthorized commands, or failed passwords are detected, the plugin rejects the connection and notifies TCP Warden to track or ban the attacker IP.
 3. **Wire-Speed Forwarding**: Once the connection is verified, the plugin hands off the socket to TCP Warden's zero-copy bidirectional proxy engine.
 
-```
-[ Inbound TCP Client ] ──► [ Plugin Inspector.Run() ] ──► [ Upstream Server ]
-                                     │
-                  ┌──────────────────┴──────────────────┐
-                  ▼                                     ▼
-         ctx.OnAuthFailure()                   ctx.OnSecurityEvent()
-   (Tracks failures & auto-bans)             (Emits JSONL audit log)
-```
+<CodeViewer :snippets="flowSnippets" />
 
 ---
 
@@ -81,14 +106,7 @@ The easiest way to start developing a plugin is using the built-in CLI command (
 
 This automatically scaffolds a fully functional, self-testing plugin directory:
 
-```
-echo_guard/
-├── plugin.yaml          # Metadata, manifest schema, and default configuration
-├── plugin.go            # Plugin lifecycle, validation, and embedded manifest
-├── inspector.go         # Active wire protocol inspection and proxy loop
-├── plugin_test.go       # In-memory unit tests using net.Pipe()
-└── README.md            # Documentation and usage instructions
-```
+<CodeViewer :snippets="scaffoldTreeSnippets" />
 
 ---
 
