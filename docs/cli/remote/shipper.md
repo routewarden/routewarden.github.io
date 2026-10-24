@@ -174,10 +174,10 @@ const filtering_cmd = buildSnippet({
   code: `# Default: push only security events (BLOCK, TARPIT, HONEYPOT, 403, 429)
 rwarden push --docker
 
-# Ship all failed API calls (status >= 400) across Caddy, Traefik, and NGINX
-rwarden push --include-failed
+# Ship requests matching explicit status codes or ranges (e.g. 400-599, 301, 4xx, 5xx)
+rwarden push --status "400-599, 301"
 # Shorthand:
-rwarden push -F
+rwarden push -s 400-599,301
 
 # Ship all HTTP access traffic including successful 200 OK responses
 rwarden push --all-traffic
@@ -420,7 +420,8 @@ You can tune batching parameters to match high-traffic or low-latency environmen
 | `--disconnect-timeout` | `5m` | Duration disconnected from dashboard before dropping stale events to protect memory. |
 | `--ping-interval` | `10s` | Interval between connection health pings when connected. |
 | `--tail` | `50` | Number of existing lines to replay when attaching to a container or file. |
-| `--include-failed`, `-F` | `false` | Ship all failed HTTP requests (status >= 400: 4xx, 5xx) across Caddy, Traefik, and NGINX even without a blocking rule. |
+| `--status`, `-s` | `""` | Forward HTTP requests matching status codes or ranges (e.g. `'400-599, 301'`, `'4xx, 5xx'`). |
+| `--include-failed`, `-F` | `false` | Legacy alias: forward all failed HTTP requests (status >= 400, equivalent to `--status 400-599`). |
 | `--all-traffic` | `false` | Ship all HTTP access traffic including successful 200 OK responses. |
 | `--all-logs` | `false` | Ship all raw container lines unconditionally without Routewarden filtering. |
 
@@ -443,11 +444,12 @@ You can customize telemetry filtering using flags, environment variables, or `ag
    - Forwards threat mitigations and security rejections.
    - Drops benign access traffic, keeping the dashboard focused on actionable incidents while reducing database size.
 
-2. **Failed API Requests (`--include-failed` / `-F`)**:
-   - Forwards all failed HTTP calls where status code is $\ge 400$ (all `4xx` client errors such as 404 Not Found, 400 Bad Request, and all `5xx` server/gateway errors like 500 Internal Server Error, 502 Bad Gateway, 503 Service Unavailable).
+2. **Explicit Status Code Ranges (`--status` / `-s`)**:
+   - Forwards reverse proxy HTTP requests matching specific status codes, ranges, or wildcard families (e.g. `--status "400-599, 301"`, `-s 4xx,5xx`, `-s 404,500-504`).
    - Works across **Caddy** (`logger: "http.log.access"`), **Traefik** (JSON / Combined), and **NGINX** (JSON / Combined access logs).
-   - Failed requests that did not match a Routewarden block rule are categorized as `FAILED` on the central dashboard (with rule `HTTP <status>`), giving SOC teams visibility into reconnaissance probing and upstream outages without polluting stats as `ALLOW`.
-   - Also configurable via environment variable `RW_INCLUDE_FAILED=true` or `"include_failed": true` in `agent.json`.
+   - Unblocked requests with status $\ge 400$ are categorized as `FAILED` on the central dashboard (with rule `HTTP <status>`), while requests $< 400$ (such as `301` or `302` redirects) are categorized as `ALLOW`.
+   - Also configurable via environment variables `RW_STATUS="400-599, 301"` or `"status_codes": "400-599, 301"` in `agent.json`.
+   - *(Legacy Alias)*: `--include-failed` / `-F` (or `RW_INCLUDE_FAILED=true`) is fully supported as shorthand for `--status 400-599`.
 
 3. **Full HTTP Access Traffic (`--all-traffic`)**:
    - Forwards all reverse proxy access logs including clean `200 OK` traffic.
@@ -513,7 +515,8 @@ When deploying via Docker or Docker Compose, you do not need to run `rwarden reg
 |:---|:---|:---|:---|
 | `RW_DASHBOARD_URL` | `RW_URL` | Central Routewarden dashboard address | `https://soc.example.com` or `http://198.51.100.10:7890` |
 | `RW_AGENT_KEY` | `RW_KEY` | 24-byte secret agent token created via `rwarden keys create` | `rw_sec_a8f9c2d1e4b7...` |
-| `RW_INCLUDE_FAILED` | — | Ship all failed HTTP calls (status >= 400: 4xx, 5xx) across Caddy, Traefik, and NGINX | `true` or `false` |
+| `RW_STATUS` | `RW_STATUS_CODES` | Forward HTTP calls matching status codes or ranges across Caddy, Traefik, and NGINX | `400-599, 301` or `4xx, 5xx` |
+| `RW_INCLUDE_FAILED` | — | Legacy alias: ship all failed HTTP calls (status >= 400) | `true` or `false` |
 | `RW_ALL_TRAFFIC` | — | Ship all HTTP access traffic including 200 OK responses | `true` or `false` |
 | `RW_ALL_LOGS` | — | Ship all raw container lines without Routewarden filtering | `true` or `false` |
 | `TZ` | — | IANA Time Zone identifier for log timestamp normalization | `Asia/Kolkata`, `UTC`, `America/New_York` |

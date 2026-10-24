@@ -16,8 +16,8 @@ rwarden register --url http://198.51.100.10:7890 --key rw_sec_8f9a2b4c1e0d3f7a..
 # Or using flag aliases (-u and -k)
 rwarden register -u http://198.51.100.10:7890 -k rw_sec_8f9a2b4c1e0d...
 
-# Pre-configure telemetry filtering (forward all failed HTTP calls by default)
-rwarden register -u http://198.51.100.10:7890 -k rw_sec_8f9a... --include-failed`,
+# Pre-configure telemetry filtering (forward status codes/ranges by default)
+rwarden register -u http://198.51.100.10:7890 -k rw_sec_8f9a... --status "400-599, 301"`,
 })
 
 const registerSnippets = computed(() => ({
@@ -59,7 +59,7 @@ const config_json = buildSnippet({
   "agent_name": "edge-frankfurt-01",
   "server_public_key": "xJ9+4kL2vM8n2xP1qZ5wY3tA0bC...",
   "registered_at": "2026-10-18T12:00:00Z",
-  "include_failed": true
+  "status_codes": "400-599, 301"
 }`,
 })
 
@@ -176,6 +176,7 @@ If an agent key is rotated or revoked on the central server:
 | `--url` | `-u` | string | **Yes** | Central Routewarden dashboard URL (e.g. `http://dashboard.internal:7890`) |
 | `--key` | `-k` | string | **Yes** | 24-byte secret agent token created via `rwarden keys create` |
 | `--config` | — | string | No | Custom path to store agent configuration (default: `~/.routewarden/agent.json`) |
-| `--include-failed` | `-F` | bool | No | Persist default setting to ship all failed HTTP requests (status >= 400: 4xx, 5xx) |
+| `--status` | `-s` | string | No | Persist default HTTP status codes or ranges to forward (e.g. `'400-599, 301'`, `'4xx, 5xx'`) |
+| `--include-failed` | `-F` | bool | No | Legacy alias: persist setting to ship all failed HTTP requests (status >= 400: 4xx, 5xx) |
 | `--all-traffic` | — | bool | No | Persist default setting to ship all HTTP access traffic including 200 OK responses |
 

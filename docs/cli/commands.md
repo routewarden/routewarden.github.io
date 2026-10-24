@@ -469,7 +469,7 @@ rwarden register --url http://198.51.100.10:7890 --key rw_sec_8f9a2b4c1e0d3f7a..
 rwarden register -u http://dashboard.internal:7890 -k rw_sec_8f9a...
 
 # Register and persist default filtering modes into agent.json
-rwarden register -u http://dashboard.internal:7890 -k rw_sec_8f9a... --include-failed
+rwarden register -u http://dashboard.internal:7890 -k rw_sec_8f9a... --status "400-599, 301"
 
 # Store configuration in a custom file
 rwarden register --url http://dashboard.internal:7890 --key rw_sec_... --config /etc/routewarden/agent.json`,
@@ -526,8 +526,13 @@ rwarden push -e "event1" -e "event2"
 cat access.log | rwarden push --stdin
 echo '{"client_ip":"198.51.100.1","path":"/.env","verdict":"BLOCK"}' | rwarden push -f -
 
-# Tune in-memory batching buffer and flush interval
-rwarden push --batch-size 100 --flush-interval 2s
+# Forward HTTP requests matching status codes or ranges (e.g. 400-599, 301, 4xx, 5xx)
+rwarden push --status "400-599, 301"
+# Shorthand:
+rwarden push -s 400-599,301
+
+# Stream all HTTP access traffic including 200 OK
+rwarden push --all-traffic
 
 # Configure offline queue capacity and disconnect drop timeout
 rwarden push --queue-size 20000 --disconnect-timeout 10m`,
@@ -901,7 +906,8 @@ Enroll a remote node with a central Routewarden dashboard. This one-time handsha
 | `--url` | `-u` | string | **Yes** | Routewarden Central Dashboard URL (e.g. `http://dashboard.internal:7890`) |
 | `--key` | `-k` | string | **Yes** | Remote agent authentication key (`rw_sec_...`) |
 | `--config` | — | string | No | Custom path to store agent configuration (default: `~/.routewarden/agent.json`) |
-| `--include-failed` | `-F` | bool | No | Persist default setting to ship all failed HTTP requests (status >= 400) |
+| `--status` | `-s` | string | No | Forward HTTP requests matching status codes or ranges (e.g. `'400-599, 301'`, `'4xx, 5xx'`) |
+| `--include-failed` | `-F` | bool | No | Legacy alias: persist setting to ship all failed HTTP requests (status >= 400) |
 | `--all-traffic` | — | bool | No | Persist default setting to ship all HTTP access traffic |
 
 ---
@@ -929,7 +935,8 @@ Stream live security events and gateway access logs from remote edge nodes, clou
 | `--queue-size` | — | int | `10000` | Maximum events to buffer in memory while disconnected from dashboard |
 | `--disconnect-timeout` | — | duration | `5m` | Duration disconnected from dashboard before dropping stale events |
 | `--ping-interval` | — | duration | `10s` | Interval between connection health pings when connected |
-| `--include-failed` | `-F` | bool | `false` | Ship all failed HTTP requests (status >= 400: 4xx client errors, 5xx server errors) across Caddy, Traefik, and NGINX even without a blocking rule |
+| `--status` | `-s` | string | `""` | Forward HTTP requests matching status codes or ranges (e.g. `'400-599, 301'`, `'4xx, 5xx'`) across Caddy, Traefik, and NGINX |
+| `--include-failed` | `-F` | bool | `false` | Legacy alias: ship all failed HTTP requests (status >= 400, equivalent to `--status 400-599`) |
 | `--all-traffic` | — | bool | `false` | Ship all HTTP access traffic including successful 200 OK responses |
 | `--all-logs` | — | bool | `false` | Ship all raw container lines without filtering (default filters for Routewarden events & security blocks) |
 | `--url` | `-u` | string | `""` | Override central dashboard URL from registered config |

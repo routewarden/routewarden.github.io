@@ -10,13 +10,14 @@ All notable changes to the Routewarden CLI (`rwarden`) are documented here. The 
 ## [v5.3.3] - 2026-10-23 (Latest)
 
 ### Added
-- **Failed HTTP Call Forwarding (`--include-failed` / `-F`) Across All Proxies**:
-  - Added `--include-failed` (`-F`) CLI flag and `RW_INCLUDE_FAILED` environment variable to `rwarden push` and `rwarden-shipper`.
-  - Enables capturing and forwarding all failed HTTP requests (status $\ge 400$, including 4xx client errors like 400 Bad Request, 404 Not Found, and 5xx server errors like 500 Internal Server Error, 502 Bad Gateway, 503 Service Unavailable) across **Caddy** (`logger: "http.log.access"`), **Traefik** (JSON / Combined), and **NGINX** (JSON / Combined access logs), even if not matched by an explicit blocking rule.
+- **Explicit HTTP Status Codes & Ranges Forwarding (`--status` / `-s`)**:
+  - Added `--status` (`-s`, `--status-codes`, `--include-status`) CLI flag and `RW_STATUS` / `RW_STATUS_CODES` environment variables to `rwarden push` and `rwarden-shipper`.
+  - Enables capturing and forwarding HTTP requests matching specific status codes, ranges, or wildcard families (e.g. `400-599, 301`, `4xx, 5xx`, `404, 500-504`) across **Caddy** (`logger: "http.log.access"`), **Traefik** (JSON / Combined), and **NGINX** (JSON / Combined access logs).
+  - Maintained `--include-failed` (`-F`) and `RW_INCLUDE_FAILED` as backwards-compatible legacy aliases that automatically map to `--status 400-599`.
 - **Full HTTP Access Traffic Shipping (`--all-traffic`)**:
   - Added `--all-traffic` CLI flag and `RW_ALL_TRAFFIC` environment variable to forward all reverse proxy access logs including clean `200 OK` responses for complete centralized access auditing.
 - **Enrollment Telemetry Preference Persistence**:
-  - Added `--include-failed` (`-F`) and `--all-traffic` flags to `rwarden register` (`cli/register.go` and `cli/shipper/register.go`), saving telemetry filtering settings directly to `~/.routewarden/agent.json` (`"include_failed": true`, `"all_traffic": true`) so subsequent `rwarden push` invocations inherit the configured mode without manual flags.
+  - Added `--status` (`-s`) and `--all-traffic` flags to `rwarden register` (`cli/register.go` and `cli/shipper/register.go`), saving telemetry filtering settings directly to `~/.routewarden/agent.json` (`"status_codes": "400-599, 301"`, `"all_traffic": true`) so subsequent `rwarden push` invocations inherit configured status ranges automatically.
 - **Failed HTTP Status Categorization in Central Dashboard**:
   - Enhanced dashboard ingestion engine in `cli/observability/custom_dashboard.go` and `cli/observability/manager.go` to categorize unblocked status $\ge 400$ requests from Caddy, Traefik, and NGINX as `Verdict: "FAILED"` with rule `HTTP <status>`, providing SOC teams immediate visibility into client probing and upstream outages without polluting security incident counts as `ALLOW`.
 - **Flexible JSON Decoding for Custom Log Formats**:
