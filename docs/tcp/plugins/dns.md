@@ -10,7 +10,7 @@ import { buildSnippet } from '../../.vitepress/theme/composables/useCodeSnippet'
 // ─── 1. Installation Snippets ───────────────────────────────────────────────
 const install_cli = buildSnippet({
   lang: 'bash',
-  code: `# Install via RouteWarden CLI
+  code: `# Install via Routewarden CLI
 rwarden tcp plugins install dns
 
 # Or standalone binary
@@ -31,7 +31,7 @@ plugins:
 
 const installSnippets = computed(() => ({
   tcp: [
-    { filename: 'RouteWarden CLI', lang: 'bash', code: install_cli.cleanCode, html: install_cli.html, hasDiff: false },
+    { filename: 'Routewarden CLI', lang: 'bash', code: install_cli.cleanCode, html: install_cli.html, hasDiff: false },
     { filename: 'tcp-warden.yaml', lang: 'yaml', code: install_yaml.cleanCode, html: install_yaml.html, hasDiff: false },
   ]
 }))
@@ -75,14 +75,14 @@ const configSnippets = computed(() => ({
 // ─── 3. Network Redirection Snippets ────────────────────────────────────────
 const net_nftables = buildSnippet({
   lang: 'bash',
-  code: `# 1. Redirect external DNS (port 53) UDP and TCP to RouteWarden port 5353
+  code: `# 1. Redirect external DNS (port 53) UDP and TCP to Routewarden port 5353
 sudo nft add rule ip routewarden_nat prerouting iifname "eth0" udp dport 53 redirect to :5353
 sudo nft add rule ip routewarden_nat prerouting iifname "eth0" tcp dport 53 redirect to :5353`
 })
 
 const net_iptables = buildSnippet({
   lang: 'bash',
-  code: `# 1. Redirect incoming port 53 UDP & TCP to RouteWarden port 5353
+  code: `# 1. Redirect incoming port 53 UDP & TCP to Routewarden port 5353
 sudo iptables -t nat -A PREROUTING -i eth0 -p udp --dport 53 -j REDIRECT --to-port 5353
 sudo iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 53 -j REDIRECT --to-port 5353
 
@@ -107,7 +107,7 @@ const net_compose = buildSnippet({
     command: -conf /etc/coredns/Corefile
     volumes:
       - ./Corefile:/etc/coredns/Corefile:ro
-    # Listen only on localhost 127.0.0.1:5353; RouteWarden guards the public interface
+    # Listen only on localhost 127.0.0.1:5353; Routewarden guards the public interface
     ports:
       - "127.0.0.1:5353:53/udp"
       - "127.0.0.1:5353:53/tcp"
@@ -219,13 +219,13 @@ Configure a dual-transport DNS service in `tcp-warden.yaml`:
 
 ### Option A: Kernel Firewall Redirection (nftables / iptables)
 
-Redirect incoming external port `53` traffic (both UDP and TCP) to RouteWarden port `5353`:
+Redirect incoming external port `53` traffic (both UDP and TCP) to Routewarden port `5353`:
 
 <CodeViewer :snippets="netFirewallSnippets" />
 
 ### Option B: Docker Compose with CoreDNS Backend
 
-Run RouteWarden on the host network to guard an internal CoreDNS or Unbound instance:
+Run Routewarden on the host network to guard an internal CoreDNS or Unbound instance:
 
 <CodeViewer :snippets="netComposeSnippets" />
 

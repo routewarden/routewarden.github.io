@@ -138,8 +138,8 @@ const pipelineDiagramSnippets = computed(() => ({
 A lightweight, protocol-aware security proxy and firewall for non-HTTP services across TCP and UDP.
 </p>
 
-::: tip Built into RouteWarden CLI
-TCP Warden is natively integrated into the RouteWarden suite via the `rwarden tcp` command tree. You can also run it as a standalone binary (`tcp-warden`) or lightweight Alpine container (`ghcr.io/routewarden/tcp-warden:latest`).
+::: tip Built into Routewarden CLI
+TCP Warden is natively integrated into the Routewarden suite via the `rwarden tcp` command tree. You can also run it as a standalone binary (`tcp-warden`) or lightweight Alpine container (`ghcr.io/routewarden/tcp-warden:latest`).
 :::
 
 Most reverse proxies (like Traefik, Caddy, or NGINX) are built to protect web traffic (HTTP/HTTPS). But what protects your databases, SSH servers, DNS resolvers, message queues, and cache layers?

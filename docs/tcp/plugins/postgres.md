@@ -10,7 +10,7 @@ import { buildSnippet } from '../../.vitepress/theme/composables/useCodeSnippet'
 // ─── 1. Installation Snippets ───────────────────────────────────────────────
 const install_cli = buildSnippet({
   lang: 'bash',
-  code: `# Install via RouteWarden CLI
+  code: `# Install via Routewarden CLI
 rwarden tcp plugins install postgres
 
 # Or standalone binary
@@ -31,7 +31,7 @@ plugins:
 
 const installSnippets = computed(() => ({
   tcp: [
-    { filename: 'RouteWarden CLI', lang: 'bash', code: install_cli.cleanCode, html: install_cli.html, hasDiff: false },
+    { filename: 'Routewarden CLI', lang: 'bash', code: install_cli.cleanCode, html: install_cli.html, hasDiff: false },
     { filename: 'tcp-warden.yaml', lang: 'yaml', code: install_yaml.cleanCode, html: install_yaml.html, hasDiff: false },
   ]
 }))
@@ -63,7 +63,7 @@ const configSnippets = computed(() => ({
 // ─── 3. Network Architecture Snippets ───────────────────────────────────────
 const net_proxy_yaml = buildSnippet({
   lang: 'yaml',
-  code: `# tcp-warden.yaml — RouteWarden binds to standard port 5432
+  code: `# tcp-warden.yaml — Routewarden binds to standard port 5432
 services:
   pg_bastion:
     listen: ":5432"
@@ -115,7 +115,7 @@ const netComposeSnippets = computed(() => ({
 // ─── 4. Testing & Verification Snippets ─────────────────────────────────────
 const test_valid = buildSnippet({
   lang: 'bash',
-  code: `# Test valid database connection through RouteWarden
+  code: `# Test valid database connection through Routewarden
 psql -h 127.0.0.1 -p 5432 -U postgres -d postgres`
 })
 
@@ -127,7 +127,7 @@ PGPASSWORD="wrongpassword" psql -h 127.0.0.1 -p 5432 -U postgres -d postgres`
 
 const test_bans = buildSnippet({
   lang: 'bash',
-  code: `# Query active bans via RouteWarden API
+  code: `# Query active bans via Routewarden API
 curl -s http://127.0.0.1:9091/api/v1/bans | jq .`
 })
 
@@ -185,17 +185,17 @@ Add a PostgreSQL guard service to `tcp-warden.yaml`:
 
 ## Network & Deployment Architecture
 
-Because PostgreSQL operates on an unprivileged port (`5432`), firewall redirects (`nftables`/`iptables`) are unnecessary. You can deploy RouteWarden as a direct reverse proxy or via container networking:
+Because PostgreSQL operates on an unprivileged port (`5432`), firewall redirects (`nftables`/`iptables`) are unnecessary. You can deploy Routewarden as a direct reverse proxy or via container networking:
 
 ### Option A: Direct Reverse Proxy (Bare-Metal / VM)
 
-Bind RouteWarden directly to standard port `5432`, and run PostgreSQL on an internal loopback port or private subnet IP:
+Bind Routewarden directly to standard port `5432`, and run PostgreSQL on an internal loopback port or private subnet IP:
 
 <CodeViewer :snippets="netProxySnippets" />
 
 ### Option B: Docker Compose Bridge Network
 
-In containerized stacks, expose only RouteWarden on the host, keeping the PostgreSQL container private within the internal Docker bridge network:
+In containerized stacks, expose only Routewarden on the host, keeping the PostgreSQL container private within the internal Docker bridge network:
 
 <CodeViewer :snippets="netComposeSnippets" />
 

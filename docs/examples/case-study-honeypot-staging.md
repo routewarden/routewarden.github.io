@@ -1,5 +1,6 @@
 ---
 title: Case Study – Honeypot Deflection & Tarpit Scanning Sink
+description: "Deploying deceptive honeypot responses and sinkholes to mislead automated vulnerability scanners."
 ---
 
 <script setup>
@@ -559,7 +560,7 @@ const tarpitSnippets = computed(() => toSnippets(tarpit))
 
 # Case Study: Honeypot Deflection & Tarpit Scanning Sink
 
-This case study demonstrates how to use RouteWarden to deflect reconnaissance bots and malicious vulnerability scanners into honeypots or silent TCP drops.
+This case study demonstrates how to use Routewarden to deflect reconnaissance bots and malicious vulnerability scanners into honeypots or silent TCP drops.
 
 ---
 
@@ -573,7 +574,7 @@ While returning an HTTP `403 Forbidden` or `404 Not Found` works, scanners will 
 
 ## Strategy A: Silent Connection Drops (`mode: silentDrop` / `silent_drop`)
 
-Rather than allocating memory buffers and sending an HTTP status response, RouteWarden's `silentDrop` mode closes the underlying TCP connection immediately (or returns an empty payload).
+Rather than allocating memory buffers and sending an HTTP status response, Routewarden's `silentDrop` mode closes the underlying TCP connection immediately (or returns an empty payload).
 
 <CodeViewer :snippets="silentDropSnippets" />
 
@@ -590,7 +591,7 @@ Rather than allocating memory buffers and sending an HTTP status response, Route
 
 ## Strategy B: External Honeypot Deflection (`mode: redirect`)
 
-When an attacker accesses any sensitive file pattern, RouteWarden can issue an HTTP `302/307 Redirect` to an external honeypot, a public loopback (`http://127.0.0.1`), or an FBI/IC3 reporting endpoint:
+When an attacker accesses any sensitive file pattern, Routewarden can issue an HTTP `302/307 Redirect` to an external honeypot, a public loopback (`http://127.0.0.1`), or an FBI/IC3 reporting endpoint:
 
 <CodeViewer :snippets="honeypotSnippets" />
 
@@ -608,7 +609,7 @@ For pull-request preview environments (e.g., `pr-142.staging.example.com`), comp
 
 When automated reconnaissance scanners (`nikto`, `gobuster`, `dirsearch`, or credential stuffers) probe for sensitive configuration files (`.env`, `wp-config.php`, `/actuator/env`), returning a 403/404 allows them to swiftly move to the next URL on their wordlist.
 
-With RouteWarden's `gzipBomb` mode (alias: `bomb`), the middleware serves a **valid HTTP 200 response with `Content-Encoding: gzip`** consisting of a stream of compressed zero bytes.
+With Routewarden's `gzipBomb` mode (alias: `bomb`), the middleware serves a **valid HTTP 200 response with `Content-Encoding: gzip`** consisting of a stream of compressed zero bytes.
 
 <CodeViewer :snippets="gzipBombSnippets" />
 
@@ -629,7 +630,7 @@ Legitimate web browsers and search engine indexers (such as **Googlebot**, **Bin
 
 ## Strategy E: Tarpit Scanning Sink (`mode: tarpit`)
 
-Rather than dropping or bombing the connection, RouteWarden's **Reverse Slowloris Tarpit** stalls scanner concurrency pools by accepting requests to probe endpoints with a `200 OK` header and trickling individual bytes at slow, deliberate intervals.
+Rather than dropping or bombing the connection, Routewarden's **Reverse Slowloris Tarpit** stalls scanner concurrency pools by accepting requests to probe endpoints with a `200 OK` header and trickling individual bytes at slow, deliberate intervals.
 
 Because automated vulnerability tools (`sqlmap`, `nikto`, `nuclei`) operate with finite worker thread pools (typically 10–50 concurrent workers), tying up sockets on honeypot routes paralyzes their scanning capacity.
 

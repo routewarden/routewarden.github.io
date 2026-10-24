@@ -1,8 +1,41 @@
-# RouteWarden CLI Changelog
+---
+title: "Routewarden CLI Changelog"
+description: "Release history, new features, and bug fixes for the Routewarden CLI and daemon (rwarden)."
+---
 
-All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and the CLI adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+# Routewarden CLI Changelog
 
-## [v5.3.2] - 2026-10-22 (Latest)
+All notable changes to the Routewarden CLI (`rwarden`) are documented here. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and the CLI adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [v5.3.3] - 2026-10-23 (Latest)
+
+### Added
+- **Explicit HTTP Status Codes & Ranges Forwarding (`--status` / `-s`)**:
+  - Added `--status` (`-s`, `--status-codes`, `--include-status`) CLI flag and `RW_STATUS` / `RW_STATUS_CODES` environment variables to `rwarden push` and `rwarden-shipper`.
+  - Enables capturing and forwarding HTTP requests matching specific status codes, ranges, or wildcard families (e.g. `400-599, 301`, `4xx, 5xx`, `404, 500-504`) across **Caddy** (`logger: "http.log.access"`), **Traefik** (JSON / Combined), and **NGINX** (JSON / Combined access logs).
+  - Maintained `--include-failed` (`-F`) and `RW_INCLUDE_FAILED` as backwards-compatible legacy aliases that automatically map to `--status 400-599`.
+- **Full HTTP Access Traffic Shipping (`--all-traffic`)**:
+  - Added `--all-traffic` CLI flag and `RW_ALL_TRAFFIC` environment variable to forward all reverse proxy access logs including clean `200 OK` responses for complete centralized access auditing.
+- **Enrollment Telemetry Preference Persistence**:
+  - Added `--status` (`-s`) and `--all-traffic` flags to `rwarden register` (`cli/register.go` and `cli/shipper/register.go`), saving telemetry filtering settings directly to `~/.routewarden/agent.json` (`"status_codes": "400-599, 301"`, `"all_traffic": true`) so subsequent `rwarden push` invocations inherit configured status ranges automatically.
+- **Failed HTTP Status Categorization in Central Dashboard**:
+  - Enhanced dashboard ingestion engine in `cli/observability/custom_dashboard.go` and `cli/observability/manager.go` to categorize unblocked status $\ge 400$ requests from Caddy, Traefik, and NGINX as `Verdict: "FAILED"` with rule `HTTP <status>`, providing SOC teams immediate visibility into client probing and upstream outages without polluting security incident counts as `ALLOW`.
+- **Independent Telemetry Flags & Precedence Hierarchy**:
+  - Documented full independence and precedence resolution across `--status`, `--include-failed`, and `--all-traffic`: `--all-traffic` supersedes status filters, while explicit `--status` overrides `--include-failed`.
+- **Layer 4 (UDP & TCP) Traffic Log Streaming**:
+  - Documented log forwarding for Layer 4 traffic from `tcp-warden` (`/var/log/routewarden/tcp-warden.jsonl`). Security events (blocks, bans, rate limits, CrowdSec actions) are shipped automatically by default, and allowed datagram sessions can be forwarded via `--all-traffic`.
+- **Flexible JSON Decoding for Custom Log Formats**:
+  - Added `flexibleInt` and `flexibleFloat` JSON decoders in `cli/push.go` and `cli/shipper/push.go` supporting quoted status codes (`"status": "404"`) and string latencies from custom reverse proxy logging formats without throwing unmarshal errors.
+
+### Changed
+- **Bandwidth-Optimized Default Telemetry Filtering**:
+  - Defaulted log streaming to security-only events (plugin mitigation actions `BLOCK`, `TARPIT`, `HONEYPOT`, and security status codes `403 Forbidden` and `429 Too Many Requests`), automatically dropping benign `200 OK` access logs to minimize network bandwidth and database size.
+- **Multi-Proxy Test Suite Coverage**:
+  - Expanded test suites in `cli/push_test.go`, `cli/shipper/push_test.go`, and `cli/observability/custom_dashboard_test.go` with a comprehensive 36-case status matrix (`101` through `504`), security tag overrides, corrupted log rejection, string status codes, and agent config persistence.
+
+---
+
+## [v5.3.2] - 2026-10-22
 
 ### Fixed
 - **Homebrew Cask Multi-Archive Mapping in GoReleaser**:
@@ -20,12 +53,12 @@ All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The 
   - Configured GoReleaser to produce dedicated standalone binary releases for `tcp-warden` (`./cmd/tcp-warden`) across Linux (`amd64`, `arm64`), macOS (`amd64`, `arm64`), and Windows (`amd64`, `arm64`).
   - Added standalone archive distribution (`tcp-warden_<version>_<os>_<arch>.tar.gz` and `.zip`) bundled with `README.md`, `LICENSE`, and default `tcp-warden.yaml`.
   - Added native Linux NFPM packages (`.deb`, `.rpm`, `.apk`) for `tcp-warden` with pre-installed `/etc/routewarden/tcp-warden.yaml` default configuration.
-  - Added standalone `tcp-warden` binary packaging into the RouteWarden Homebrew Cask (`routewarden/tap/rwarden`) with macOS quarantine clearing and automated daemon teardown.
+  - Added standalone `tcp-warden` binary packaging into the Routewarden Homebrew Cask (`routewarden/tap/rwarden`) with macOS quarantine clearing and automated daemon teardown.
 - **Dedicated Multi-Arch Docker Container (`ghcr.io/routewarden/tcp-warden`)**:
   - Added automated multi-architecture Docker image builds (`linux/amd64`, `linux/arm64`) based on an ultra-lean Alpine runtime (`Dockerfile.tcp-warden`, <15MB) published to `ghcr.io/routewarden/tcp-warden:latest` and tagged release versions.
   - Added CI build validation dry-runs for `Dockerfile.tcp-warden` across all pull requests and branch builds.
 - **`rwarden tcp version` Subcommand**:
-  - Added `version` command and flags (`--version`, `-v`) to `rwarden tcp`, outputting formatted RouteWarden TCP Proxy version metadata.
+  - Added `version` command and flags (`--version`, `-v`) to `rwarden tcp`, outputting formatted Routewarden TCP Proxy version metadata.
 - **Package Teardown Lifecycle Hooks (`scripts/preremove.sh`)**:
   - Updated RPM, Debian, and APK package pre-removal scripts to automatically detect and stop active standalone `tcp-warden` daemons during package uninstallation or upgrade.
 
@@ -42,7 +75,7 @@ All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The 
 
 ### Added
 - **Active Connection Health Supervisor & Ping Heartbeat (`/api/v1/ping`)**:
-  - Implemented `/api/v1/ping` on the RouteWarden dashboard server returning node status, server public key, version, and server timestamp while validating agent tokens and refreshing agent last-seen state and hostname metadata.
+  - Implemented `/api/v1/ping` on the Routewarden dashboard server returning node status, server public key, version, and server timestamp while validating agent tokens and refreshing agent last-seen state and hostname metadata.
   - Added an active client connection supervisor loop in `rwarden push` and standalone `rwarden-shipper` (`--ping-interval`, default: `10s`), continuously tracking dashboard reachability.
   - Implemented fast-probing reconnection mode: whenever the dashboard is unreachable, the client accelerates health checks to 2-second intervals, immediately detecting dashboard recovery.
 - **Offline Event Queueing & Backlog Drain (`--queue-size` & `--disconnect-timeout`)**:
@@ -66,7 +99,7 @@ All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The 
   - Added dedicated REST endpoints `GET /api/v1/storage` (metrics & policy) and `POST /api/v1/prune` (on-demand prune & compact).
   - Added **💾 Storage** modal in the dashboard UI with live footprint indicators and a one-click **🧹 Prune & Compact Now** action.
 - **Merged High-Performance L4 TCP/UDP Reverse Proxy (`rwarden tcp`)**:
-  - Integrated `tcp-warden` into the RouteWarden CLI repository under modular package `cli/proxy/`, keeping core networking, protocols, geoip, crowdsec, and plugins reusable across the suite.
+  - Integrated `tcp-warden` into the Routewarden CLI repository under modular package `cli/proxy/`, keeping core networking, protocols, geoip, crowdsec, and plugins reusable across the suite.
   - Added unified `rwarden tcp` command tree supporting foreground execution and background detached daemon mode (`up`, `down`, `status`, `validate`, `plugins`).
   - Added Layer 4 protocol-aware inspection (HTTP, TLS SNI, SSH, Redis, PostgreSQL, MySQL), connection rate limiting, CIDR geo-blocking, dynamic IP banlist persistence, and CrowdSec LAPI remediation.
   - Implemented modular protocol inspection plugin SDK (`rwarden tcp plugins list`, `rwarden tcp plugins test`, `rwarden tcp plugins install`).
@@ -136,8 +169,8 @@ All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The 
 ## [v5.2.1] - 2026-10-20
 
 ### Added
-- **Docker Container Log Filtering (`isRouteWardenLog` & `--all-logs`)**:
-  - Implemented automatic log filtering for Docker container streaming (`tailContainerToChan` and `TailContainerFilteredToChan`), ensuring the shipper only pushes valid RouteWarden security events (structured JSON with `verdict`, `rule`, `action`, `client_ip`, `path`) or standard Combined access logs.
+- **Docker Container Log Filtering (`isRoutewardenLog` & `--all-logs`)**:
+  - Implemented automatic log filtering for Docker container streaming (`tailContainerToChan` and `TailContainerFilteredToChan`), ensuring the shipper only pushes valid Routewarden security events (structured JSON with `verdict`, `rule`, `action`, `client_ip`, `path`) or standard Combined access logs.
   - Automatically drops arbitrary container stdout/stderr output (e.g. application banners, database connection strings, startup debug statements, stack traces) before batching and network transmission.
   - Added automatic Docker RFC3339 timestamp prefix stripping (`dockerTimestampPrefixRegex`) to normalize container output lines before JSON evaluation and ingestion.
   - Added `--all-logs` flag to `rwarden push` and `rwarden-shipper` to allow operators to bypass filtering and stream unparsed raw container output when explicitly requested.
@@ -164,8 +197,8 @@ All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The 
 - **Real-Time Docker Container Lifecycle Observers**:
   - Upgraded `rwarden monitor` with a real-time 2-second lifecycle observer that dynamically attaches to newly started or restarted containers (`🐳 [Docker] Attached to container: <name>`) and cleanly detaches on stop (`🛑 [Docker] Container stopped: <name>`) without exiting the monitor session.
   - Added immediate zero-delay startup scan for Docker container discovery in `rwarden push` and `rwarden-shipper`.
-- **Docker Container Log Filtering (`isRouteWardenLog` & `--all-logs`)**:
-  - Implemented automatic log filtering for Docker container streaming (`tailContainerToChan` and `TailContainerFilteredToChan`), ensuring the shipper only pushes valid RouteWarden security events (structured JSON with `verdict`, `rule`, `action`, `client_ip`, `path`) or standard Combined access logs.
+- **Docker Container Log Filtering (`isRoutewardenLog` & `--all-logs`)**:
+  - Implemented automatic log filtering for Docker container streaming (`tailContainerToChan` and `TailContainerFilteredToChan`), ensuring the shipper only pushes valid Routewarden security events (structured JSON with `verdict`, `rule`, `action`, `client_ip`, `path`) or standard Combined access logs.
   - Automatically drops arbitrary container stdout/stderr output (e.g. application banners, database connection strings, startup debug statements, stack traces) before batching and network transmission.
   - Added automatic Docker RFC3339 timestamp prefix stripping (`dockerTimestampPrefixRegex`) to normalize container output lines before JSON evaluation and ingestion.
   - Added `--all-logs` flag to `rwarden push` and `rwarden-shipper` to allow operators to bypass filtering and stream unparsed raw container output when explicitly requested.
@@ -193,14 +226,14 @@ All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The 
 
 ### Added
 - **Manual Event Push via CLI (`rwarden push -e` / `--event`)**:
-  - Added native one-shot manual direct event push support. Operators can immediately dispatch synthetic test events or external log lines directly to RouteWarden dashboard without spawning a background log shipping daemon.
+  - Added native one-shot manual direct event push support. Operators can immediately dispatch synthetic test events or external log lines directly to Routewarden dashboard without spawning a background log shipping daemon.
   - Supports repeatable `-e` flags (`rwarden push -e '{"path":"/.env","verdict":"BLOCK"}' -e '...'`) to push multiple events simultaneously.
 - **Piped STDIN Event Streaming (`rwarden push --stdin` / `-f -` / `rwarden push -`)**:
   - Added line-by-line streaming from standard input via `--stdin`, `-f -`, or positional `-` (`cat access.log | rwarden push --stdin`).
   - Implemented automatic batch chunking with configurable `--batch-size` (default: 50) and `--flush-interval` (default: 1s), flushing on buffer capacity or EOF.
 - **Automatic Uninstall Service Stop & Cleanup Hook**:
   - Integrated an automatic uninstall cleanup hook into `rwarden uninstall` and the standalone `uninstall.sh` script.
-  - Automatically identifies and stops active RouteWarden background services (`rwarden stop`), tears down dashboard Docker containers (`docker rm -f routewarden-dashboard`), unlinks binary symlinks (`/usr/local/bin/rwarden` and `~/.local/bin/rwarden`), and safely purges runtime state directories (`~/.routewarden`).
+  - Automatically identifies and stops active Routewarden background services (`rwarden stop`), tears down dashboard Docker containers (`docker rm -f routewarden-dashboard`), unlinks binary symlinks (`/usr/local/bin/rwarden` and `~/.local/bin/rwarden`), and safely purges runtime state directories (`~/.routewarden`).
 - **Unified Standalone Shipper (`rwarden-shipper`) Parity**:
   - Extended standalone shipper binary with identical `-e`/`--event` one-shot pushing and `--stdin` piping capabilities.
 
@@ -215,7 +248,7 @@ All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The 
 - **Base `configFile` Preservation in Engine**:
   - Resolved an issue in `NewEngine` where `CreateConfig()` defaults overwrote base policy settings when merging an inline configuration with a `configFile`.
 - **Enhanced Linter Response Mode Recognition (RW-A012)**:
-  - Added full support in `rwarden audit` for all 13 RouteWarden response modes (`captcha`, `gzipBomb`, `fakeSuccess`, `rateLimitChallenge`, `redirect`, `proxy`, `infiniteStream`, `xml`, etc.), preventing false positive warnings in strict CI audits.
+  - Added full support in `rwarden audit` for all 13 Routewarden response modes (`captcha`, `gzipBomb`, `fakeSuccess`, `rateLimitChallenge`, `redirect`, `proxy`, `infiniteStream`, `xml`, etc.), preventing false positive warnings in strict CI audits.
 - **CLI Standard Input (`-`) Support in `audit` and `diff`**:
   - Fixed argument parser behavior when receiving `"-"`, enabling direct piped inspection (`cat policy.json | rwarden audit -`) and diffing (`rwarden diff - candidate.json`).
 - **Response Mode Status Code Defaulting in Configuration Generator**:
@@ -277,7 +310,7 @@ All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The 
 
 ### Added
 - **Distributed Remote Log Shipping & Enrollment (`rwarden push`, `keys`, `register`)**:
-  - Introduced a CrowdSec-style distributed log shipping model allowing multiple remote edge servers, cloud VMs, and Kubernetes clusters to stream live telemetry to a central RouteWarden dashboard.
+  - Introduced a CrowdSec-style distributed log shipping model allowing multiple remote edge servers, cloud VMs, and Kubernetes clusters to stream live telemetry to a central Routewarden dashboard.
   - **`rwarden keys`**: Generate (`keys create <name>`), list (`keys list`), and revoke (`keys revoke <id>`) 24-byte cryptographically secure agent authentication tokens (`rw_sec_...`).
   - **`rwarden register`**: One-time registration handshake connecting remote nodes to the central dashboard, automatically fetching the server's public key, and persisting configuration in `~/.routewarden/agent.json` with strict `0600` permissions.
   - **`rwarden push`**: Zero-flag background log shipper reading saved credentials, auto-discovering labeled Docker containers (`routewarden=true`) or tailing local log files (`--file`), and streaming encrypted batches.
@@ -305,9 +338,9 @@ All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The 
 - **Real-Time Central Dashboard Status Ribbon & Sources API**:
   - Injected real-time status ribbon into SOC dashboard interface displaying both local containers and remote nodes with dynamic online/idle/offline health pulses.
   - Extended `/api/sources` to return live telemetry and event counters for all connected remote agents.
-  - Added automated log translation from Traefik JSON, Nginx text, Caddy JSON, and RouteWarden security verdicts into unified NCSA/Combined log format.
+  - Added automated log translation from Traefik JSON, Nginx text, Caddy JSON, and Routewarden security verdicts into unified NCSA/Combined log format.
 - **Ultra-Lightweight Real-Time Security Dashboard (`rwarden dashboard`)**:
-  - Replaced the multi-container monitoring stack with an ultra-lightweight real-time security dashboard powered by RouteWarden's embedded SOC engine and SQLite persistence.
+  - Replaced the multi-container monitoring stack with an ultra-lightweight real-time security dashboard powered by Routewarden's embedded SOC engine and SQLite persistence.
   - Drastically reduced memory footprint from ~350MB+ down to **~8MB RAM**.
   - Single-port embedded HTTP web server and SSE stream serving live interactive analytics at `http://localhost:7890`.
   - Automatic Docker container discovery for `routewarden=true` / `routewarden.logs=true` via `/var/run/docker.sock`.
@@ -369,7 +402,7 @@ All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The 
 ### Fixed
 - **Pure Non-Root GeoIP Init Container Execution (`docker-compose.yml`)**:
   - Reconfigured `geoip-init` volume mount target to `/home/curl_user` (the native home directory of `curl_user`), eliminating root permission write errors (`curl: (23) client returned ERROR on write`).
-  - Removed requirement for elevated container privileges (`user: "0:0"`), ensuring the entire RouteWarden observability stack runs strictly under unprivileged user contexts.
+  - Removed requirement for elevated container privileges (`user: "0:0"`), ensuring the entire Routewarden observability stack runs strictly under unprivileged user contexts.
 
 ---
 
@@ -395,7 +428,7 @@ All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The 
 ### Added
 - **File-Based Configuration (`configFile` / `config_file`)**:
   - Added support for loading a base `routewarden.json` policy file and merging inline options on top across the evaluation engine (`engine.NewEngine`) and all gateway generators.
-  - Added `configFile` and `config_file` properties to the official RouteWarden JSON Schema (`config.schema.json`) and `rwarden schema` output.
+  - Added `configFile` and `config_file` properties to the official Routewarden JSON Schema (`config.schema.json`) and `rwarden schema` output.
   - Added Docker labels parsing support for `traefik.http.middlewares.<name>.plugin.routewarden.configFile` (and snake_case alias).
   - Added generator support for emitting `configFile` across Traefik Dynamic YAML, Traefik TOML, Traefik Docker labels, Caddyfile (`config_file`), and OpenResty NGINX Lua (`config_file`).
   - Added base config file path diagnostics in `rwarden validate`.
@@ -502,7 +535,7 @@ All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The 
   - Added repeatable `--env` / `-e` flags to `rwarden dashboard up`.
   - Added `${ENV_VAR:-default}` parameter fallbacks across `docker-compose.yml` so custom environment variables, SMTP credentials, and OAuth SSO settings are respected at runtime.
 - **TCP Warden Sample Configuration & Obsolete Flags**:
-  - Fixed `samples/tcp-warden/docker-compose.yaml`, `README.md`, and `tcp-warden.yaml` by removing non-existent flags (`--tcp-warden`, `--host`, `--no-docker`) and adding the proper `routewarden.logs=true` label for the RouteWarden Observability Stack.
+  - Fixed `samples/tcp-warden/docker-compose.yaml`, `README.md`, and `tcp-warden.yaml` by removing non-existent flags (`--tcp-warden`, `--host`, `--no-docker`) and adding the proper `routewarden.logs=true` label for the Routewarden Observability Stack.
 - **UDP Port Exposure in Docker Image**:
   - Added `1514/udp` to the `EXPOSE` directive in `Dockerfile` for network UDP syslog ingestion.
 
@@ -510,7 +543,7 @@ All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The 
 - **Pure Opt-In Container Discovery & Self-Logging Protection**:
   - Replaced broad container name regex matching (`.*(routewarden|traefik|caddy|nginx|tcp-warden).*`) with a strict, label-based **Pure Opt-In** model (`routewarden.logs=true` or `routewarden=true`).
   - Completely prevents the observability stack from capturing its own internal logs or scraping unrelated host containers (databases, web applications, or unmanaged proxies).
-  - Added stream-level log noise filtering to automatically discard plain-text container startup banners, health check probes, and ordinary proxy access lines lacking structured RouteWarden security fields (`verdict` or `action`).
+  - Added stream-level log noise filtering to automatically discard plain-text container startup banners, health check probes, and ordinary proxy access lines lacking structured Routewarden security fields (`verdict` or `action`).
   - Simplified `docker-compose.yml` by eliminating negative exclusion labels across all observability services.
 
 ---
@@ -534,7 +567,7 @@ All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The 
 - **Redirect Mode Security Hardening (`redirectUrl`)**:
   - Strict URL scheme validation in `rwarden validate` and `engine.NewEngine`, restricting `redirectUrl` to `http://`, `https://`, or root-relative paths (`/...`) to eliminate open-redirect and `javascript:` attack vectors.
 - **Centralized Documentation & Universal Installer Integration**:
-  - Centralized CLI documentation and guide hosted at [RouteWarden Documentation](/cli/).
+  - Centralized CLI documentation and guide hosted at [Routewarden Documentation](/cli/).
   - Integrated with the unified ecosystem installation script served directly at `https://routewarden.github.io/install.sh`.
 - **Multi-Architecture Docker Container Build Optimization**:
   - Upgraded Dockerfile with BuildKit cache mounting (`--mount=type=cache`) for Go package modules and build caches, substantially speeding up container build times.
@@ -554,7 +587,7 @@ All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The 
 
 ### Added
 - **Multi-App Version Sync**:
-  - Unified version synchronizer and multi-target documentation linking in RouteWarden ecosystem docs.
+  - Unified version synchronizer and multi-target documentation linking in Routewarden ecosystem docs.
 - **Enhanced Error Diagnostics**:
   - Clearer syntax error messages when validating malformed `tcp-warden.yaml` configurations.
 
@@ -563,13 +596,13 @@ All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The 
 ## [v4.0.0] - 2026-09-25
 
 ### Added
-- **RouteWarden TCP Warden Integration (`rwarden generate tcp-warden` & `rwarden validate`)**:
-  - Declarative generation of `tcp-warden.yaml` configurations directly from centralized RouteWarden JSON policies.
+- **Routewarden TCP Warden Integration (`rwarden generate tcp-warden` & `rwarden validate`)**:
+  - Declarative generation of `tcp-warden.yaml` configurations directly from centralized Routewarden JSON policies.
   - Strict syntax, schema, and CIDR validation for `tcp-warden.yaml` via CLI arguments or stdin pipelines.
-- **Real-Time TCP Monitoring in RouteWarden Dashboard**:
+- **Real-Time TCP Monitoring in Routewarden Dashboard**:
   - Direct ingestion and real-time visualization of structured `tcp-warden.jsonl` event streams.
   - GeoIP mapping, protocol breakdowns, connection velocity metrics, and dynamic ban tracking.
-- **RouteWarden TCP Warden Standalone Application** ([TCP Warden Docs](/tcp/)):
+- **Routewarden TCP Warden Standalone Application** ([TCP Warden Docs](/tcp/)):
   - Dedicated, zero-allocation Layer 4 TCP security proxy daemon for SSH, SMTP, POP3, IMAP, and generic TCP tunnels.
   - Bidirectional CrowdSec integration (LAPI bouncer decision ingestion and scenario log export).
   - Built-in management REST and SSE API (`:9091`) with hot-reload support (`SIGHUP`).
@@ -628,19 +661,19 @@ All notable changes to the RouteWarden CLI (`rwarden`) are documented here. The 
 
 ### Added
 - **Ephemeral Gateway Sandbox (`rwarden sandbox`)**:
-  - Spin up live, ephemeral container environments for **Traefik**, **Caddy**, and **NGINX (OpenResty)** pre-configured with RouteWarden security rules.
+  - Spin up live, ephemeral container environments for **Traefik**, **Caddy**, and **NGINX (OpenResty)** pre-configured with Routewarden security rules.
   - Automatically translates and mounts native dynamic configurations into isolated test containers.
   - Interactive foreground mode with instant graceful teardown on `Ctrl+C`.
   - Detached background mode (`--detach` / `-d`) for local dev workflows and integration testing.
   - Automated probe testing (`--test`) to execute live HTTP test suites asserting blocking and bypass behavior.
   - Dry-run mode (`--dry-run`) to inspect generated gateway configurations and exact Docker run commands without launching containers.
-- **Custom RouteWarden Plugin Support**:
+- **Custom Routewarden Plugin Support**:
   - `--plugin-version`: Specify custom plugin version/tag/branch for testing specific releases.
   - `--plugin-path`: Mount local plugin repository directories for real-time plugin development.
 - **Pre-flight Environment Validation**:
   - Added early Docker installation and daemon accessibility checks to fail fast with actionable guidance.
 - **Enhanced Container Tooling**:
-  - Included `docker-cli` inside the RouteWarden container image (`ghcr.io/routewarden/cli`).
+  - Included `docker-cli` inside the Routewarden container image (`ghcr.io/routewarden/cli`).
 
 ---
 

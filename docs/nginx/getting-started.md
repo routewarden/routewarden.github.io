@@ -1,5 +1,6 @@
 ---
 title: "NGINX Warden: Getting Started"
+description: "Step-by-step guide for setting up Routewarden in NGINX and OpenResty with LuaJIT."
 ---
 
 <script setup>
@@ -11,7 +12,7 @@ const inst_dockerfile = buildSnippet({
   lang: 'dockerfile',
   code: `FROM openresty/openresty:alpine
 
-# Copy RouteWarden into OpenResty Lua library search path
+# Copy Routewarden into OpenResty Lua library search path
 COPY lib/resty/routewarden /usr/local/openresty/site/lualib/resty/routewarden # [!code ++]
 
 # Copy your NGINX configuration
@@ -76,7 +77,7 @@ const dyn_json = buildSnippet({
   "response": {
     "mode": "json",
     "statusCode": 403,
-    "body": "{\\"error\\":\\"Forbidden\\",\\"message\\":\\"Sensitive route protected by RouteWarden\\"}"
+    "body": "{\\"error\\":\\"Forbidden\\",\\"message\\":\\"Sensitive route protected by Routewarden\\"}"
   }
 }`,
 })
@@ -166,7 +167,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install RouteWarden CLI
+      - name: Install Routewarden CLI
         run: curl -sSfL https://routewarden.github.io/install.sh | sh
 
       - name: Validate & Generate OpenResty Lua Config
@@ -244,7 +245,7 @@ const verificationSnippets = computed(() => ({
 
 ## Installation Methods
 
-Deploy RouteWarden via Dockerfile, container run, Docker Compose, or manual package integration:
+Deploy Routewarden via Dockerfile, container run, Docker Compose, or manual package integration:
 
 <CodeViewer :snippets="installSnippets" />
 
@@ -252,13 +253,13 @@ Deploy RouteWarden via Dockerfile, container run, Docker Compose, or manual pack
 
 ## Configuration
 
-RouteWarden can be configured directly in OpenResty's `init_by_lua_block` or defined via **`routewarden.json`** as your universal security policy:
+Routewarden can be configured directly in OpenResty's `init_by_lua_block` or defined via **`routewarden.json`** as your universal security policy:
 
 <CodeViewer :snippets="configSnippets" />
 
 ### Using `routewarden.json` Directly via Generate Pipeline
 
-If you maintain `routewarden.json` as your single source of truth across Git repositories or multi-gateway environments, use the [RouteWarden CLI (`rwarden`)](/cli/) to validate rules offline and compile directly into OpenResty Lua configuration tables during your deployment pipeline:
+If you maintain `routewarden.json` as your single source of truth across Git repositories or multi-gateway environments, use the [Routewarden CLI (`rwarden`)](/cli/) to validate rules offline and compile directly into OpenResty Lua configuration tables during your deployment pipeline:
 
 <CodeViewer :snippets="pipelineSnippets" />
 
@@ -274,6 +275,6 @@ Test edge security enforcement against benign requests, sensitive file probes, d
 
 ## Next Steps
 
-- Use the [RouteWarden CLI (`rwarden`)](/cli/) to validate schemas and test paths offline.
+- Use the [Routewarden CLI (`rwarden`)](/cli/) to validate schemas and test paths offline.
 - Review [NGINX Configuration Reference](/nginx/configuration) for all directives and options.
 - Read [Production Recipes & Blueprints](/nginx/examples) for Kubernetes Ingress and Docker configurations.

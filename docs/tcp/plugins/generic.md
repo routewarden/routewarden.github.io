@@ -10,7 +10,7 @@ import { buildSnippet } from '../../.vitepress/theme/composables/useCodeSnippet'
 // ─── 1. Installation Snippets ───────────────────────────────────────────────
 const install_cli = buildSnippet({
   lang: 'bash',
-  code: `# Install via RouteWarden CLI
+  code: `# Install via Routewarden CLI
 rwarden tcp plugins install generic
 
 # Or standalone binary
@@ -31,7 +31,7 @@ plugins:
 
 const installSnippets = computed(() => ({
   tcp: [
-    { filename: 'RouteWarden CLI', lang: 'bash', code: install_cli.cleanCode, html: install_cli.html, hasDiff: false },
+    { filename: 'Routewarden CLI', lang: 'bash', code: install_cli.cleanCode, html: install_cli.html, hasDiff: false },
     { filename: 'tcp-warden.yaml', lang: 'yaml', code: install_yaml.cleanCode, html: install_yaml.html, hasDiff: false },
   ]
 }))
@@ -142,7 +142,7 @@ The **Generic Layer 4 Plugin** provides universal, protocol-agnostic TCP proxyin
 
 ## Installation
 
-The `generic` protocol handler is built into RouteWarden core and also available as a standalone plugin from the official repository:
+The `generic` protocol handler is built into Routewarden core and also available as a standalone plugin from the official repository:
 
 <CodeViewer :snippets="installSnippets" />
 
@@ -171,17 +171,17 @@ Add a generic TCP proxy service to `tcp-warden.yaml`:
 
 ## Network & Deployment Architecture
 
-For non-privileged TCP ports (`> 1024`), RouteWarden simply acts as a standard Layer 4 reverse proxy or container gateway:
+For non-privileged TCP ports (`> 1024`), Routewarden simply acts as a standard Layer 4 reverse proxy or container gateway:
 
 ### Option A: Direct Reverse Proxy
 
-Direct clients to connect to RouteWarden's listen port, which inspects and forwards traffic to the backend target:
+Direct clients to connect to Routewarden's listen port, which inspects and forwards traffic to the backend target:
 
 <CodeViewer :snippets="netProxySnippets" />
 
 ### Option B: Docker Host Network Proxy
 
-Run RouteWarden in `network_mode: host` to transparently guard backends running directly on the host or inside containers:
+Run Routewarden in `network_mode: host` to transparently guard backends running directly on the host or inside containers:
 
 <CodeViewer :snippets="netComposeSnippets" />
 

@@ -1,5 +1,6 @@
 ---
 title: Case Study – Self-Hosted Cloud & Vault Protection
+description: "Locking down Vaultwarden admin portals while keeping mobile vault synchronization open to public clients."
 ---
 
 <script setup>
@@ -386,7 +387,7 @@ A common security requirement is exposing **only the Bitwarden Send feature** to
 When a recipient unlocks a password-protected Send, the client sends a `POST` request to `/identity/connect/token` with `grant_type=send_access`. A full vault login also targets `/identity/connect/token` with `grant_type=password`.
 
 ### Solution with Zero-Trust Allowlisting and `check_body`
-Using RouteWarden's allowlisting and request body inspection across Caddy, Traefik, and NGINX:
+Using Routewarden's allowlisting and request body inspection across Caddy, Traefik, and NGINX:
 1. **Zero-Trust Allowlist (`allow_patterns` / `allowPatterns`)**: Permit strictly public Send viewing (`/api/sends/*`), the token unlock API (`/identity/connect/token`), and frontend static assets.
 2. **Default-Deny Catch-All (`block_patterns` / `blockPatterns`)**: Catch-all regex `(?i)^/.*$` blocks all unlisted routes—including the root path `/`, vault sync, ciphers, and admin panel.
 3. **Payload Inspection (`check_body` & `check_body_patterns`)**: Guard `/identity/connect/token` by blocking `(?i)grant_type=password` while permitting `grant_type=send_access`.
@@ -396,7 +397,7 @@ Using RouteWarden's allowlisting and request body inspection across Caddy, Traef
 
 <CodeViewer :snippets="sendSnippets" />
 
-#### Testing with RouteWarden CLI (`rwarden`)
+#### Testing with Routewarden CLI (`rwarden`)
 
 Validate rules offline before deploying:
 

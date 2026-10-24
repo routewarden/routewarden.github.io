@@ -10,7 +10,7 @@ import { buildSnippet } from '../../.vitepress/theme/composables/useCodeSnippet'
 // ─── 1. Installation Snippets ───────────────────────────────────────────────
 const install_cli = buildSnippet({
   lang: 'bash',
-  code: `# Install via RouteWarden CLI
+  code: `# Install via Routewarden CLI
 rwarden tcp plugins install redis
 
 # Or standalone binary
@@ -31,7 +31,7 @@ plugins:
 
 const installSnippets = computed(() => ({
   tcp: [
-    { filename: 'RouteWarden CLI', lang: 'bash', code: install_cli.cleanCode, html: install_cli.html, hasDiff: false },
+    { filename: 'Routewarden CLI', lang: 'bash', code: install_cli.cleanCode, html: install_cli.html, hasDiff: false },
     { filename: 'tcp-warden.yaml', lang: 'yaml', code: install_yaml.cleanCode, html: install_yaml.html, hasDiff: false },
   ]
 }))
@@ -86,7 +86,7 @@ sudo systemctl restart redis-server`
 
 const net_portswap_yaml = buildSnippet({
   lang: 'yaml',
-  code: `# tcp-warden.yaml — RouteWarden listens on standard Redis port
+  code: `# tcp-warden.yaml — Routewarden listens on standard Redis port
 services:
   redis_firewall:
     listen: ":6379"
@@ -139,7 +139,7 @@ const test_blocked = buildSnippet({
   lang: 'bash',
   code: `# Verify blocked dangerous command is intercepted
 redis-cli -p 6379 FLUSHALL
-# Output: (error) ERR command 'FLUSHALL' blocked by RouteWarden`
+# Output: (error) ERR command 'FLUSHALL' blocked by Routewarden`
 })
 
 const test_brute = buildSnippet({
@@ -167,7 +167,7 @@ The **Redis Protocol Guard** plugin implements an in-line command firewall for R
 
 | Threat / Attack Vector | Defense Mechanism | Action Taken |
 | :--- | :--- | :--- |
-| **Data Wipe & Sabotage** | Blocks destructive commands (`FLUSHALL`, `FLUSHDB`) | Drops command and returns `-ERR command blocked by RouteWarden` |
+| **Data Wipe & Sabotage** | Blocks destructive commands (`FLUSHALL`, `FLUSHDB`) | Drops command and returns `-ERR command blocked by Routewarden` |
 | **Remote Code Execution & Probing** | Blocks configuration manipulation (`CONFIG`, `DEBUG`, `MODULE`) | Drops command with immediate synthetic error |
 | **Password Brute-Force** | Tracks upstream `-WRONGPASS` and `-NOAUTH` replies | IP banned after `max_auth_failures` threshold |
 | **Connection Starvation** | Token bucket rate limiting per IP | Excess connection attempts throttled |
@@ -197,23 +197,23 @@ Add a Redis guard service to `tcp-warden.yaml`:
 | `protocol` | `string` | `"redis"` | Must be set to `"redis"`. |
 | `max_auth_failures` | `int` | `5` | Failed `AUTH` attempts before IP is banned. |
 | `ban_duration` | `string` | `"1h"` | Duration of the automated IP ban (`"30m"`, `"1h"`, `"24h"`). |
-| `plugin_config.blocked_commands` | `[]string` | `["FLUSHALL", ...]` | List of uppercase command names rejected by RouteWarden. |
+| `plugin_config.blocked_commands` | `[]string` | `["FLUSHALL", ...]` | List of uppercase command names rejected by Routewarden. |
 
 ---
 
 ## Network & Deployment Architecture
 
-Because Redis operates on an unprivileged port (`6379`), kernel firewall redirects (`nftables`/`iptables`) are not required. Deploy RouteWarden using either direct reverse proxying or container network isolation:
+Because Redis operates on an unprivileged port (`6379`), kernel firewall redirects (`nftables`/`iptables`) are not required. Deploy Routewarden using either direct reverse proxying or container network isolation:
 
 ### Option A: Direct Port Swapping (Bare-Metal / VM)
 
-Rebind Redis to loopback on an alternate port and expose RouteWarden on `:6379`:
+Rebind Redis to loopback on an alternate port and expose Routewarden on `:6379`:
 
 <CodeViewer :snippets="netPortSwapSnippets" />
 
 ### Option B: Docker Compose Bridge Isolation
 
-Publish port `6379` on RouteWarden while keeping Redis private to the internal container bridge network:
+Publish port `6379` on Routewarden while keeping Redis private to the internal container bridge network:
 
 <CodeViewer :snippets="netComposeSnippets" />
 

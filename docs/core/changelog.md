@@ -1,6 +1,11 @@
+---
+title: "Changelog Directory"
+description: "Core engine release notes and version history for Routewarden HTTP security middleware."
+---
+
 # Changelog Directory
 
-Release notes for the RouteWarden security ecosystem are maintained independently for each component. Please refer to the dedicated changelog for your specific gateway or service:
+Release notes for the Routewarden security ecosystem are maintained independently for each component. Please refer to the dedicated changelog for your specific gateway or service:
 
 | Component | Target Runtime / Technology | Latest Version | Dedicated Changelog |
 | :--- | :--- | :--- | :--- |
@@ -8,7 +13,7 @@ Release notes for the RouteWarden security ecosystem are maintained independentl
 | **Caddy Warden** | Caddy v2 HTTP Module (Go) | `{{caddy_version}}` | [Caddy Changelog](/caddy/changelog) |
 | **NGINX Warden** | NGINX / OpenResty Module (Lua) | `{{nginx_version}}` | [NGINX Changelog](/nginx/changelog) |
 | **TCP Warden** | L4 TCP/UDP Reverse Proxy & Shield (Go) | Integrated in CLI (`{{cli_version}}`) | [CLI & TCP Warden Changelog](/cli/changelog) |
-| **RouteWarden CLI** | Policy Compiler & Generator (`rwarden`) | `{{cli_version}}` | [CLI Changelog](/cli/changelog) |
+| **Routewarden CLI** | Policy Compiler & Generator (`rwarden`) | `{{cli_version}}` | [CLI Changelog](/cli/changelog) |
 
 ---
 
@@ -36,13 +41,13 @@ Covers releases for the OpenResty / NGINX Lua security handler, LuaRocks package
 ---
 
 ### [TCP Warden & L4 Proxy Changelog](/cli/changelog)
-TCP Warden is integrated into the RouteWarden CLI (`rwarden tcp` & `tcp-warden`). Release notes, binary packages, and updates are maintained in the unified CLI changelog.
+TCP Warden is integrated into the Routewarden CLI (`rwarden tcp` & `tcp-warden`). Release notes, binary packages, and updates are maintained in the unified CLI changelog.
 
 👉 [View CLI & TCP Warden Changelog](/cli/changelog)
 
 ---
 
-### [RouteWarden CLI Changelog](/cli/changelog)
+### [Routewarden CLI Changelog](/cli/changelog)
 Covers releases for the `rwarden` command-line tool, supporting multi-target generation (Traefik YAML/TOML/Labels, Caddyfile, NGINX Lua), policy validation, and simulation.
 
 👉 [View CLI Release Notes](/cli/changelog)
@@ -51,7 +56,7 @@ Covers releases for the `rwarden` command-line tool, supporting multi-target gen
 
 ## Versioning Policy
 
-RouteWarden components follow [Semantic Versioning (SemVer)](https://semver.org/):
+Routewarden components follow [Semantic Versioning (SemVer)](https://semver.org/):
 - **Major (`X.0.0`)**: Breaking configuration changes, architectural rewrites, or API deprecations.
 - **Minor (`x.Y.0`)**: New security plugins, supported proxy targets, or backwards-compatible functionality additions.
 - **Patch (`x.y.Z`)**: Security patches, bug fixes, performance enhancements, and documentation updates.

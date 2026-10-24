@@ -1,6 +1,6 @@
 ---
 title: Frequently Asked Questions (FAQ)
-description: Answers to common questions about RouteWarden edge defense, anti-evasion normalization, response modes, Layer 4 TCP Warden, IP allowlisting, and observability.
+description: Answers to common questions about Routewarden edge defense, anti-evasion normalization, response modes, Layer 4 TCP Warden, IP allowlisting, and observability.
 ---
 
 <script setup>
@@ -287,7 +287,7 @@ const trustedProxiesSnippets = computed(() => ({
 // ─── Dashboard Management Snippet ───────────────────────────────────────────
 const dash_start = buildSnippet({
   lang: 'bash',
-  code: `# Launch RouteWarden Security Dashboard
+  code: `# Launch Routewarden Security Dashboard
 rwarden dashboard
 
 # Launch with password protection & custom host/port
@@ -303,13 +303,13 @@ const dashboardStartSnippets = computed(() => ({
 // ─── Log Replay Snippet ─────────────────────────────────────────────────────
 const replay_bash = buildSnippet({
   lang: 'bash',
-  code: `# Stream and inspect RouteWarden container events live
+  code: `# Stream and inspect Routewarden container events live
 rwarden monitor --label routewarden=true`,
 })
 
 const replay_rescrape = buildSnippet({
   lang: 'bash',
-  code: `# Pipe RouteWarden logs directly into the real-time dashboard
+  code: `# Pipe Routewarden logs directly into the real-time dashboard
 cat /var/log/routewarden/security.log | rwarden dashboard`,
 })
 
@@ -334,7 +334,7 @@ services:
 
 const optin_cli = buildSnippet({
   lang: 'bash',
-  code: `# docker run with RouteWarden discovery label
+  code: `# docker run with Routewarden discovery label
 docker run -d \\
   --label routewarden.logs=true \\ # [!code ++]
   --name webapp \\
@@ -417,7 +417,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install RouteWarden CLI
+      - name: Install Routewarden CLI
         run: curl -fsSL https://routewarden.github.io/install.sh | sh
       - name: Verify Sensitive Endpoints Are Blocked
         run: |
@@ -464,7 +464,7 @@ const diagnoseSnippets = computed(() => ({
 # Frequently Asked Questions (FAQ)
 
 <p class="tagline" style="font-size: 1.2rem; color: var(--vp-c-text-2); margin-bottom: 2rem;">
-Everything you need to know about RouteWarden architecture, threat mitigation, performance, and best practices.
+Everything you need to know about Routewarden architecture, threat mitigation, performance, and best practices.
 </p>
 
 ---
@@ -474,7 +474,7 @@ Everything you need to know about RouteWarden architecture, threat mitigation, p
 <div class="attack-grid" style="margin-bottom: 2.5rem;">
   <div class="attack-card">
     <div style="font-size: 15px; font-weight: 700; margin-bottom: 8px;">🛡️ <a href="#general-architecture">General & Architecture</a></div>
-    <p>What RouteWarden is, how it compares to WAFs, and multi-gateway compatibility.</p>
+    <p>What Routewarden is, how it compares to WAFs, and multi-gateway compatibility.</p>
   </div>
   <div class="attack-card">
     <div style="font-size: 15px; font-weight: 700; margin-bottom: 8px;">🔍 <a href="#threat-detection-patterns">Detection & Patterns</a></div>
@@ -502,9 +502,9 @@ Everything you need to know about RouteWarden architecture, threat mitigation, p
 
 ## General & Architecture
 
-### What is RouteWarden, and what problem does it solve?
+### What is Routewarden, and what problem does it solve?
 
-**RouteWarden** is a unified edge and protocol security suite designed to block scanner recon, credential stuffing, and sensitive data leaks at the perimeter before requests touch your application containers.
+**Routewarden** is a unified edge and protocol security suite designed to block scanner recon, credential stuffing, and sensitive data leaks at the perimeter before requests touch your application containers.
 
 Every server on the public internet faces relentless automated scanners probing for:
 * Configuration & secrets: `/.env`, `/config.json`, `/wp-config.php`, `/settings.py`
@@ -512,13 +512,13 @@ Every server on the public internet faces relentless automated scanners probing 
 * Backups & dumps: `/backup.sql`, `/database.tar.gz`, `/site.zip`
 * Admin consoles & debug endpoints: `/phpinfo.php`, `/_profiler`, `/actuator/env`
 
-RouteWarden sits directly inside your edge gateway (**Traefik**, **Caddy**, or **NGINX**) or as an **L4 proxy (TCP Warden)**, neutralizing these requests in less than **0.05 milliseconds** before your backend processes, databases, or application servers ever see them.
+Routewarden sits directly inside your edge gateway (**Traefik**, **Caddy**, or **NGINX**) or as an **L4 proxy (TCP Warden)**, neutralizing these requests in less than **0.05 milliseconds** before your backend processes, databases, or application servers ever see them.
 
 ---
 
-### How does RouteWarden differ from a full WAF (ModSecurity, Coraza, Cloudflare)?
+### How does Routewarden differ from a full WAF (ModSecurity, Coraza, Cloudflare)?
 
-| Dimension | Full WAF (ModSecurity / Coraza) | Cloudflare WAF | RouteWarden |
+| Dimension | Full WAF (ModSecurity / Coraza) | Cloudflare WAF | Routewarden |
 | :--- | :--- | :--- | :--- |
 | **Primary Scope** | Deep HTTP body inspection (SQLi, XSS, RCE) | Cloud-level DDoS, managed rule sets | **Edge path defense (L7) & Protocol shielding (L4)** |
 | **Inspection Latency** | 5ms – 25ms per request | Variable (cloud edge detour) | **< 0.05ms (zero-alloc regex & byte scanning)** |
@@ -529,23 +529,23 @@ RouteWarden sits directly inside your edge gateway (**Traefik**, **Caddy**, or *
 | **Active Deception** | Block (403) or Drop | Managed challenge page | **13 actions: Gzip bombs, fake 404s, Captchas, Tarpits** |
 
 > [!TIP]
-> **Better Together**: RouteWarden is not an all-or-nothing replacement for a full WAF. Many production teams run RouteWarden directly at their reverse proxy to instantly discard scanner garbage, drastically lowering load on heavier downstream WAF engines or application servers.
+> **Better Together**: Routewarden is not an all-or-nothing replacement for a full WAF. Many production teams run Routewarden directly at their reverse proxy to instantly discard scanner garbage, drastically lowering load on heavier downstream WAF engines or application servers.
 
 ---
 
-### Can I run RouteWarden alongside CrowdSec or Fail2ban?
+### Can I run Routewarden alongside CrowdSec or Fail2ban?
 
 **Yes, absolutely.** They serve complementary roles:
-* **RouteWarden** is an **in-line enforcement gate**: it inspects every packet/request live on the wire and acts instantly on the very first offending request (e.g., dropping or tarpitting before response generation).
+* **Routewarden** is an **in-line enforcement gate**: it inspects every packet/request live on the wire and acts instantly on the very first offending request (e.g., dropping or tarpitting before response generation).
 * **CrowdSec / Fail2ban** are **log analyzers**: they monitor logs after the fact and push IP bans to firewalls or IP lists.
 
-When combined, RouteWarden emits structured JSON logs with normalized client IPs and exact threat verdicts, which CrowdSec or Fail2ban can ingest without fragile custom log parsers. See the [CrowdSec Auto-Ban Shield Case Study](/examples/crowdsec) for complete configuration blueprints.
+When combined, Routewarden emits structured JSON logs with normalized client IPs and exact threat verdicts, which CrowdSec or Fail2ban can ingest without fragile custom log parsers. See the [CrowdSec Auto-Ban Shield Case Study](/examples/crowdsec) for complete configuration blueprints.
 
 ---
 
 ### Which reverse proxies and gateways are supported?
 
-RouteWarden provides native integrations for all major open-source web gateways and protocols:
+Routewarden provides native integrations for all major open-source web gateways and protocols:
 
 1. **[Traefik Warden](/traefik/)**: Official Traefik middleware plugin written in Go (`github.com/routewarden/route-warden`), available in the Traefik Plugin Catalog.
 2. **[Caddy Warden](/caddy/)**: Native Caddy v2 HTTP handler module (`github.com/routewarden/caddy-warden`) with full Caddyfile and JSON configuration support.
@@ -554,9 +554,9 @@ RouteWarden provides native integrations for all major open-source web gateways 
 
 ---
 
-### Does RouteWarden add measurable latency?
+### Does Routewarden add measurable latency?
 
-**No.** Benchmarks across Traefik, Caddy, and NGINX show RouteWarden introduces **less than 50 microseconds (< 0.05ms)** of overhead on standard HTTP requests:
+**No.** Benchmarks across Traefik, Caddy, and NGINX show Routewarden introduces **less than 50 microseconds (< 0.05ms)** of overhead on standard HTTP requests:
 * Regex patterns are pre-compiled at startup into optimized RE2 finite automata.
 * Fast-path byte checking validates request methods and path prefixes before regex execution.
 * IP allowlists use binary radix tree CIDR lookups ($O(1)$ complexity).
@@ -566,9 +566,9 @@ RouteWarden provides native integrations for all major open-source web gateways 
 
 ## Threat Detection & Patterns
 
-### What does RouteWarden block by default?
+### What does Routewarden block by default?
 
-When `enableDefaultPatterns: true` is active, RouteWarden blocks over 250 common scanner targets grouped into 7 categories:
+When `enableDefaultPatterns: true` is active, Routewarden blocks over 250 common scanner targets grouped into 7 categories:
 
 <CodeViewer :snippets="defaultDictSnippets" />
 
@@ -578,7 +578,7 @@ For the complete list and interactive tests, visit the [Interactive Pattern Chec
 
 ### How does Anti-Evasion Normalization prevent bypasses?
 
-Attackers frequently encode paths to sneak past basic reverse proxy rules. RouteWarden runs all paths through a strict 5-stage anti-evasion normalization pipeline before pattern matching:
+Attackers frequently encode paths to sneak past basic reverse proxy rules. Routewarden runs all paths through a strict 5-stage anti-evasion normalization pipeline before pattern matching:
 
 1. **Recursive Percent-Decoding**: Neutralizes multi-layered percent encoding (`/%252e%252e/` $\to$ `/../` $\to$ `/`).
 2. **Path Traversal Resolution**: Resolves relative path segments (`/static/../../.env` $\to$ `/.env`).
@@ -590,9 +590,9 @@ Learn more in the [Anti-Evasion Normalization Deep Dive](/core/anti-evasion).
 
 ---
 
-### Will RouteWarden block Let's Encrypt / ACME challenges (`.well-known`)?
+### Will Routewarden block Let's Encrypt / ACME challenges (`.well-known`)?
 
-**No.** RouteWarden includes a built-in exemption for ACME certificate validation:
+**No.** Routewarden includes a built-in exemption for ACME certificate validation:
 
 <CodeViewer :snippets="acmeExemptionSnippets" />
 
@@ -618,9 +618,9 @@ Use `allowPatterns` (or `customAllowPatterns`). Rules in the allowlist are evalu
 
 ## Response Modes & Active Defense
 
-### What response modes does RouteWarden support?
+### What response modes does Routewarden support?
 
-RouteWarden provides **13 distinct response actions**, ranging from standard HTTP rejections to active defense deceptions:
+Routewarden provides **13 distinct response actions**, ranging from standard HTTP rejections to active defense deceptions:
 
 | Mode | HTTP Status | Action / Behavior | Best Used For |
 | :--- | :--- | :--- | :--- |
@@ -666,14 +666,14 @@ Requests from these addresses bypass all inspection rules immediately.
 
 ---
 
-### How does RouteWarden prevent `X-Forwarded-For` spoofing?
+### How does Routewarden prevent `X-Forwarded-For` spoofing?
 
 Attackers frequently send headers like `X-Forwarded-For: 127.0.0.1` hoping naive middlewares will treat them as local traffic.
 
-RouteWarden includes a **Trusted Proxies Engine**:
-1. When `trustedProxies` is configured, RouteWarden inspects the physical socket connection address (`RemoteAddr`).
-2. If `RemoteAddr` belongs to a trusted proxy CIDR (such as Cloudflare or your internal load balancer), RouteWarden parses `X-Forwarded-For` from right to left to locate the verified client IP.
-3. If `RemoteAddr` is **not** in `trustedProxies`, RouteWarden ignores all incoming forwarding headers and treats `RemoteAddr` as the authoritative client IP.
+Routewarden includes a **Trusted Proxies Engine**:
+1. When `trustedProxies` is configured, Routewarden inspects the physical socket connection address (`RemoteAddr`).
+2. If `RemoteAddr` belongs to a trusted proxy CIDR (such as Cloudflare or your internal load balancer), Routewarden parses `X-Forwarded-For` from right to left to locate the verified client IP.
+3. If `RemoteAddr` is **not** in `trustedProxies`, Routewarden ignores all incoming forwarding headers and treats `RemoteAddr` as the authoritative client IP.
 
 <CodeViewer :snippets="trustedProxiesSnippets" />
 
@@ -681,7 +681,7 @@ RouteWarden includes a **Trusted Proxies Engine**:
 
 ## Layer 4 (TCP Warden)
 
-### What is TCP Warden, and how does it relate to HTTP RouteWarden?
+### What is TCP Warden, and how does it relate to HTTP Routewarden?
 
 While Traefik, Caddy, and NGINX handle Layer 7 (HTTP/HTTPS) web applications, **TCP Warden** is a dedicated Layer 4 reverse proxy and protocol firewall designed for non-HTTP infrastructure.
 
@@ -706,9 +706,9 @@ Because bots and brute-force tools (like `hydra`, `nmap`, or SSH scanners) alloc
 
 ## Security Dashboard
 
-### How does the RouteWarden Security Dashboard work?
+### How does the Routewarden Security Dashboard work?
 
-RouteWarden provides a turnkey real-time SOC security dashboard powered by RouteWarden's embedded Go server and SQLite persistence:
+Routewarden provides a turnkey real-time SOC security dashboard powered by Routewarden's embedded Go server and SQLite persistence:
 1. **Container Auto-Discovery & Filtering**: Automatically queries `/var/run/docker.sock` for running containers labeled with `routewarden=true`, multiplexes their logs concurrently, and allows filtering the SOC stream by individual nodes or containers.
 2. **In-Memory Analytics & SQLite Store**: High-performance streaming parser tracking 403 blocks, 429 tarpits, unique IPs, and top target attack paths consuming only **~8MB RAM**, backed by persistent SQLite storage with server-side pagination.
 3. **Password Protection & Access Control**: Protect the dashboard UI and sensitive log streams with optional HTTP Basic Auth (`--auth admin:secret`).
@@ -720,9 +720,9 @@ Start the dashboard with a single command:
 
 ---
 
-### Does RouteWarden scrape all Docker containers on my host?
+### Does Routewarden scrape all Docker containers on my host?
 
-**No.** RouteWarden uses a **strict opt-in model**. It only ingests logs from containers that declare:
+**No.** Routewarden uses a **strict opt-in model**. It only ingests logs from containers that declare:
 
 <CodeViewer :snippets="containerOptInSnippets" />
 
@@ -736,7 +736,7 @@ Or containers monitored via the dedicated UDP syslog listener (`127.0.0.1:1514`)
 
 The `rwarden` CLI is a cross-platform command-line tool for developers and SecOps teams:
 
-* **Offline Pattern Testing**: Test paths against RouteWarden normalization without running a live server (`rwarden check "/.env"`).
+* **Offline Pattern Testing**: Test paths against Routewarden normalization without running a live server (`rwarden check "/.env"`).
 * **Configuration Validation & Linting**: Validate `routewarden.json` against the JSON schema (`rwarden schema validate`).
 * **Config Snippet Generation**: Output production-ready Traefik, Caddy, NGINX, or Docker Compose snippets (`rwarden generate --gateway traefik`).
 * **Security Dashboard**: Launch and monitor the local real-time security dashboard (`rwarden dashboard`).

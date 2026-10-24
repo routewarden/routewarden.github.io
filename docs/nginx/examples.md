@@ -1,5 +1,6 @@
 ---
 title: NGINX Cookbook & Recipes
+description: "Production NGINX and OpenResty configuration examples with Routewarden security policies."
 ---
 <script setup>
 import { computed, onMounted } from 'vue'

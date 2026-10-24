@@ -10,7 +10,7 @@ import { buildSnippet } from '../../.vitepress/theme/composables/useCodeSnippet'
 // ─── Local Testing Snippets ─────────────────────────────────────────────────
 const local_cli = buildSnippet({
   lang: 'bash',
-  code: `# 1. Install local plugin into RouteWarden TCP
+  code: `# 1. Install local plugin into Routewarden TCP
 rwarden tcp plugins install ./echo_guard
 
 # 2. Verify it appears as ACTIVE

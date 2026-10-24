@@ -1,3 +1,8 @@
+---
+title: "Traefik Warden: Getting Started"
+description: "Get started with Routewarden for Traefik v2/v3 — install from plugin catalog or dynamic configuration."
+---
+
 <script setup>
 import { computed } from 'vue'
 import { buildSnippet } from '../.vitepress/theme/composables/useCodeSnippet'
@@ -127,7 +132,7 @@ const dyn_json = buildSnippet({
   "response": {
     "mode": "json",
     "statusCode": 403,
-    "body": "{\\"error\\":\\"Forbidden\\",\\"message\\":\\"Sensitive route protected by RouteWarden\\"}"
+    "body": "{\\"error\\":\\"Forbidden\\",\\"message\\":\\"Sensitive route protected by Routewarden\\"}"
   }
 }`,
 })
@@ -156,7 +161,7 @@ http:
           response: # [!code ++]
             mode: json # [!code ++]
             statusCode: 403 # [!code ++]
-            body: '{"error":"Forbidden","message":"Sensitive route protected by RouteWarden"}' # [!code ++]`,
+            body: '{"error":"Forbidden","message":"Sensitive route protected by Routewarden"}' # [!code ++]`,
 })
 
 const dyn_toml = buildSnippet({
@@ -174,7 +179,7 @@ const dyn_toml = buildSnippet({
 [http.middlewares.route-shield.plugin.routewarden.response] # [!code ++]
   mode = "json" # [!code ++]
   statusCode = 403 # [!code ++]
-  body = '{"error":"Forbidden","message":"Sensitive route protected by RouteWarden"}' # [!code ++]`,
+  body = '{"error":"Forbidden","message":"Sensitive route protected by Routewarden"}' # [!code ++]`,
 })
 
 const dyn_labels = buildSnippet({
@@ -185,7 +190,7 @@ services:
     image: traefik:latest
     labels:
       - "traefik.enable=true"
-      # RouteWarden middleware definition
+      # Routewarden middleware definition
       - "traefik.http.middlewares.route-shield.plugin.routewarden.enabled=true" # [!code ++]
       - "traefik.http.middlewares.route-shield.plugin.routewarden.enableDefaultPatterns=true" # [!code ++]
       - "traefik.http.middlewares.route-shield.plugin.routewarden.enableDefaultAllowPatterns=true" # [!code ++]
@@ -195,7 +200,7 @@ services:
       - "traefik.http.middlewares.route-shield.plugin.routewarden.methods=GET,POST" # [!code ++]
       - "traefik.http.middlewares.route-shield.plugin.routewarden.response.mode=json" # [!code ++]
       - "traefik.http.middlewares.route-shield.plugin.routewarden.response.statusCode=403" # [!code ++]
-      - 'traefik.http.middlewares.route-shield.plugin.routewarden.response.body={"error":"Forbidden","message":"Sensitive route protected by RouteWarden"}' # [!code ++]`,
+      - 'traefik.http.middlewares.route-shield.plugin.routewarden.response.body={"error":"Forbidden","message":"Sensitive route protected by Routewarden"}' # [!code ++]`,
 })
 
 const dynamicSnippets = computed(() => ({
@@ -248,7 +253,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install RouteWarden CLI
+      - name: Install Routewarden CLI
         run: curl -sSfL https://routewarden.github.io/install.sh | sh
 
       - name: Validate & Generate Traefik Dynamic Config
@@ -400,7 +405,7 @@ For standard deployments with internet connectivity, Traefik automatically downl
 
 #### Method B: Local & Air-Gapped Installation (`localPlugins` via `/plugins-local`)
 
-For **air-gapped networks**, private enterprise environments without internet access, or local development, Traefik can load RouteWarden directly from disk without external downloads using `localPlugins`.
+For **air-gapped networks**, private enterprise environments without internet access, or local development, Traefik can load Routewarden directly from disk without external downloads using `localPlugins`.
 
 Traefik strictly requires the plugin directory inside the container to match the Go module path under `/plugins-local/src/`:
 <CodeViewer :snippets="localPluginsTreeSnippets" />
@@ -422,17 +427,17 @@ To load dynamic configuration files into Traefik, enable the file provider in yo
 
 <CodeViewer :snippets="fileProviderSnippets" />
 
-RouteWarden can be configured using **`routewarden.json`** as your universal security schema, or directly in Traefik dynamic file/label configurations.
+Routewarden can be configured using **`routewarden.json`** as your universal security schema, or directly in Traefik dynamic file/label configurations.
 
 #### How `routewarden.json` Maps to Dynamic Configuration
 
-Because `routewarden.json` adheres to the official RouteWarden JSON Schema, every field in `routewarden.json` maps directly 1-to-1 to Traefik's `plugin.routewarden` middleware configuration keys:
+Because `routewarden.json` adheres to the official Routewarden JSON Schema, every field in `routewarden.json` maps directly 1-to-1 to Traefik's `plugin.routewarden` middleware configuration keys:
 
 <CodeViewer :snippets="dynamicSnippets" />
 
 #### Using `routewarden.json` Directly via Generate Pipeline
 
-If you maintain `routewarden.json` as your single source of truth across Git repositories or multi-gateway environments, use the [RouteWarden CLI (`rwarden`)](/cli/) to validate rules offline and compile directly into Traefik configurations during your deployment pipeline:
+If you maintain `routewarden.json` as your single source of truth across Git repositories or multi-gateway environments, use the [Routewarden CLI (`rwarden`)](/cli/) to validate rules offline and compile directly into Traefik configurations during your deployment pipeline:
 
 <CodeViewer :snippets="pipelineSnippets" />
 
@@ -440,9 +445,9 @@ If you maintain `routewarden.json` as your single source of truth across Git rep
 
 ### 3. Global Protection via EntryPoints (Protect All Services)
 
-Instead of manually attaching `routewarden` to every individual router across dozens of microservices or containers, you can attach RouteWarden directly to Traefik's **entryPoints** (such as `web` on `:80` and `websecure` on `:443`).
+Instead of manually attaching `routewarden` to every individual router across dozens of microservices or containers, you can attach Routewarden directly to Traefik's **entryPoints** (such as `web` on `:80` and `websecure` on `:443`).
 
-When attached to an entryPoint, RouteWarden enforces security inspection **globally for all incoming requests** before any router or service is reached:
+When attached to an entryPoint, Routewarden enforces security inspection **globally for all incoming requests** before any router or service is reached:
 
 <CodeViewer :snippets="entrypointSnippets" />
 
@@ -464,6 +469,6 @@ When attached to an entryPoint, RouteWarden enforces security inspection **globa
 - Explore [Response Modes](/core/response-modes) to customize block behaviors (HTML, JSON, Captcha, Gzip Bomb).
 - Configure [Anti-Evasion Engine](/core/anti-evasion) for advanced normalization rules.
 - Check out the [Production Case Studies](/examples/overview) for real-world setups.
-- Use the [RouteWarden CLI (`rwarden`)](/cli/) for offline path testing and schema generation.
+- Use the [Routewarden CLI (`rwarden`)](/cli/) for offline path testing and schema generation.
 - Check the [Examples & Wiki Cookbook](/examples/overview) for production Docker Compose & Kubernetes blueprints.
 

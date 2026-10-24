@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://raw.githubusercontent.com/routewarden/cli/main/config.schema.json",
-  "title": "RouteWarden Configuration",
-  "description": "JSON schema for RouteWarden HTTP security middleware (Traefik, Caddy, NGINX / OpenResty).",
+  "title": "Routewarden Configuration",
+  "description": "JSON schema for Routewarden HTTP security middleware (Traefik, Caddy, NGINX / OpenResty).",
   "type": "object",
   "properties": {
     "configFile": {
@@ -16,7 +16,7 @@
     "enabled": {
       "type": "boolean",
       "default": true,
-      "description": "Master switch to enable or bypass RouteWarden inspection."
+      "description": "Master switch to enable or bypass Routewarden inspection."
     },
     "enableDefaultPatterns": {
       "type": "boolean",

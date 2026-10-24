@@ -10,7 +10,7 @@ import { buildSnippet } from '../../.vitepress/theme/composables/useCodeSnippet'
 // ─── 1. Installation Snippets ───────────────────────────────────────────────
 const install_cli = buildSnippet({
   lang: 'bash',
-  code: `# Install via RouteWarden CLI
+  code: `# Install via Routewarden CLI
 rwarden tcp plugins install vnc
 
 # Or standalone binary
@@ -31,7 +31,7 @@ plugins:
 
 const installSnippets = computed(() => ({
   tcp: [
-    { filename: 'RouteWarden CLI', lang: 'bash', code: install_cli.cleanCode, html: install_cli.html, hasDiff: false },
+    { filename: 'Routewarden CLI', lang: 'bash', code: install_cli.cleanCode, html: install_cli.html, hasDiff: false },
     { filename: 'tcp-warden.yaml', lang: 'yaml', code: install_yaml.cleanCode, html: install_yaml.html, hasDiff: false },
   ]
 }))
@@ -63,7 +63,7 @@ const configSnippets = computed(() => ({
 // ─── 3. Network Architecture Snippets ───────────────────────────────────────
 const net_proxy_yaml = buildSnippet({
   lang: 'yaml',
-  code: `# tcp-warden.yaml — RouteWarden binds to standard VNC port 5900
+  code: `# tcp-warden.yaml — Routewarden binds to standard VNC port 5900
 services:
   vnc_bastion:
     listen: ":5900"
@@ -104,7 +104,7 @@ const netComposeSnippets = computed(() => ({
 // ─── 4. Testing & Verification Snippets ─────────────────────────────────────
 const test_banner = buildSnippet({
   lang: 'bash',
-  code: `# Inspect RFB protocol banner through RouteWarden
+  code: `# Inspect RFB protocol banner through Routewarden
 nc 127.0.0.1 5900
 # Server returns: RFB 003.008`
 })
@@ -167,17 +167,17 @@ Add a VNC guard service to `tcp-warden.yaml`:
 
 ## Network & Deployment Architecture
 
-Because VNC operates on an unprivileged port (`5900`), firewall redirects (`nftables`/`iptables`) are not required. Deploy RouteWarden using direct reverse proxying or container isolation:
+Because VNC operates on an unprivileged port (`5900`), firewall redirects (`nftables`/`iptables`) are not required. Deploy Routewarden using direct reverse proxying or container isolation:
 
 ### Option A: Direct Port Swapping (Bare-Metal / VM)
 
-Rebind your VNC server (e.g., `x11vnc` or `tigervnc`) to listen strictly on loopback port `59000`, and configure RouteWarden `listen: ":5900"` and `upstream: "127.0.0.1:59000"`:
+Rebind your VNC server (e.g., `x11vnc` or `tigervnc`) to listen strictly on loopback port `59000`, and configure Routewarden `listen: ":5900"` and `upstream: "127.0.0.1:59000"`:
 
 <CodeViewer :snippets="netProxySnippets" />
 
 ### Option B: Docker Compose Bridge Network
 
-Publish port `5900` on RouteWarden while keeping the desktop container private:
+Publish port `5900` on Routewarden while keeping the desktop container private:
 
 <CodeViewer :snippets="netComposeSnippets" />
 

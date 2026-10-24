@@ -287,7 +287,7 @@ test('playground engine & generator: comprehensive test matrix (100+ cases)', as
   })
 
   // ==========================================
-  // Section 4: All 13 RouteWarden Response Modes (13 tests)
+  // Section 4: All 13 Routewarden Response Modes (13 tests)
   // ==========================================
   await t.test('Section 4: Response Modes Status Code Verification', async (st) => {
     const modes = [

@@ -78,7 +78,7 @@ const install_dockerfile = buildSnippet({
   lang: 'dockerfile',
   code: `FROM openresty/openresty:alpine
 
-# Copy RouteWarden into OpenResty Lua search path
+# Copy Routewarden into OpenResty Lua search path
 COPY lib/resty/routewarden /usr/local/openresty/site/lualib/resty/routewarden # [!code ++]
 COPY nginx.conf /etc/nginx/conf.d/default.conf`,
 })

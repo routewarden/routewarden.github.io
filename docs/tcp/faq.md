@@ -135,7 +135,7 @@ const collab_graph_svg = `<div class="rw-graph-container">
     <rect x="530" y="372" width="380" height="84" rx="10" class="rw-g-box" fill="url(#faq-grad-cs)"/>
     <circle cx="556" cy="398" r="7" fill="#f97316"/>
     <text x="574" y="396" class="rw-g-card-title">CrowdSec (Intelligence &amp; Remediation)</text>
-    <text x="556" y="418" class="rw-g-desc">• Parses JSONL events with RouteWarden scenario parser</text>
+    <text x="556" y="418" class="rw-g-desc">• Parses JSONL events with Routewarden scenario parser</text>
     <text x="556" y="434" class="rw-g-desc">• Emits automated remediation decision to LAPI</text>
     <text x="556" y="450" class="rw-g-desc">• Pushes ban decision into TCP Warden cache in next poll</text>
 
@@ -258,14 +258,14 @@ TCP Warden + CrowdSec gives you instant in-line blocking with global community l
 ---
 
 ### What is the relationship between `rwarden tcp` and standalone `tcp-warden`?
-TCP Warden is natively integrated into the RouteWarden unified CLI (`rwarden tcp`).
+TCP Warden is natively integrated into the Routewarden unified CLI (`rwarden tcp`).
 * **Unified CLI (`rwarden tcp`)**: The recommended interface for bare-metal and server installations. Manage daemon lifecycles (`rwarden tcp up [-d]`, `rwarden tcp reload`, `rwarden tcp status`, `rwarden tcp stop`), and manage plugins (`rwarden tcp plugins install <name>`).
 * **Standalone Binary & Docker (`tcp-warden`)**: Maintained for lightweight single-purpose deployments and containers (`ghcr.io/routewarden/tcp-warden:latest`). Both share the exact same proxy engine, configuration schema (`tcp-warden.yaml`), and plugin ecosystem.
 
 ---
 
 ### Does TCP Warden support UDP traffic?
-**Yes!** RouteWarden TCP Warden includes a high-performance Layer 4 UDP proxy engine (`udp_engine.go`) supporting bidirectional session tracking, sliding idle timeouts, and connection tracking. 
+**Yes!** Routewarden TCP Warden includes a high-performance Layer 4 UDP proxy engine (`udp_engine.go`) supporting bidirectional session tracking, sliding idle timeouts, and connection tracking. 
 
 Services can configure `transport: "udp"` or `transport: "both"` in `tcp-warden.yaml` to protect both TCP streams and UDP datagrams simultaneously. For example:
 * **DNS Firewall (`dns`)**: Filters queries across both UDP:53 and TCP:53 with anti-amplification and rebinding defenses.

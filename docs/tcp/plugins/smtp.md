@@ -10,7 +10,7 @@ import { buildSnippet } from '../../.vitepress/theme/composables/useCodeSnippet'
 // ─── 1. Installation Snippets ───────────────────────────────────────────────
 const install_cli = buildSnippet({
   lang: 'bash',
-  code: `# Install via RouteWarden CLI
+  code: `# Install via Routewarden CLI
 rwarden tcp plugins install smtp
 
 # Or standalone binary
@@ -31,7 +31,7 @@ plugins:
 
 const installSnippets = computed(() => ({
   tcp: [
-    { filename: 'RouteWarden CLI', lang: 'bash', code: install_cli.cleanCode, html: install_cli.html, hasDiff: false },
+    { filename: 'Routewarden CLI', lang: 'bash', code: install_cli.cleanCode, html: install_cli.html, hasDiff: false },
     { filename: 'tcp-warden.yaml', lang: 'yaml', code: install_yaml.cleanCode, html: install_yaml.html, hasDiff: false },
   ]
 }))
@@ -51,7 +51,7 @@ const config_yaml = buildSnippet({
     ban_after_failures: 3
     ban_duration: "2h"
     plugin_config:
-      banner: "220 mail.example.com RouteWarden ESMTP Ready"
+      banner: "220 mail.example.com Routewarden ESMTP Ready"
       max_recipients: 10
       blocked_sender_domains:
         - "*.tempmail.com"
@@ -69,13 +69,13 @@ const configSnippets = computed(() => ({
 // ─── 3. Network Architecture Snippets ───────────────────────────────────────
 const net_nftables = buildSnippet({
   lang: 'bash',
-  code: `# Redirect incoming external port 25 traffic to RouteWarden port 2525
+  code: `# Redirect incoming external port 25 traffic to Routewarden port 2525
 sudo nft add rule ip routewarden_nat prerouting iifname "eth0" tcp dport 25 redirect to :2525`
 })
 
 const net_iptables = buildSnippet({
   lang: 'bash',
-  code: `# 1. Redirect incoming external port 25 to RouteWarden port 2525
+  code: `# 1. Redirect incoming external port 25 to Routewarden port 2525
 sudo iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 25 -j REDIRECT --to-port 2525
 
 # 2. Persist rules across reboots (Debian/Ubuntu)
@@ -107,8 +107,8 @@ const net_compose = buildSnippet({
   routewarden:
     image: ghcr.io/routewarden/tcp-warden:latest
     ports:
-      - "25:2525"   # Map host SMTP port 25 to RouteWarden
-      - "587:5870"  # Map host Submission port 587 to RouteWarden
+      - "25:2525"   # Map host SMTP port 25 to Routewarden
+      - "587:5870"  # Map host Submission port 587 to Routewarden
       - "9091:9091" # Management API
     volumes:
       - ./tcp-warden.yaml:/etc/routewarden/tcp-warden.yaml:ro
@@ -139,13 +139,13 @@ const test_session = buildSnippet({
   lang: 'smtp',
   code: `# Connect to SMTP service via netcat
 $ nc 127.0.0.1 2525
-220 mail.example.com ESMTP RouteWarden
+220 mail.example.com ESMTP Routewarden
 EHLO client.test
 250-mail.example.com
 250-8BITMIME
 250 OK
 MAIL FROM:<spammer@tempmail.com>
-554 5.7.1 Sender domain rejected by RouteWarden
+554 5.7.1 Sender domain rejected by Routewarden
 QUIT
 221 2.0.0 Bye`
 })
@@ -239,13 +239,13 @@ Keep Postfix listening on port `25` on loopback, and redirect incoming external 
 
 ### Option B: Submission Port Protection (Port 587)
 
-RouteWarden can also protect client submission ports (port `587`):
+Routewarden can also protect client submission ports (port `587`):
 
 <CodeViewer :snippets="netSubmissionSnippets" />
 
 ### Option C: Docker Compose Network Isolation
 
-Run the mail transfer agent inside an isolated container network, exposing both SMTP (`25`) and Submission (`587`) services only through RouteWarden:
+Run the mail transfer agent inside an isolated container network, exposing both SMTP (`25`) and Submission (`587`) services only through Routewarden:
 
 <CodeViewer :snippets="netComposeSnippets" />
 

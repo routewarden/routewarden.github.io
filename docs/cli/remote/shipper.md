@@ -27,7 +27,7 @@ const pushSnippets = computed(() => ({
 
 const push_output = buildSnippet({
   lang: 'plaintext',
-  code: `🚀 RouteWarden Remote Shipper Starting...
+  code: `🚀 Routewarden Remote Shipper Starting...
 ─────────────────────────────────────────────────────────────
   Dashboard URL:   http://198.51.100.10:7890
   Agent Name:      edge-frankfurt-01
@@ -36,7 +36,7 @@ const push_output = buildSnippet({
   Offline Queue:   Max=10000, Timeout=5m0s
   Auto-Discovery:  Watching Docker containers with label 'routewarden=true'
 ─────────────────────────────────────────────────────────────
-[15:04:05] 🟢 Connected to RouteWarden dashboard (http://198.51.100.10:7890)
+[15:04:05] 🟢 Connected to Routewarden dashboard (http://198.51.100.10:7890)
 Press Ctrl+C to stop.
 🐳 [Docker] Attached to container: edge-traefik (4b7e89a1c2d3)`,
 })
@@ -130,7 +130,7 @@ rwarden push --docker -c auth-service -f "/var/log/nginx/*.log"`,
 
 const mode_d_output = buildSnippet({
   lang: 'plaintext',
-  code: `🚀 RouteWarden Remote Shipper Starting...
+  code: `🚀 Routewarden Remote Shipper Starting...
 ─────────────────────────────────────────────────────────────
   Dashboard URL:   http://198.51.100.10:7890
   Agent Name:      edge-frankfurt-01
@@ -165,6 +165,37 @@ rwarden push --batch-size 10 --flush-interval 500ms`,
 const tuningSnippets = computed(() => ({
   cli: [
     { filename: 'Batching Flags', lang: 'bash', code: tuning_cmd.cleanCode, html: tuning_cmd.html, hasDiff: false },
+  ],
+}))
+
+// ─── 4. Telemetry Filtering Snippets ──────────────────────────────────────────
+const filtering_cmd = buildSnippet({
+  lang: 'bash',
+  code: `# Default: push only security events (BLOCK, TARPIT, HONEYPOT, 403, 429)
+rwarden push --docker
+
+# 1. Independent: Ship requests matching explicit status codes or ranges (e.g. 400-599, 301, 4xx, 5xx)
+rwarden push --status "400-599, 301"
+# Shorthand:
+rwarden push -s 400-599,301
+
+# 2. Independent: Ship failed HTTP requests (status >= 400, legacy alias)
+rwarden push --include-failed
+
+# 3. Independent: Ship all HTTP access traffic including successful 200 OK responses
+rwarden push --all-traffic
+
+# 4. Layer 4 (UDP & TCP) Traffic Logs: Stream tcp-warden security events or all sessions
+rwarden push -f /var/log/routewarden/tcp-warden.jsonl
+rwarden push -c tcp-warden --all-traffic
+
+# 5. Raw unfiltered logs (bypass all filters)
+rwarden push --all-logs`,
+})
+
+const filteringSnippets = computed(() => ({
+  cli: [
+    { filename: 'Filtering Flags', lang: 'bash', code: filtering_cmd.cleanCode, html: filtering_cmd.html, hasDiff: false },
   ],
 }))
 
@@ -324,7 +355,7 @@ const shipperComposeSnippets = computed(() => ({
 
 # Remote Log Shipper (`rwarden push`)
 
-The `rwarden push` command is the core data shipper for distributed RouteWarden deployments. It tails your reverse proxy containers or log files, batches events in an in-memory ring buffer, encrypts them using X25519 ECDH + AES-256-GCM, and streams them to the central dashboard.
+The `rwarden push` command is the core data shipper for distributed Routewarden deployments. It tails your reverse proxy containers or log files, batches events in an in-memory ring buffer, encrypts them using X25519 ECDH + AES-256-GCM, and streams them to the central dashboard.
 
 ---
 
@@ -396,10 +427,120 @@ You can tune batching parameters to match high-traffic or low-latency environmen
 | `--disconnect-timeout` | `5m` | Duration disconnected from dashboard before dropping stale events to protect memory. |
 | `--ping-interval` | `10s` | Interval between connection health pings when connected. |
 | `--tail` | `50` | Number of existing lines to replay when attaching to a container or file. |
+| `--status`, `-s` | `""` | Forward HTTP requests matching status codes or ranges (e.g. `'400-599, 301'`, `'4xx, 5xx'`). |
+| `--include-failed`, `-F` | `false` | Legacy alias: forward all failed HTTP requests (status >= 400, equivalent to `--status 400-599`). |
+| `--all-traffic` | `false` | Ship all HTTP access traffic including successful 200 OK responses. |
+| `--all-logs` | `false` | Ship all raw container lines unconditionally without Routewarden filtering. |
 
 ---
 
-## 5. Resilience, Active Health Supervisor & Auto-Reconnect
+## 5. Telemetry Filtering & Shipping Modes
+
+By default, `rwarden push` optimizes edge bandwidth and central dashboard storage by shipping only **security events**:
+- Explicit Routewarden plugin actions (`BLOCK`, `TARPIT`, `HONEYPOT`, threat rule matches).
+- Security status codes (`403 Forbidden`, `429 Too Many Requests`).
+- Successful `200 OK` access logs are automatically filtered out.
+
+You can customize telemetry filtering using flags, environment variables, or `agent.json`:
+
+<CodeViewer :snippets="filteringSnippets" />
+
+### Available Modes:
+
+1. **Security Events Only (Default)**:
+   - Forwards threat mitigations and security rejections (`verdict`, `action`, `rule`, `matched_pattern`, or status `403`/`429`).
+   - Drops benign access traffic, keeping the dashboard focused on actionable incidents while reducing database size.
+
+2. **Explicit Status Code Ranges (`--status` / `-s`)**:
+   - Forwards reverse proxy HTTP requests matching specific status codes, ranges, or wildcard families (e.g. `--status "400-599, 301"`, `-s 4xx,5xx`, `-s 404,500-504`).
+   - Works across **Caddy** (`logger: "http.log.access"`), **Traefik** (JSON / Combined), and **NGINX** (JSON / Combined access logs).
+   - Unblocked requests with status $\ge 400$ are categorized as `FAILED` on the central dashboard (with rule `HTTP <status>`), while requests $< 400$ (such as `301` or `302` redirects) are categorized as `ALLOW`.
+   - Also configurable via environment variables `RW_STATUS="400-599, 301"` or `"status_codes": "400-599, 301"` in `agent.json`.
+   - *(Legacy Alias)*: `--include-failed` / `-F` (or `RW_INCLUDE_FAILED=true`) is fully supported as shorthand for `--status 400-599`.
+
+3. **Full HTTP Access Traffic (`--all-traffic`)**:
+   - Forwards all reverse proxy access logs including clean `200 OK` traffic.
+   - Useful when centralizing full access auditing into the dashboard.
+   - Also configurable via `RW_ALL_TRAFFIC=true` or `"all_traffic": true` in `agent.json`.
+
+4. **Raw Unfiltered Logs (`--all-logs`)**:
+   - Disables all filters and forwards every raw stdout/stderr line emitted by the monitored container or file.
+   - Configurable via `RW_ALL_LOGS=true` or `"all_logs": true` in `agent.json`.
+
+### Flag Independence & Resolution Precedence
+
+Can `--status`, `--include-failed`, and `--all-traffic` be used independently? **Yes.** Each flag controls an independent telemetry tier and can be specified alone:
+
+- `rwarden push --status "400-599, 301"`: Matches explicit status ranges and security events.
+- `rwarden push --include-failed`: Matches all failed requests ($4xx, 5xx$) and security events.
+- `rwarden push --all-traffic`: Matches all HTTP requests ($2xx, 3xx, 4xx, 5xx$) and security events.
+
+When multiple options are present simultaneously (via flags, environment variables, or `agent.json`), the shipper evaluates them using the following precedence hierarchy:
+
+| Priority | Setting | Resolution Behavior |
+|:---|:---|:---|
+| **1 (Highest)** | **Security Signals** | Events with explicit verdicts (`BLOCK`, `TARPIT`, `HONEYPOT`), actions (`blocked`, `banned`), rules, or status `403`/`429` **always pass**, regardless of other flags. |
+| **2** | `--all-logs` | Completely bypasses the filter engine and streams all raw lines. |
+| **3** | `--all-traffic` | Forwards all HTTP traffic. Overrides both `--status` and `--include-failed`. |
+| **4** | `--status` (`-s`) | Matches specific codes/ranges. Overrides `--include-failed` if both are specified. |
+| **5** | `--include-failed` (`-F`) | Matches all HTTP status $\ge 400$. Acts as fallback when `--status` is not set. |
+| **6 (Default)** | *None* | Only explicit security events are forwarded. |
+
+---
+
+### Handling Layer 4 (UDP & TCP) Traffic Logs
+
+In addition to Layer 7 HTTP reverse proxies, RouteWarden includes a native Layer 4 proxy engine (**`tcp-warden`** / `rwarden tcp`).
+
+#### UDP Traffic Inspection & Logging
+When running services with `transport: udp` or `transport: both` in `tcp-warden.yaml`, every inbound datagram evaluates through security stages:
+1. **IP Banlist**: Active bans trigger immediate drops (`banned: <reason>`).
+2. **CrowdSec LAPI**: Bouncer checks trigger datagram drops (`crowdsec_ban: <scenario>`).
+3. **CIDR Network Deny**: Subnet matches drop datagrams (`ip_denied`).
+4. **GeoIP Filtering**: Country blocks drop packets (`country_blocked: <code>`).
+5. **Rate Limiting**: Datagram bursts exceeding `connections_per_minute` are dropped (`rate_limit_exceeded`).
+6. **MaxSessions Guard**: Active sessions exceeding `udp.max_sessions` are dropped (`udp_max_sessions_exceeded`).
+7. **Protocol UDPInspector**: Plugins (e.g. DNS or QUIC) inspecting datagram payloads can issue `UDPVerdictDrop` or `UDPVerdictReject`.
+
+Decisions are written as structured JSON lines to `/var/log/routewarden/tcp-warden.jsonl` (or container stdout):
+
+```json
+{
+  "type": "security_event",
+  "timestamp": "2026-10-24T06:00:00Z",
+  "level": "warn",
+  "plugin": "tcp-warden",
+  "service": "dns_service",
+  "protocol": "udp",
+  "client_ip": "198.51.100.22",
+  "action": "blocked",
+  "reason": "rate_limit_exceeded",
+  "bytes_in": 78,
+  "bytes_out": 0
+}
+```
+
+#### Shipping UDP Logs with `rwarden push`
+- **Security Events (Default)**: All blocked or banned UDP events carry `"plugin": "tcp-warden"` or `"action": "blocked"`, so they are automatically detected as security events and forwarded to the central dashboard without any special flags:
+  ```bash
+  # Stream UDP security events from log file
+  rwarden push -f /var/log/routewarden/tcp-warden.jsonl
+
+  # Or stream from a Docker container
+  rwarden push -c tcp-warden
+  ```
+- **Forwarding All UDP Datagram Sessions**: To capture successful/allowed UDP traffic (`action: "allowed"`, forwarded datagram metrics), enable `--all-traffic`:
+  ```bash
+  rwarden push -f /var/log/routewarden/tcp-warden.jsonl --all-traffic
+  ```
+- **Piping from systemd / journald**:
+  ```bash
+  journalctl -u tcp-warden -f -o cat | rwarden push -f -
+  ```
+
+---
+
+## 6. Resilience, Active Health Supervisor & Auto-Reconnect
 
 `rwarden push` includes robust network failure recovery and zero-event-loss failover:
 
@@ -416,7 +557,7 @@ You can tune batching parameters to match high-traffic or low-latency environmen
 
 ---
 
-## 6. One-Off Push (Without Saved Config)
+## 7. One-Off Push (Without Saved Config)
 
 For ephemeral test environments or CI/CD pipelines, you can push directly by supplying flags without running `rwarden register`:
 
@@ -424,7 +565,7 @@ For ephemeral test environments or CI/CD pipelines, you can push directly by sup
 
 ---
 
-## 7. Background Daemon Execution (`-d`, `status`, `stop`)
+## 8. Background Daemon Execution (`-d`, `status`, `stop`)
 
 Run the shipper as an unprivileged, detached background daemon without needing systemd or nohup:
 
@@ -438,9 +579,9 @@ Run the shipper as an unprivileged, detached background daemon without needing s
 
 ---
 
-## 8. Ultra-Lean Micro-Container (`ghcr.io/routewarden/shipper:latest`)
+## 9. Ultra-Lean Micro-Container (`ghcr.io/routewarden/shipper:latest`)
 
-For Docker and containerized edge hosts, RouteWarden publishes a dedicated, stripped-down shipper container image:
+For Docker and containerized edge hosts, Routewarden publishes a dedicated, stripped-down shipper container image:
 
 <CodeViewer :snippets="shipperComposeSnippets" />
 
@@ -450,8 +591,12 @@ When deploying via Docker or Docker Compose, you do not need to run `rwarden reg
 
 | Environment Variable | Shorthand Alias | Description | Example |
 |:---|:---|:---|:---|
-| `RW_DASHBOARD_URL` | `RW_URL` | Central RouteWarden dashboard address | `https://soc.example.com` or `http://198.51.100.10:7890` |
+| `RW_DASHBOARD_URL` | `RW_URL` | Central Routewarden dashboard address | `https://soc.example.com` or `http://198.51.100.10:7890` |
 | `RW_AGENT_KEY` | `RW_KEY` | 24-byte secret agent token created via `rwarden keys create` | `rw_sec_a8f9c2d1e4b7...` |
+| `RW_STATUS` | `RW_STATUS_CODES` | Forward HTTP calls matching status codes or ranges across Caddy, Traefik, and NGINX | `400-599, 301` or `4xx, 5xx` |
+| `RW_INCLUDE_FAILED` | — | Legacy alias: ship all failed HTTP calls (status >= 400) | `true` or `false` |
+| `RW_ALL_TRAFFIC` | — | Ship all HTTP access traffic including 200 OK responses | `true` or `false` |
+| `RW_ALL_LOGS` | — | Ship all raw container lines without Routewarden filtering | `true` or `false` |
 | `TZ` | — | IANA Time Zone identifier for log timestamp normalization | `Asia/Kolkata`, `UTC`, `America/New_York` |
 
 > [!TIP]

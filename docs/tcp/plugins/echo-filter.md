@@ -10,7 +10,7 @@ import { buildSnippet } from '../../.vitepress/theme/composables/useCodeSnippet'
 // ─── 1. Installation Snippets ───────────────────────────────────────────────
 const install_cli = buildSnippet({
   lang: 'bash',
-  code: `# Install via RouteWarden CLI
+  code: `# Install via Routewarden CLI
 rwarden tcp plugins install echo_filter
 
 # Or standalone binary
@@ -31,7 +31,7 @@ plugins:
 
 const installSnippets = computed(() => ({
   tcp: [
-    { filename: 'RouteWarden CLI', lang: 'bash', code: install_cli.cleanCode, html: install_cli.html, hasDiff: false },
+    { filename: 'Routewarden CLI', lang: 'bash', code: install_cli.cleanCode, html: install_cli.html, hasDiff: false },
     { filename: 'tcp-warden.yaml', lang: 'yaml', code: install_yaml.cleanCode, html: install_yaml.html, hasDiff: false },
   ]
 }))
@@ -70,16 +70,16 @@ nc -l 7000`
 
 const test_safe = buildSnippet({
   lang: 'bash',
-  code: `# 2. Send safe text through RouteWarden proxy
-echo "Hello RouteWarden" | nc 127.0.0.1 7001
-# Upstream receives: Hello RouteWarden`
+  code: `# 2. Send safe text through Routewarden proxy
+echo "Hello Routewarden" | nc 127.0.0.1 7001
+# Upstream receives: Hello Routewarden`
 })
 
 const test_banned = buildSnippet({
   lang: 'bash',
   code: `# 3. Send banned exploit keyword
 echo "Testing EXPLOIT payload" | nc 127.0.0.1 7001
-# Connection immediately closed by RouteWarden proxy`
+# Connection immediately closed by Routewarden proxy`
 })
 
 const testSnippets = computed(() => ({
@@ -93,7 +93,7 @@ const testSnippets = computed(() => ({
 
 # Echo Stream Filter (`echo_filter`)
 
-The **Echo Stream Filter** plugin is a reference and demonstration plugin showcasing RouteWarden's capability for deep real-time stream inspection. It scans bidirectional raw TCP byte streams for banned exploit keywords, SQL injection signatures, or malicious payloads, dropping or tarpitting connections before bad data reaches the destination.
+The **Echo Stream Filter** plugin is a reference and demonstration plugin showcasing Routewarden's capability for deep real-time stream inspection. It scans bidirectional raw TCP byte streams for banned exploit keywords, SQL injection signatures, or malicious payloads, dropping or tarpitting connections before bad data reaches the destination.
 
 ---
 

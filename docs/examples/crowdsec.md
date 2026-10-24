@@ -1,5 +1,6 @@
 ---
 title: CrowdSec Integration & Security Logging
+description: "Integrating Routewarden structured security audit logs with CrowdSec remediation and bouncers."
 ---
 
 <script setup>
@@ -414,7 +415,7 @@ const crowdsecParser = buildSnippet({
   code: `# /etc/crowdsec/parsers/s01-parse/routewarden-logs.yaml
 onsuccess: next_stage
 name: routewarden/parser
-description: "Parse RouteWarden security block events from Traefik & Caddy"
+description: "Parse Routewarden security block events from Traefik & Caddy"
 filter: "evt.Line.Raw contains 'routewarden_block'"
 nodes:
   - grok:
@@ -442,7 +443,7 @@ const crowdsecScenario = buildSnippet({
   code: `# /etc/crowdsec/scenarios/routewarden-threat.yaml
 type: trigger
 name: routewarden/sensitive-endpoint-scan
-description: "Ban IPs probing sensitive paths intercepted by RouteWarden"
+description: "Ban IPs probing sensitive paths intercepted by Routewarden"
 filter: "evt.Meta.log_type == 'routewarden_block'"
 blackhole: 1h
 labels:
@@ -486,7 +487,7 @@ const testProbeCmd = buildSnippet({
   code: `# 1. Simulate vulnerability scanner probing for exposed configuration files
 curl -i -H "User-Agent: Nuclei/v3.1.0" http://localhost/.env
 
-# Response (RouteWarden fakeSuccess deception):
+# Response (Routewarden fakeSuccess deception):
 # HTTP/1.1 200 OK
 # Content-Type: text/plain
 # APP_NAME=Laravel
@@ -552,7 +553,7 @@ const verificationSnippets = computed(() => ({
 
 const flowBanner = buildSnippet({
   lang: 'text',
-  code: `Attacker Probes /.env ──► RouteWarden Blocks & Emits JSON ──► CrowdSec Parses & Bans Attacker IP`,
+  code: `Attacker Probes /.env ──► Routewarden Blocks & Emits JSON ──► CrowdSec Parses & Bans Attacker IP`,
 })
 
 const flowBannerSnippets = computed(() => ({
@@ -564,19 +565,19 @@ const flowBannerSnippets = computed(() => ({
 
 # CrowdSec Integration & Security Logging
 
-Connect RouteWarden to [CrowdSec](https://crowdsec.net/) to automatically turn blocked reconnaissance scans into immediate firewall bans across your entire infrastructure.
+Connect Routewarden to [CrowdSec](https://crowdsec.net/) to automatically turn blocked reconnaissance scans into immediate firewall bans across your entire infrastructure.
 
 <CodeViewer :snippets="flowBannerSnippets" />
 
 ---
 
-## Why Pair RouteWarden with CrowdSec?
+## Why Pair Routewarden with CrowdSec?
 
 CrowdSec typically detects attacks by tailing standard web access logs and waiting for multiple suspicious requests to cross a threshold. While effective for broad traffic, this means vulnerability scanners still get multiple chances to probe your services before getting blocked.
 
-Pairing RouteWarden directly with CrowdSec changes this dynamic:
+Pairing Routewarden directly with CrowdSec changes this dynamic:
 
-| Feature | Standard Log Analysis | RouteWarden + CrowdSec |
+| Feature | Standard Log Analysis | Routewarden + CrowdSec |
 |---|---|---|
 | **First-Request Neutralization** | Requires multiple requests to cross threshold | Intercepted on the very first probe before reaching upstream backends |
 | **Ban Speed** | Typically requires 5–10 requests | Immediate ban triggered on sensitive file reconnaissance |
@@ -588,19 +589,19 @@ Pairing RouteWarden directly with CrowdSec changes this dynamic:
 
 ## How It Works
 
-1. **Interception**: When a client requests a protected endpoint (such as `/.env`, `/.git/config`, or `/dump.sql`) or sends a blocked query string, RouteWarden intercepts the request according to your configured response mode (`json`, `html`, `fakeSuccess`, `silentDrop`, etc.).
-2. **Structured Event Emission**: Along with the client response, RouteWarden emits a single-line JSON audit event to `stdout`:
+1. **Interception**: When a client requests a protected endpoint (such as `/.env`, `/.git/config`, or `/dump.sql`) or sends a blocked query string, Routewarden intercepts the request according to your configured response mode (`json`, `html`, `fakeSuccess`, `silentDrop`, etc.).
+2. **Structured Event Emission**: Along with the client response, Routewarden emits a single-line JSON audit event to `stdout`:
 
 <CodeViewer :snippets="structuredAuditSnippets" />
 
-3. **CrowdSec Parsing**: The custom RouteWarden parser ingests this structured event and extracts the client IP, probed path, HTTP method, and matched pattern.
+3. **CrowdSec Parsing**: The custom Routewarden parser ingests this structured event and extracts the client IP, probed path, HTTP method, and matched pattern.
 4. **Instant Remediation**: The scenario flags the probe as high-confidence reconnaissance and immediately instructs your CrowdSec bouncers (firewall, iptables, Cloudflare) to ban the offending IP.
 
 ---
 
 ## Setup Walkthrough
 
-### Step 1: Install the RouteWarden CrowdSec Parser
+### Step 1: Install the Routewarden CrowdSec Parser
 
 Create `/etc/crowdsec/parsers/s01-parse/routewarden-logs.yaml`:
 
@@ -608,7 +609,7 @@ Create `/etc/crowdsec/parsers/s01-parse/routewarden-logs.yaml`:
 
 ---
 
-### Step 2: Install the RouteWarden Threat Scenario
+### Step 2: Install the Routewarden Threat Scenario
 
 Create `/etc/crowdsec/scenarios/routewarden-threat.yaml`:
 
@@ -618,7 +619,7 @@ Create `/etc/crowdsec/scenarios/routewarden-threat.yaml`:
 
 ### Step 3: Configure CrowdSec Log Acquisition (`acquis.yaml`)
 
-CrowdSec reads logs through an acquisition datasource configured in `/etc/crowdsec/acquis.yaml`. You can ingest RouteWarden logs via **Docker container logs** or directly from **local log files** on disk.
+CrowdSec reads logs through an acquisition datasource configured in `/etc/crowdsec/acquis.yaml`. You can ingest Routewarden logs via **Docker container logs** or directly from **local log files** on disk.
 
 <CodeViewer :snippets="acquisSnippets" />
 
@@ -643,7 +644,7 @@ Security logging is **enabled by default** (`securityLog: true` / `security_log 
 
 #### Caddy Directive Ordering
 
-When using Caddy, you must register RouteWarden before Caddy's built-in `reverse_proxy` directive in the global options block:
+When using Caddy, you must register Routewarden before Caddy's built-in `reverse_proxy` directive in the global options block:
 
 <CodeViewer :snippets="caddyOrderSnippets" />
 
@@ -651,7 +652,7 @@ When using Caddy, you must register RouteWarden before Caddy's built-in `reverse
 
 ## Complete Docker Compose Example
 
-Here is a practical Docker Compose setup running your preferred gateway with RouteWarden, CrowdSec, and a protected web container:
+Here is a practical Docker Compose setup running your preferred gateway with Routewarden, CrowdSec, and a protected web container:
 
 <CodeViewer :snippets="dockerSnippets" />
 
@@ -669,7 +670,7 @@ The client IP is now banned by CrowdSec across all attached bouncers (firewall, 
 
 ## SIEM and Log Shipper Ingestion
 
-Because RouteWarden emits single-line JSON with `type: "routewarden_block"`, you can easily pipe these logs into your existing observability stack without custom grok patterns:
+Because Routewarden emits single-line JSON with `type: "routewarden_block"`, you can easily pipe these logs into your existing observability stack without custom grok patterns:
 
 - **Elasticsearch / Filebeat**: Ingest with standard JSON processors and enrich `client_ip` with GeoIP data.
 - **Loki / Promtail / Vector**: Parse with `{type="routewarden_block"} | json` for instant metrics and alerts.

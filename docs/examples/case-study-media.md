@@ -1,5 +1,6 @@
 ---
 title: Case Study – Media Streaming Defense (Jellyfin & Plex)
+description: "Securing Plex, Jellyfin, and media servers with Routewarden zero-trust allowlisting and path filters."
 ---
 
 <script setup>
@@ -384,7 +385,7 @@ curl -i https://media.example.com/System/Configuration
 
 const rwardenTests = buildSnippet({
   lang: 'bash',
-  code: `# Offline verification with the RouteWarden CLI (rwarden)
+  code: `# Offline verification with the Routewarden CLI (rwarden)
 
 # 1. Verify public stream or image access passes cleanly
 rwarden test -c routewarden.json -X GET /Items/123/Images/Primary
@@ -449,7 +450,7 @@ However, exposing media servers directly creates substantial risk:
 
 ## 1. Jellyfin Configuration (Port 8096)
 
-Select your gateway below to inspect the Jellyfin production configuration. Diff highlights show RouteWarden rules:
+Select your gateway below to inspect the Jellyfin production configuration. Diff highlights show Routewarden rules:
 
 <CodeViewer :snippets="jellyfinSnippets" />
 
@@ -457,7 +458,7 @@ Select your gateway below to inspect the Jellyfin production configuration. Diff
 
 ## 2. Plex Configuration (Port 32400)
 
-Select your gateway below to inspect the Plex Media Server production configuration. Diff highlights show RouteWarden rules:
+Select your gateway below to inspect the Plex Media Server production configuration. Diff highlights show Routewarden rules:
 
 <CodeViewer :snippets="plexSnippets" />
 
@@ -467,7 +468,7 @@ Select your gateway below to inspect the Plex Media Server production configurat
 
 ### 1. HTTP Methods: Why `methods` is Mandatory
 
-By default, RouteWarden inspects only `GET` requests (`methods: ["GET"]`).
+By default, Routewarden inspects only `GET` requests (`methods: ["GET"]`).
 
 However, administrative operations in Jellyfin and Plex—such as creating users (`POST /Users/New`), installing plugins (`POST /Plugins/*`), and updating system configurations—are submitted via **`POST`** and **`PUT`**. Without declaring `methods`, external bots could issue `POST` requests directly to backend administration handlers. Always include `methods GET POST PUT DELETE PATCH HEAD`.
 
@@ -482,7 +483,7 @@ Always use **`mode: json`** (or **`mode: html`**) with **`statusCode: 404`** for
 
 ### 3. Caddy Directive Ordering
 
-When using Caddy, you must register RouteWarden before Caddy's built-in `reverse_proxy` directive in the global options block:
+When using Caddy, you must register Routewarden before Caddy's built-in `reverse_proxy` directive in the global options block:
 
 <CodeViewer :snippets="caddyOrderSnippets" />
 
@@ -500,7 +501,7 @@ For media streaming servers, **Selective Administrative Shielding** (`blockPatte
 
 ## Verification Matrix & Curl Tests
 
-Inspect live curl verification commands and offline RouteWarden CLI tests:
+Inspect live curl verification commands and offline Routewarden CLI tests:
 
 <CodeViewer :snippets="verificationSnippets" />
 

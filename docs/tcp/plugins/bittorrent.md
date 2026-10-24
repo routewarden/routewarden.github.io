@@ -10,7 +10,7 @@ import { buildSnippet } from '../../.vitepress/theme/composables/useCodeSnippet'
 // ─── 1. Installation Snippets ───────────────────────────────────────────────
 const install_cli = buildSnippet({
   lang: 'bash',
-  code: `# Install via RouteWarden CLI
+  code: `# Install via Routewarden CLI
 rwarden tcp plugins install bittorrent
 
 # Or standalone binary
@@ -31,7 +31,7 @@ plugins:
 
 const installSnippets = computed(() => ({
   tcp: [
-    { filename: 'RouteWarden CLI', lang: 'bash', code: install_cli.cleanCode, html: install_cli.html, hasDiff: false },
+    { filename: 'Routewarden CLI', lang: 'bash', code: install_cli.cleanCode, html: install_cli.html, hasDiff: false },
     { filename: 'tcp-warden.yaml', lang: 'yaml', code: install_yaml.cleanCode, html: install_yaml.html, hasDiff: false },
   ]
 }))
@@ -85,14 +85,14 @@ const configSnippets = computed(() => ({
 // ─── 3. Network Redirection Snippets ────────────────────────────────────────
 const net_nftables = buildSnippet({
   lang: 'bash',
-  code: `# Redirect incoming BitTorrent ports (TCP & UDP 6881-6889) to RouteWarden port 6881
+  code: `# Redirect incoming BitTorrent ports (TCP & UDP 6881-6889) to Routewarden port 6881
 sudo nft add rule ip routewarden_nat prerouting iifname "eth0" tcp dport 6881-6889 redirect to :6881
 sudo nft add rule ip routewarden_nat prerouting iifname "eth0" udp dport 6881-6889 redirect to :6881`
 })
 
 const net_iptables = buildSnippet({
   lang: 'bash',
-  code: `# Redirect incoming BitTorrent TCP & UDP to RouteWarden port 6881
+  code: `# Redirect incoming BitTorrent TCP & UDP to Routewarden port 6881
 sudo iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 6881:6889 -j REDIRECT --to-port 6881
 sudo iptables -t nat -A PREROUTING -i eth0 -p udp --dport 6881:6889 -j REDIRECT --to-port 6881
 
@@ -117,7 +117,7 @@ const net_compose = buildSnippet({
     network_mode: host
     environment:
       - WEBUI_PORT=8080
-      - TORRENTING_PORT=6882          # Client listens on internal port; RouteWarden guards 6881
+      - TORRENTING_PORT=6882          # Client listens on internal port; Routewarden guards 6881
     volumes:
       - ./config:/config
       - ./downloads:/downloads
@@ -232,13 +232,13 @@ Configure a multi-transport BitTorrent guard in `tcp-warden.yaml`:
 
 ### Option A: Kernel Firewall Redirection (nftables / iptables)
 
-Redirect external BitTorrent traffic across TCP & UDP ports to RouteWarden port `6881`:
+Redirect external BitTorrent traffic across TCP & UDP ports to Routewarden port `6881`:
 
 <CodeViewer :snippets="netFirewallSnippets" />
 
 ### Option B: Docker Compose with Dedicated Torrent Client
 
-Isolate your download client container behind RouteWarden:
+Isolate your download client container behind Routewarden:
 
 <CodeViewer :snippets="netComposeSnippets" />
 

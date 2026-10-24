@@ -1,5 +1,6 @@
 ---
 title: Example 1 – Basic Sensitive File Blocking
+description: "Step-by-step example demonstrating how Routewarden stops leaks of .env files, git directories, and server configs."
 ---
 
 <script setup>
@@ -14,7 +15,7 @@ const s = {
   "response": {
     "mode": "json",
     "statusCode": 403,
-    "body": "{\\"error\\":\\"Forbidden\\",\\"message\\":\\"Sensitive path blocked by RouteWarden\\"}"
+    "body": "{\\"error\\":\\"Forbidden\\",\\"message\\":\\"Sensitive path blocked by Routewarden\\"}"
   }
 }` }),
 
@@ -29,7 +30,7 @@ http:
           response:
             mode: json
             statusCode: 403
-            body: '{"error":"Forbidden","message":"Sensitive path blocked by RouteWarden"}'
+            body: '{"error":"Forbidden","message":"Sensitive path blocked by Routewarden"}'
 
   routers:
     webapp-router:
@@ -64,7 +65,7 @@ http:
 [http.middlewares.warden-shield.plugin.routewarden.response]
   mode = "json"
   statusCode = 403
-  body = '{"error":"Forbidden","message":"Sensitive path blocked by RouteWarden"}'` }),
+  body = '{"error":"Forbidden","message":"Sensitive path blocked by Routewarden"}'` }),
 
   traefik_labels: buildSnippet({ lang: 'docker', code: `# Docker Compose Labels
 - "traefik.enable=true"
@@ -75,7 +76,7 @@ http:
 - "traefik.http.middlewares.warden-shield.plugin.routewarden.enableDefaultPatterns=true"
 - "traefik.http.middlewares.warden-shield.plugin.routewarden.response.mode=json"
 - "traefik.http.middlewares.warden-shield.plugin.routewarden.response.statusCode=403"
-- 'traefik.http.middlewares.warden-shield.plugin.routewarden.response.body={"error":"Forbidden","message":"Sensitive path blocked by RouteWarden"}'` }),
+- 'traefik.http.middlewares.warden-shield.plugin.routewarden.response.body={"error":"Forbidden","message":"Sensitive path blocked by Routewarden"}'` }),
 
   caddy: buildSnippet({ lang: 'caddy', code: `# Caddyfile
 {
@@ -88,7 +89,7 @@ localhost {
         response {
             mode json
             status_code 403
-            body "{\\"error\\":\\"Forbidden\\",\\"message\\":\\"Sensitive path blocked by RouteWarden\\"}"
+            body "{\\"error\\":\\"Forbidden\\",\\"message\\":\\"Sensitive path blocked by Routewarden\\"}"
         }
     }
 
@@ -107,7 +108,7 @@ http {
             response = {
                 mode = "json",
                 status_code = 403,
-                body = '{"error":"Forbidden","message":"Sensitive path blocked by RouteWarden"}'
+                body = '{"error":"Forbidden","message":"Sensitive path blocked by Routewarden"}'
             }
         })
     }
@@ -148,7 +149,7 @@ http {
       - "traefik.http.routers.webapp.rule=Host(\`localhost\`)"
       - "traefik.http.routers.webapp.entrypoints=web"
       - "traefik.http.routers.webapp.middlewares=warden-shield" # [!code ++]
-      # RouteWarden Setup
+      # Routewarden Setup
       - "traefik.http.middlewares.warden-shield.plugin.routewarden.enabled=true" # [!code ++]
       - "traefik.http.middlewares.warden-shield.plugin.routewarden.enableDefaultPatterns=true" # [!code ++]
       - "traefik.http.middlewares.warden-shield.plugin.routewarden.response.mode=json" # [!code ++]
@@ -221,7 +222,7 @@ curl -I http://localhost/
 # Probing for environment secrets (Blocked)
 curl -i http://localhost/.env
 # Output: HTTP/1.1 403 Forbidden
-# {"error":"Forbidden","message":"Sensitive path blocked by RouteWarden"}
+# {"error":"Forbidden","message":"Sensitive path blocked by Routewarden"}
 
 # Probing for Git repository details (Blocked)
 curl -i http://localhost/.git/config
@@ -235,7 +236,7 @@ const verificationSnippets = computed(() => ({
 
 # Example 1: Basic Sensitive File Blocking
 
-This scenario protects a web application against reconnaissance and exposure of critical infrastructure files using RouteWarden's built-in rule dictionary.
+This scenario protects a web application against reconnaissance and exposure of critical infrastructure files using Routewarden's built-in rule dictionary.
 
 ---
 

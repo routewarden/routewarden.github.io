@@ -1,3 +1,8 @@
+---
+title: "Traefik Warden: Testing & Validation"
+description: "Testing guidelines and Yaegi interpreter verification for Routewarden Traefik plugin development."
+---
+
 <script setup>
 import { computed } from 'vue'
 import { buildSnippet } from '../.vitepress/theme/composables/useCodeSnippet'
@@ -36,7 +41,7 @@ const testSnippets = computed(() => ({
 
 # Testing & Verification
 
-RouteWarden contains a comprehensive, multi-layer testing architecture designed to guarantee correctness, concurrency safety, and total compliance with Traefik's Yaegi interpreter constraints.
+Routewarden contains a comprehensive, multi-layer testing architecture designed to guarantee correctness, concurrency safety, and total compliance with Traefik's Yaegi interpreter constraints.
 
 ---
 
@@ -50,7 +55,7 @@ RouteWarden contains a comprehensive, multi-layer testing architecture designed 
 
 ## Test Architecture & Modular Coverage
 
-RouteWarden isolates unit testing per component and uses integration tests to validate full HTTP request cycles:
+Routewarden isolates unit testing per component and uses integration tests to validate full HTTP request cycles:
 
 | Test File | Scope & Focus |
 |---|---|
@@ -59,13 +64,13 @@ RouteWarden isolates unit testing per component and uses integration tests to va
 | [`ip_filter_test.go`](https://github.com/routewarden/traefik-warden/blob/main/ip_filter_test.go) | Exact IPv4/IPv6 addresses, CIDR subnet matching, parsing `X-Forwarded-For`, `X-Real-IP`, and invalid IP syntax error handling. |
 | [`response_handler_test.go`](https://github.com/routewarden/traefik-warden/blob/main/response_handler_test.go) | Custom JSON formatting, HTML templates, Turnstile/hCaptcha/reCAPTCHA markup generation, redirects, silent drops, and status codes. |
 | [`routewarden_test.go`](https://github.com/routewarden/traefik-warden/blob/main/routewarden_test.go) | Middleware integration, default patterns, custom regex rules, allowlist overrides, query inspection, and disabled mode pass-through. |
-| [`integration_test.go`](https://github.com/routewarden/traefik-warden/blob/main/integration_test.go) | Full multi-middleware pipeline simulation (`Tracing ➡️ RouteWarden ➡️ Upstream Backend Service`). |
+| [`integration_test.go`](https://github.com/routewarden/traefik-warden/blob/main/integration_test.go) | Full multi-middleware pipeline simulation (`Tracing ➡️ Routewarden ➡️ Upstream Backend Service`). |
 
 ---
 
 ## Continuous Integration (GitHub Actions)
 
-Every pull request and push to `main` runs RouteWarden's automated CI pipeline:
+Every pull request and push to `main` runs Routewarden's automated CI pipeline:
 - Validates code formatting with `gofmt`
 - Compiles with Go 1.22+ and 1.23+
 - Executes `go test -v -race ./...`

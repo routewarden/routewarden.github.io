@@ -1,6 +1,6 @@
 ---
-title: JSON Schema & Production CI/CD — RouteWarden CLI
-description: Formal JSON Schema definitions and automated CI/CD policy validation pipelines for RouteWarden.
+title: JSON Schema & Production CI/CD — Routewarden CLI
+description: Formal JSON Schema definitions and automated CI/CD policy validation pipelines for Routewarden.
 ---
 
 <script setup>
@@ -180,7 +180,7 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: '1.25'
-      - name: Install RouteWarden CLI
+      - name: Install Routewarden CLI
         run: go install github.com/routewarden/cli@latest
       - name: Validate Configuration
         run: rwarden validate --config routewarden.json`,
@@ -357,7 +357,7 @@ const workflowSnippets = computed(() => ({
 
 # JSON Schema & Production CI/CD
 
-RouteWarden publishes formal JSON Schemas for HTTP gateways and Layer 4 security configurations. Using schemas unlocks real-time IDE validation, inline autocomplete, and automated CI/CD policy linting.
+Routewarden publishes formal JSON Schemas for HTTP gateways and Layer 4 security configurations. Using schemas unlocks real-time IDE validation, inline autocomplete, and automated CI/CD policy linting.
 
 ---
 
@@ -391,7 +391,7 @@ Ensure the official Red Hat YAML extension (`redhat.vscode-yaml`) is installed i
 1. Open **Settings / Preferences** (`⌘,` on macOS or `Ctrl+Alt+S` on Linux/Windows).
 2. Navigate to **Languages & Frameworks** → **Schemas and DTDs** → **JSON Schema Mappings**.
 3. Configure mappings:
-   - **RouteWarden HTTP**: `https://routewarden.github.io/schema.json` mapped to `routewarden*.json`, `routewarden*.yml`, `dynamic_conf.yml`, `caddy*.json`.
+   - **Routewarden HTTP**: `https://routewarden.github.io/schema.json` mapped to `routewarden*.json`, `routewarden*.yml`, `dynamic_conf.yml`, `caddy*.json`.
    - **TCP Warden**: `https://routewarden.github.io/tcp-warden.schema.json` mapped to `tcp-warden*.yaml`.
 
 ---

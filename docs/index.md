@@ -1,13 +1,15 @@
 ---
 layout: home
+title: "Routewarden — Unified Edge & Protocol Security Suite"
+description: "Stop sensitive file leaks (.env, .git, backups), protect non-HTTP services (SSH, SMTP, DBs), and block threats before requests reach your backends."
 
 hero:
-  name: "RouteWarden"
+  name: "Routewarden"
   text: "High-Performance Edge & L4 Protocol Defense"
   tagline: "Stop sensitive file leaks (.env, .git, backups), protect non-HTTP services (SSH, SMTP, DBs), and block threats before requests reach your backends."
   image:
     src: /icon.svg
-    alt: RouteWarden Logo
+    alt: Routewarden Logo
   actions:
     - theme: brand
       text: "[ TCP Warden (L4) ➔ ]"
@@ -47,11 +49,11 @@ features:
 import setupSnippets from './.vitepress/theme/components/setup-snippets.json'
 </script>
 
-## What is RouteWarden?
+## What is Routewarden?
 
-**RouteWarden** is a unified edge defense suite built for reverse proxies and servers. It protects both **web traffic (Layer 7)** via **Traefik**, **Caddy**, and **NGINX**, as well as **infrastructure services (Layer 4)** via **TCP Warden**.
+**Routewarden** is a unified edge defense suite built for reverse proxies and servers. It protects both **web traffic (Layer 7)** via **Traefik**, **Caddy**, and **NGINX**, as well as **infrastructure services (Layer 4)** via **TCP Warden**.
 
-Every server exposed to the public internet gets hammered by automated scanning scripts hunting for `.env` files, `.git` trees, backup archives, open databases, and unauthenticated management ports. RouteWarden filters these threats out at the perimeter before they consume backend resources.
+Every server exposed to the public internet gets hammered by automated scanning scripts hunting for `.env` files, `.git` trees, backup archives, open databases, and unauthenticated management ports. Routewarden filters these threats out at the perimeter before they consume backend resources.
 
 ---
 
@@ -65,7 +67,7 @@ Get protected in seconds with your preferred gateway:
 
 ## Request Inspection Lifecycle
 
-RouteWarden evaluates inbound HTTP requests in five stages:
+Routewarden evaluates inbound HTTP requests in five stages:
 
 <div class="home-pipeline">
   <div class="pipeline-step">
@@ -99,7 +101,7 @@ RouteWarden evaluates inbound HTTP requests in five stages:
 
 ## Default Protection Rules
 
-With `enableDefaultPatterns: true` active, RouteWarden blocks common exposure paths without requiring custom rules:
+With `enableDefaultPatterns: true` active, Routewarden blocks common exposure paths without requiring custom rules:
 
 <div class="attack-grid">
   <div class="attack-card">
@@ -124,9 +126,9 @@ With `enableDefaultPatterns: true` active, RouteWarden blocks common exposure pa
 
 ## Anti-Evasion Normalization
 
-Attackers often obfuscate request paths to bypass string matching. RouteWarden normalizes paths before evaluation:
+Attackers often obfuscate request paths to bypass string matching. Routewarden normalizes paths before evaluation:
 
-| Evasion Technique | Raw Attacker Payload | RouteWarden Normalized Candidate | Action |
+| Evasion Technique | Raw Attacker Payload | Routewarden Normalized Candidate | Action |
 |---|---|---|---|
 | **Double URL Encoding** | `/%252e%252e/%252eenv` | `/.env` | Blocked |
 | **Semicolon Matrix Traversal** | `/public;param=1/..;param=2/.env` | `/.env` | Blocked |
@@ -138,7 +140,7 @@ Attackers often obfuscate request paths to bypass string matching. RouteWarden n
 
 ## Response Actions
 
-When a path matches a block rule, choose how RouteWarden defends your server:
+When a path matches a block rule, choose how Routewarden defends your server:
 
 - **Clean Errors & Deception**: Return custom `json`, `html`, `text`, `xml`, or a deceptive `fakeSuccess` (200 OK honeypot).
 - **Active Defense**: Crash aggressive bots with `gzipBomb` (~1000× RAM expansion), reset connections via `silentDrop`, or delay scanners with `tarpit`.
@@ -148,7 +150,7 @@ When a path matches a block rule, choose how RouteWarden defends your server:
 
 ## Production Case Studies
 
-Real-world deployment patterns demonstrating how engineering teams protect their applications using RouteWarden:
+Real-world deployment patterns demonstrating how engineering teams protect their applications using Routewarden:
 
 <div class="attack-grid">
   <div class="attack-card">
@@ -189,6 +191,6 @@ Real-world deployment patterns demonstrating how engineering teams protect their
 - Deploy on **[Traefik Warden](/traefik/)** with Docker Compose templates.
 - Deploy on **[Caddy Warden](/caddy/)** with native Caddyfile directives.
 - Deploy on **[NGINX Warden](/nginx/)** with in-memory Lua inspection.
-- Monitor live attacks with the **[RouteWarden CLI & Dashboard](/cli/)**.
+- Monitor live attacks with the **[Routewarden CLI & Dashboard](/cli/)**.
 - Learn about the [Core System Architecture](/core/architecture) and [Anti-Evasion Engine](/core/anti-evasion).
 - Browse real-world blueprints in the [Cookbook & Case Studies](/examples/overview).

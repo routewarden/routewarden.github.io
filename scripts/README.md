@@ -1,6 +1,6 @@
 # Internal Automation Scripts
 
-This directory contains Node.js automation scripts supporting RouteWarden's version lifecycle, documentation builds, and multi-file consistency.
+This directory contains Node.js automation scripts supporting Routewarden's version lifecycle, documentation builds, and multi-file consistency.
 
 ---
 

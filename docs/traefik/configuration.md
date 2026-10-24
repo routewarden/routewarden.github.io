@@ -1,5 +1,6 @@
 ---
 title: "Traefik Warden: Configuration Reference"
+description: "Full configuration reference for Routewarden Traefik plugin via dynamic YAML, TOML, and routewarden.json."
 ---
 
 <script setup>
@@ -212,11 +213,11 @@ This reference covers all configuration options available in **Traefik Warden**.
 
 ## Config File (`configFile`)
 
-Instead of inlining every configuration option in `traefik.yml` or Docker labels, you can point RouteWarden at a shared `routewarden.json` file. This is especially useful for self-hosters managing multiple services or for keeping security policy in version control independently of your Traefik config.
+Instead of inlining every configuration option in `traefik.yml` or Docker labels, you can point Routewarden at a shared `routewarden.json` file. This is especially useful for self-hosters managing multiple services or for keeping security policy in version control independently of your Traefik config.
 
 <CodeViewer :snippets="configFileSnippets" />
 
-The `routewarden.json` file uses the standard RouteWarden JSON schema (view it with `rwarden schema` or the [CLI Schema](/cli/schema)):
+The `routewarden.json` file uses the standard Routewarden JSON schema (view it with `rwarden schema` or the [CLI Schema](/cli/schema)):
 
 ### Merge Semantics
 
@@ -227,7 +228,7 @@ The `routewarden.json` file uses the standard RouteWarden JSON schema (view it w
 
 - **Non-zero inline values always override** the corresponding file values.
 - **Empty/omitted slices** in the inline config defer to the file (so you don't need to re-specify `blockPatterns` just to change the response mode).
-- A **missing or malformed file** causes a hard startup error — RouteWarden will not silently fall back to defaults.
+- A **missing or malformed file** causes a hard startup error — Routewarden will not silently fall back to defaults.
 
 > [!TIP]
 > Mount `routewarden.json` as a Docker volume or Kubernetes ConfigMap and share it across multiple Traefik middleware instances for consistent policy enforcement across services.
@@ -236,7 +237,7 @@ The `routewarden.json` file uses the standard RouteWarden JSON schema (view it w
 
 ## Security Audit Logging (`securityLog`)
 
-RouteWarden includes built-in structured security audit logging designed for [CrowdSec](/examples/crowdsec), SIEM platforms (Elasticsearch, Loki, Splunk, Datadog), and automated intrusion remediation tools.
+Routewarden includes built-in structured security audit logging designed for [CrowdSec](/examples/crowdsec), SIEM platforms (Elasticsearch, Loki, Splunk, Datadog), and automated intrusion remediation tools.
 
 When `securityLog: true` (the default), every intercepted probe emits a single-line JSON payload to `stdout`:
 
@@ -264,7 +265,7 @@ For complete end-to-end integration steps with automated firewall remediation, s
 
 ### Default Block Patterns (`enableDefaultPatterns: true`)
 
-When `enableDefaultPatterns: true` (default), RouteWarden intercepts requests matching these compiled regular expressions:
+When `enableDefaultPatterns: true` (default), Routewarden intercepts requests matching these compiled regular expressions:
 
 | Target Category | Compiled Regex | Intercepted Examples |
 |---|---|---|
@@ -281,7 +282,7 @@ When `enableDefaultPatterns: true` (default), RouteWarden intercepts requests ma
 
 ### Default Allow Patterns (`enableDefaultAllowPatterns: true`)
 
-When `enableDefaultAllowPatterns: true` (default), RouteWarden immediately permits standard public and ACME paths before testing block patterns:
+When `enableDefaultAllowPatterns: true` (default), Routewarden immediately permits standard public and ACME paths before testing block patterns:
 
 | Target Resource | Compiled Regex |
 |---|---|
@@ -325,7 +326,7 @@ When `enableDefaultAllowPatterns: true` (default), RouteWarden immediately permi
 
 ## HTTP Request Verbs Inspection (`methods`)
 
-By default, RouteWarden inspects incoming `GET` requests (`methods: ["GET"]`), as automated scanners and vulnerability reconnaissance probes primarily use `GET` to check for leaked files (`.env`, `.git`, backups, configs).
+By default, Routewarden inspects incoming `GET` requests (`methods: ["GET"]`), as automated scanners and vulnerability reconnaissance probes primarily use `GET` to check for leaked files (`.env`, `.git`, backups, configs).
 
 You can configure `methods` to inspect additional HTTP request verbs (e.g. `POST`, `PUT`, `DELETE`, `PATCH`, `HEAD`) or tailor inspection to specific workloads. Any incoming request whose HTTP method is **not** included in `methods` will immediately bypass inspection and pass downstream to upstream containers.
 
@@ -337,7 +338,7 @@ To inspect all incoming HTTP request methods without enumerating each verb indiv
 
 ### Automatic Method Expansion for Request Body Inspection
 
-When body inspection is enabled (`checkBody: true` or custom `checkBodyPatterns` configured) and `methods` is left at the default `["GET"]`, RouteWarden automatically expands `methods` to:
+When body inspection is enabled (`checkBody: true` or custom `checkBodyPatterns` configured) and `methods` is left at the default `["GET"]`, Routewarden automatically expands `methods` to:
 
 <CodeViewer :snippets="expandedMethodsSnippets" />
 

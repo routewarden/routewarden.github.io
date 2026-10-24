@@ -700,7 +700,7 @@ function highlightPlaintextLine(line: string): string {
   // If line contains arrows, box-drawing, or diagram characters, enrich with styled tokens
   if (/([─│┌┐└┘├┤┬┴┼═║╔╗╚╝╠╣╦╩╬►▼▲◄]|\-\->|<--)/.test(line)) {
     return line.replace(
-      /([─│┌┐└┘├┤┬┴┼═║╔╗╚╝╠╣╦╩╬►▼▲◄]+|\-\->|<--)|(\[[^\]]+\])|(\bPattern\s+\d+:?)|(\b(?:RouteWarden|Client|Backend|Internet|Proxy|Host|Daemon|Chain|Hook|Bridge)\b)/g,
+      /([─│┌┐└┘├┤┬┴┼═║╔╗╚╝╠╣╦╩╬►▼▲◄]+|\-\->|<--)|(\[[^\]]+\])|(\bPattern\s+\d+:?)|(\b(?:Routewarden|Client|Backend|Internet|Proxy|Host|Daemon|Chain|Hook|Bridge)\b)/g,
       (m, box, bracket, pattern, kw) => {
         if (box) return `<span class="tok-punct" style="color: var(--vp-c-brand-1, #6366f1); font-weight: bold;">${esc(box)}</span>`
         if (bracket) return `<span class="tok-section">${esc(bracket)}</span>`

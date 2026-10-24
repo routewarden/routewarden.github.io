@@ -1,5 +1,6 @@
 ---
 title: Custom Path Configuration & Regex Guide
+description: "How to define custom block patterns, allowlist regex rules, and query string inspection in Routewarden."
 ---
 <script setup>
 import { computed } from 'vue'
@@ -858,7 +859,7 @@ const multi_compose = buildSnippet({
       - "traefik.http.routers.webapp.rule=Host(\`app.example.com\`)"
       - "traefik.http.routers.webapp.middlewares=custom-shield" # [!code ++]
 
-      # RouteWarden Middleware Definition
+      # Routewarden Middleware Definition
       - "traefik.http.middlewares.custom-shield.plugin.routewarden.enabled=true" # [!code ++]
       - "traefik.http.middlewares.custom-shield.plugin.routewarden.enableDefaultPatterns=true" # [!code ++]
       # Block custom internal endpoints
@@ -947,15 +948,15 @@ const multiSnippets = computed(() => ({
 
 # Custom Path Configuration & Regex Guide
 
-RouteWarden provides a flexible regular expression matching engine allowing you to define custom blocking rules (`blockPatterns` / `block_patterns`) and safe overrides (`allowPatterns`).
+Routewarden provides a flexible regular expression matching engine allowing you to define custom blocking rules (`blockPatterns` / `block_patterns`) and safe overrides (`allowPatterns`).
 
-> **Test Your Rules Interactively**: Use the [Pattern & Anti-Evasion Playground](/?playground=open) to test obfuscated URLs, custom regex patterns, and allowlist rules against RouteWarden's live simulation engine.
+> **Test Your Rules Interactively**: Use the [Pattern & Anti-Evasion Playground](/?playground=open) to test obfuscated URLs, custom regex patterns, and allowlist rules against Routewarden's live simulation engine.
 
 ---
 
 ## 1. How Path Matching Works
 
-Before regular expressions are evaluated, RouteWarden runs every request path through its **Anti-Evasion Engine**:
+Before regular expressions are evaluated, Routewarden runs every request path through its **Anti-Evasion Engine**:
 - Decodes layered percent-encoding (`%252e` ➔ `.`)
 - Strips semicolon matrix parameters (`/;param=1/admin` ➔ `/admin`)
 - Normalizes Windows backslashes (`\admin` ➔ `/admin`)
@@ -967,7 +968,7 @@ Regex patterns are evaluated against the clean normalized path (and optionally t
 
 ## 2. Built-in Default Block Patterns (`enableDefaultPatterns`)
 
-When `enableDefaultPatterns: true` (Traefik) or `enable_default_patterns true` (Caddy) is configured (which is enabled by default), RouteWarden activates the following compiled regular expressions:
+When `enableDefaultPatterns: true` (Traefik) or `enable_default_patterns true` (Caddy) is configured (which is enabled by default), Routewarden activates the following compiled regular expressions:
 
 | Target Category | Compiled Regular Expression | Target Examples Intercepted |
 |---|---|---|
@@ -979,7 +980,7 @@ When `enableDefaultPatterns: true` (Traefik) or `enable_default_patterns true` (
 | **Package Managers & Locks** | `(?i)(^|/)(composer\.(json\|lock)\|package-lock\.json\|yarn\.lock\|pnpm-lock\.yaml\|Pipfile\|Pipfile\.lock\|requirements\.txt)$` | `/package-lock.json`, `/yarn.lock`, `/composer.json`, `/requirements.txt`, `/Pipfile` |
 
 > [!TIP]
-> If your application legitimately serves files ending in extensions matched above (such as `/robots.txt` or `/ads.txt`), RouteWarden's built-in allowlist automatically grants permission before these block patterns are tested.
+> If your application legitimately serves files ending in extensions matched above (such as `/robots.txt` or `/ads.txt`), Routewarden's built-in allowlist automatically grants permission before these block patterns are tested.
 
 ---
 
@@ -988,7 +989,7 @@ When `enableDefaultPatterns: true` (Traefik) or `enable_default_patterns true` (
 You can supply one or more custom regular expressions to block using the canonical `blockPatterns` (Traefik/CLI) or `block_patterns` (Caddy/NGINX) directive.
 
 ### Syntax & Flags
-RouteWarden uses Go's standard `regexp` syntax (RE2).
+Routewarden uses Go's standard `regexp` syntax (RE2).
 - **Case-Insensitive Flag**: Always prefix with `(?i)` unless you strictly require case sensitivity.
 - **Root/Segment Anchoring**: Use `(^|/)` or `^/` to ensure you match full path segments rather than accidental substrings.
 
@@ -1043,7 +1044,7 @@ Restricts internal endpoints from being reached via public ingress:
 
 ## 4. Predefined Sample Application Blueprints
 
-Below are complete, production-tested RouteWarden configurations designed for specific popular application stacks:
+Below are complete, production-tested Routewarden configurations designed for specific popular application stacks:
 
 ### Blueprint A: WordPress / WooCommerce Store
 Stops XML-RPC amplification attacks, wp-config exposure, and brute-force bot scans on wp-login:
@@ -1074,10 +1075,10 @@ Protects `.env`, Artisan CLI files, storage logs, and debug toolbars:
 
 ## 5. Built-in Default Allow Patterns (`allowPatterns`)
 
-The `allowPatterns` list takes precedence over both built-in default patterns and your custom `blockPatterns`. If a path matches **any** regex in `allowPatterns`, RouteWarden immediately permits the request to pass downstream without blocking or challenging.
+The `allowPatterns` list takes precedence over both built-in default patterns and your custom `blockPatterns`. If a path matches **any** regex in `allowPatterns`, Routewarden immediately permits the request to pass downstream without blocking or challenging.
 
 ### Default Built-in Allow Rules (`enableDefaultAllowPatterns`)
-When `enableDefaultAllowPatterns: true` (or `enable_default_allow_patterns true` in Caddy), RouteWarden automatically permits:
+When `enableDefaultAllowPatterns: true` (or `enable_default_allow_patterns true` in Caddy), Routewarden automatically permits:
 
 | Target Legitimate Resource | Compiled Regular Expression | Purpose |
 |---|---|---|
@@ -1098,7 +1099,7 @@ For example, if you block all `*.yaml` files or `/api/*`, but need to allow a pu
 
 ## 6. Query String Inspection (`checkQuery`)
 
-By default (`checkQuery: false`), RouteWarden inspects only the URL path. If attackers attempt to smuggle sensitive files via query parameters (e.g. `?file=../../.env` or `?redirect=phpinfo.php`), enable `checkQuery`:
+By default (`checkQuery: false`), Routewarden inspects only the URL path. If attackers attempt to smuggle sensitive files via query parameters (e.g. `?file=../../.env` or `?redirect=phpinfo.php`), enable `checkQuery`:
 
 <CodeViewer :snippets="querySnippets" />
 

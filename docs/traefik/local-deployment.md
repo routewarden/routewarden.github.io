@@ -1,5 +1,6 @@
 ---
 title: Local Development & Deployment
+description: "Run Routewarden in air-gapped, offline, or private enterprise environments using Traefik localPlugins."
 ---
 
 <script setup>
@@ -114,7 +115,7 @@ const compose_setup = buildSnippet({
       - "--providers.docker.exposedbydefault=false"
       - "--entrypoints.web.address=:80"
       
-      # Declare RouteWarden as a LOCAL plugin:
+      # Declare Routewarden as a LOCAL plugin:
       - "--experimental.localPlugins.routewarden.modulename=github.com/routewarden/traefik-warden" # [!code ++]
       
       # Log level debug helps verify plugin loading
@@ -254,7 +255,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./dynamic.yml:/etc/traefik/dynamic.yml:ro
-      # Mount RouteWarden into required /plugins-local destination:
+      # Mount Routewarden into required /plugins-local destination:
       - ./traefik-warden:/plugins-local/src/github.com/routewarden/traefik-warden:ro # [!code ++]`,
 })
 
@@ -310,7 +311,7 @@ const k8sAirgappedSnippets = computed(() => ({
 
 # Local & Air-Gapped Deployment (/plugins-local)
 
-This guide explains how to install, develop, and run RouteWarden in **air-gapped**, **offline**, and **local enterprise environments** using Traefik's native `/plugins-local` mechanism without external downloads from GitHub or the Traefik Plugin Catalog.
+This guide explains how to install, develop, and run Routewarden in **air-gapped**, **offline**, and **local enterprise environments** using Traefik's native `/plugins-local` mechanism without external downloads from GitHub or the Traefik Plugin Catalog.
 
 ---
 
@@ -336,7 +337,7 @@ When using `localPlugins`, Traefik strictly requires the source code to be mount
 
 ## 3. Local Docker Compose Setup
 
-Here is a complete, ready-to-run `docker-compose.yml` for developing and testing RouteWarden locally:
+Here is a complete, ready-to-run `docker-compose.yml` for developing and testing Routewarden locally:
 
 <CodeViewer :snippets="composeSnippets" />
 
@@ -345,7 +346,7 @@ Here is a complete, ready-to-run `docker-compose.yml` for developing and testing
 ## 4. Step-by-Step Local Walkthrough
 
 ### Step 1: Start the Cluster
-From the root of the RouteWarden repository:
+From the root of the Routewarden repository:
 
 <CodeViewer :snippets="walk_startSnippets" />
 
@@ -374,7 +375,7 @@ Because the repository root is mounted with `- .:/plugins-local/src/github.com/r
 
 ## 5. Air-Gapped & Enterprise Production Setup
 
-When deploying to production clusters with no public internet access (e.g., banking, healthcare, government, or private VPCs), follow these steps to bundle RouteWarden offline.
+When deploying to production clusters with no public internet access (e.g., banking, healthcare, government, or private VPCs), follow these steps to bundle Routewarden offline.
 
 ### Step 1: Prepare the Offline Plugin Bundle
 On an internet-connected workstation, clone the repository or download the release archive:

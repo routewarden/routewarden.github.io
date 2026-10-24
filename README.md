@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/public/icon.svg" alt="RouteWarden Icon" width="160">
+  <img src="docs/public/icon.svg" alt="Routewarden Icon" width="160">
 </p>
 
 <p align="center">
@@ -17,7 +17,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/routewarden/cli"><img src="https://img.shields.io/badge/CLI%20&amp;%20L4%20Proxy-rwarden-orange.svg" alt="RouteWarden CLI &amp; L4"></a>
+  <a href="https://github.com/routewarden/cli"><img src="https://img.shields.io/badge/CLI%20&amp;%20L4%20Proxy-rwarden-orange.svg" alt="Routewarden CLI &amp; L4"></a>
   <a href="https://github.com/routewarden/traefik-warden/actions/workflows/ci.yml"><img src="https://github.com/routewarden/traefik-warden/actions/workflows/ci.yml/badge.svg" alt="Traefik CI Status"></a>
   <a href="https://github.com/routewarden/caddy-warden/actions/workflows/ci.yml"><img src="https://github.com/routewarden/caddy-warden/actions/workflows/ci.yml/badge.svg" alt="Caddy CI Status"></a>
   <a href="https://github.com/routewarden/nginx-warden/actions/workflows/ci.yml"><img src="https://github.com/routewarden/nginx-warden/actions/workflows/ci.yml/badge.svg" alt="NGINX CI Status"></a>
@@ -32,9 +32,9 @@
 
 ---
 
-## RouteWarden Documentation
+## Routewarden Documentation
 
-This repository contains the documentation, deployment guides, examples, and release references for RouteWarden across **[RouteWarden CLI & TCP Proxy](https://github.com/routewarden/cli)**, **[Traefik](https://github.com/routewarden/traefik-warden)**, **[Caddy](https://github.com/routewarden/caddy-warden)**, and **[NGINX & OpenResty](https://github.com/routewarden/nginx-warden)**.
+This repository contains the documentation, deployment guides, examples, and release references for Routewarden across **[Routewarden CLI & TCP Proxy](https://github.com/routewarden/cli)**, **[Traefik](https://github.com/routewarden/traefik-warden)**, **[Caddy](https://github.com/routewarden/caddy-warden)**, and **[NGINX & OpenResty](https://github.com/routewarden/nginx-warden)**.
 
 - **Documentation Portal**: [https://routewarden.github.io/](https://routewarden.github.io/)
 - **Interactive Playground**: [https://routewarden.github.io/?playground=open](https://routewarden.github.io/?playground=open)
@@ -45,7 +45,7 @@ This repository contains the documentation, deployment guides, examples, and rel
 
 | Resource | Link | Description |
 |---|---|---|
-| **RouteWarden CLI & TCP Proxy (cli)** | [github.com/routewarden/cli](https://github.com/routewarden/cli) | Unified CLI daemon, dashboard, and protocol-aware Layer 4 reverse proxy (`rwarden tcp`) |
+| **Routewarden CLI & TCP Proxy (cli)** | [github.com/routewarden/cli](https://github.com/routewarden/cli) | Unified CLI daemon, dashboard, and protocol-aware Layer 4 reverse proxy (`rwarden tcp`) |
 | **Traefik Plugin (traefik-warden)** | [github.com/routewarden/traefik-warden](https://github.com/routewarden/traefik-warden) | Pure Go Traefik plugin with Yaegi compatibility |
 | **Caddy Plugin (caddy-warden)** | [github.com/routewarden/caddy-warden](https://github.com/routewarden/caddy-warden) | Official Caddy v2 security module and Caddyfile directive |
 | **NGINX Plugin (nginx-warden)** | [github.com/routewarden/nginx-warden](https://github.com/routewarden/nginx-warden) | High-performance Lua security module for NGINX & OpenResty |
@@ -53,13 +53,13 @@ This repository contains the documentation, deployment guides, examples, and rel
 | **Traefik Plugin Catalog** | [plugins.traefik.io](https://plugins.traefik.io/plugins/6aae41dd5b5ee35d8bd24ca5/route-warden) | Official Traefik Plugin listing |
 | **Documentation Portal** | [routewarden.github.io](https://routewarden.github.io/) | Installation guides, architecture, and configuration options |
 | **Examples Cookbook** | [Documentation Examples](https://routewarden.github.io/examples/overview) | Ready-to-use Docker Compose and Kubernetes configurations |
-| **Issue Tracker** | [RouteWarden Issues](https://github.com/routewarden/traefik-warden/issues) | Bug reports and feature discussions |
+| **Issue Tracker** | [Routewarden Issues](https://github.com/routewarden/traefik-warden/issues) | Bug reports and feature discussions |
 
 ---
 
-## What is RouteWarden?
+## What is Routewarden?
 
-**RouteWarden** is a lightweight, zero-dependency security middleware for **Traefik**, **Caddy v2**, and **NGINX / OpenResty**. It inspects incoming HTTP requests at the reverse proxy layer and blocks unauthorized attempts to reach sensitive files, hidden directories, or administrative endpoints before requests reach your application containers:
+**Routewarden** is a lightweight, zero-dependency security middleware for **Traefik**, **Caddy v2**, and **NGINX / OpenResty**. It inspects incoming HTTP requests at the reverse proxy layer and blocks unauthorized attempts to reach sensitive files, hidden directories, or administrative endpoints before requests reach your application containers:
 
 - **Sensitive Path Protection**: Blocks access to `.env`, `.git`, `.aws`, `.ssh`, `.sql`, database dumps, and server configuration files (`enableDefaultPatterns: true` / `enable_default_patterns`).
 - **Anti-Evasion Normalization**: Resolves multi-layer URL encoding (`%252e%252e`), semicolon matrix parameters (`/;param/.env`), backslashes (`\`), and null bytes (`%00`) before evaluating rules.
@@ -69,7 +69,7 @@ This repository contains the documentation, deployment guides, examples, and rel
 
 ### Interactive Playground Deeplinks
 
-You can test how RouteWarden processes and normalizes requests using these sample links:
+You can test how Routewarden processes and normalizes requests using these sample links:
 
 - [Double URL-Encoded Traversal (`/%252e%252e/.env`)](https://routewarden.github.io/?playground=open&path=%2F%25252e%25252e%2F.env)
 - [Matrix Semicolon Evasion (`/static;p=1/.git/config`)](https://routewarden.github.io/?playground=open&path=%2Fstatic%3Bp%3D1%2F.git%2Fconfig)
@@ -235,7 +235,7 @@ Open **`http://localhost:5173/`** in your browser.
 
 ## Contributing
 
-Contributions to improve RouteWarden's documentation, case studies, and guides are welcomed.
+Contributions to improve Routewarden's documentation, case studies, and guides are welcomed.
 
 1. Fork this repository.
 2. Create your feature branch (`git checkout -b feature/new-case-study`).
@@ -250,4 +250,4 @@ Contributions to improve RouteWarden's documentation, case studies, and guides a
 
 ## License
 
-This documentation and RouteWarden are open-source software licensed under the [MIT License](https://github.com/routewarden/traefik-warden/blob/main/LICENSE).
+This documentation and Routewarden are open-source software licensed under the [MIT License](https://github.com/routewarden/traefik-warden/blob/main/LICENSE).

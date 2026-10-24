@@ -1,6 +1,6 @@
 /**
  * Anti-Evasion Normalization & Candidate Path Extraction
- * Mirrors RouteWarden's Go core normalization engine.
+ * Mirrors Routewarden's Go core normalization engine.
  */
 export interface CandidateExtractionResult {
   normalized: string

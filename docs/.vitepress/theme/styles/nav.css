@@ -1,5 +1,5 @@
 /* ============================================================
-   RouteWarden ASCII / TUI Navigation & Sidebar Theme
+   Routewarden ASCII / TUI Navigation & Sidebar Theme
    Theme: "ASCII Sentry" (Terminal Topbar & Side Nav Console)
    ============================================================ */
 
@@ -59,7 +59,7 @@
   box-sizing: border-box !important;
 }
 
-/* ── Brand Title: > RouteWarden_ ───────────────────────────── */
+/* ── Brand Title: > Routewarden_ ───────────────────────────── */
 .VPNavBarTitle {
   display: flex !important;
   align-items: center !important;

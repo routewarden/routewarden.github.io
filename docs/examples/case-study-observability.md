@@ -1,5 +1,6 @@
 ---
 title: Case Study – Prometheus & Actuator Observability Cloaking
+description: "Integrating Routewarden structured audit logs into Grafana Loki, Elasticsearch, Datadog, and SIEM platforms."
 ---
 
 <script setup>
@@ -223,7 +224,7 @@ When exposed to the public internet, these endpoints leak proprietary architectu
 
 ## The Solution: Two-Tier Masking with Healthcheck Allowlisting
 
-RouteWarden enforces a granular defense policy:
+Routewarden enforces a granular defense policy:
 1. **Public Healthcheck Allowlist (`allowPatterns`)**: Safe liveness probes (e.g. `/actuator/health`, `/healthz`) remain reachable by external load balancers and uptime monitors.
 2. **Sensitive Observability Cloaking (`blockPatterns`)**: All other telemetry endpoints (`/metrics`, `/actuator/env`, `/debug/pprof`) are intercepted at the edge and cloaked with `404 Not Found`.
 3. **Authorized Scrapers (`allowedIps`)**: Monitoring servers (Prometheus, Datadog) originating from trusted VPC subnets or Kubernetes pod CIDRs bypass the block and scrape full metrics uninterrupted.

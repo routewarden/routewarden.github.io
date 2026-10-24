@@ -292,7 +292,7 @@ const versionSnippets = computed(() => ({
 The `tcp-warden` binary provides built-in subcommands for starting the proxy, validating YAML configuration, installing modular protocol plugins, and managing active IP bans.
 
 ::: tip Unified CLI Available
-All commands documented below can be executed directly using either the standalone `tcp-warden` binary or via the unified RouteWarden CLI as `rwarden tcp <subcommand>` (e.g. `rwarden tcp up`, `rwarden tcp reload`, `rwarden tcp plugins list`).
+All commands documented below can be executed directly using either the standalone `tcp-warden` binary or via the unified Routewarden CLI as `rwarden tcp <subcommand>` (e.g. `rwarden tcp up`, `rwarden tcp reload`, `rwarden tcp plugins list`).
 :::
 
 ---

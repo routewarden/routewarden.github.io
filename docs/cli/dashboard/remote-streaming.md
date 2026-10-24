@@ -1,6 +1,6 @@
 ---
 title: Distributed Remote Streaming
-description: Ship encrypted security events from multiple remote edge and cloud nodes to a central RouteWarden dashboard.
+description: Ship encrypted security events from multiple remote edge and cloud nodes to a central Routewarden dashboard.
 ---
 
 <script setup>
@@ -68,8 +68,8 @@ const step2Snippets = computed(() => ({
 
 const step2_output = buildSnippet({
   lang: 'plaintext',
-  code: `⏳ Connecting to RouteWarden Central Dashboard at http://198.51.100.10:7890...
-✅ Successfully registered with RouteWarden Central Dashboard!
+  code: `⏳ Connecting to Routewarden Central Dashboard at http://198.51.100.10:7890...
+✅ Successfully registered with Routewarden Central Dashboard!
 ─────────────────────────────────────────────────────────────
   Dashboard URL:     http://198.51.100.10:7890
   Agent Name:        prod-edge-01
@@ -168,11 +168,11 @@ const arch_diagram = buildSnippet({
                     │        POST /api/v1/events (Bearer Key)      │
                     ▼                                              ▼
     ┌─────────────────────────────────────────────────────────────────────────────┐
-    │                 RouteWarden Central Dashboard & Ingestion Hub               │
+    │                 Routewarden Central Dashboard & Ingestion Hub               │
     │                                                                             │
     │  • Validates API Keys from ~/.routewarden/dashboard/api_keys.json           │
     │  • Decrypts payloads using master X25519 server private key                 │
-    │  • Appends events to RouteWarden SOC engine & SSE stream                    │
+    │  • Appends events to Routewarden SOC engine & SSE stream                    │
     │  • Live Header Status Ribbon:                                               │
     │    🟢 [🐳 local-gateway] [🌐 edge-prod-01 (198.51.100.4)] [🌐 cloud-node]  │
     └─────────────────────────────────────────────────────────────────────────────┘`,
@@ -187,7 +187,7 @@ const archDiagramSnippets = computed(() => ({
 
 # Distributed Remote Streaming
 
-RouteWarden supports a distributed agent model inspired by CrowdSec. You can deploy reverse proxies (Traefik, Caddy, NGINX) across multiple edge nodes, cloud virtual machines, and Kubernetes clusters, and stream their live security telemetry to a central RouteWarden dashboard.
+Routewarden supports a distributed agent model inspired by CrowdSec. You can deploy reverse proxies (Traefik, Caddy, NGINX) across multiple edge nodes, cloud virtual machines, and Kubernetes clusters, and stream their live security telemetry to a central Routewarden dashboard.
 
 > [!TIP]
 > **Dedicated Guide Available**: For the comprehensive multi-page guide covering architecture, key generation, enrollment, daemons, and cryptography, visit the [Remote Monitoring & Log Streaming Guide](/cli/remote/).

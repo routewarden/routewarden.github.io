@@ -10,7 +10,7 @@ import { buildSnippet } from '../../.vitepress/theme/composables/useCodeSnippet'
 // ─── 1. Installation Snippets ───────────────────────────────────────────────
 const install_cli = buildSnippet({
   lang: 'bash',
-  code: `# Install via RouteWarden CLI
+  code: `# Install via Routewarden CLI
 rwarden tcp plugins install ldap
 
 # Or standalone binary
@@ -31,7 +31,7 @@ plugins:
 
 const installSnippets = computed(() => ({
   tcp: [
-    { filename: 'RouteWarden CLI', lang: 'bash', code: install_cli.cleanCode, html: install_cli.html, hasDiff: false },
+    { filename: 'Routewarden CLI', lang: 'bash', code: install_cli.cleanCode, html: install_cli.html, hasDiff: false },
     { filename: 'tcp-warden.yaml', lang: 'yaml', code: install_yaml.cleanCode, html: install_yaml.html, hasDiff: false },
   ]
 }))
@@ -65,13 +65,13 @@ const configSnippets = computed(() => ({
 
 const net_nftables = buildSnippet({
   lang: 'bash',
-  code: `# Redirect external traffic destined for port 389 to RouteWarden port 1390
+  code: `# Redirect external traffic destined for port 389 to Routewarden port 1390
 sudo nft add rule ip routewarden_nat prerouting iifname "eth0" tcp dport 389 redirect to :1390`
 })
 
 const net_iptables = buildSnippet({
   lang: 'bash',
-  code: `# 1. Redirect incoming external port 389 to RouteWarden port 1390
+  code: `# 1. Redirect incoming external port 389 to Routewarden port 1390
 sudo iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 389 -j REDIRECT --to-port 1390
 
 # 2. Persist rules across reboots (Debian/Ubuntu)
@@ -104,8 +104,8 @@ const net_compose = buildSnippet({
   routewarden:
     image: ghcr.io/routewarden/tcp-warden:latest
     ports:
-      - "389:1390"  # Map host LDAP port 389 to RouteWarden
-      - "636:1636"  # Map host LDAPS port 636 to RouteWarden
+      - "389:1390"  # Map host LDAP port 389 to Routewarden
+      - "636:1636"  # Map host LDAPS port 636 to Routewarden
       - "9091:9091" # Management API
     volumes:
       - ./tcp-warden.yaml:/etc/routewarden/tcp-warden.yaml:ro
@@ -210,19 +210,19 @@ Add an LDAP guard service to `tcp-warden.yaml`:
 
 ### Option A: Kernel Firewall Redirection (nftables / iptables)
 
-Redirect external traffic destined for port `389` to RouteWarden port `1390`:
+Redirect external traffic destined for port `389` to Routewarden port `1390`:
 
 <CodeViewer :snippets="netFirewallSnippets" />
 
 ### Option B: LDAPS (Port 636) Protection
 
-For secure LDAPS (LDAP over TLS), configure RouteWarden in front of the LDAPS listener:
+For secure LDAPS (LDAP over TLS), configure Routewarden in front of the LDAPS listener:
 
 <CodeViewer :snippets="netLdapsSnippets" />
 
 ### Option C: Docker Compose Network Isolation
 
-Run the LDAP directory server inside an isolated container network, exposing both LDAP (`389`) and LDAPS (`636`) services only through RouteWarden:
+Run the LDAP directory server inside an isolated container network, exposing both LDAP (`389`) and LDAPS (`636`) services only through Routewarden:
 
 <CodeViewer :snippets="netComposeSnippets" />
 

@@ -1,6 +1,6 @@
 ---
 title: Remote Agent Enrollment (rwarden register)
-description: Connect and authenticate remote edge servers to the central RouteWarden dashboard in a one-time cryptographic handshake.
+description: Connect and authenticate remote edge servers to the central Routewarden dashboard in a one-time cryptographic handshake.
 ---
 
 <script setup>
@@ -14,7 +14,10 @@ const reg_cmd = buildSnippet({
 rwarden register --url http://198.51.100.10:7890 --key rw_sec_8f9a2b4c1e0d3f7a...
 
 # Or using flag aliases (-u and -k)
-rwarden register -u http://198.51.100.10:7890 -k rw_sec_8f9a2b4c1e0d...`,
+rwarden register -u http://198.51.100.10:7890 -k rw_sec_8f9a2b4c1e0d...
+
+# Pre-configure telemetry filtering (forward status codes/ranges by default)
+rwarden register -u http://198.51.100.10:7890 -k rw_sec_8f9a... --status "400-599, 301"`,
 })
 
 const registerSnippets = computed(() => ({
@@ -25,8 +28,8 @@ const registerSnippets = computed(() => ({
 
 const reg_output = buildSnippet({
   lang: 'plaintext',
-  code: `⏳ Connecting to RouteWarden Central Dashboard at http://198.51.100.10:7890...
-✅ Successfully registered with RouteWarden Central Dashboard!
+  code: `⏳ Connecting to Routewarden Central Dashboard at http://198.51.100.10:7890...
+✅ Successfully registered with Routewarden Central Dashboard!
 ─────────────────────────────────────────────────────────────
   Dashboard URL:     http://198.51.100.10:7890
   Agent Name:        edge-frankfurt-01
@@ -55,7 +58,8 @@ const config_json = buildSnippet({
   "agent_id": "agent_8f9a2b4c1e0d3f7a",
   "agent_name": "edge-frankfurt-01",
   "server_public_key": "xJ9+4kL2vM8n2xP1qZ5wY3tA0bC...",
-  "registered_at": "2026-10-18T12:00:00Z"
+  "registered_at": "2026-10-18T12:00:00Z",
+  "status_codes": "400-599, 301"
 }`,
 })
 
@@ -139,12 +143,12 @@ Output:
 
 ## 3. Configuration File (`agent.json`)
 
-After registration, `agent.json` stores your connection profile:
+After registration, `agent.json` stores your connection profile and telemetry filtering defaults:
 
 <CodeViewer :snippets="configSnippets" />
 
 > [!TIP]
-> Because `agent.json` contains the server public key and agent token, you can run `rwarden push` without any arguments or environment variables.
+> The telemetry filtering flags (`--status`, `--include-failed`, `--all-traffic`) can be configured independently during registration. When saved, `rwarden push` automatically inherits these settings so background services run with your chosen filter without needing extra CLI flags. Any flags explicitly passed to `rwarden push` will override `agent.json`.
 
 ---
 
@@ -162,3 +166,17 @@ If an agent key is rotated or revoked on the central server:
 1. Generate a new key: `rwarden keys create <name>`
 2. Run `rwarden register` on the remote node with the new key.
 3. The existing `agent.json` will be safely updated in place with the new credentials.
+
+---
+
+## 6. Registration Flags Reference
+
+| Flag | Shorthand | Type | Required | Description |
+|:---|:---|:---|:---|:---|
+| `--url` | `-u` | string | **Yes** | Central Routewarden dashboard URL (e.g. `http://dashboard.internal:7890`) |
+| `--key` | `-k` | string | **Yes** | 24-byte secret agent token created via `rwarden keys create` |
+| `--config` | — | string | No | Custom path to store agent configuration (default: `~/.routewarden/agent.json`) |
+| `--status` | `-s` | string | No | Persist default HTTP status codes or ranges to forward (e.g. `'400-599, 301'`, `'4xx, 5xx'`) |
+| `--include-failed` | `-F` | bool | No | Legacy alias: persist setting to ship all failed HTTP requests (status >= 400: 4xx, 5xx) |
+| `--all-traffic` | — | bool | No | Persist default setting to ship all HTTP access traffic including 200 OK responses |
+

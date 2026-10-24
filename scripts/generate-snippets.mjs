@@ -370,7 +370,7 @@ rwarden generate --target nginx --config routewarden.json`
   "response": {
     "mode": "json",
     "statusCode": 403,
-    "body": "{\\"error\\":\\"Access Denied by RouteWarden\\"}"
+    "body": "{\\"error\\":\\"Access Denied by Routewarden\\"}"
   }
 }`
       }

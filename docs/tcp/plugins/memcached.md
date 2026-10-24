@@ -10,7 +10,7 @@ import { buildSnippet } from '../../.vitepress/theme/composables/useCodeSnippet'
 // ─── 1. Installation Snippets ───────────────────────────────────────────────
 const install_cli = buildSnippet({
   lang: 'bash',
-  code: `# Install via RouteWarden CLI
+  code: `# Install via Routewarden CLI
 rwarden tcp plugins install memcached
 
 # Or standalone binary
@@ -31,7 +31,7 @@ plugins:
 
 const installSnippets = computed(() => ({
   tcp: [
-    { filename: 'RouteWarden CLI', lang: 'bash', code: install_cli.cleanCode, html: install_cli.html, hasDiff: false },
+    { filename: 'Routewarden CLI', lang: 'bash', code: install_cli.cleanCode, html: install_cli.html, hasDiff: false },
     { filename: 'tcp-warden.yaml', lang: 'yaml', code: install_yaml.cleanCode, html: install_yaml.html, hasDiff: false },
   ]
 }))
@@ -76,7 +76,7 @@ sudo systemctl restart memcached`
 
 const net_portswap_yaml = buildSnippet({
   lang: 'yaml',
-  code: `# tcp-warden.yaml — RouteWarden listens on standard Memcached port
+  code: `# tcp-warden.yaml — Routewarden listens on standard Memcached port
 services:
   memcached_guard:
     listen: ":11211"
@@ -119,7 +119,7 @@ const netComposeSnippets = computed(() => ({
 // ─── 4. Testing & Verification Snippets ─────────────────────────────────────
 const test_legit = buildSnippet({
   lang: 'bash',
-  code: `# Verify legitimate cache operations through RouteWarden
+  code: `# Verify legitimate cache operations through Routewarden
 echo -e "set testkey 0 60 5\\r\\nhello\\r\\n" | nc 127.0.0.1 11211
 # Returns: STORED
 echo -e "get testkey\\r\\n" | nc 127.0.0.1 11211
@@ -130,7 +130,7 @@ const test_blocked = buildSnippet({
   lang: 'bash',
   code: `# Verify blocked flush_all command
 echo -e "flush_all\\r\\n" | nc 127.0.0.1 11211
-# Returns: CLIENT_ERROR command 'flush_all' blocked by RouteWarden`
+# Returns: CLIENT_ERROR command 'flush_all' blocked by Routewarden`
 })
 
 const testSnippets = computed(() => ({
@@ -179,24 +179,24 @@ Add a Memcached guard service to `tcp-warden.yaml`:
 | `listen` | `string` | `":11211"` | Local proxy listen address and port. |
 | `upstream` | `string` | `"127.0.0.1:112110"` | Target Memcached server address and port. |
 | `protocol` | `string` | `"memcached"` | Must be set to `"memcached"`. |
-| `plugin_config.blocked_commands` | `[]string` | `["flush_all"]` | List of commands blocked by RouteWarden. |
+| `plugin_config.blocked_commands` | `[]string` | `["flush_all"]` | List of commands blocked by Routewarden. |
 | `plugin_config.max_value_size` | `int` | `1048576` | Maximum permitted `bytes` field value (in bytes) for storage commands (`set`, `add`, `replace`, `append`, `prepend`). Commands declaring a larger or negative size are rejected immediately with `CLIENT_ERROR value too large` to prevent heap exhaustion (since v3.4.0). |
 
 ---
 
 ## Network & Deployment Architecture
 
-Because Memcached operates on an unprivileged port (`11211`), firewall redirects (`nftables`/`iptables`) are not required. Deploy RouteWarden using either direct reverse proxying or container network isolation:
+Because Memcached operates on an unprivileged port (`11211`), firewall redirects (`nftables`/`iptables`) are not required. Deploy Routewarden using either direct reverse proxying or container network isolation:
 
 ### Option A: Direct Port Swapping (Bare-Metal / VM)
 
-Rebind Memcached to loopback on an alternate port and expose RouteWarden on standard port `:11211`:
+Rebind Memcached to loopback on an alternate port and expose Routewarden on standard port `:11211`:
 
 <CodeViewer :snippets="netPortSwapSnippets" />
 
 ### Option B: Docker Compose Bridge Isolation
 
-Publish port `11211` on RouteWarden while keeping the Memcached container completely private within the container network:
+Publish port `11211` on Routewarden while keeping the Memcached container completely private within the container network:
 
 <CodeViewer :snippets="netComposeSnippets" />
 

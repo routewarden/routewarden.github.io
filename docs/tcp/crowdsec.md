@@ -18,7 +18,7 @@ const arch_mermaid_raw = `flowchart TD
     PIPELINE --> INSPECT["<b>Step B: Protocol &amp; Auth Monitoring</b><br/>Detects brute force, scanner patterns, command injections"]:::inspectNode
     INSPECT --> LOG["<b>Write to JSONL Audit Feed</b><br/>/var/log/routewarden/tcp-warden.jsonl"]:::logNode
     LOG --> CS_DAEMON["<b>CrowdSec Daemon (Log Acquisition)</b><br/>Reads real-time events via file source"]:::csNode
-    CS_DAEMON --> CS_PARSER["<b>RouteWarden Custom Parsers &amp; Scenarios</b><br/>Correlates attacks across connections"]:::csNode
+    CS_DAEMON --> CS_PARSER["<b>Routewarden Custom Parsers &amp; Scenarios</b><br/>Correlates attacks across connections"]:::csNode
     CS_PARSER -->|Threshold Exceeded| LAPI["<b>Push Remediation to CrowdSec LAPI</b><br/>Decisions pushed to local API"]:::lapiNode
     LAPI -.->|10s Poll Sync| CHECK_CACHE
 
@@ -138,7 +138,7 @@ const arch_graph_svg = `<div class="rw-graph-container">
     <rect x="530" y="372" width="380" height="84" rx="10" class="rw-g-box" fill="url(#cs-grad-daemon)"/>
     <circle cx="556" cy="398" r="7" fill="#f97316"/>
     <text x="574" y="396" class="rw-g-card-title">CrowdSec Daemon &amp; LAPI</text>
-    <text x="556" y="418" class="rw-g-desc">• RouteWarden scenarios detect brute-force patterns</text>
+    <text x="556" y="418" class="rw-g-desc">• Routewarden scenarios detect brute-force patterns</text>
     <text x="556" y="434" class="rw-g-desc">• Pushes ban decision to CrowdSec Local API (LAPI)</text>
     <text x="556" y="450" class="rw-g-desc">• TCP Warden polls LAPI and updates local cache</text>
 
@@ -313,9 +313,9 @@ const verify_commands = buildSnippet({
   code: `# 1. Verify TCP Warden health & CrowdSec status
 curl -s http://127.0.0.1:9091/health
 # Expected output contains:
-# {"status":"ok","version":"5.3.2","crowdsec":{"status":"healthy","decisions":1250,"update_frequency":"10s"}}
+# {"status":"ok","version":"5.3.3","crowdsec":{"status":"healthy","decisions":1250,"update_frequency":"10s"}}
 
-# Or check status via RouteWarden CLI
+# Or check status via Routewarden CLI
 rwarden tcp status
 
 # 2. List registered bouncers in CrowdSec
@@ -335,7 +335,7 @@ const health_response = buildSnippet({
   lang: 'json',
   code: `{
   "status": "ok",
-  "version": "5.3.2",
+  "version": "5.3.3",
   "crowdsec": {
     "status": "healthy",
     "decisions": 1250,

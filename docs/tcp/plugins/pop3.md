@@ -10,7 +10,7 @@ import { buildSnippet } from '../../.vitepress/theme/composables/useCodeSnippet'
 // ─── 1. Installation Snippets ───────────────────────────────────────────────
 const install_cli = buildSnippet({
   lang: 'bash',
-  code: `# Install via RouteWarden CLI
+  code: `# Install via Routewarden CLI
 rwarden tcp plugins install pop3
 
 # Or standalone binary
@@ -31,7 +31,7 @@ plugins:
 
 const installSnippets = computed(() => ({
   tcp: [
-    { filename: 'RouteWarden CLI', lang: 'bash', code: install_cli.cleanCode, html: install_cli.html, hasDiff: false },
+    { filename: 'Routewarden CLI', lang: 'bash', code: install_cli.cleanCode, html: install_cli.html, hasDiff: false },
     { filename: 'tcp-warden.yaml', lang: 'yaml', code: install_yaml.cleanCode, html: install_yaml.html, hasDiff: false },
   ]
 }))
@@ -51,7 +51,7 @@ const config_yaml = buildSnippet({
     ban_after_failures: 3
     ban_duration: "1h"
     plugin_config:
-      banner: "+OK RouteWarden POP3 Proxy Ready"`
+      banner: "+OK Routewarden POP3 Proxy Ready"`
 })
 
 const configSnippets = computed(() => ({
@@ -63,13 +63,13 @@ const configSnippets = computed(() => ({
 // ─── 3. Network Architecture Snippets ───────────────────────────────────────
 const net_nftables = buildSnippet({
   lang: 'bash',
-  code: `# Redirect incoming external traffic on port 110 to RouteWarden port 1110
+  code: `# Redirect incoming external traffic on port 110 to Routewarden port 1110
 sudo nft add rule ip routewarden_nat prerouting iifname "eth0" tcp dport 110 redirect to :1110`
 })
 
 const net_iptables = buildSnippet({
   lang: 'bash',
-  code: `# 1. Redirect incoming external port 110 to RouteWarden port 1110
+  code: `# 1. Redirect incoming external port 110 to Routewarden port 1110
 sudo iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 110 -j REDIRECT --to-port 1110
 
 # 2. Persist rules across reboots (Debian/Ubuntu)
@@ -102,8 +102,8 @@ const net_compose = buildSnippet({
   routewarden:
     image: ghcr.io/routewarden/tcp-warden:latest
     ports:
-      - "110:1110"  # Map host POP3 port 110 to RouteWarden
-      - "995:9950"  # Map host POP3S port 995 to RouteWarden
+      - "110:1110"  # Map host POP3 port 110 to Routewarden
+      - "995:9950"  # Map host POP3S port 995 to Routewarden
       - "9091:9091" # Management API
     volumes:
       - ./tcp-warden.yaml:/etc/routewarden/tcp-warden.yaml:ro
@@ -214,19 +214,19 @@ Add a POP3 guard service to `tcp-warden.yaml`:
 
 ### Option A: Kernel Firewall Redirection (nftables / iptables)
 
-Redirect incoming external traffic on port `110` to RouteWarden port `1110`:
+Redirect incoming external traffic on port `110` to Routewarden port `1110`:
 
 <CodeViewer :snippets="netFirewallSnippets" />
 
 ### Option B: POP3S Direct Proxying (Port 995)
 
-For explicit POP3S (POP3 over TLS), RouteWarden can operate in front of the POP3S service:
+For explicit POP3S (POP3 over TLS), Routewarden can operate in front of the POP3S service:
 
 <CodeViewer :snippets="netPop3sSnippets" />
 
 ### Option C: Docker Compose Network Isolation
 
-Run the POP3 server inside an isolated container network, exposing both POP3 (`110`) and POP3S (`995`) services only through RouteWarden:
+Run the POP3 server inside an isolated container network, exposing both POP3 (`110`) and POP3S (`995`) services only through Routewarden:
 
 <CodeViewer :snippets="netComposeSnippets" />
 

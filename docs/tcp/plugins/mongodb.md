@@ -10,7 +10,7 @@ import { buildSnippet } from '../../.vitepress/theme/composables/useCodeSnippet'
 // ─── 1. Installation Snippets ───────────────────────────────────────────────
 const install_cli = buildSnippet({
   lang: 'bash',
-  code: `# Install via RouteWarden CLI
+  code: `# Install via Routewarden CLI
 rwarden tcp plugins install mongodb
 
 # Or standalone binary
@@ -31,7 +31,7 @@ plugins:
 
 const installSnippets = computed(() => ({
   tcp: [
-    { filename: 'RouteWarden CLI', lang: 'bash', code: install_cli.cleanCode, html: install_cli.html, hasDiff: false },
+    { filename: 'Routewarden CLI', lang: 'bash', code: install_cli.cleanCode, html: install_cli.html, hasDiff: false },
     { filename: 'tcp-warden.yaml', lang: 'yaml', code: install_yaml.cleanCode, html: install_yaml.html, hasDiff: false },
   ]
 }))
@@ -67,7 +67,7 @@ const configSnippets = computed(() => ({
 // ─── 3. Network Architecture Snippets ───────────────────────────────────────
 const net_proxy_yaml = buildSnippet({
   lang: 'yaml',
-  code: `# tcp-warden.yaml — RouteWarden binds to standard MongoDB port 27017
+  code: `# tcp-warden.yaml — Routewarden binds to standard MongoDB port 27017
 services:
   mongo_bastion:
     listen: ":27017"
@@ -192,17 +192,17 @@ Add a MongoDB guard service to `tcp-warden.yaml`:
 
 ## Network & Deployment Architecture
 
-Because MongoDB operates on an unprivileged port (`27017`), firewall redirection rules (`nftables`/`iptables`) are not required. Deploy RouteWarden using either direct reverse proxying or container network isolation:
+Because MongoDB operates on an unprivileged port (`27017`), firewall redirection rules (`nftables`/`iptables`) are not required. Deploy Routewarden using either direct reverse proxying or container network isolation:
 
 ### Option A: Direct Reverse Proxy (Bare-Metal / VM)
 
-Bind RouteWarden to `:27017`, and run `mongod` on an internal loopback port or private subnet IP:
+Bind Routewarden to `:27017`, and run `mongod` on an internal loopback port or private subnet IP:
 
 <CodeViewer :snippets="netProxySnippets" />
 
 ### Option B: Docker Compose Network Isolation
 
-Publish port `27017` on RouteWarden while keeping the MongoDB container completely private:
+Publish port `27017` on Routewarden while keeping the MongoDB container completely private:
 
 <CodeViewer :snippets="netComposeSnippets" />
 

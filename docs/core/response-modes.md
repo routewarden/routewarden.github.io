@@ -1,5 +1,6 @@
 ---
 title: Response Modes Reference
+description: "Comprehensive guide to Routewarden response modes: JSON, HTML, silent drop, tarpit, honeypot decoy, and CAPTCHA."
 ---
 <script setup>
 import { computed } from 'vue'
@@ -80,27 +81,27 @@ const mode2Snippets = computed(() => ({
 // ─── 3. Custom HTML (html) ──────────────────────────────────────────────────
 const m3_traefik = buildSnippet({
   lang: 'yaml',
-  code: `response:\n  mode: html\n  statusCode: 403\n  body: |\n    <!DOCTYPE html>\n    <html>\n      <head><title>Access Restricted</title></head>\n      <body style="font-family: sans-serif; text-align: center; padding: 4rem;">\n        <h1>403 Restricted Zone</h1>\n        <p>This endpoint is monitored and protected by RouteWarden.</p>\n      </body>\n    </html>`,
+  code: `response:\n  mode: html\n  statusCode: 403\n  body: |\n    <!DOCTYPE html>\n    <html>\n      <head><title>Access Restricted</title></head>\n      <body style="font-family: sans-serif; text-align: center; padding: 4rem;">\n        <h1>403 Restricted Zone</h1>\n        <p>This endpoint is monitored and protected by Routewarden.</p>\n      </body>\n    </html>`,
 })
 const m3_traefik_toml = buildSnippet({
   lang: 'toml',
-  code: `[http.middlewares.my-warden.plugin.routewarden.response]\n  mode = "html"\n  statusCode = 403\n  body = "<html><body><h1>403 Restricted Zone</h1><p>Protected by RouteWarden.</p></body></html>"`,
+  code: `[http.middlewares.my-warden.plugin.routewarden.response]\n  mode = "html"\n  statusCode = 403\n  body = "<html><body><h1>403 Restricted Zone</h1><p>Protected by Routewarden.</p></body></html>"`,
 })
 const m3_traefik_labels = buildSnippet({
   lang: 'docker',
-  code: `- "traefik.http.middlewares.my-warden.plugin.routewarden.response.mode=html"\n- "traefik.http.middlewares.my-warden.plugin.routewarden.response.statusCode=403"\n- "traefik.http.middlewares.my-warden.plugin.routewarden.response.body=<html><body><h1>403 Restricted Zone</h1><p>Protected by RouteWarden.</p></body></html>"`,
+  code: `- "traefik.http.middlewares.my-warden.plugin.routewarden.response.mode=html"\n- "traefik.http.middlewares.my-warden.plugin.routewarden.response.statusCode=403"\n- "traefik.http.middlewares.my-warden.plugin.routewarden.response.body=<html><body><h1>403 Restricted Zone</h1><p>Protected by Routewarden.</p></body></html>"`,
 })
 const m3_caddy = buildSnippet({
   lang: 'caddy',
-  code: `response {\n    mode html\n    status_code 403\n    body "<html><body><h1>403 Restricted Zone</h1><p>Protected by RouteWarden.</p></body></html>"\n}`,
+  code: `response {\n    mode html\n    status_code 403\n    body "<html><body><h1>403 Restricted Zone</h1><p>Protected by Routewarden.</p></body></html>"\n}`,
 })
 const m3_nginx = buildSnippet({
   lang: 'lua',
-  code: `response = {\n    mode = "html",\n    status_code = 403,\n    body = "<html><body><h1>403 Restricted Zone</h1><p>Protected by RouteWarden.</p></body></html>"\n}`,
+  code: `response = {\n    mode = "html",\n    status_code = 403,\n    body = "<html><body><h1>403 Restricted Zone</h1><p>Protected by Routewarden.</p></body></html>"\n}`,
 })
 const m3_cli = buildSnippet({
   lang: 'json',
-  code: `{\n  "response": {\n    "mode": "html",\n    "statusCode": 403,\n    "body": "<html><body><h1>403 Restricted Zone</h1><p>Protected by RouteWarden.</p></body></html>"\n  }\n}`,
+  code: `{\n  "response": {\n    "mode": "html",\n    "statusCode": 403,\n    "body": "<html><body><h1>403 Restricted Zone</h1><p>Protected by Routewarden.</p></body></html>"\n  }\n}`,
 })
 const mode3Snippets = computed(() => ({
   traefik: [
@@ -188,27 +189,27 @@ const mode5Snippets = computed(() => ({
 // ─── 6. Interactive Challenge (captcha) ─────────────────────────────────────
 const m6_traefik = buildSnippet({
   lang: 'yaml',
-  code: `response:\n  mode: captcha\n  statusCode: 403\n  captcha:\n    provider: turnstile # or "hcaptcha", "recaptcha"\n    siteKey: "0x4AAAAAAtestkey123"\n    title: "RouteWarden Security Verification"`,
+  code: `response:\n  mode: captcha\n  statusCode: 403\n  captcha:\n    provider: turnstile # or "hcaptcha", "recaptcha"\n    siteKey: "0x4AAAAAAtestkey123"\n    title: "Routewarden Security Verification"`,
 })
 const m6_traefik_toml = buildSnippet({
   lang: 'toml',
-  code: `[http.middlewares.my-warden.plugin.routewarden.response]\n  mode = "captcha"\n  statusCode = 403\n\n[http.middlewares.my-warden.plugin.routewarden.response.captcha]\n  provider = "turnstile"\n  siteKey = "0x4AAAAAAtestkey123"\n  title = "RouteWarden Security Verification"`,
+  code: `[http.middlewares.my-warden.plugin.routewarden.response]\n  mode = "captcha"\n  statusCode = 403\n\n[http.middlewares.my-warden.plugin.routewarden.response.captcha]\n  provider = "turnstile"\n  siteKey = "0x4AAAAAAtestkey123"\n  title = "Routewarden Security Verification"`,
 })
 const m6_traefik_labels = buildSnippet({
   lang: 'docker',
-  code: `- "traefik.http.middlewares.my-warden.plugin.routewarden.response.mode=captcha"\n- "traefik.http.middlewares.my-warden.plugin.routewarden.response.statusCode=403"\n- "traefik.http.middlewares.my-warden.plugin.routewarden.response.captcha.provider=turnstile"\n- "traefik.http.middlewares.my-warden.plugin.routewarden.response.captcha.siteKey=0x4AAAAAAtestkey123"\n- "traefik.http.middlewares.my-warden.plugin.routewarden.response.captcha.title=RouteWarden Security Verification"`,
+  code: `- "traefik.http.middlewares.my-warden.plugin.routewarden.response.mode=captcha"\n- "traefik.http.middlewares.my-warden.plugin.routewarden.response.statusCode=403"\n- "traefik.http.middlewares.my-warden.plugin.routewarden.response.captcha.provider=turnstile"\n- "traefik.http.middlewares.my-warden.plugin.routewarden.response.captcha.siteKey=0x4AAAAAAtestkey123"\n- "traefik.http.middlewares.my-warden.plugin.routewarden.response.captcha.title=Routewarden Security Verification"`,
 })
 const m6_caddy = buildSnippet({
   lang: 'caddy',
-  code: `response {\n    mode captcha\n    captcha {\n        provider turnstile\n        site_key "0x4AAAAAAtestkey123"\n        title "RouteWarden Security Verification"\n    }\n}`,
+  code: `response {\n    mode captcha\n    captcha {\n        provider turnstile\n        site_key "0x4AAAAAAtestkey123"\n        title "Routewarden Security Verification"\n    }\n}`,
 })
 const m6_nginx = buildSnippet({
   lang: 'lua',
-  code: `response = {\n    mode = "captcha",\n    status_code = 403,\n    captcha = {\n        provider = "turnstile",\n        site_key = "0x4AAAAAAtestkey123",\n        title = "RouteWarden Security Verification"\n    }\n}`,
+  code: `response = {\n    mode = "captcha",\n    status_code = 403,\n    captcha = {\n        provider = "turnstile",\n        site_key = "0x4AAAAAAtestkey123",\n        title = "Routewarden Security Verification"\n    }\n}`,
 })
 const m6_cli = buildSnippet({
   lang: 'json',
-  code: `{\n  "response": {\n    "mode": "captcha",\n    "statusCode": 403,\n    "captcha": {\n      "provider": "turnstile",\n      "siteKey": "0x4AAAAAAtestkey123",\n      "title": "RouteWarden Security Verification"\n    }\n  }\n}`,
+  code: `{\n  "response": {\n    "mode": "captcha",\n    "statusCode": 403,\n    "captcha": {\n      "provider": "turnstile",\n      "siteKey": "0x4AAAAAAtestkey123",\n      "title": "Routewarden Security Verification"\n    }\n  }\n}`,
 })
 const mode6Snippets = computed(() => ({
   traefik: [
@@ -368,7 +369,7 @@ const mode10Snippets = computed(() => ({
 // ─── 11. Rate Limit Challenge (rateLimitChallenge / ratelimit) ──────────────
 const m11_traefik = buildSnippet({
   lang: 'yaml',
-  code: `response:\n  mode: rateLimitChallenge # Aliases: "ratelimit", "backoff"\n  statusCode: 429\n  retryAfterSeconds: 300 # Instructs client to wait 5 minutes\n  body: '{"error":"Too Many Requests","retryAfter":300,"message":"Throttled by RouteWarden"}'`,
+  code: `response:\n  mode: rateLimitChallenge # Aliases: "ratelimit", "backoff"\n  statusCode: 429\n  retryAfterSeconds: 300 # Instructs client to wait 5 minutes\n  body: '{"error":"Too Many Requests","retryAfter":300,"message":"Throttled by Routewarden"}'`,
 })
 const m11_traefik_toml = buildSnippet({
   lang: 'toml',
@@ -486,7 +487,7 @@ const mode13Snippets = computed(() => ({
 
 # Response Modes Reference
 
-RouteWarden features a modular response engine that dictates exactly how reverse proxies (Traefik, Caddy, and NGINX) handle blocked requests. Rather than only offering a generic static 403 error page, RouteWarden supports **13 deterministic response modes** ranging from standard REST error bodies to interactive bot challenges and offensive honeypot traps.
+Routewarden features a modular response engine that dictates exactly how reverse proxies (Traefik, Caddy, and NGINX) handle blocked requests. Rather than only offering a generic static 403 error page, Routewarden supports **13 deterministic response modes** ranging from standard REST error bodies to interactive bot challenges and offensive honeypot traps.
 
 ---
 
@@ -526,20 +527,20 @@ The simplest and lightest mode. Returns a raw text string with `Content-Type: te
 
 ## 2. JSON Payload (`json`)
 
-Returns structured JSON data with `Content-Type: application/json` and `X-Content-Type-Options: nosniff`. If `body` is omitted, RouteWarden generates a standard JSON error structure containing the HTTP status code and error description.
+Returns structured JSON data with `Content-Type: application/json` and `X-Content-Type-Options: nosniff`. If `body` is omitted, Routewarden generates a standard JSON error structure containing the HTTP status code and error description.
 
 ### Example Configuration
 
 <CodeViewer :snippets="mode2Snippets" />
 
 ### Limitations & Caveats
-- Ensure `body` contains valid JSON syntax; RouteWarden injects the raw string directly into the HTTP response stream.
+- Ensure `body` contains valid JSON syntax; Routewarden injects the raw string directly into the HTTP response stream.
 
 ---
 
 ## 3. Custom HTML (`html`)
 
-Renders custom HTML pages with `Content-Type: text/html; charset=utf-8`. If `body` is left empty, RouteWarden serves a clean minimalist dark-mode fallback page.
+Renders custom HTML pages with `Content-Type: text/html; charset=utf-8`. If `body` is left empty, Routewarden serves a clean minimalist dark-mode fallback page.
 
 ### Example Configuration
 
@@ -559,7 +560,7 @@ Emits structured XML documents with `Content-Type: application/xml; charset=utf-
 
 ## 5. URL Redirect (`redirect`)
 
-Redirects the client to another URL using HTTP 301, 302, 307, or 308. If the configured `statusCode` is outside the 300–308 range, RouteWarden automatically falls back to `302 Found`. If `redirectUrl` is omitted, it defaults to `/`.
+Redirects the client to another URL using HTTP 301, 302, 307, or 308. If the configured `statusCode` is outside the 300–308 range, Routewarden automatically falls back to `302 Found`. If `redirectUrl` is omitted, it defaults to `/`.
 
 ### Example Configuration
 
@@ -572,20 +573,20 @@ Redirects the client to another URL using HTTP 301, 302, 307, or 308. If the con
 
 ## 6. Interactive Challenge (`captcha`)
 
-Serves a self-contained security verification page prompting users to complete a CAPTCHA challenge before proceeding. RouteWarden comes with pre-built dark-mode templates for **Cloudflare Turnstile**, **hCaptcha**, and **Google reCAPTCHA**.
+Serves a self-contained security verification page prompting users to complete a CAPTCHA challenge before proceeding. Routewarden comes with pre-built dark-mode templates for **Cloudflare Turnstile**, **hCaptcha**, and **Google reCAPTCHA**.
 
 ### Example Configuration
 
 <CodeViewer :snippets="mode6Snippets" />
 
 ### Limitations & Caveats
-- Validating the submitted captcha token on POST requires a backend authentication service or an accompanying Traefik forward-auth plugin. RouteWarden serves the challenge interface directly at the edge.
+- Validating the submitted captcha token on POST requires a backend authentication service or an accompanying Traefik forward-auth plugin. Routewarden serves the challenge interface directly at the edge.
 
 ---
 
 ## 7. Silent TCP Drop (`silentDrop`)
 
-Rather than allocating HTTP response buffers, RouteWarden hijacks the underlying TCP connection and terminates it immediately (`TCP RST` / connection reset) using Go's `http.Hijacker`.
+Rather than allocating HTTP response buffers, Routewarden hijacks the underlying TCP connection and terminates it immediately (`TCP RST` / connection reset) using Go's `http.Hijacker`.
 
 ### Example Configuration
 
@@ -607,7 +608,7 @@ Rather than allocating HTTP response buffers, RouteWarden hijacks the underlying
 
 ## 8. Gzip Decompression Bomb (`gzipBomb` / `bomb`)
 
-An active-defense countermeasure. RouteWarden serves an HTTP `200 OK` response with `Content-Encoding: gzip` containing a stream of repeating zero-byte blocks.
+An active-defense countermeasure. Routewarden serves an HTTP `200 OK` response with `Content-Encoding: gzip` containing a stream of repeating zero-byte blocks.
 
 ### Example Configuration
 
@@ -636,7 +637,7 @@ Stalls the requesting bot's TCP connection by sending an HTTP `200 OK` header an
 <CodeViewer :snippets="mode9Snippets" />
 
 ### How It Works & Attacker Impact
-Automated vulnerability scanners operate with limited thread concurrency pools (typically 10 to 50 threads). When an attacker probes 20 honeypot endpoints, RouteWarden holds all 20 worker threads hostage for 120 seconds, grinding their scanning operations to a halt.
+Automated vulnerability scanners operate with limited thread concurrency pools (typically 10 to 50 threads). When an attacker probes 20 honeypot endpoints, Routewarden holds all 20 worker threads hostage for 120 seconds, grinding their scanning operations to a halt.
 
 ### Limitations & Traefik Considerations
 - Holding open connections consumes an open file descriptor in Traefik. Ensure `tarpitMaxDurationSeconds` is set to a reasonable limit (e.g. 60–120s) so your Traefik instance does not exhaust connection limits.
@@ -653,7 +654,7 @@ Feeds automated vulnerability scanners convincing synthetic mock data so they re
 
 ### Out-of-the-Box Synthetic Payloads
 
-| Probed Endpoint | RouteWarden Synthetic Response Payload |
+| Probed Endpoint | Routewarden Synthetic Response Payload |
 |---|---|
 | `/.env` | Realistic Laravel `.env` with dummy MySQL credentials and base64 app key |
 | `/actuator/health` | Spring Boot Actuator health JSON with dummy disk space metrics |

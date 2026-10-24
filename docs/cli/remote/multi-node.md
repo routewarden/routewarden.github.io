@@ -1,6 +1,6 @@
 ---
 title: Multi-Node & Docker Compose Deployment
-description: Production deployment recipes for central RouteWarden dashboards and distributed remote edge shippers.
+description: Production deployment recipes for central Routewarden dashboards and distributed remote edge shippers.
 ---
 
 <script setup>
@@ -74,13 +74,13 @@ const remote_compose = buildSnippet({
       - "80:80"
       - "443:443"
     labels:
-      # Mark container for RouteWarden auto-discovery
+      # Mark container for Routewarden auto-discovery
       - "routewarden=true"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./traefik.yml:/etc/traefik/traefik.yml:ro
 
-  # Ultra-lightweight RouteWarden Shipper Companion (~6.2MB binary)
+  # Ultra-lightweight Routewarden Shipper Companion (~6.2MB binary)
   routewarden-shipper:
     image: ghcr.io/routewarden/shipper:latest
     container_name: routewarden-shipper
@@ -120,7 +120,7 @@ const launchEdgeSnippets = computed(() => ({
 const systemd_unit = buildSnippet({
   lang: 'ini',
   code: `[Unit]
-Description=RouteWarden Remote Log Shipper
+Description=Routewarden Remote Log Shipper
 After=network.target nginx.service
 
 [Service]
@@ -216,13 +216,13 @@ const k8sSnippets = computed(() => ({
 
 # Multi-Node & Docker Compose Deployment
 
-This guide provides battle-tested deployment recipes for running a central RouteWarden security dashboard and distributed edge shippers using Docker Compose, systemd, and Kubernetes.
+This guide provides battle-tested deployment recipes for running a central Routewarden security dashboard and distributed edge shippers using Docker Compose, systemd, and Kubernetes.
 
 ---
 
 ## 1. Central Dashboard Server
 
-On your central monitoring host (e.g. `dashboard.internal` or an internal security VM), deploy the RouteWarden dashboard.
+On your central monitoring host (e.g. `dashboard.internal` or an internal security VM), deploy the Routewarden dashboard.
 
 ### Docker Compose Recipe
 

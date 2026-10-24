@@ -1,5 +1,6 @@
 ---
 title: Traefik Cookbook & Recipes
+description: "Production Traefik configuration examples using Routewarden for enterprise gateway security."
 ---
 <script setup>
 import { computed, onMounted } from 'vue'
@@ -233,7 +234,7 @@ const r4_dynamic = buildSnippet({
             body: '{"error":"Not Found","message":"Endpoint unavailable on public router"}' # [!code ++]
 
   routers:
-    # Public Router: Exposes photo sharing with RouteWarden active
+    # Public Router: Exposes photo sharing with Routewarden active
     immich-public:
       rule: "Host(\`photos.example.com\`)"
       entryPoints: ["websecure"]
@@ -394,7 +395,7 @@ Apply custom regex filters and safe whitelists on an individual web application:
 
 ## 3. Kubernetes IngressRoute (Traefik CRD)
 
-Deploy RouteWarden in Kubernetes clusters using Traefik's Custom Resource Definitions:
+Deploy Routewarden in Kubernetes clusters using Traefik's Custom Resource Definitions:
 
 <CodeViewer :snippets="r3Snippets" />
 

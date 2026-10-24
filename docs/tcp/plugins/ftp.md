@@ -10,7 +10,7 @@ import { buildSnippet } from '../../.vitepress/theme/composables/useCodeSnippet'
 // ─── 1. Installation Snippets ───────────────────────────────────────────────
 const install_cli = buildSnippet({
   lang: 'bash',
-  code: `# Install via RouteWarden CLI
+  code: `# Install via Routewarden CLI
 rwarden tcp plugins install ftp
 
 # Or standalone binary
@@ -31,7 +31,7 @@ plugins:
 
 const installSnippets = computed(() => ({
   tcp: [
-    { filename: 'RouteWarden CLI', lang: 'bash', code: install_cli.cleanCode, html: install_cli.html, hasDiff: false },
+    { filename: 'Routewarden CLI', lang: 'bash', code: install_cli.cleanCode, html: install_cli.html, hasDiff: false },
     { filename: 'tcp-warden.yaml', lang: 'yaml', code: install_yaml.cleanCode, html: install_yaml.html, hasDiff: false },
   ]
 }))
@@ -63,13 +63,13 @@ const configSnippets = computed(() => ({
 
 const net_nftables = buildSnippet({
   lang: 'bash',
-  code: `# Redirect external traffic destined for port 21 to RouteWarden port 2121
+  code: `# Redirect external traffic destined for port 21 to Routewarden port 2121
 sudo nft add rule ip routewarden_nat prerouting iifname "eth0" tcp dport 21 redirect to :2121`
 })
 
 const net_iptables = buildSnippet({
   lang: 'bash',
-  code: `# 1. Redirect incoming external port 21 to RouteWarden port 2121
+  code: `# 1. Redirect incoming external port 21 to Routewarden port 2121
 sudo iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 21 -j REDIRECT --to-port 2121
 
 # 2. Persist rules across reboots (Debian/Ubuntu)
@@ -82,7 +82,7 @@ const net_compose = buildSnippet({
   routewarden:
     image: ghcr.io/routewarden/tcp-warden:latest
     ports:
-      - "21:2121"   # Map host FTP control port 21 to RouteWarden
+      - "21:2121"   # Map host FTP control port 21 to Routewarden
       - "9091:9091" # Management API
     volumes:
       - ./tcp-warden.yaml:/etc/routewarden/tcp-warden.yaml:ro
@@ -119,7 +119,7 @@ $ ftp -n 127.0.0.1 2121
 Connected to 127.0.0.1.
 220 (vsFTPd 3.0.3)
 ftp> quote USER anonymous
-530 Anonymous access disabled by RouteWarden
+530 Anonymous access disabled by Routewarden
 ftp> quit
 221 Goodbye.`
 })
@@ -201,15 +201,15 @@ Add an FTP guard service to `tcp-warden.yaml`:
 
 ### Option A: Kernel Firewall Redirection (nftables / iptables)
 
-Redirect external traffic destined for port `21` to RouteWarden port `2121`:
+Redirect external traffic destined for port `21` to Routewarden port `2121`:
 
 <CodeViewer :snippets="netFirewallSnippets" />
  
-> **Note on Passive FTP (PASV):** The FTP plugin inspects and protects the **control channel** (port 21). Passive data connections flow directly or via RouteWarden's generic port range listeners.
+> **Note on Passive FTP (PASV):** The FTP plugin inspects and protects the **control channel** (port 21). Passive data connections flow directly or via Routewarden's generic port range listeners.
 
 ### Option B: Docker Compose Network Isolation
 
-Run the FTP server inside an isolated container network, exposing control port `21` only through RouteWarden:
+Run the FTP server inside an isolated container network, exposing control port `21` only through Routewarden:
 
 <CodeViewer :snippets="netComposeSnippets" />
 

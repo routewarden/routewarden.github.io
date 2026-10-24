@@ -338,7 +338,7 @@ h1, h2, h3, h4, h5, h6, .VPHero .name, .VPNavBarTitle {
   color: #fbbf24;
 }
 
-/* RouteWarden Cyber Syntax Highlighting Tokens (Light & Dark) */
+/* Routewarden Cyber Syntax Highlighting Tokens (Light & Dark) */
 .tok-comment { color: #94a3b8; font-style: italic; }
 .dark .tok-comment { color: #64748b; font-style: italic; }
 .tok-keyword { color: #6d28d9; font-weight: 600; }

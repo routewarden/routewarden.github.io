@@ -20,7 +20,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **Wildcard HTTP Methods Matching (`*` and `ALL`)**:
   - Added native support for `methods: ["*"]` and `methods: ["ALL"]` in `Config` and `ServeHTTP`. Operators can now inspect all HTTP methods across all endpoints without needing to list every verb explicitly.
 - **Automatic Method Expansion on Request Body Inspection (`checkBody`)**:
-  - When `checkBody: true` or `checkBodyPatterns` is configured and `methods` was left to its default `["GET"]`, RouteWarden now automatically expands inspected methods to include `POST`, `PUT`, and `PATCH`. Prevents the silent configuration trap where request bodies submitted via mutation verbs were bypassed.
+  - When `checkBody: true` or `checkBodyPatterns` is configured and `methods` was left to its default `["GET"]`, Routewarden now automatically expands inspected methods to include `POST`, `PUT`, and `PATCH`. Prevents the silent configuration trap where request bodies submitted via mutation verbs were bypassed.
 - **Flexible Snake_Case Support in `CaptchaConfig`**:
   - Added `UnmarshalJSON` to `CaptchaConfig` enabling transparent parsing of standard `site_key` (snake_case) from `routewarden.json` and YAML dynamic configurations.
 - **Fractional & Floating Point Gzip Bomb Sizes (`gzipBombMB`)**:
@@ -49,7 +49,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Key Highlights
 
 - **File-Based Configuration (`configFile`)**:
-  - Added new `configFile` field to `Config`. When set, RouteWarden loads the specified `routewarden.json` as the base configuration at startup.
+  - Added new `configFile` field to `Config`. When set, Routewarden loads the specified `routewarden.json` as the base configuration at startup.
   - Inline `traefik.yml` / Docker label values take precedence over the file, enabling a shared policy file with per-service overrides.
   - Empty/omitted inline slices defer to the file so `blockPatterns` from the file are preserved when only overriding `response.mode`.
   - Missing or malformed files cause an immediate startup error with a descriptive message — no silent fallback to defaults.
@@ -64,7 +64,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **Traefik Catalog Archive Integrity & Fresh Checksum Release**:
   - Published clean SemVer patch release `v1.4.2` to resolve the immutable hash mismatch on Traefik Plugin Catalog (`plugins.traefik.io`), preventing `plugin integrity check failed` errors when installing from the catalog.
 - **Local & Offline Plugin Installation (`/plugins-local`)**:
-  - Added comprehensive documentation and production deployment guides for running RouteWarden as a local Traefik plugin via `--experimental.localplugins` and volume mounting to `/plugins-local/src/github.com/routewarden/traefik-warden`, enabling zero-network air-gapped and enterprise usage.
+  - Added comprehensive documentation and production deployment guides for running Routewarden as a local Traefik plugin via `--experimental.localplugins` and volume mounting to `/plugins-local/src/github.com/routewarden/traefik-warden`, enabling zero-network air-gapped and enterprise usage.
 - **Documentation & Configuration Parity**:
   - Updated configuration tables with full documentation for `trustedProxies`, `checkHeaders`, `checkBody`, `checkBodyMaxBytes`, and `checkBodyPatterns`.
   - Corrected default `response.mode` to `"text"` (matching `CreateConfig()`).
@@ -159,7 +159,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Key Highlights
 
-- **RouteWarden CLI (`rwarden`) Multi-Target Generation**:
+- **Routewarden CLI (`rwarden`) Multi-Target Generation**:
   - Native compilation targets for Traefik:
     - `rwarden generate --target traefik-yaml`: Compiles `routewarden.json` directly into Traefik Dynamic Configuration YAML format.
     - `rwarden generate --target traefik-toml`: Compiles `routewarden.json` directly into Traefik Dynamic Configuration TOML format.

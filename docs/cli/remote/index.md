@@ -1,6 +1,6 @@
 ---
 title: Remote Monitoring & Log Streaming
-description: Centralized, encrypted multi-node security event shipping from remote edge nodes, cloud VMs, and container clusters to RouteWarden.
+description: Centralized, encrypted multi-node security event shipping from remote edge nodes, cloud VMs, and container clusters to Routewarden.
 ---
 
 <script setup>
@@ -71,11 +71,11 @@ const arch_diagram = buildSnippet({
                     │        POST /api/v1/events (Bearer Key)      │
                     ▼                                              ▼
     ┌─────────────────────────────────────────────────────────────────────────────┐
-    │                 RouteWarden Central Dashboard & Ingestion Hub               │
+    │                 Routewarden Central Dashboard & Ingestion Hub               │
     │                                                                             │
     │  • Validates API Keys from ~/.routewarden/dashboard/api_keys.json           │
     │  • Decrypts payloads using master X25519 server private key                 │
-    │  • Appends events to RouteWarden SOC engine & SSE stream                    │
+    │  • Appends events to Routewarden SOC engine & SSE stream                    │
     │  • Live Header Status Ribbon:                                               │
     │    🟢 [🐳 local-gateway] [🌐 edge-prod-01 (198.51.100.4)] [🌐 cloud-node]  │
     └─────────────────────────────────────────────────────────────────────────────┘`,
@@ -90,15 +90,15 @@ const archDiagramSnippets = computed(() => ({
 
 # Remote Monitoring & Log Streaming
 
-RouteWarden features a distributed agent model inspired by CrowdSec. Rather than requiring heavy collectors (like Fluentd, Vector, or Logstash) that consume 200MB+ RAM and wear out edge flash storage, `rwarden` provides a native, ultra-lightweight distributed telemetry pipeline:
+Routewarden features a distributed agent model inspired by CrowdSec. Rather than requiring heavy collectors (like Fluentd, Vector, or Logstash) that consume 200MB+ RAM and wear out edge flash storage, `rwarden` provides a native, ultra-lightweight distributed telemetry pipeline:
 
 <CodeViewer :snippets="archDiagramSnippets" />
 
 ---
 
-## Why Distributed RouteWarden Monitoring?
+## Why Distributed Routewarden Monitoring?
 
-| Feature | RouteWarden (`rwarden push`) | Traditional Log Stacks (Loki/ELK) | CrowdSec Agent |
+| Feature | Routewarden (`rwarden push`) | Traditional Log Stacks (Loki/ELK) | CrowdSec Agent |
 |:---|:---|:---|:---|
 | **RAM Footprint** | **~2MB to ~15MB** | 350MB – 1.5GB+ | ~30MB – 60MB |
 | **Disk Wear** | **Zero** (In-memory ring buffer) | Heavy SQLite / WAL disk buffering | Moderate |

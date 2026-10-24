@@ -85,7 +85,7 @@ const ssh_service = buildSnippet({
     response:
       mode: "reject"
     ssh:
-      banner: "RouteWarden SSH Guard"
+      banner: "Routewarden SSH Guard"
       max_auth_tries: 3`
 })
 
@@ -411,7 +411,7 @@ Inbound UDP datagrams pass through the complete security pipeline before forward
 ::: tip Anti-Amplification: Silent Drops for UDP
 Unlike TCP (which can reply with a TCP `RST`, banner message, or `tarpit` delay), **blocked UDP datagrams are always dropped silently**. 
 
-Replying to unauthorized UDP packets would allow attackers with spoofed source IPs to abuse RouteWarden as a reflection/amplification vector. Silent drops guarantee zero reflection risk.
+Replying to unauthorized UDP packets would allow attackers with spoofed source IPs to abuse Routewarden as a reflection/amplification vector. Silent drops guarantee zero reflection risk.
 :::
 
 ---

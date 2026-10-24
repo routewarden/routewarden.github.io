@@ -1,12 +1,17 @@
+---
+title: "System Architecture"
+description: "Technical architecture, Yaegi compatibility, memory model, and concurrency guarantees of Routewarden."
+---
+
 # System Architecture
 
-RouteWarden operates as an in-line HTTP middleware within Traefik's proxy pipeline. Every incoming request undergoes a strict, multi-stage inspection lifecycle before being either passed downstream or intercepted.
+Routewarden operates as an in-line HTTP middleware within Traefik's proxy pipeline. Every incoming request undergoes a strict, multi-stage inspection lifecycle before being either passed downstream or intercepted.
 
 ---
 
 ## Architectural Flow
 
-![RouteWarden Architecture](/architecture.png)
+![Routewarden Architecture](/architecture.png)
 
 <script setup>
 import { computed } from 'vue'
@@ -194,7 +199,7 @@ const archFlowSnippets = computed(() => ({
 
 ## Modular Component Design
 
-RouteWarden is constructed with clean, decoupled Go components adhering to Yaegi interpreter specifications:
+Routewarden is constructed with clean, decoupled Go components adhering to Yaegi interpreter specifications:
 
 1. **`ip_filter.go` (`IPFilter`)**:
    - Parses exact IPv4 (`127.0.0.1`), IPv6 (`::1`), and CIDR networks (`10.0.0.0/8`).
@@ -205,9 +210,9 @@ RouteWarden is constructed with clean, decoupled Go components adhering to Yaegi
    - Defines plugin parameters, default sensitive regex sets, allowlist patterns, compiler factories, and security logging settings.
 4. **`response_handler.go` (`ResponseHandler`)**:
    - Manages HTTP response emission for custom JSON, HTML, redirect codes, and embedded Captcha challenges (**Turnstile**, **hCaptcha**, **reCAPTCHA**).
-5. **`routewarden.go` (`RouteWarden`) / `caddywarden.go`**:
+5. **`routewarden.go` (`Routewarden`) / `caddywarden.go`**:
    - Implements gateway interface (`http.Handler` for Traefik, `caddyhttp.MiddlewareHandler` for Caddy).
    - Coordinates candidate normalization, allow/block evaluation, and emits structured JSON audit events (`logSecurityEvent`) on blocked requests for [CrowdSec](/examples/crowdsec) and SIEM log shippers.
-6. **`lib/resty/routewarden/init.lua` (`RouteWarden Lua`)**:
-   - Implements the OpenResty / NGINX Lua equivalent of the RouteWarden pipeline.
+6. **`lib/resty/routewarden/init.lua` (`Routewarden Lua`)**:
+   - Implements the OpenResty / NGINX Lua equivalent of the Routewarden pipeline.
    - Runs in LuaJIT during `access_by_lua` with zero external dependencies, providing feature parity (anti-evasion, CIDR allowlists, 13 response modes, and CrowdSec security logging) for NGINX workloads.

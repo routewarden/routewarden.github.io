@@ -10,7 +10,7 @@ import { buildSnippet } from '../../.vitepress/theme/composables/useCodeSnippet'
 // ─── 1. Installation Snippets ───────────────────────────────────────────────
 const install_cli = buildSnippet({
   lang: 'bash',
-  code: `# Install via RouteWarden CLI
+  code: `# Install via Routewarden CLI
 rwarden tcp plugins install imap
 
 # Or standalone binary
@@ -31,7 +31,7 @@ plugins:
 
 const installSnippets = computed(() => ({
   tcp: [
-    { filename: 'RouteWarden CLI', lang: 'bash', code: install_cli.cleanCode, html: install_cli.html, hasDiff: false },
+    { filename: 'Routewarden CLI', lang: 'bash', code: install_cli.cleanCode, html: install_cli.html, hasDiff: false },
     { filename: 'tcp-warden.yaml', lang: 'yaml', code: install_yaml.cleanCode, html: install_yaml.html, hasDiff: false },
   ]
 }))
@@ -51,7 +51,7 @@ const config_yaml = buildSnippet({
     ban_after_failures: 3
     ban_duration: "1h"
     plugin_config:
-      banner: "* OK RouteWarden IMAP4rev1 Ready"`
+      banner: "* OK Routewarden IMAP4rev1 Ready"`
 })
 
 const configSnippets = computed(() => ({
@@ -63,13 +63,13 @@ const configSnippets = computed(() => ({
 // ─── 3. Network Architecture Snippets ───────────────────────────────────────
 const net_nftables = buildSnippet({
   lang: 'bash',
-  code: `# Redirect incoming external traffic on port 143 to RouteWarden port 1143
+  code: `# Redirect incoming external traffic on port 143 to Routewarden port 1143
 sudo nft add rule ip routewarden_nat prerouting iifname "eth0" tcp dport 143 redirect to :1143`
 })
 
 const net_iptables = buildSnippet({
   lang: 'bash',
-  code: `# 1. Redirect incoming external port 143 to RouteWarden port 1143
+  code: `# 1. Redirect incoming external port 143 to Routewarden port 1143
 sudo iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 143 -j REDIRECT --to-port 1143
 
 # 2. Persist rules across reboots (Debian/Ubuntu)
@@ -102,8 +102,8 @@ const net_compose = buildSnippet({
   routewarden:
     image: ghcr.io/routewarden/tcp-warden:latest
     ports:
-      - "143:1143"  # Map host IMAP port 143 to RouteWarden
-      - "993:9930"  # Map host IMAPS port 993 to RouteWarden
+      - "143:1143"  # Map host IMAP port 143 to Routewarden
+      - "993:9930"  # Map host IMAPS port 993 to Routewarden
       - "9091:9091" # Management API
     volumes:
       - ./tcp-warden.yaml:/etc/routewarden/tcp-warden.yaml:ro
@@ -211,19 +211,19 @@ Add an IMAP guard service to `tcp-warden.yaml`:
 
 ### Option A: Kernel Firewall Redirection (nftables / iptables)
 
-Redirect incoming external traffic on port `143` to RouteWarden port `1143`:
+Redirect incoming external traffic on port `143` to Routewarden port `1143`:
 
 <CodeViewer :snippets="netFirewallSnippets" />
 
 ### Option B: IMAPS Direct Proxying (Port 993)
 
-For explicit IMAPS (IMAP over TLS), RouteWarden can operate in front of the IMAPS service:
+For explicit IMAPS (IMAP over TLS), Routewarden can operate in front of the IMAPS service:
 
 <CodeViewer :snippets="netImapsSnippets" />
 
 ### Option C: Docker Compose Network Isolation
 
-Run the IMAP server inside an isolated container network, exposing both IMAP (`143`) and IMAPS (`993`) services only through RouteWarden:
+Run the IMAP server inside an isolated container network, exposing both IMAP (`143`) and IMAPS (`993`) services only through Routewarden:
 
 <CodeViewer :snippets="netComposeSnippets" />
 

@@ -1,6 +1,6 @@
 ---
-title: RouteWarden CLI (rwarden)
-description: Developer CLI, policy compiler, configuration validator, and real-time security dashboard for RouteWarden.
+title: Routewarden CLI (rwarden)
+description: Developer CLI, policy compiler, configuration validator, and real-time security dashboard for Routewarden.
 ---
 
 <script setup>
@@ -158,9 +158,9 @@ const remoteSnippets = computed(() => ({
 }))
 </script>
 
-# RouteWarden CLI (`rwarden`)
+# Routewarden CLI (`rwarden`)
 
-`rwarden` is the official developer CLI, policy compiler, configuration validator, and real-time observability dashboard for the RouteWarden security suite.
+`rwarden` is the official developer CLI, policy compiler, configuration validator, and real-time observability dashboard for the Routewarden security suite.
 
 It enables security and platform teams to evaluate path rules offline, validate configurations against official JSON schemas, compile universal policies for Traefik, Caddy, NGINX, and TCP Warden, and spin up an embedded web dashboard with zero runtime dependencies.
 
@@ -182,7 +182,7 @@ It enables security and platform teams to evaluate path rules offline, validate 
 - **Ephemeral Gateway Sandbox (`sandbox`)**:
   Launch isolated, pre-configured Traefik, Caddy, or NGINX containers in Docker to verify your rules and response modes live against automated attack test suites.
 - **Real-Time Security Dashboard (`dashboard`)**:
-  Turnkey, ultra-lightweight real-time security dashboard powered by RouteWarden's embedded SOC engine and SQLite persistence (~8MB RAM). Auto-discovers containers labeled `routewarden=true`, multiplexes logs live, and serves a streaming web UI at `http://localhost:7890`.
+  Turnkey, ultra-lightweight real-time security dashboard powered by Routewarden's embedded SOC engine and SQLite persistence (~8MB RAM). Auto-discovers containers labeled `routewarden=true`, multiplexes logs live, and serves a streaming web UI at `http://localhost:7890`.
 - **Distributed Remote Log Shipping (`push`, `keys`, `register`)**:
   CrowdSec-style distributed log shipping with end-to-end asymmetric encryption (X25519 ECDH + AES-256-GCM), 2,000-event in-memory ring buffers, zero edge disk writes, and central dashboard ingestion.
 - **Official JSON Schema Export (`schema`)**:
