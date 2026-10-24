@@ -143,12 +143,12 @@ Output:
 
 ## 3. Configuration File (`agent.json`)
 
-After registration, `agent.json` stores your connection profile:
+After registration, `agent.json` stores your connection profile and telemetry filtering defaults:
 
 <CodeViewer :snippets="configSnippets" />
 
 > [!TIP]
-> Because `agent.json` contains the server public key and agent token, you can run `rwarden push` without any arguments or environment variables.
+> The telemetry filtering flags (`--status`, `--include-failed`, `--all-traffic`) can be configured independently during registration. When saved, `rwarden push` automatically inherits these settings so background services run with your chosen filter without needing extra CLI flags. Any flags explicitly passed to `rwarden push` will override `agent.json`.
 
 ---
 

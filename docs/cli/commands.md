@@ -531,8 +531,15 @@ rwarden push --status "400-599, 301"
 # Shorthand:
 rwarden push -s 400-599,301
 
+# Ship failed HTTP requests (status >= 400, legacy alias)
+rwarden push --include-failed
+
 # Stream all HTTP access traffic including 200 OK
 rwarden push --all-traffic
+
+# Stream Layer 4 (UDP & TCP) traffic logs from tcp-warden
+rwarden push -f /var/log/routewarden/tcp-warden.jsonl
+rwarden push -c tcp-warden --all-traffic
 
 # Configure offline queue capacity and disconnect drop timeout
 rwarden push --queue-size 20000 --disconnect-timeout 10m`,
@@ -906,9 +913,9 @@ Enroll a remote node with a central Routewarden dashboard. This one-time handsha
 | `--url` | `-u` | string | **Yes** | Routewarden Central Dashboard URL (e.g. `http://dashboard.internal:7890`) |
 | `--key` | `-k` | string | **Yes** | Remote agent authentication key (`rw_sec_...`) |
 | `--config` | — | string | No | Custom path to store agent configuration (default: `~/.routewarden/agent.json`) |
-| `--status` | `-s` | string | No | Forward HTTP requests matching status codes or ranges (e.g. `'400-599, 301'`, `'4xx, 5xx'`) |
-| `--include-failed` | `-F` | bool | No | Legacy alias: persist setting to ship all failed HTTP requests (status >= 400) |
-| `--all-traffic` | — | bool | No | Persist default setting to ship all HTTP access traffic |
+| `--status` | `-s` | string | No | Persist default HTTP status codes or ranges to forward (e.g. `'400-599, 301'`, `'4xx, 5xx'`). Can be used independently. |
+| `--include-failed` | `-F` | bool | No | Legacy alias: persist setting to ship all failed HTTP requests (status >= 400). Can be used independently. |
+| `--all-traffic` | — | bool | No | Persist default setting to ship all HTTP access traffic. Can be used independently. |
 
 ---
 
@@ -935,9 +942,9 @@ Stream live security events and gateway access logs from remote edge nodes, clou
 | `--queue-size` | — | int | `10000` | Maximum events to buffer in memory while disconnected from dashboard |
 | `--disconnect-timeout` | — | duration | `5m` | Duration disconnected from dashboard before dropping stale events |
 | `--ping-interval` | — | duration | `10s` | Interval between connection health pings when connected |
-| `--status` | `-s` | string | `""` | Forward HTTP requests matching status codes or ranges (e.g. `'400-599, 301'`, `'4xx, 5xx'`) across Caddy, Traefik, and NGINX |
-| `--include-failed` | `-F` | bool | `false` | Legacy alias: ship all failed HTTP requests (status >= 400, equivalent to `--status 400-599`) |
-| `--all-traffic` | — | bool | `false` | Ship all HTTP access traffic including successful 200 OK responses |
+| `--status` | `-s` | string | `""` | Forward HTTP requests matching status codes or ranges (e.g. `'400-599, 301'`, `'4xx, 5xx'`). Can be used independently. |
+| `--include-failed` | `-F` | bool | `false` | Legacy alias: ship all failed HTTP requests (status >= 400). Can be used independently; overridden by `--status`. |
+| `--all-traffic` | — | bool | `false` | Ship all HTTP access traffic and Layer 4 UDP/TCP sessions. Can be used independently; overrides status filters. |
 | `--all-logs` | — | bool | `false` | Ship all raw container lines without filtering (default filters for Routewarden events & security blocks) |
 | `--url` | `-u` | string | `""` | Override central dashboard URL from registered config |
 | `--key` | `-k` | string | `""` | Override agent authentication key from registered config |

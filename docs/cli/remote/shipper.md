@@ -174,15 +174,22 @@ const filtering_cmd = buildSnippet({
   code: `# Default: push only security events (BLOCK, TARPIT, HONEYPOT, 403, 429)
 rwarden push --docker
 
-# Ship requests matching explicit status codes or ranges (e.g. 400-599, 301, 4xx, 5xx)
+# 1. Independent: Ship requests matching explicit status codes or ranges (e.g. 400-599, 301, 4xx, 5xx)
 rwarden push --status "400-599, 301"
 # Shorthand:
 rwarden push -s 400-599,301
 
-# Ship all HTTP access traffic including successful 200 OK responses
+# 2. Independent: Ship failed HTTP requests (status >= 400, legacy alias)
+rwarden push --include-failed
+
+# 3. Independent: Ship all HTTP access traffic including successful 200 OK responses
 rwarden push --all-traffic
 
-# Ship all raw container lines without Routewarden filtering
+# 4. Layer 4 (UDP & TCP) Traffic Logs: Stream tcp-warden security events or all sessions
+rwarden push -f /var/log/routewarden/tcp-warden.jsonl
+rwarden push -c tcp-warden --all-traffic
+
+# 5. Raw unfiltered logs (bypass all filters)
 rwarden push --all-logs`,
 })
 
@@ -441,7 +448,7 @@ You can customize telemetry filtering using flags, environment variables, or `ag
 ### Available Modes:
 
 1. **Security Events Only (Default)**:
-   - Forwards threat mitigations and security rejections.
+   - Forwards threat mitigations and security rejections (`verdict`, `action`, `rule`, `matched_pattern`, or status `403`/`429`).
    - Drops benign access traffic, keeping the dashboard focused on actionable incidents while reducing database size.
 
 2. **Explicit Status Code Ranges (`--status` / `-s`)**:
@@ -459,6 +466,77 @@ You can customize telemetry filtering using flags, environment variables, or `ag
 4. **Raw Unfiltered Logs (`--all-logs`)**:
    - Disables all filters and forwards every raw stdout/stderr line emitted by the monitored container or file.
    - Configurable via `RW_ALL_LOGS=true` or `"all_logs": true` in `agent.json`.
+
+### Flag Independence & Resolution Precedence
+
+Can `--status`, `--include-failed`, and `--all-traffic` be used independently? **Yes.** Each flag controls an independent telemetry tier and can be specified alone:
+
+- `rwarden push --status "400-599, 301"`: Matches explicit status ranges and security events.
+- `rwarden push --include-failed`: Matches all failed requests ($4xx, 5xx$) and security events.
+- `rwarden push --all-traffic`: Matches all HTTP requests ($2xx, 3xx, 4xx, 5xx$) and security events.
+
+When multiple options are present simultaneously (via flags, environment variables, or `agent.json`), the shipper evaluates them using the following precedence hierarchy:
+
+| Priority | Setting | Resolution Behavior |
+|:---|:---|:---|
+| **1 (Highest)** | **Security Signals** | Events with explicit verdicts (`BLOCK`, `TARPIT`, `HONEYPOT`), actions (`blocked`, `banned`), rules, or status `403`/`429` **always pass**, regardless of other flags. |
+| **2** | `--all-logs` | Completely bypasses the filter engine and streams all raw lines. |
+| **3** | `--all-traffic` | Forwards all HTTP traffic. Overrides both `--status` and `--include-failed`. |
+| **4** | `--status` (`-s`) | Matches specific codes/ranges. Overrides `--include-failed` if both are specified. |
+| **5** | `--include-failed` (`-F`) | Matches all HTTP status $\ge 400$. Acts as fallback when `--status` is not set. |
+| **6 (Default)** | *None* | Only explicit security events are forwarded. |
+
+---
+
+### Handling Layer 4 (UDP & TCP) Traffic Logs
+
+In addition to Layer 7 HTTP reverse proxies, RouteWarden includes a native Layer 4 proxy engine (**`tcp-warden`** / `rwarden tcp`).
+
+#### UDP Traffic Inspection & Logging
+When running services with `transport: udp` or `transport: both` in `tcp-warden.yaml`, every inbound datagram evaluates through security stages:
+1. **IP Banlist**: Active bans trigger immediate drops (`banned: <reason>`).
+2. **CrowdSec LAPI**: Bouncer checks trigger datagram drops (`crowdsec_ban: <scenario>`).
+3. **CIDR Network Deny**: Subnet matches drop datagrams (`ip_denied`).
+4. **GeoIP Filtering**: Country blocks drop packets (`country_blocked: <code>`).
+5. **Rate Limiting**: Datagram bursts exceeding `connections_per_minute` are dropped (`rate_limit_exceeded`).
+6. **MaxSessions Guard**: Active sessions exceeding `udp.max_sessions` are dropped (`udp_max_sessions_exceeded`).
+7. **Protocol UDPInspector**: Plugins (e.g. DNS or QUIC) inspecting datagram payloads can issue `UDPVerdictDrop` or `UDPVerdictReject`.
+
+Decisions are written as structured JSON lines to `/var/log/routewarden/tcp-warden.jsonl` (or container stdout):
+
+```json
+{
+  "type": "security_event",
+  "timestamp": "2026-10-24T06:00:00Z",
+  "level": "warn",
+  "plugin": "tcp-warden",
+  "service": "dns_service",
+  "protocol": "udp",
+  "client_ip": "198.51.100.22",
+  "action": "blocked",
+  "reason": "rate_limit_exceeded",
+  "bytes_in": 78,
+  "bytes_out": 0
+}
+```
+
+#### Shipping UDP Logs with `rwarden push`
+- **Security Events (Default)**: All blocked or banned UDP events carry `"plugin": "tcp-warden"` or `"action": "blocked"`, so they are automatically detected as security events and forwarded to the central dashboard without any special flags:
+  ```bash
+  # Stream UDP security events from log file
+  rwarden push -f /var/log/routewarden/tcp-warden.jsonl
+
+  # Or stream from a Docker container
+  rwarden push -c tcp-warden
+  ```
+- **Forwarding All UDP Datagram Sessions**: To capture successful/allowed UDP traffic (`action: "allowed"`, forwarded datagram metrics), enable `--all-traffic`:
+  ```bash
+  rwarden push -f /var/log/routewarden/tcp-warden.jsonl --all-traffic
+  ```
+- **Piping from systemd / journald**:
+  ```bash
+  journalctl -u tcp-warden -f -o cat | rwarden push -f -
+  ```
 
 ---
 

@@ -20,6 +20,10 @@ All notable changes to the Routewarden CLI (`rwarden`) are documented here. The 
   - Added `--status` (`-s`) and `--all-traffic` flags to `rwarden register` (`cli/register.go` and `cli/shipper/register.go`), saving telemetry filtering settings directly to `~/.routewarden/agent.json` (`"status_codes": "400-599, 301"`, `"all_traffic": true`) so subsequent `rwarden push` invocations inherit configured status ranges automatically.
 - **Failed HTTP Status Categorization in Central Dashboard**:
   - Enhanced dashboard ingestion engine in `cli/observability/custom_dashboard.go` and `cli/observability/manager.go` to categorize unblocked status $\ge 400$ requests from Caddy, Traefik, and NGINX as `Verdict: "FAILED"` with rule `HTTP <status>`, providing SOC teams immediate visibility into client probing and upstream outages without polluting security incident counts as `ALLOW`.
+- **Independent Telemetry Flags & Precedence Hierarchy**:
+  - Documented full independence and precedence resolution across `--status`, `--include-failed`, and `--all-traffic`: `--all-traffic` supersedes status filters, while explicit `--status` overrides `--include-failed`.
+- **Layer 4 (UDP & TCP) Traffic Log Streaming**:
+  - Documented log forwarding for Layer 4 traffic from `tcp-warden` (`/var/log/routewarden/tcp-warden.jsonl`). Security events (blocks, bans, rate limits, CrowdSec actions) are shipped automatically by default, and allowed datagram sessions can be forwarded via `--all-traffic`.
 - **Flexible JSON Decoding for Custom Log Formats**:
   - Added `flexibleInt` and `flexibleFloat` JSON decoders in `cli/push.go` and `cli/shipper/push.go` supporting quoted status codes (`"status": "404"`) and string latencies from custom reverse proxy logging formats without throwing unmarshal errors.
 
