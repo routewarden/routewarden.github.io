@@ -1,4 +1,4 @@
-# Routewarden Real-Time SOC Security Dashboard
+# RouteWarden Real-Time SOC Security Dashboard
 services:
   dashboard:
     image: ghcr.io/routewarden/cli:latest
