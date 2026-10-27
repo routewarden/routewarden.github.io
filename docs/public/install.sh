@@ -51,8 +51,8 @@ echo "🔍 Detecting latest version of ${BINARY}..."
 LATEST_TAG=$(curl -s "https://api.github.com/repos/${OWNER}/${REPO}/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
 
 if [ -z "${LATEST_TAG}" ]; then
-  # Fallback to v5.3.3 if GitHub API rate limit is exceeded
-  LATEST_TAG="v5.3.3"
+  # Fallback to v5.4.0 if GitHub API rate limit is exceeded
+  LATEST_TAG="v5.4.0"
 fi
 
 VERSION="${LATEST_TAG#v}"

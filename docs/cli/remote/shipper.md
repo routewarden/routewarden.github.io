@@ -199,6 +199,51 @@ const filteringSnippets = computed(() => ({
   ],
 }))
 
+// ─── 4b. Layer 4 (UDP & TCP) Log Snippets ─────────────────────────────────────
+const l4_log_json = buildSnippet({
+  lang: 'json',
+  code: `{
+  "type": "security_event",
+  "timestamp": "2026-10-24T06:00:00Z",
+  "level": "warn",
+  "plugin": "tcp-warden",
+  "service": "dns_service",
+  "protocol": "udp",
+  "client_ip": "198.51.100.22",
+  "action": "blocked",
+  "reason": "rate_limit_exceeded",
+  "bytes_in": 78,
+  "bytes_out": 0
+}`,
+})
+
+const l4LogSnippets = computed(() => ({
+  cli: [
+    { filename: 'tcp-warden.jsonl', lang: 'json', code: l4_log_json.cleanCode, html: l4_log_json.html, hasDiff: false },
+  ],
+}))
+
+const l4_push_cmd = buildSnippet({
+  lang: 'bash',
+  code: `# 1. Stream UDP security events from log file (default mode)
+rwarden push -f /var/log/routewarden/tcp-warden.jsonl
+
+# Or stream from a Docker container
+rwarden push -c tcp-warden
+
+# 2. Forward all UDP datagram sessions (including allowed traffic)
+rwarden push -f /var/log/routewarden/tcp-warden.jsonl --all-traffic
+
+# 3. Piping from systemd / journald via STDIN
+journalctl -u tcp-warden -f -o cat | rwarden push -f -`,
+})
+
+const l4PushSnippets = computed(() => ({
+  cli: [
+    { filename: 'rwarden push (Layer 4 UDP / TCP)', lang: 'bash', code: l4_push_cmd.cleanCode, html: l4_push_cmd.html, hasDiff: false },
+  ],
+}))
+
 const one_off_cmd = buildSnippet({
   lang: 'bash',
   code: `# Push directly without pre-saving config
@@ -504,39 +549,14 @@ When running services with `transport: udp` or `transport: both` in `tcp-warden.
 
 Decisions are written as structured JSON lines to `/var/log/routewarden/tcp-warden.jsonl` (or container stdout):
 
-```json
-{
-  "type": "security_event",
-  "timestamp": "2026-10-24T06:00:00Z",
-  "level": "warn",
-  "plugin": "tcp-warden",
-  "service": "dns_service",
-  "protocol": "udp",
-  "client_ip": "198.51.100.22",
-  "action": "blocked",
-  "reason": "rate_limit_exceeded",
-  "bytes_in": 78,
-  "bytes_out": 0
-}
-```
+<CodeViewer :snippets="l4LogSnippets" />
 
 #### Shipping UDP Logs with `rwarden push`
-- **Security Events (Default)**: All blocked or banned UDP events carry `"plugin": "tcp-warden"` or `"action": "blocked"`, so they are automatically detected as security events and forwarded to the central dashboard without any special flags:
-  ```bash
-  # Stream UDP security events from log file
-  rwarden push -f /var/log/routewarden/tcp-warden.jsonl
+- **Security Events (Default)**: All blocked or banned UDP events carry `"plugin": "tcp-warden"` or `"action": "blocked"`, so they are automatically detected as security events and forwarded to the central dashboard without any special flags.
+- **Forwarding All UDP Datagram Sessions**: To capture successful/allowed UDP traffic (`action: "allowed"`, forwarded datagram metrics), enable `--all-traffic`.
+- **Piping from systemd / journald**: Stream via STDIN pipe (`-f -`).
 
-  # Or stream from a Docker container
-  rwarden push -c tcp-warden
-  ```
-- **Forwarding All UDP Datagram Sessions**: To capture successful/allowed UDP traffic (`action: "allowed"`, forwarded datagram metrics), enable `--all-traffic`:
-  ```bash
-  rwarden push -f /var/log/routewarden/tcp-warden.jsonl --all-traffic
-  ```
-- **Piping from systemd / journald**:
-  ```bash
-  journalctl -u tcp-warden -f -o cat | rwarden push -f -
-  ```
+<CodeViewer :snippets="l4PushSnippets" />
 
 ---
 
