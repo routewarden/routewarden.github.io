@@ -76,6 +76,11 @@ const schema_code = buildSnippet({
     # IP / CIDR Subnet Allowlist (Bypasses all checks)
     allowed_ips <ip_or_cidr...>
 
+    # ASN Allowlist & Offline Routing DB (Bypasses all checks)
+    allowed_asns <asns...>                      # e.g. AS13335 64500 (bare directive clears inherited)
+    asn_db <path>                               # e.g. /etc/routewarden/asn.json
+    trusted_proxies <cidrs...>                  # Upstream proxies trusted for client IP resolution
+
     # HTTP Methods to Inspect (Default: GET)
     methods <methods...>
 
@@ -228,6 +233,9 @@ To resolve this, declare directive ordering in your Caddyfile's global options b
 | `block_patterns` | `list` | `[]` | Additional regex patterns to intercept. |
 | `allow_patterns` | `list` | `[]` | Regex patterns that should always be allowed through. |
 | `allowed_ips` | `list` | `[]` | IPv4, IPv6, or CIDR blocks exempted from checks. |
+| `allowed_asns` | `list` | `[]` | Autonomous System Numbers (`AS64500`, `64500`) allowed to bypass inspection. Bare `allowed_asns` clears inherited list. |
+| `asn_db` | `string` | `""` | Path to local JSON ASN routing snapshot database. |
+| `trusted_proxies` | `list` | `[]` | Trusted upstream reverse proxies / CIDRs for real client IP extraction. |
 | `methods` | `list` | `["GET"]` | HTTP verbs to inspect (e.g. `methods GET POST`). Non-matching verbs bypass inspection. |
 
 > [!IMPORTANT]
@@ -238,7 +246,35 @@ To resolve this, declare directive ordering in your Caddyfile's global options b
 
 ---
 
-## 4. Config File (`config_file`)
+## 4. ASN Allowlisting (`allowed_asns` & `asn_db`)
+
+Caddy Warden supports offline Autonomous System Number (ASN) based allowlisting using a local JSON routing snapshot:
+
+```caddyfile
+example.com {
+    route {
+        routewarden {
+            allowed_asns AS13335 64500
+            asn_db /etc/routewarden/asn.json
+            trusted_proxies 10.0.0.0/8
+            response {
+                mode json
+                status_code 403
+            }
+        }
+        reverse_proxy backend:8080
+    }
+}
+```
+
+- **Offline Snapshot**: Generated using `python3 scripts/build-asn-db.py` from MaxMind GeoLite2/GeoIP2 ASN CSVs.
+- **Clearing Inherited Lists**: In multi-site setups where a base block configures `allowed_asns`, specifying a bare `allowed_asns` with no arguments in a child block explicitly clears any inherited ASN allowlist.
+- **Anti-Spoofing**: Header values like `CF-Connecting-ASN` are never trusted; only the TCP socket address or sanitized IP from `trusted_proxies` is matched.
+- For complete snapshot instructions and architecture details, see the **[ASN Filtering Guide](/core/asn-filtering)**.
+
+---
+
+## 5. Config File (`config_file`)
 
 Instead of inlining every option in your Caddyfile, point Routewarden at a shared `routewarden.json` file. Inline Caddyfile fields always override file values, so you can keep a single shared policy file and customize per-site behaviour in the Caddyfile.
 
@@ -261,7 +297,7 @@ The `routewarden.json` file uses the standard Routewarden JSON schema (view it w
 
 ---
 
-## 5. Built-in Default Patterns
+## 6. Built-in Default Patterns
 
 ### Default Block Patterns (`enable_default_patterns true`)
 
@@ -290,7 +326,7 @@ When enabled (default), Caddy Warden immediately allows standard public resource
 
 ---
 
-## 6. Response Modes Matrix
+## 7. Response Modes Matrix
 
 | Mode | Options | Typical Use Case |
 |---|---|---|

@@ -287,6 +287,7 @@ export default defineConfig({
           { text: 'Anti-Evasion Normalization', link: '/core/anti-evasion' },
           { text: 'Response Modes (13 Actions)', link: '/core/response-modes' },
           { text: 'Custom Regex Patterns', link: '/core/custom-patterns' },
+          { text: 'ASN Based Filtering', link: '/core/asn-filtering' },
           { text: 'Production Case Studies', link: '/examples/case-study-immich' },
           { text: 'Common Recipes & Compose', link: '/examples/basic-sensitive-files' },
           { text: 'Interactive Pattern Checker', link: '/tools/pattern-checker' },
@@ -372,6 +373,7 @@ export default defineConfig({
             { text: 'Anti-Evasion Normalization', link: '/core/anti-evasion' },
             { text: 'Response Modes (13 Actions)', link: '/core/response-modes' },
             { text: 'Custom Regex Patterns', link: '/core/custom-patterns' },
+            { text: 'ASN Based Filtering', link: '/core/asn-filtering' },
             { text: 'System Architecture', link: '/core/architecture' }
           ]
         },
@@ -413,6 +415,7 @@ export default defineConfig({
             { text: 'Anti-Evasion Normalization', link: '/core/anti-evasion' },
             { text: 'Response Modes (13 Actions)', link: '/core/response-modes' },
             { text: 'Custom Regex Patterns', link: '/core/custom-patterns' },
+            { text: 'ASN Based Filtering', link: '/core/asn-filtering' },
             { text: 'System Architecture', link: '/core/architecture' }
           ]
         },
@@ -452,6 +455,7 @@ export default defineConfig({
             { text: 'Anti-Evasion Normalization', link: '/core/anti-evasion' },
             { text: 'Response Modes (13 Actions)', link: '/core/response-modes' },
             { text: 'Custom Regex Patterns', link: '/core/custom-patterns' },
+            { text: 'ASN Based Filtering', link: '/core/asn-filtering' },
             { text: 'System Architecture', link: '/core/architecture' }
           ]
         },
@@ -481,6 +485,7 @@ export default defineConfig({
             { text: 'Anti-Evasion Normalization', link: '/core/anti-evasion' },
             { text: 'Response Modes (13 Actions)', link: '/core/response-modes' },
             { text: 'Custom Regex Patterns', link: '/core/custom-patterns' },
+            { text: 'ASN Based Filtering', link: '/core/asn-filtering' },
             { text: 'Frequently Asked Questions (FAQ)', link: '/faq' },
             { text: 'Routewarden CLI Tool', link: '/cli/' },
             { text: 'Changelog & Migrations', link: '/core/changelog' }
@@ -542,7 +547,8 @@ export default defineConfig({
             { text: 'System Architecture', link: '/core/architecture' },
             { text: 'Anti-Evasion Engine', link: '/core/anti-evasion' },
             { text: 'Response Modes Reference', link: '/core/response-modes' },
-            { text: 'Custom Paths & Regex Guide', link: '/core/custom-patterns' }
+            { text: 'Custom Paths & Regex Guide', link: '/core/custom-patterns' },
+            { text: 'ASN Filtering Reference', link: '/core/asn-filtering' }
           ]
         }
       ],

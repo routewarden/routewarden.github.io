@@ -76,6 +76,11 @@ const full_config = buildSnippet({
         "::1"
     },
 
+    -- ASN Allowlist & Offline Routing DB
+    allowed_asns = { "AS13335", "64500" },
+    asn_db = "/etc/routewarden/asn.json",
+    trusted_proxies = { "10.0.0.0/8" },
+
     -- Custom regular expressions (PCRE-compatible)
     block_patterns = {
         "(?i)^/admin(/.*)?$",
@@ -211,6 +216,9 @@ Initialize Routewarden using `routewarden.new(config)` within NGINX's `init_by_l
 | `check_query` | `boolean` | `false` | Inspects raw and URL-decoded query string parameters for sensitive targets. |
 | `methods` | `table` | `{"GET"}` | Array of HTTP verbs to inspect. Verbs outside this list bypass inspection. |
 | `allowed_ips` | `table` | `{}` | Array of IPv4/IPv6 addresses or CIDR subnets allowed to bypass path inspection. |
+| `allowed_asns` | `table` | `{}` | Array of Autonomous System Numbers (`"AS64500"`, `"64500"`) allowed to bypass inspection. |
+| `asn_db` | `string` | `nil` | Path to local JSON ASN routing snapshot file. |
+| `trusted_proxies` | `table` | `{}` | Array of trusted upstream proxy CIDRs for real client IP extraction. |
 | `block_patterns` | `table` | `{}` | Array of custom PCRE regular expressions to block. |
 | `allow_patterns` | `table` | `{}` | Array of custom PCRE regular expressions to exempt from blocking. |
 | `response` | `table` | `{ mode = "json", status_code = 403 }` | Response execution table. |
@@ -241,7 +249,35 @@ The `routewarden.json` file uses the standard Routewarden JSON schema (view it w
 
 ---
 
-## 5. Response Modes Table
+## 5. ASN Allowlisting (`allowed_asns` & `asn_db`)
+
+NGINX Warden supports Autonomous System Number (ASN) based allowlisting using an offline JSON routing snapshot compiled via `scripts/build-asn-db.py`:
+
+```lua
+http {
+    init_by_lua_block {
+        local routewarden = require("resty.routewarden")
+
+        warden = routewarden.new({
+            allowed_asns = { "AS13335", "64500" },
+            asn_db = "/etc/routewarden/asn.json",
+            trusted_proxies = { "10.0.0.0/8" },
+            response = {
+                mode = "json",
+                status_code = 403
+            }
+        })
+    }
+}
+```
+
+- **In-Memory Performance**: Parsed into a longest-prefix radix table during worker initialization with zero runtime network/DNS overhead.
+- **Strict Peer Resolution**: Client-supplied ASN headers are never trusted; only the TCP socket address or sanitized IP from `trusted_proxies` is evaluated.
+- For complete snapshot instructions and architecture details, see the **[ASN Filtering Guide](/core/asn-filtering)**.
+
+---
+
+## 6. Response Modes Table
 
 Routewarden for NGINX supports 13 response modes matching the core engine:
 
@@ -263,7 +299,7 @@ Routewarden for NGINX supports 13 response modes matching the core engine:
 
 ---
 
-## 6. Client IP Resolution
+## 7. Client IP Resolution
 
 Routewarden evaluates client addresses using the following priority:
 1. `X-Forwarded-For` header (first non-internal IP)

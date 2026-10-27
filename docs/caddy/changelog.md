@@ -9,7 +9,22 @@ All notable changes to the **Caddy Warden** module (`github.com/routewarden/cadd
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and Caddy Warden adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v1.6.2] - 2026-10-21 (Latest)
+## [v1.7.0] - 2026-10-27 (Latest)
+
+### Added
+- **Offline ASN-Based Allowlisting (`allowed_asns` / `asn_db`)**:
+  - Added Autonomous System Number (ASN) based allowlisting using an offline, in-memory JSON routing snapshot (`asn_db`), eliminating runtime DNS lookups and external HTTP latency.
+  - Added native Caddyfile directives `allowed_asns <asns...>` and `asn_db <path>` to configure allowed ASNs (e.g. `allowed_asns AS64500 64501`) and point to the routing snapshot.
+  - Added support for clearing inherited allowlists: declaring a bare `allowed_asns` directive in nested route blocks explicitly clears any inherited ASN allowlist.
+  - Supported native Caddy JSON configuration API via `allowed_asns` and `asn_db` keys, with cross-engine alias compatibility (`allowedASNs`, `asnDB`) when loading shared `config_file` JSON manifests.
+  - Implemented longest-prefix routing table lookup in Go across dual-stack IPv4 and IPv6 address spaces, including IPv4-mapped IPv6 addresses.
+  - Preserved strict routing hierarchy: child subnets allocated to non-allowed ASNs cannot inherit parent ASN bypasses. Conflicting prefix origins are rejected at startup.
+  - Resilient client IP extraction: evaluates socket peer IP unless `trusted_proxies` / `trustedProxies` are configured. Never relies on spoofable client-supplied ASN headers.
+  - Bundled database compilation utility `scripts/build-asn-db.py` to convert MaxMind GeoLite2/GeoIP2 ASN Blocks CSV files into JSON routing snapshots.
+
+---
+
+## [v1.6.2] - 2026-10-21
 
 ### Fixed
 - **Directive Order Precedence (`reverse_proxy` Interception)**:

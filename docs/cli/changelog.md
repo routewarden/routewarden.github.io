@@ -7,7 +7,28 @@ description: "Release history, new features, and bug fixes for the Routewarden C
 
 All notable changes to the Routewarden CLI (`rwarden`) are documented here. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and the CLI adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v5.3.3] - 2026-10-23 (Latest)
+## [v5.4.0] - 2026-10-27 (Latest)
+
+### Added
+- **Offline ASN-Based Allowlisting (`allowedASNs` / `asnDB`)**:
+  - Added support for Autonomous System Number (ASN) based allowlisting using an offline JSON routing snapshot (`asnDB` / `asn_db`), eliminating runtime DNS and external HTTP queries.
+  - Added `allowedASNs` (`allowed_asns`) and `asnDB` (`asn_db`) to `routewarden.json` schema (`config.schema.json`) and core CLI configuration parsers.
+  - Supports string-formatted ASN identifiers such as `"64500"` or `"AS64500"` (case-insensitive) with dual-stack IPv4 and IPv6 support.
+  - Implemented longest-prefix routing table matching in Go: more specific routes allocated to other ASNs do not inherit parent ASN bypasses. Conflicting prefix origins are rejected at startup.
+  - Local rule simulation and evaluation engine (`rwarden test` / evaluation) reports verdict reason `asn_whitelisted` for requests matching allowed ASNs.
+  - Code generation (`rwarden generate`): generates Traefik dynamic YAML/TOML/Docker labels, Caddyfile directives, NGINX Lua configurations, and TCP Warden YAML preserving ASN database paths and allowlists.
+- **Layer 4 Admission Gating in `tcp-warden` & Daemon Proxy**:
+  - Added `global.asn_db`, `global.allowed_asns`, and per-service `services.<name>.allowed_asns` to TCP Warden (`tcp-warden.yaml`).
+  - Distinct admission semantics for Layer 4: an effective ASN allowlist acts as an **admission gate**. Unknown origins (including private RFC1918 IPs absent from the routing snapshot) and non-matching origins are rejected immediately and recorded as `asn_denied` security events.
+  - Matching an ASN grants admission to the pipeline and does NOT bypass downstream security defenses (bans, CrowdSec, IP filters, geo-blocking, rate limits, or protocol filters).
+  - Works uniformly across TCP and UDP reverse proxy services.
+  - Empty per-service `allowed_asns` inherits the global list; a non-empty service list replaces the global list matching IP filter inheritance.
+- **Offline ASN Database Compiler (`scripts/build-asn-db.py`)**:
+  - Included Python compilation tool to convert MaxMind GeoLite2/GeoIP2 ASN Blocks CSV files into optimized JSON routing snapshots.
+
+---
+
+## [v5.3.3] - 2026-10-23
 
 ### Added
 - **Explicit HTTP Status Codes & Ranges Forwarding (`--status` / `-s`)**:

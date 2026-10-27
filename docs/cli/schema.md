@@ -81,6 +81,12 @@ checkBodyPatterns:
 methods:
   - GET
   - POST
+allowedASNs:
+  - AS13335
+  - "64500"
+asnDB: /etc/routewarden/asn.json
+trustedProxies:
+  - 10.0.0.0/8
 response:
   mode: json
   statusCode: 403
@@ -101,6 +107,9 @@ const caddy_json = buildSnippet({
   "enableDefaultPatterns": true,
   "checkQuery": false,
   "checkHeaders": ["X-Forwarded-Uri"],
+  "allowedASNs": ["AS13335", "64500"],
+  "asnDB": "/etc/routewarden/asn.json",
+  "trustedProxies": ["10.0.0.0/8"],
   "methods": ["GET", "HEAD"],
   "response": {
     "mode": "json",

@@ -19,7 +19,7 @@ const health_res = buildSnippet({
   lang: 'json',
   code: `{
   "status": "ok",
-  "version": "5.3.3"
+  "version": "5.4.0"
 }`
 })
 

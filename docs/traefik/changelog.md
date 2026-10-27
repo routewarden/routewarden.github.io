@@ -9,7 +9,22 @@ All notable changes to the **Traefik Warden** plugin (`github.com/routewarden/tr
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and Traefik Warden adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v1.6.0] - 2026-10-20 (Latest)
+## [v1.7.0] - 2026-10-27 (Latest)
+
+### Added
+- **Offline ASN-Based Allowlisting (`allowedASNs` / `asnDB`)**:
+  - Added support for Autonomous System Number (ASN) based allowlisting using an offline, in-memory JSON routing snapshot (`asnDB`), eliminating runtime DNS and external HTTP dependencies.
+  - Supports standard string-formatted ASN identifiers such as `"64500"` or `"AS64500"` (case-insensitive).
+  - Implements in-memory longest-prefix matching across IPv4 and IPv6 routing tables, including dual-stack support and IPv4-mapped IPv6 client addresses (`::ffff:x.x.x.x`).
+  - Preserves hierarchical routing boundaries: more specific prefixes owned by another ASN never inherit an allowed parent's bypass. Conflicting origins for the exact same prefix are rejected during snapshot validation.
+  - Non-matching client IPs continue through standard security inspection without rejection; matching client IPs bypass inspection identical to `allowedIps`.
+  - Added strict peer IP resolution: client-supplied ASN headers (e.g. `CF-Connecting-ASN`) are never trusted. Evaluates direct socket peer IP unless `trustedProxies` / `trusted_proxies` are explicitly configured.
+  - Bundled database compilation utility `scripts/build-asn-db.py` to convert MaxMind GeoLite2/GeoIP2 ASN Blocks CSV files into optimized JSON routing snapshots.
+  - Added cross-engine configuration alias support: accepts both camelCase (`allowedASNs`, `asnDB`) and snake_case (`allowed_asns`, `asn_db`) via shared `configFile` (`routewarden.json`) policies.
+
+---
+
+## [v1.6.0] - 2026-10-20
 
 ### Security
 - **Critical Fix: Matrix Parameter Allowlist Bypass (`/.env;robots.txt`)**:

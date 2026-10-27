@@ -87,7 +87,7 @@ experimental:
   plugins:
     routewarden:
       moduleName: github.com/routewarden/traefik-warden
-      version: v1.6.0
+      version: v1.7.0
 ```
 
 ```yaml
@@ -109,7 +109,7 @@ http:
 
 Build Caddy with `xcaddy`:
 ```bash
-xcaddy build --with github.com/routewarden/caddy-warden@v1.6.2
+xcaddy build --with github.com/routewarden/caddy-warden@v1.7.0
 ```
 
 Configure `Caddyfile`:

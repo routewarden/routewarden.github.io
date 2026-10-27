@@ -10,10 +10,10 @@ Routewarden uses `docs/version.json` as the **single source of truth** for versi
 
 ```json
 {
-  "traefik": "v1.6.0",
-  "caddy": "v1.6.2",
-  "nginx": "v1.6.0",
-  "cli": "v5.3.3"
+  "traefik": "v1.7.0",
+  "caddy": "v1.7.0",
+  "nginx": "v1.7.0",
+  "cli": "v5.4.0"
 }
 ```
 
@@ -30,16 +30,16 @@ You can update any individual application's version in `docs/version.json` and s
 
 ```bash
 # Update Caddy Warden documentation version:
-node scripts/sync-version.mjs --caddy v1.6.2
+node scripts/sync-version.mjs --caddy v1.7.0
 
 # Update Traefik Warden documentation version:
-node scripts/sync-version.mjs --traefik v1.6.0
+node scripts/sync-version.mjs --traefik v1.7.0
 
 # Update NGINX Warden documentation version:
-node scripts/sync-version.mjs --nginx v1.6.0
+node scripts/sync-version.mjs --nginx v1.7.0
 
 # Update CLI (rwarden & rwarden tcp) version:
-node scripts/sync-version.mjs --cli v5.3.3
+node scripts/sync-version.mjs --cli v5.4.0
 
 # Synchronize all apps using their current versions in docs/version.json:
 node scripts/sync-version.mjs
