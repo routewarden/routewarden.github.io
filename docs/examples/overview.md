@@ -53,6 +53,7 @@ Browse ready-to-run configurations and production blueprints for Routewarden acr
 | [6. Honeypots & Staging Cloaking](/examples/case-study-honeypot-staging) | Neutralize scanning bots and hide pull-request preview clusters from crawlers. | TCP RST (`silentDrop`) & 307 Deflection |
 | [7. Media Streaming (Jellyfin & Plex)](/examples/case-study-media) | Secure media playback over the web while cloaking admin consoles. | Selective Endpoint Masking + VPN Bypass |
 | [8. Smart Home (Home Assistant)](/examples/case-study-home-assistant) | Allow mobile GPS/sensor webhooks while shielding smart locks and auth. | Webhook Regex Allowlist + Admin Cloaking |
+| [9. AI Crawlers & Scrapers Defense](/examples/case-study-ai-crawlers) | Neutralize LLM training bots, rogue crawlers, and aggressive data scrapers. | User-Agent Regex + Tarpit, Silent Drop & Gzip Bomb |
 
 ---
 

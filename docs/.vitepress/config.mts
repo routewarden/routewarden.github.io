@@ -387,7 +387,8 @@ export default defineConfig({
             { text: '6. Honeypots & Gzip Bombs', link: '/examples/case-study-honeypot-staging' },
             { text: '7. Media Streaming (Jellyfin/Plex)', link: '/examples/case-study-media' },
             { text: '8. Smart Home (Home Assistant)', link: '/examples/case-study-home-assistant' },
-            { text: '9. CrowdSec Auto-Ban Shield', link: '/examples/crowdsec' }
+            { text: '9. CrowdSec Auto-Ban Shield', link: '/examples/crowdsec' },
+            { text: '10. AI Crawlers & Scrapers', link: '/examples/case-study-ai-crawlers' }
           ]
         }
       ],
@@ -427,7 +428,8 @@ export default defineConfig({
             { text: '6. Honeypots & Gzip Bombs', link: '/examples/case-study-honeypot-staging' },
             { text: '7. Media Streaming (Jellyfin/Plex)', link: '/examples/case-study-media' },
             { text: '8. Smart Home (Home Assistant)', link: '/examples/case-study-home-assistant' },
-            { text: '9. CrowdSec Auto-Ban Shield', link: '/examples/crowdsec' }
+            { text: '9. CrowdSec Auto-Ban Shield', link: '/examples/crowdsec' },
+            { text: '10. AI Crawlers & Scrapers', link: '/examples/case-study-ai-crawlers' }
           ]
         }
       ],
@@ -465,7 +467,8 @@ export default defineConfig({
             { text: '6. Honeypots & Gzip Bombs', link: '/examples/case-study-honeypot-staging' },
             { text: '7. Media Streaming (Jellyfin/Plex)', link: '/examples/case-study-media' },
             { text: '8. Smart Home (Home Assistant)', link: '/examples/case-study-home-assistant' },
-            { text: '9. CrowdSec Auto-Ban Shield', link: '/examples/crowdsec' }
+            { text: '9. CrowdSec Auto-Ban Shield', link: '/examples/crowdsec' },
+            { text: '10. AI Crawlers & Scrapers', link: '/examples/case-study-ai-crawlers' }
           ]
         }
       ],
@@ -495,7 +498,8 @@ export default defineConfig({
             { text: '6. Honeypots & Gzip Bombs', link: '/examples/case-study-honeypot-staging' },
             { text: '7. Media Streaming (Jellyfin/Plex)', link: '/examples/case-study-media' },
             { text: '8. Smart Home (Home Assistant)', link: '/examples/case-study-home-assistant' },
-            { text: '9. CrowdSec Auto-Ban Shield', link: '/examples/crowdsec' }
+            { text: '9. CrowdSec Auto-Ban Shield', link: '/examples/crowdsec' },
+            { text: '10. AI Crawlers & Scrapers', link: '/examples/case-study-ai-crawlers' }
           ]
         }
       ],
@@ -513,7 +517,8 @@ export default defineConfig({
             { text: '6. Honeypots & Gzip Bombs', link: '/examples/case-study-honeypot-staging' },
             { text: '7. Media Streaming (Jellyfin/Plex)', link: '/examples/case-study-media' },
             { text: '8. Smart Home (Home Assistant)', link: '/examples/case-study-home-assistant' },
-            { text: '9. CrowdSec Auto-Ban Shield', link: '/examples/crowdsec' }
+            { text: '9. CrowdSec Auto-Ban Shield', link: '/examples/crowdsec' },
+            { text: '10. AI Crawlers & Scrapers Defense', link: '/examples/case-study-ai-crawlers' }
           ]
         },
         {
