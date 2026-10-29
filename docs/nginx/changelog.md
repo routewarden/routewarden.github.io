@@ -22,6 +22,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   - Bundled database compilation utility `scripts/build-asn-db.py` to convert MaxMind GeoLite2/GeoIP2 ASN Blocks CSV files into JSON routing snapshots.
   - Synchronized `_VERSION = "1.7.0"` across all core Lua modules (`resty.routewarden.*`).
 
+### Fixed & Enhanced
+- **IPv6 Scope & Zone Identifier Sanitization**:
+  - Stripped IPv6 zone identifiers in OpenResty Lua ASN lookups before network prefix matching, ensuring link-local and scoped IPv6 client connections resolve reliably against routing tables.
+- **Normalizer & Response Modes Refinements**:
+  - Refined URL path normalization edge cases and synchronized response handler fallbacks across all 13 response modes in pure Lua.
+  - Hardened silent drop connection resets and custom response text delivery.
+- **AI Bot & Crawler Defense Architecture**:
+  - Published comprehensive AI bot mitigation guide covering active tarpits, gzip bomb counters, and ASN filtering against automated LLM training scrapers (`GPTBot`, `ClaudeBot`, `Bytespider`, `CCBot`) in OpenResty.
+- **Test Suite Expansion**:
+  - Added new Test::Nginx and pure-Lua test cases in `t/test_routewarden.lua` and `t/test_asn.lua`.
+
 ---
 
 ## [v1.6.0] - 2026-10-20

@@ -22,6 +22,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   - Bundled database compilation utility `scripts/build-asn-db.py` to convert MaxMind GeoLite2/GeoIP2 ASN Blocks CSV files into optimized JSON routing snapshots.
   - Added cross-engine configuration alias support: accepts both camelCase (`allowedASNs`, `asnDB`) and snake_case (`allowed_asns`, `asn_db`) via shared `configFile` (`routewarden.json`) policies.
 
+### Fixed & Enhanced
+- **IPv6 Scope & Zone Index Stripping**:
+  - Automatically strip zone identifiers (`%interface`, e.g. `%eth0`) from client IPv6 addresses before parsing in `ASNFilter.Lookup` and `IPFilter`. Prevents `net.ParseIP` evaluation failures on scoped link-local and dual-stack socket addresses.
+- **Response Handler Normalization & Status Code Fallbacks**:
+  - Synchronized response status code fallback and mode handling across all 13 response modes, ensuring consistent status codes and headers in `ServeBlockedRequest`.
+  - Hardened silent drop connection termination and custom response text delivery.
+- **AI Bot & Crawler Defense Architecture**:
+  - Published comprehensive AI bot mitigation guide covering active tarpits, gzip bomb counters, and ASN filtering against automated LLM training scrapers (`GPTBot`, `ClaudeBot`, `Bytespider`, `CCBot`).
+- **Test Suite Hardening**:
+  - Added unit test coverage for IPv6 zone handling, response mode fallbacks, Yaegi interpreter compliance, and path normalizer edge cases.
+
 ---
 
 ## [v1.6.0] - 2026-10-20

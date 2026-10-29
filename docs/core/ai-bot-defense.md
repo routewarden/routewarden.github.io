@@ -217,3 +217,4 @@ Automatically verify whether clients presenting `User-Agent: Googlebot` or `bing
 
 ### 3. Spider Traps (`honeypot_trap_paths`)
 Inject zero-pixel, invisible links into pages. Automated crawlers blindly follow all discovered links; any visitor hitting a trap route is automatically added to a temporary in-memory ban table.
+

@@ -32,6 +32,19 @@ All notable changes to the Routewarden CLI (`rwarden`) are documented here. The 
   - Added `--all-logs` flag and `all_logs` persistence to `rwarden register` (`cli/register.go` and `cli/shipper/register.go`).
   - Expanded documentation in `cli/remote/shipper.md`, `cli/commands.md`, and `cli/remote/registration.md` with comprehensive flag and environment variable reference tables and Docker Compose syntax guidance.
 
+### Fixed & Enhanced
+- **IPv6 Scope & Zone Index Stripping**:
+  - Sanitized zone identifiers (`%interface`, e.g. `%eth0`) from client IPv6 addresses during ASN radix-tree lookup across both the policy evaluation engine (`rwarden test`) and Layer 4 proxy daemon (`rwarden tcp`).
+- **Proxy Pipeline & UDP Session Resilience**:
+  - Improved UDP session handling, buffer recycling, and connection teardown in `proxy/core/udp_session.go` and `udp_engine.go`.
+  - Hardened TCP/UDP reverse proxy connection error handling and socket shutdown cleanup.
+- **CrowdSec LAPI Client Error Recovery**:
+  - Enhanced CrowdSec LAPI client resilience with improved timeout handling, reconnect logging, and non-blocking decision cache updates during transient CrowdSec daemon reloads.
+- **Layer 4 & Layer 7 Protocol Plugins Hardening**:
+  - Added comprehensive test suites and hardened protocol inspectors across 19 plugins (IMAP, POP3, Redis, SMTP, SSH, TLS SNI, VNC, HTTP, LDAP, Memcached, MongoDB, Minecraft, FTP, Generic).
+- **AI Bot & Crawler Defense Architecture**:
+  - Published comprehensive AI bot mitigation guide and threat categorization across the ecosystem.
+
 ---
 
 ## [v5.3.3] - 2026-10-23
