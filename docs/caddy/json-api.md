@@ -42,6 +42,14 @@ const schema_json = buildSnippet({
     "10.0.0.0/8",
     "192.168.1.100"
   ],
+  "allowed_asns": [
+    "AS13335",
+    "64500"
+  ],
+  "asn_db": "/etc/routewarden/asn.json",
+  "trusted_proxies": [
+    "10.0.0.0/8"
+  ],
   "methods": [
     "GET",
     "POST"

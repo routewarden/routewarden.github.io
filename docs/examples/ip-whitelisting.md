@@ -272,3 +272,7 @@ Both exact IPv4/IPv6 addresses (`127.0.0.1`, `2001:db8::1`) and CIDR blocks (`10
 ## Testing Verification
 
 <CodeViewer :snippets="testingSnippets" />
+
+::: tip Need Organization or Cloud-Wide Allowlisting?
+Instead of maintaining thousands of churning IP blocks for corporate offices, VPNs, or partner clouds (Cloudflare, AWS, GCP), use **[Autonomous System Number (ASN) Filtering](/core/asn-filtering)**. ASN allowlisting lets you specify ASNs like `"AS13335"` or `"64500"` using an offline, in-memory routing snapshot with zero runtime DNS or HTTP queries.
+:::

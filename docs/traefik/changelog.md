@@ -9,7 +9,33 @@ All notable changes to the **Traefik Warden** plugin (`github.com/routewarden/tr
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and Traefik Warden adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v1.6.0] - 2026-10-20 (Latest)
+## [v1.7.0] - 2026-10-27 (Latest)
+
+### Added
+- **Offline ASN-Based Allowlisting (`allowedASNs` / `asnDB`)**:
+  - Added support for Autonomous System Number (ASN) based allowlisting using an offline, in-memory JSON routing snapshot (`asnDB`), eliminating runtime DNS and external HTTP dependencies.
+  - Supports standard string-formatted ASN identifiers such as `"64500"` or `"AS64500"` (case-insensitive).
+  - Implements in-memory longest-prefix matching across IPv4 and IPv6 routing tables, including dual-stack support and IPv4-mapped IPv6 client addresses (`::ffff:x.x.x.x`).
+  - Preserves hierarchical routing boundaries: more specific prefixes owned by another ASN never inherit an allowed parent's bypass. Conflicting origins for the exact same prefix are rejected during snapshot validation.
+  - Non-matching client IPs continue through standard security inspection without rejection; matching client IPs bypass inspection identical to `allowedIps`.
+  - Added strict peer IP resolution: client-supplied ASN headers (e.g. `CF-Connecting-ASN`) are never trusted. Evaluates direct socket peer IP unless `trustedProxies` / `trusted_proxies` are explicitly configured.
+  - Bundled database compilation utility `scripts/build-asn-db.py` to convert MaxMind GeoLite2/GeoIP2 ASN Blocks CSV files into optimized JSON routing snapshots.
+  - Added cross-engine configuration alias support: accepts both camelCase (`allowedASNs`, `asnDB`) and snake_case (`allowed_asns`, `asn_db`) via shared `configFile` (`routewarden.json`) policies.
+
+### Fixed & Enhanced
+- **IPv6 Scope & Zone Index Stripping**:
+  - Automatically strip zone identifiers (`%interface`, e.g. `%eth0`) from client IPv6 addresses before parsing in `ASNFilter.Lookup` and `IPFilter`. Prevents `net.ParseIP` evaluation failures on scoped link-local and dual-stack socket addresses.
+- **Response Handler Normalization & Status Code Fallbacks**:
+  - Synchronized response status code fallback and mode handling across all 13 response modes, ensuring consistent status codes and headers in `ServeBlockedRequest`.
+  - Hardened silent drop connection termination and custom response text delivery.
+- **AI Bot & Crawler Defense Architecture**:
+  - Published comprehensive AI bot mitigation guide covering active tarpits, gzip bomb counters, and ASN filtering against automated LLM training scrapers (`GPTBot`, `ClaudeBot`, `Bytespider`, `CCBot`).
+- **Test Suite Hardening**:
+  - Added unit test coverage for IPv6 zone handling, response mode fallbacks, Yaegi interpreter compliance, and path normalizer edge cases.
+
+---
+
+## [v1.6.0] - 2026-10-20
 
 ### Security
 - **Critical Fix: Matrix Parameter Allowlist Bypass (`/.env;robots.txt`)**:

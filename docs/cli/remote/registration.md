@@ -176,7 +176,8 @@ If an agent key is rotated or revoked on the central server:
 | `--url` | `-u` | string | **Yes** | Central Routewarden dashboard URL (e.g. `http://dashboard.internal:7890`) |
 | `--key` | `-k` | string | **Yes** | 24-byte secret agent token created via `rwarden keys create` |
 | `--config` | — | string | No | Custom path to store agent configuration (default: `~/.routewarden/agent.json`) |
-| `--status` | `-s` | string | No | Persist default HTTP status codes or ranges to forward (e.g. `'400-599, 301'`, `'4xx, 5xx'`) |
+| `--status` | `-s`, `--status-codes`, `--include-status` | string | No | Persist default HTTP status codes or ranges to forward (e.g. `'400-599, 301'`, `'4xx, 5xx'`) |
 | `--include-failed` | `-F` | bool | No | Legacy alias: persist setting to ship all failed HTTP requests (status >= 400: 4xx, 5xx) |
 | `--all-traffic` | — | bool | No | Persist default setting to ship all HTTP access traffic including 200 OK responses |
+| `--all-logs` | — | bool | No | Persist default setting to ship all raw container lines without Routewarden filtering |
 

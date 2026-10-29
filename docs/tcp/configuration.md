@@ -20,6 +20,9 @@ global:
   log_level: "warn"
   log_file: "/var/log/routewarden/tcp-warden.jsonl"
   geoip_db: "/etc/routewarden/GeoLite2-Country.mmdb"
+  asn_db: "/etc/routewarden/asn.json"
+  allowed_asns:
+    - "64500"
   ip_filter:
     allow:
       - "127.0.0.1/32"
@@ -329,6 +332,8 @@ Daemon-wide defaults for connection limits, ban rules, persistent state, and log
 | `log_level` | `string` | `"warn"` | Log verbosity: `debug`, `info`, `warn`, `error`, or `off`. See [Log Levels](./log-levels). |
 | `log_file` | `string` | — | Path to JSONL audit log file (leave empty to log to stdout). |
 | `geoip_db` | `string` | — | Path to MaxMind GeoLite2 Country database (`.mmdb`). |
+| `asn_db` | `string` | — | Path to local JSON ASN-to-CIDR routing snapshot file. |
+| `allowed_asns` | `[]string` | `[]` | Global list of allowed ASNs (e.g. `["64500", "AS13335"]`). Acts as admission gate. |
 | `ip_filter.allow` | `[]CIDR` | `[]` | Subnets that are always allowed (e.g. `["10.0.0.0/8"]`). |
 | `ip_filter.deny` | `[]CIDR` | `[]` | Subnets that are always blocked immediately. |
 | `geo_block.deny_countries` | `[]string` | `[]` | Two-letter country codes to block (e.g. `["KP"]`). |
@@ -377,6 +382,7 @@ Each key under `services` defines an isolated Layer 4 proxy listener. Common ser
 | :--- | :--- | :--- |
 | `listen` | `string` | Single port (`":2222"`) or port range (`":8000-8005"`). |
 | `upstream` | `string` | Backend target: single address (`"127.0.0.1:22"`), single backend for many-to-one ranges (`"10.0.0.1:80"`), or matching 1:1 range (`"10.0.0.1:9000-9005"`). |
+| `allowed_asns` | `[]string` | Per-service allowed ASNs. When set, replaces `global.allowed_asns`. Non-matching clients are rejected at perimeter. |
 | `transport` | `string` | Network transport: `"tcp"` (default), `"udp"`, or `"both"` (binds both TCP and UDP listeners on the same port, e.g. for DNS on `:53`). |
 | `protocol` | `string` | Protocol handler: `ssh`, `smtp`, `pop3`, `imap`, `tcp`, or any loaded plugin name (`dns`, `bittorrent`, `http`, `postgres`, `redis`, etc.). |
 | `plugin_config` | `map` | Protocol-specific inspector options passed directly to the active plugin. |
@@ -388,6 +394,39 @@ Each key under `services` defines an isolated Layer 4 proxy listener. Common ser
 | `udp.session_timeout` | `duration` | Idle timeout before cleaning up a client's UDP NAT/session mapping (default: `"30s"`). |
 | `udp.max_sessions` | `int` | Maximum concurrent active UDP client sessions (`0` = unlimited). Protects against session table memory exhaustion. |
 | `udp.read_buffer_size` | `int` | Per-datagram socket read buffer in bytes (default: `65535`). |
+
+---
+
+## ASN Admission Gating (`asn_db` & `allowed_asns`)
+
+TCP Warden supports offline Autonomous System Number (ASN) based perimeter admission gating for Layer 4 TCP and UDP services.
+
+```yaml
+global:
+  asn_db: /etc/routewarden/asn.json
+  allowed_asns: ["64500"]
+
+services:
+  # Inherits global ASN allowlist (only AS64500 is admitted)
+  db_proxy:
+    listen: ":5432"
+    upstream: "10.0.1.20:5432"
+    protocol: postgres
+
+  # Overrides global list for dedicated partner traffic
+  partner_service:
+    listen: ":8443"
+    upstream: "127.0.0.1:9443"
+    protocol: tcp
+    allowed_asns: ["AS13335", "64501"]
+```
+
+### Perimeter Admission Gating Mechanics
+
+- **Admission Gate (Not Bypass)**: Unlike HTTP reverse proxy middleware (where matching an ASN acts as an allowlist exemption), in TCP Warden an ASN match simply **admits the client into the security pipeline**. Admitted connections are still evaluated against IP filters (`ip_filter`), country blocks (`geo_block`), rate limits (`rate_limit`), persistent bans, CrowdSec threat intelligence (`crowdsec`), and protocol guards.
+- **Immediate Rejection**: Clients connecting from non-matching ASNs or unknown origins (including private RFC 1918 subnets not declared in the snapshot) are rejected immediately according to `response.mode` and logged as `asn_denied` security events.
+- **Private Subnets**: MaxMind ASN databases do not include private RFC 1918 addresses (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`). To admit local clients or internal VPNs alongside an ASN allowlist, declare them in `ip_filter.allow`.
+- For complete snapshot generation commands and longest-prefix routing details, see the **[ASN Filtering Guide](/core/asn-filtering)**.
 
 ---
 

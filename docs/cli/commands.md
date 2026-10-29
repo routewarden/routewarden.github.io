@@ -913,9 +913,10 @@ Enroll a remote node with a central Routewarden dashboard. This one-time handsha
 | `--url` | `-u` | string | **Yes** | Routewarden Central Dashboard URL (e.g. `http://dashboard.internal:7890`) |
 | `--key` | `-k` | string | **Yes** | Remote agent authentication key (`rw_sec_...`) |
 | `--config` | — | string | No | Custom path to store agent configuration (default: `~/.routewarden/agent.json`) |
-| `--status` | `-s` | string | No | Persist default HTTP status codes or ranges to forward (e.g. `'400-599, 301'`, `'4xx, 5xx'`). Can be used independently. |
+| `--status` | `-s`, `--status-codes`, `--include-status` | string | No | Persist default HTTP status codes or ranges to forward (e.g. `'400-599, 301'`, `'4xx, 5xx'`). Can be used independently. |
 | `--include-failed` | `-F` | bool | No | Legacy alias: persist setting to ship all failed HTTP requests (status >= 400). Can be used independently. |
 | `--all-traffic` | — | bool | No | Persist default setting to ship all HTTP access traffic. Can be used independently. |
+| `--all-logs` | — | bool | No | Persist default setting to ship all raw container lines without filtering. Can be used independently. |
 
 ---
 
@@ -934,21 +935,48 @@ Stream live security events and gateway access logs from remote edge nodes, clou
 | `--detach` | `-d` | bool | `false` | Run shipper in background (detached) daemon mode |
 | `--docker` | — | bool | `false` | Auto-discover and tail Docker containers. Can run concurrently with `--file` and `--container` |
 | `--container` | `-c` | string | `""` | Tail specific Docker container(s) by name or ID (repeatable or comma-separated) |
-| `--file` | `-f` | string | `""` | Tail and ship events from log file(s) (repeatable, comma-separated, or glob pattern `*.log`) |
-| `--label` | `-l` | string | `"routewarden=true"` | Custom Docker label filter |
+| `--file` | `-f` | string | `""` | Tail and ship events from log file(s) (repeatable, comma-separated, glob pattern `*.log`, or `-` for stdin) |
+| `--event` | `-e` | string | `""` | Push one or more specific JSON event strings directly to the dashboard (repeatable) |
+| `--stdin` | — | bool | `false` | Read and push log events line-by-line from STDIN pipe |
+| `--label` | `-l` | string | `"routewarden=true"` | Custom Docker label filter for auto-discovery |
 | `--tail` | — | string | `"50"` | Initial lines to tail from Docker container(s) and log file(s) |
 | `--batch-size` | — | int | `50` | Maximum events to buffer in memory before flushing |
 | `--flush-interval` | — | duration | `1s` | Maximum duration before flushing partial buffer |
 | `--queue-size` | — | int | `10000` | Maximum events to buffer in memory while disconnected from dashboard |
 | `--disconnect-timeout` | — | duration | `5m` | Duration disconnected from dashboard before dropping stale events |
 | `--ping-interval` | — | duration | `10s` | Interval between connection health pings when connected |
-| `--status` | `-s` | string | `""` | Forward HTTP requests matching status codes or ranges (e.g. `'400-599, 301'`, `'4xx, 5xx'`). Can be used independently. |
+| `--status` | `-s`, `--status-codes`, `--include-status` | string | `""` | Forward HTTP requests matching status codes or ranges (e.g. `'400-599, 301'`, `'4xx, 5xx'`). Can be used independently. |
 | `--include-failed` | `-F` | bool | `false` | Legacy alias: ship all failed HTTP requests (status >= 400). Can be used independently; overridden by `--status`. |
 | `--all-traffic` | — | bool | `false` | Ship all HTTP access traffic and Layer 4 UDP/TCP sessions. Can be used independently; overrides status filters. |
 | `--all-logs` | — | bool | `false` | Ship all raw container lines without filtering (default filters for Routewarden events & security blocks) |
 | `--url` | `-u` | string | `""` | Override central dashboard URL from registered config |
 | `--key` | `-k` | string | `""` | Override agent authentication key from registered config |
 | `--config` | — | string | `~/.routewarden/agent.json` | Custom path to agent configuration file |
+| `--verbose` | `-v` | bool | `false` | Enable verbose event-level diagnostic logging |
+
+### Environment Variables
+
+Every CLI flag can alternatively be configured via environment variables, ideal for Docker, Compose, and Kubernetes:
+
+| Environment Variable | Shorthand Alias | CLI Flag Equivalent | Description | Default |
+|:---|:---|:---|:---|:---|
+| `RW_DASHBOARD_URL` | `RW_URL` | `--url`, `-u` | Central Routewarden dashboard URL | `""` |
+| `RW_AGENT_KEY` | `RW_KEY` | `--key`, `-k` | Remote agent authentication token | `""` |
+| `RW_CONFIG` | — | `--config` | Custom path to agent configuration file | `~/.routewarden/agent.json` |
+| `RW_STATUS` | `RW_STATUS_CODES`, `RW_INCLUDE_STATUS` | `--status`, `-s` | Forward HTTP requests matching status codes or ranges | `""` |
+| `RW_INCLUDE_FAILED` | — | `--include-failed`, `-F` | Ship all failed HTTP requests ($\ge 400$) | `false` |
+| `RW_ALL_TRAFFIC` | — | `--all-traffic` | Ship all HTTP access traffic (including 200 OK) | `false` |
+| `RW_ALL_LOGS` | — | `--all-logs` | Ship all raw container lines without filtering | `false` |
+| `RW_DOCKER` | — | `--docker` | Auto-discover and tail Docker containers | `false` (`true` in container) |
+| `RW_LABEL` | — | `--label`, `-l` | Docker container discovery label | `routewarden=true` |
+| `RW_TAIL` | — | `--tail` | Initial lines to tail from containers or files | `50` |
+| `RW_BATCH_SIZE` | — | `--batch-size` | Maximum events to buffer before flushing | `50` |
+| `RW_FLUSH_INTERVAL` | — | `--flush-interval` | Maximum duration before flushing partial batches | `1s` |
+| `RW_QUEUE_SIZE` | — | `--queue-size` | Maximum events to buffer in memory while offline | `10000` |
+| `RW_DISCONNECT_TIMEOUT` | — | `--disconnect-timeout` | Duration disconnected before dropping stale events | `5m` |
+| `RW_PING_INTERVAL` | — | `--ping-interval` | Interval between connection health pings | `10s` |
+| `RW_VERBOSE` | `RW_DEBUG` | `--verbose`, `-v` | Enable verbose event-level logging | `false` |
+| `RW_DETACH` | — | `--detach`, `-d` | Run shipper daemon in detached background mode | `false` |
 
 ---
 

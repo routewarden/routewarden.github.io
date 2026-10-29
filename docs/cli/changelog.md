@@ -7,7 +7,47 @@ description: "Release history, new features, and bug fixes for the Routewarden C
 
 All notable changes to the Routewarden CLI (`rwarden`) are documented here. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and the CLI adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v5.3.3] - 2026-10-23 (Latest)
+## [v5.4.0] - 2026-10-27 (Latest)
+
+### Added
+- **Offline ASN-Based Allowlisting (`allowedASNs` / `asnDB`)**:
+  - Added support for Autonomous System Number (ASN) based allowlisting using an offline JSON routing snapshot (`asnDB` / `asn_db`), eliminating runtime DNS and external HTTP queries.
+  - Added `allowedASNs` (`allowed_asns`) and `asnDB` (`asn_db`) to `routewarden.json` schema (`config.schema.json`) and core CLI configuration parsers.
+  - Supports string-formatted ASN identifiers such as `"64500"` or `"AS64500"` (case-insensitive) with dual-stack IPv4 and IPv6 support.
+  - Implemented longest-prefix routing table matching in Go: more specific routes allocated to other ASNs do not inherit parent ASN bypasses. Conflicting prefix origins are rejected at startup.
+  - Local rule simulation and evaluation engine (`rwarden test` / evaluation) reports verdict reason `asn_whitelisted` for requests matching allowed ASNs.
+  - Code generation (`rwarden generate`): generates Traefik dynamic YAML/TOML/Docker labels, Caddyfile directives, NGINX Lua configurations, and TCP Warden YAML preserving ASN database paths and allowlists.
+- **Layer 4 Admission Gating in `tcp-warden` & Daemon Proxy**:
+  - Added `global.asn_db`, `global.allowed_asns`, and per-service `services.<name>.allowed_asns` to TCP Warden (`tcp-warden.yaml`).
+  - Distinct admission semantics for Layer 4: an effective ASN allowlist acts as an **admission gate**. Unknown origins (including private RFC1918 IPs absent from the routing snapshot) and non-matching origins are rejected immediately and recorded as `asn_denied` security events.
+  - Matching an ASN grants admission to the pipeline and does NOT bypass downstream security defenses (bans, CrowdSec, IP filters, geo-blocking, rate limits, or protocol filters).
+  - Works uniformly across TCP and UDP reverse proxy services.
+  - Empty per-service `allowed_asns` inherits the global list; a non-empty service list replaces the global list matching IP filter inheritance.
+- **Offline ASN Database Compiler (`scripts/build-asn-db.py`)**:
+  - Included Python compilation tool to convert MaxMind GeoLite2/GeoIP2 ASN Blocks CSV files into optimized JSON routing snapshots.
+- **Resilient CLI Flag Parsing & Combined Argument Expansion**:
+  - Enhanced lenient flag parsing in `cli/main.go` and `cli/shipper/utils.go` to automatically expand space-separated flag arguments (e.g. `"-docker --all-traffic"` or `"--batch-size 100"` passed as a single quoted string in Docker Compose or shell scripts) into discrete tokens, preventing `flag provided but not defined: -docker --all-traffic` errors.
+  - Added direct command flag routing in `main.go` so passing shipper flags directly (e.g. `rwarden --docker`, `rwarden --all-traffic`) automatically dispatches to the `push` log shipper daemon without requiring `push` as an explicit subcommand.
+  - Added full environment variable support across all shipper flags (`RW_CONFIG`, `RW_DOCKER`, `RW_LABEL`, `RW_TAIL`, `RW_BATCH_SIZE`, `RW_FLUSH_INTERVAL`, `RW_QUEUE_SIZE`, `RW_DISCONNECT_TIMEOUT`, `RW_PING_INTERVAL`, `RW_VERBOSE`, `RW_ALL_LOGS`, `RW_DETACH`).
+  - Added `--all-logs` flag and `all_logs` persistence to `rwarden register` (`cli/register.go` and `cli/shipper/register.go`).
+  - Expanded documentation in `cli/remote/shipper.md`, `cli/commands.md`, and `cli/remote/registration.md` with comprehensive flag and environment variable reference tables and Docker Compose syntax guidance.
+
+### Fixed & Enhanced
+- **IPv6 Scope & Zone Index Stripping**:
+  - Sanitized zone identifiers (`%interface`, e.g. `%eth0`) from client IPv6 addresses during ASN radix-tree lookup across both the policy evaluation engine (`rwarden test`) and Layer 4 proxy daemon (`rwarden tcp`).
+- **Proxy Pipeline & UDP Session Resilience**:
+  - Improved UDP session handling, buffer recycling, and connection teardown in `proxy/core/udp_session.go` and `udp_engine.go`.
+  - Hardened TCP/UDP reverse proxy connection error handling and socket shutdown cleanup.
+- **CrowdSec LAPI Client Error Recovery**:
+  - Enhanced CrowdSec LAPI client resilience with improved timeout handling, reconnect logging, and non-blocking decision cache updates during transient CrowdSec daemon reloads.
+- **Layer 4 & Layer 7 Protocol Plugins Hardening**:
+  - Added comprehensive test suites and hardened protocol inspectors across 19 plugins (IMAP, POP3, Redis, SMTP, SSH, TLS SNI, VNC, HTTP, LDAP, Memcached, MongoDB, Minecraft, FTP, Generic).
+- **AI Bot & Crawler Defense Architecture**:
+  - Published comprehensive AI bot mitigation guide and threat categorization across the ecosystem.
+
+---
+
+## [v5.3.3] - 2026-10-23
 
 ### Added
 - **Explicit HTTP Status Codes & Ranges Forwarding (`--status` / `-s`)**:

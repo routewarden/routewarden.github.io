@@ -267,7 +267,7 @@ const caddyDockerfile = buildSnippet({
 FROM caddy:2-builder AS builder # [!code ++]
 
 RUN xcaddy build \\ # [!code ++]
-    --with github.com/routewarden/caddy-warden@v1.6.2 # [!code ++]
+    --with github.com/routewarden/caddy-warden@v1.7.0 # [!code ++]
 
 FROM caddy:2
 
@@ -904,12 +904,12 @@ const verificationSnippets = computed(() => ({
 
 // ─── Dual-Router Architecture Diagram Snippets ──────────────────────────────
 const immich_mermaid_raw = `flowchart TD
-    CLIENT(["<b>Internet / Public Traffic</b>"]):::startNode --> EDGE["<b>Traefik Reverse Proxy</b><br/>Port 443 / EntryPoints: websecure &amp; internal"]:::edgeNode
+    CLIENT(["<b>Internet / Public Traffic</b>"]):::startNode --> EDGE["<b>Traefik Reverse Proxy</b><br/>Port 443 / EntryPoints:<br/>websecure &amp; internal"]:::edgeNode
 
     EDGE -->|Host: photos.domain| PUB["<b>Public Router</b><br/>EntryPoint: websecure"]:::routerNode
-    EDGE -->|Host: photos-lan.vpn| PRIV["<b>Private / VPN Router</b><br/>EntryPoint: internal (Tailscale / WireGuard)"]:::vpnNode
+    EDGE -->|Host: photos-lan.vpn| PRIV["<b>Private / VPN Router</b><br/>EntryPoint: internal<br/>(Tailscale / WireGuard)"]:::vpnNode
 
-    PUB --> SHIELD["<b>Routewarden Shield (Zero-Trust Allowlist)</b><br/>• Allowlist: /share/*, /api/shared-links*, /api/server/media-types, /api/server/config, /api/server/features, /api/assets/*<br/>• Default-Deny: Intercepts all other routes (/, /auth/*, /admin*) with 404"]:::shieldNode
+    PUB --> SHIELD["<b>Routewarden Shield (Zero-Trust Allowlist)</b><br/>• Allowlist Endpoints:<br/>  - /share/*, /api/shared-links*<br/>  - /api/server/media-types, /api/server/config<br/>  - /api/server/features, /api/assets/*<br/>• Default-Deny (Stealth 404):<br/>  - Intercepts /, /auth/*, /admin*<br/>  - Blocks scans &amp; admin routes before Immich"]:::shieldNode
 
     PRIV -->|Direct Full Admin Access| BACKEND["<b>Immich Server</b><br/>Upstream Backend Application"]:::upstreamNode
     SHIELD -->|Allowed Public Assets /share/*| BACKEND
@@ -922,7 +922,7 @@ const immich_mermaid_raw = `flowchart TD
     classDef upstreamNode fill:#0f172a,stroke:#6366f1,color:#ffffff,stroke-width:2px;`
 
 const immich_graph_svg = `<div class="rw-graph-container">
-  <svg viewBox="0 0 960 480" fill="none" xmlns="http://www.w3.org/2000/svg" class="rw-graph-svg">
+  <svg viewBox="0 0 960 520" fill="none" xmlns="http://www.w3.org/2000/svg" class="rw-graph-svg">
     <defs>
       <linearGradient id="immich-grad-pub" x1="0" y1="0" x2="0" y2="1">
         <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.14"/>
@@ -974,46 +974,48 @@ const immich_graph_svg = `<div class="rw-graph-container">
     <path d="M 580 138 C 580 160, 730 155, 730 178" stroke="#10b981" stroke-width="2" fill="none" marker-end="url(#immich-arr-emerald)"/>
 
     <!-- 2. Public Router -->
-    <rect x="60" y="178" width="340" height="74" rx="10" class="rw-g-box" fill="url(#immich-grad-pub)"/>
-    <circle cx="86" cy="204" r="7" fill="#f59e0b"/>
-    <text x="104" y="202" class="rw-g-card-title">Public Router (Internet Access)</text>
-    <text x="86" y="224" class="rw-g-desc">Rule: Host(\`photos.domain.com\`) • EntryPoint: websecure</text>
-    <text x="86" y="240" class="rw-g-desc">Intended for public photo galleries, album sharing &amp; uploads</text>
+    <rect x="50" y="178" width="360" height="74" rx="10" class="rw-g-box" fill="url(#immich-grad-pub)"/>
+    <circle cx="76" cy="204" r="7" fill="#f59e0b"/>
+    <text x="94" y="202" class="rw-g-card-title">Public Router (Internet Access)</text>
+    <text x="76" y="224" class="rw-g-desc">Rule: Host(\`photos.domain.com\`) • EntryPoint: websecure</text>
+    <text x="76" y="240" class="rw-g-desc">Public photo galleries, album sharing &amp; media uploads</text>
 
     <!-- 3. Private / VPN Router -->
-    <rect x="560" y="178" width="340" height="74" rx="10" class="rw-g-box" fill="url(#immich-grad-priv)"/>
-    <circle cx="586" cy="204" r="7" fill="#10b981"/>
-    <text x="604" y="202" class="rw-g-card-title">Private Router (Admin / LAN / VPN)</text>
-    <text x="586" y="224" class="rw-g-desc">Rule: Host(\`photos-lan.domain.com\`) • EntryPoint: internal</text>
-    <text x="586" y="240" class="rw-g-desc">Direct admin panel, background jobs, user management access</text>
+    <rect x="550" y="178" width="360" height="74" rx="10" class="rw-g-box" fill="url(#immich-grad-priv)"/>
+    <circle cx="576" cy="204" r="7" fill="#10b981"/>
+    <text x="594" y="202" class="rw-g-card-title">Private Router (Admin / LAN / VPN)</text>
+    <text x="576" y="224" class="rw-g-desc">Rule: Host(\`photos-lan.domain.com\`) • EntryPoint: internal</text>
+    <text x="576" y="240" class="rw-g-desc">Direct admin panel, background jobs &amp; user management</text>
 
     <!-- Connector: Public Router -> Routewarden Shield -->
     <line x1="230" y1="252" x2="230" y2="284" stroke="#ef4444" stroke-width="2" marker-end="url(#immich-arr-rose)"/>
 
     <!-- 4. Routewarden Shield -->
-    <rect x="60" y="284" width="340" height="88" rx="10" class="rw-g-box" fill="url(#immich-grad-shield)"/>
-    <circle cx="86" cy="310" r="7" fill="#ef4444"/>
-    <text x="104" y="308" class="rw-g-card-title">Routewarden Middleware Shield</text>
-    <text x="86" y="328" class="rw-g-desc">• Zero-Trust: Default-Deny (^/.*$) with stealth 404 cloaking</text>
-    <text x="86" y="344" class="rw-g-desc">• Allowlist: /share/*, /api/shared-links*, /api/server/media-types, /api/server/config, /api/server/features, /api/assets/*</text>
-    <text x="86" y="360" class="rw-g-desc">• Allowed paths pass safely: /share/*, /api/asset/*</text>
+    <rect x="50" y="284" width="360" height="124" rx="10" class="rw-g-box" fill="url(#immich-grad-shield)"/>
+    <circle cx="76" cy="308" r="7" fill="#ef4444"/>
+    <text x="94" y="306" class="rw-g-card-title">Routewarden Middleware Shield</text>
+    <text x="76" y="326" class="rw-g-desc">• Zero-Trust: Default-Deny (^/.*$) with stealth 404</text>
+    <text x="76" y="342" class="rw-g-desc">• Allowlist: /share/*, /api/shared-links*,</text>
+    <text x="88" y="358" class="rw-g-desc">/api/server/media-types, /api/server/config,</text>
+    <text x="88" y="374" class="rw-g-desc">/api/server/features, /api/assets/*</text>
+    <text x="76" y="392" class="rw-g-desc">• Intercepts /, /auth/*, /admin* before upstream</text>
 
     <!-- Connectors to Upstream Backend -->
     <!-- From Routewarden Shield to Immich (Allowed Public Traffic) -->
-    <path d="M 230 372 L 230 408" stroke="#0284c7" stroke-width="2" fill="none" marker-end="url(#immich-arr-cyan)"/>
-    <rect x="155" y="380" width="150" height="18" rx="4" class="rw-g-pill"/>
-    <text x="230" y="393" text-anchor="middle" class="rw-g-pill-txt" fill="#0284c7">Allowed Public Assets</text>
+    <path d="M 230 408 L 230 448" stroke="#0284c7" stroke-width="2" fill="none" marker-end="url(#immich-arr-cyan)"/>
+    <rect x="155" y="416" width="150" height="18" rx="4" class="rw-g-pill"/>
+    <text x="230" y="429" text-anchor="middle" class="rw-g-pill-txt" fill="#0284c7">Allowed Public Assets</text>
 
     <!-- From Private Router directly to Immich (Full Admin Access) -->
-    <path d="M 730 252 L 730 408" stroke="#10b981" stroke-width="2" fill="none" marker-end="url(#immich-arr-emerald)"/>
-    <rect x="660" y="324" width="140" height="18" rx="4" class="rw-g-pill"/>
-    <text x="730" y="337" text-anchor="middle" class="rw-g-pill-txt" fill="#10b981">Full Admin Access</text>
+    <path d="M 730 252 L 730 448" stroke="#10b981" stroke-width="2" fill="none" marker-end="url(#immich-arr-emerald)"/>
+    <rect x="660" y="338" width="140" height="18" rx="4" class="rw-g-pill"/>
+    <text x="730" y="351" text-anchor="middle" class="rw-g-pill-txt" fill="#10b981">Full Admin Access</text>
 
     <!-- 5. Immich Server (Upstream Backend) -->
-    <rect x="60" y="412" width="840" height="54" rx="10" class="rw-g-box" fill="url(#immich-grad-backend)"/>
-    <circle cx="86" cy="439" r="8" fill="#6366f1"/>
-    <text x="104" y="435" class="rw-g-card-title" fill="#6366f1">Immich Server (Upstream Backend Application)</text>
-    <text x="104" y="453" class="rw-g-desc">Single upstream container receiving clean public requests and authorized internal admin connections</text>
+    <rect x="50" y="450" width="860" height="54" rx="10" class="rw-g-box" fill="url(#immich-grad-backend)"/>
+    <circle cx="76" cy="477" r="8" fill="#6366f1"/>
+    <text x="94" y="473" class="rw-g-card-title" fill="#6366f1">Immich Server (Upstream Backend Application)</text>
+    <text x="94" y="491" class="rw-g-desc">Single upstream container receiving clean public requests and authorized internal admin connections</text>
   </svg>
 </div>`
 

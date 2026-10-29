@@ -313,7 +313,7 @@ const verify_commands = buildSnippet({
   code: `# 1. Verify TCP Warden health & CrowdSec status
 curl -s http://127.0.0.1:9091/health
 # Expected output contains:
-# {"status":"ok","version":"5.3.3","crowdsec":{"status":"healthy","decisions":1250,"update_frequency":"10s"}}
+# {"status":"ok","version":"5.4.0","crowdsec":{"status":"healthy","decisions":1250,"update_frequency":"10s"}}
 
 # Or check status via Routewarden CLI
 rwarden tcp status
@@ -335,7 +335,7 @@ const health_response = buildSnippet({
   lang: 'json',
   code: `{
   "status": "ok",
-  "version": "5.3.3",
+  "version": "5.4.0",
   "crowdsec": {
     "status": "healthy",
     "decisions": 1250,

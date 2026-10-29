@@ -179,6 +179,27 @@ const expandedMethodsSnippets = computed(() => ({
     { filename: 'traefik.yaml', lang: 'yaml', code: expanded_methods.cleanCode, html: expanded_methods.html, hasDiff: false },
   ],
 }))
+
+const asn_yaml = buildSnippet({
+  lang: 'yaml',
+  code: `http:
+  middlewares:
+    warden:
+      plugin:
+        routewarden:
+          allowedASNs:
+            - "AS13335" # Cloudflare
+            - "64500"   # Corporate Network
+          asnDB: /etc/routewarden/asn.json
+          trustedProxies:
+            - "10.0.0.0/8"`,
+})
+
+const asnSnippets = computed(() => ({
+  traefik: [
+    { filename: 'traefik.yml', lang: 'yaml', code: asn_yaml.cleanCode, html: asn_yaml.html, hasDiff: false },
+  ],
+}))
 </script>
 
 # Traefik Warden: Configuration Reference
@@ -200,6 +221,8 @@ This reference covers all configuration options available in **Traefik Warden**.
 | `blockPatterns` | `[]string` | `[]` | List of custom regular expressions to block (matches against normalized path). |
 | `allowPatterns` | `[]string` | `[]` | Additional custom regex patterns to explicitly allow even if matching blocked rules. |
 | `allowedIps` | `[]string` | `[]` | Whitelisted IPv4/IPv6 addresses or CIDR subnets (e.g., `10.0.0.0/8`, `127.0.0.1`). |
+| `allowedASNs` | `[]string` | `[]` | List of Autonomous System Numbers (`"64500"` or `"AS64500"`) whose client IPs bypass inspection. Requires `asnDB`. |
+| `asnDB` | `string` | `""` | Absolute filesystem path to local JSON ASN-to-CIDR routing snapshot file. |
 | `trustedProxies` | `[]string` | `[]` | Upstream proxies/load-balancers trusted for `X-Forwarded-For` / `X-Real-IP`. Untrusted connections use socket IP directly. |
 | `methods` | `[]string` | `["GET"]` | HTTP request verbs to inspect (e.g. `["GET", "POST"]`). Supports wildcard `"*"` or `"ALL"` to inspect all verbs. Auto-expanded to include `POST`, `PUT`, `PATCH` when `checkBody` is enabled without explicit methods. |
 | `checkQuery` | `bool` | `false` | Also inspects the URL raw query string for blocked patterns. |
@@ -232,6 +255,18 @@ The `routewarden.json` file uses the standard Routewarden JSON schema (view it w
 
 > [!TIP]
 > Mount `routewarden.json` as a Docker volume or Kubernetes ConfigMap and share it across multiple Traefik middleware instances for consistent policy enforcement across services.
+
+---
+
+## ASN Allowlisting (`allowedASNs` & `asnDB`)
+
+Traefik Warden supports Autonomous System Number (ASN) based allowlisting using an offline JSON routing snapshot compiled from MaxMind GeoLite2/GeoIP2 ASN CSV data with `scripts/build-asn-db.py`.
+
+<CodeViewer :snippets="asnSnippets" />
+
+When a request originates from an IP prefix mapped to an allowed ASN in `asnDB`, Routewarden immediately bypasses path and body inspection (identical to `allowedIps`). Client-supplied ASN headers (e.g. `CF-Connecting-ASN`) are strictly ignored; only the socket peer or sanitized IPs from `trustedProxies` are matched.
+
+For routing snapshot build instructions, JSON formatting, and longest-prefix matching details, refer to the **[ASN Filtering Guide](/core/asn-filtering)**.
 
 ---
 

@@ -199,6 +199,51 @@ const filteringSnippets = computed(() => ({
   ],
 }))
 
+// ─── 4b. Layer 4 (UDP & TCP) Log Snippets ─────────────────────────────────────
+const l4_log_json = buildSnippet({
+  lang: 'json',
+  code: `{
+  "type": "security_event",
+  "timestamp": "2026-10-24T06:00:00Z",
+  "level": "warn",
+  "plugin": "tcp-warden",
+  "service": "dns_service",
+  "protocol": "udp",
+  "client_ip": "198.51.100.22",
+  "action": "blocked",
+  "reason": "rate_limit_exceeded",
+  "bytes_in": 78,
+  "bytes_out": 0
+}`,
+})
+
+const l4LogSnippets = computed(() => ({
+  cli: [
+    { filename: 'tcp-warden.jsonl', lang: 'json', code: l4_log_json.cleanCode, html: l4_log_json.html, hasDiff: false },
+  ],
+}))
+
+const l4_push_cmd = buildSnippet({
+  lang: 'bash',
+  code: `# 1. Stream UDP security events from log file (default mode)
+rwarden push -f /var/log/routewarden/tcp-warden.jsonl
+
+# Or stream from a Docker container
+rwarden push -c tcp-warden
+
+# 2. Forward all UDP datagram sessions (including allowed traffic)
+rwarden push -f /var/log/routewarden/tcp-warden.jsonl --all-traffic
+
+# 3. Piping from systemd / journald via STDIN
+journalctl -u tcp-warden -f -o cat | rwarden push -f -`,
+})
+
+const l4PushSnippets = computed(() => ({
+  cli: [
+    { filename: 'rwarden push (Layer 4 UDP / TCP)', lang: 'bash', code: l4_push_cmd.cleanCode, html: l4_push_cmd.html, hasDiff: false },
+  ],
+}))
+
 const one_off_cmd = buildSnippet({
   lang: 'bash',
   code: `# Push directly without pre-saving config
@@ -504,39 +549,14 @@ When running services with `transport: udp` or `transport: both` in `tcp-warden.
 
 Decisions are written as structured JSON lines to `/var/log/routewarden/tcp-warden.jsonl` (or container stdout):
 
-```json
-{
-  "type": "security_event",
-  "timestamp": "2026-10-24T06:00:00Z",
-  "level": "warn",
-  "plugin": "tcp-warden",
-  "service": "dns_service",
-  "protocol": "udp",
-  "client_ip": "198.51.100.22",
-  "action": "blocked",
-  "reason": "rate_limit_exceeded",
-  "bytes_in": 78,
-  "bytes_out": 0
-}
-```
+<CodeViewer :snippets="l4LogSnippets" />
 
 #### Shipping UDP Logs with `rwarden push`
-- **Security Events (Default)**: All blocked or banned UDP events carry `"plugin": "tcp-warden"` or `"action": "blocked"`, so they are automatically detected as security events and forwarded to the central dashboard without any special flags:
-  ```bash
-  # Stream UDP security events from log file
-  rwarden push -f /var/log/routewarden/tcp-warden.jsonl
+- **Security Events (Default)**: All blocked or banned UDP events carry `"plugin": "tcp-warden"` or `"action": "blocked"`, so they are automatically detected as security events and forwarded to the central dashboard without any special flags.
+- **Forwarding All UDP Datagram Sessions**: To capture successful/allowed UDP traffic (`action: "allowed"`, forwarded datagram metrics), enable `--all-traffic`.
+- **Piping from systemd / journald**: Stream via STDIN pipe (`-f -`).
 
-  # Or stream from a Docker container
-  rwarden push -c tcp-warden
-  ```
-- **Forwarding All UDP Datagram Sessions**: To capture successful/allowed UDP traffic (`action: "allowed"`, forwarded datagram metrics), enable `--all-traffic`:
-  ```bash
-  rwarden push -f /var/log/routewarden/tcp-warden.jsonl --all-traffic
-  ```
-- **Piping from systemd / journald**:
-  ```bash
-  journalctl -u tcp-warden -f -o cat | rwarden push -f -
-  ```
+<CodeViewer :snippets="l4PushSnippets" />
 
 ---
 
@@ -587,20 +607,43 @@ For Docker and containerized edge hosts, Routewarden publishes a dedicated, stri
 
 ### Zero-Touch Environment Variables (Recommended)
 
-When deploying via Docker or Docker Compose, you do not need to run `rwarden register` on the host or mount configuration files. Pass `RW_DASHBOARD_URL` and `RW_AGENT_KEY` directly as environment variables:
+When deploying via Docker or Docker Compose, you do not need to run `rwarden register` on the host or mount configuration files. Configure any setting directly through environment variables:
 
-| Environment Variable | Shorthand Alias | Description | Example |
-|:---|:---|:---|:---|
-| `RW_DASHBOARD_URL` | `RW_URL` | Central Routewarden dashboard address | `https://soc.example.com` or `http://198.51.100.10:7890` |
-| `RW_AGENT_KEY` | `RW_KEY` | 24-byte secret agent token created via `rwarden keys create` | `rw_sec_a8f9c2d1e4b7...` |
-| `RW_STATUS` | `RW_STATUS_CODES` | Forward HTTP calls matching status codes or ranges across Caddy, Traefik, and NGINX | `400-599, 301` or `4xx, 5xx` |
-| `RW_INCLUDE_FAILED` | — | Legacy alias: ship all failed HTTP calls (status >= 400) | `true` or `false` |
-| `RW_ALL_TRAFFIC` | — | Ship all HTTP access traffic including 200 OK responses | `true` or `false` |
-| `RW_ALL_LOGS` | — | Ship all raw container lines without Routewarden filtering | `true` or `false` |
-| `TZ` | — | IANA Time Zone identifier for log timestamp normalization | `Asia/Kolkata`, `UTC`, `America/New_York` |
+| Environment Variable | Shorthand Alias | CLI Flag Equivalent | Description | Example / Default |
+|:---|:---|:---|:---|:---|
+| `RW_DASHBOARD_URL` | `RW_URL` | `--url`, `-u` | Central Routewarden dashboard address | `https://soc.example.com` or `http://198.51.100.10:7890` |
+| `RW_AGENT_KEY` | `RW_KEY` | `--key`, `-k` | 24-byte secret agent token created via `rwarden keys create` | `rw_sec_a8f9c2d1e4b7...` |
+| `RW_STATUS` | `RW_STATUS_CODES`, `RW_INCLUDE_STATUS` | `--status`, `-s` | Forward HTTP calls matching status codes or ranges across Caddy, Traefik, and NGINX | `400-599, 301` or `4xx, 5xx` |
+| `RW_INCLUDE_FAILED` | — | `--include-failed`, `-F` | Legacy alias: ship all failed HTTP calls (status >= 400, equivalent to `400-599`) | `true` or `false` |
+| `RW_ALL_TRAFFIC` | — | `--all-traffic` | Ship all HTTP access traffic (including 200 OK) and Layer 4 sessions | `true` or `false` (default: `false`) |
+| `RW_ALL_LOGS` | — | `--all-logs` | Ship all raw container lines without Routewarden filtering | `true` or `false` (default: `false`) |
+| `RW_DOCKER` | — | `--docker` | Auto-discover and tail Docker containers labeled `routewarden=true` | `true` or `false` (default: `true` in container) |
+| `RW_LABEL` | — | `--label`, `-l` | Docker container discovery label | `routewarden=true` |
+| `RW_CONFIG` | — | `--config` | Custom path to agent configuration JSON | `~/.routewarden/agent.json` |
+| `RW_BATCH_SIZE` | — | `--batch-size` | Maximum events to buffer before flushing | `50` |
+| `RW_FLUSH_INTERVAL` | — | `--flush-interval` | Maximum duration to buffer events before flushing | `1s` |
+| `RW_QUEUE_SIZE` | — | `--queue-size` | Maximum events to buffer in memory while offline | `10000` |
+| `RW_DISCONNECT_TIMEOUT` | — | `--disconnect-timeout` | Duration disconnected before dropping stale events | `5m` |
+| `RW_PING_INTERVAL` | — | `--ping-interval` | Interval between health pings when connected | `10s` |
+| `RW_TAIL` | — | `--tail` | Initial lines to replay from containers or log files | `50` |
+| `RW_VERBOSE` | `RW_DEBUG` | `--verbose`, `-v` | Enable verbose event-level logging | `true` or `false` (default: `false`) |
+| `RW_DETACH` | — | `--detach`, `-d` | Run shipper daemon in detached background mode | `true` or `false` (default: `false`) |
+| `TZ` | — | — | IANA Time Zone identifier for log timestamp normalization | `Asia/Kolkata`, `UTC`, `America/New_York` |
 
 > [!TIP]
 > **Dynamic Public Key Auto-Discovery**: When `RW_DASHBOARD_URL` and `RW_AGENT_KEY` are provided, `rwarden-shipper` automatically queries `/api/v1/pubkey` from the central dashboard on startup to derive the ephemeral shared secret (X25519 ECDH + AES-256-GCM). Full asymmetric end-to-end encryption is established immediately without any manual key exchanges or mounted config volumes.
+
+> [!IMPORTANT]
+> **Passing Flags in Docker Compose (`command:`)**:
+> When passing command flags in `docker-compose.yml`, specify each flag and value as a **separate array element** or use plain string format:
+> ```yaml
+> # Recommended array syntax: separate elements for each flag
+> command: ["--docker", "--all-traffic"]
+> 
+> # Or string syntax:
+> command: --docker --all-traffic
+> ```
+> Avoid grouping multiple flags into a single quoted string element (e.g. `command: ["--docker --all-traffic"]`). Alternatively, simply set `RW_ALL_TRAFFIC=true` in `environment:`, which requires zero `command:` overrides!
 
 ### Deployment Options:
 1. **Zero-Touch Environment Variables**: Ideal for Docker Compose and automated cluster rollouts. Set `RW_DASHBOARD_URL` and `RW_AGENT_KEY` in `environment:`, mount `/var/run/docker.sock` (or host log directories), and the shipper connects automatically.
@@ -611,5 +654,35 @@ When deploying via Docker or Docker Compose, you do not need to run `rwarden reg
 - **Multiple Ingestion Modes**: Stream multiple host access log files (`-f /var/log/nginx/access.log -f /var/log/caddy/access.log`), auto-discover labeled Docker containers (`--docker`), or run both concurrently in hybrid mode.
 - **Zero Configuration**: Defaults to `rwarden push --docker` out-of-the-box when run without command flags.
 - **Memory Footprint**: Consumes under **~10 MB RAM** on low-cost VPS instances and IoT edge gateways.
+
+---
+
+## 10. Complete Command-Line Flags Reference
+
+Every option supported by `rwarden push` can be passed via command-line flags or environment variables:
+
+| Flag | Shorthand | Type | Default | Environment Variable | Description |
+|:---|:---|:---|:---|:---|:---|
+| `--url` | `-u` | string | `""` | `RW_DASHBOARD_URL`, `RW_URL` | RouteWarden central dashboard URL (overrides registered config) |
+| `--key` | `-k` | string | `""` | `RW_AGENT_KEY`, `RW_KEY` | Remote agent authentication token (overrides registered config) |
+| `--config` | — | string | `~/.routewarden/agent.json` | `RW_CONFIG` | Custom path to agent registration configuration file |
+| `--docker` | — | bool | `false` | `RW_DOCKER` | Auto-discover and tail Docker containers labeled `routewarden=true` |
+| `--container` | `-c` | string | `""` | — | Tail specific Docker container(s) by name or ID (repeatable or comma-separated) |
+| `--file` | `-f` | string | `""` | — | Log file(s) to monitor and stream (repeatable, comma-separated, glob pattern, or `-` for stdin) |
+| `--event` | `-e` | string | `""` | — | Push one or more specific JSON event strings directly to the dashboard (repeatable) |
+| `--stdin` | — | bool | `false` | — | Read and push log events line-by-line from STDIN pipe |
+| `--status` | `-s`, `--status-codes`, `--include-status` | string | `""` | `RW_STATUS`, `RW_STATUS_CODES` | Forward HTTP requests matching status codes or ranges (e.g. `'400-599, 301'`, `'4xx, 5xx'`) |
+| `--include-failed` | `-F` | bool | `false` | `RW_INCLUDE_FAILED` | Legacy alias: forward all failed HTTP requests (status $\ge 400$, shorthand for `--status 400-599`) |
+| `--all-traffic` | — | bool | `false` | `RW_ALL_TRAFFIC` | Ship all HTTP reverse proxy access traffic (including 200 OK) and Layer 4 sessions |
+| `--all-logs` | — | bool | `false` | `RW_ALL_LOGS` | Ship all raw container lines unconditionally without Routewarden log filtering |
+| `--label` | `-l` | string | `"routewarden=true"` | `RW_LABEL` | Custom Docker label filter for auto-discovery |
+| `--tail` | — | string | `"50"` | `RW_TAIL` | Initial lines to replay from Docker container(s) and log file(s) |
+| `--batch-size` | — | int | `50` | `RW_BATCH_SIZE` | Maximum events to buffer before flushing batch to dashboard |
+| `--flush-interval` | — | duration | `1s` | `RW_FLUSH_INTERVAL` | Maximum duration to buffer events before flushing partial batches |
+| `--queue-size` | — | int | `10000` | `RW_QUEUE_SIZE` | Maximum events to buffer in memory while disconnected from dashboard |
+| `--disconnect-timeout` | — | duration | `5m` | `RW_DISCONNECT_TIMEOUT` | Duration disconnected from dashboard before dropping stale events to protect memory |
+| `--ping-interval` | — | duration | `10s` | `RW_PING_INTERVAL` | Interval between connection health supervisor pings when connected |
+| `--detach` | `-d` | bool | `false` | `RW_DETACH` | Run remote shipper daemon in detached background mode |
+| `--verbose` | `-v` | bool | `false` | `RW_VERBOSE`, `RW_DEBUG` | Enable verbose event-level diagnostic logging |
 
 
