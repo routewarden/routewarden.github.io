@@ -78,8 +78,20 @@ const full_config = buildSnippet({
 
     -- ASN Allowlist & Offline Routing DB
     allowed_asns = { "AS13335", "64500" },
+    blocked_asns = { "AS138699" },
     asn_db = "/etc/routewarden/asn.json",
     trusted_proxies = { "10.0.0.0/8" },
+
+    -- AI Bot & Crawler Defense
+    block_ai_bots = true,
+    ai_bot_profile = "train_only",
+    block_user_agents = { "(?i)badbot" },
+    allow_user_agents = { "(?i)goodbot" },
+    detect_browser_impersonation = true,
+    block_script_clients = true,
+    verify_search_engine_bots = true,
+    honeypot_trap_paths = { "/hidden-trap" },
+    trap_ban_duration = "24h",
 
     -- Custom regular expressions (PCRE-compatible)
     block_patterns = {
@@ -96,7 +108,8 @@ const full_config = buildSnippet({
     response = {
         mode = "json",                     -- Options: json, html, text, xml, redirect, captcha,
                                            -- silentDrop, gzipBomb, tarpit, fakeSuccess,
-                                           -- rateLimitChallenge, proxy, infiniteStream
+                                           -- rateLimitChallenge, proxy, infiniteStream,
+                                           -- aiPoison, markovTarpit
         status_code = 403,
         body = '{"error":"Access Denied"}',
         headers = {
@@ -217,7 +230,17 @@ Initialize Routewarden using `routewarden.new(config)` within NGINX's `init_by_l
 | `methods` | `table` | `{"GET"}` | Array of HTTP verbs to inspect. Verbs outside this list bypass inspection. |
 | `allowed_ips` | `table` | `{}` | Array of IPv4/IPv6 addresses or CIDR subnets allowed to bypass path inspection. |
 | `allowed_asns` | `table` | `{}` | Array of Autonomous System Numbers (`"AS64500"`, `"64500"`) allowed to bypass inspection. |
+| `blocked_asns` | `table` | `{}` | Array of Autonomous System Numbers whose client IPs are blocked. Requires `asn_db`. |
 | `asn_db` | `string` | `nil` | Path to local JSON ASN routing snapshot file. |
+| `block_ai_bots` | `boolean` | `false` | Enables automatic blocking of known AI scrapers & LLM training crawlers. |
+| `ai_bot_profile` | `string` | `nil` | AI bot profile: `train_only` (default), `all`, `aggressive`, or `custom`. |
+| `block_user_agents` | `table` | `{}` | Array of custom PCRE regular expressions matching client User-Agents to block. |
+| `allow_user_agents` | `table` | `{}` | Array of custom PCRE regular expressions matching client User-Agents to allow. |
+| `detect_browser_impersonation` | `boolean` | `false` | Cross-validates browser User-Agents against Client Hints and companion headers. |
+| `block_script_clients` | `boolean` | `false` | Blocks automated HTTP client libraries and headless framework headers. |
+| `verify_search_engine_bots` | `boolean` | `false` | Cryptographically verifies search engine bot authenticity via FCrDNS. |
+| `honeypot_trap_paths` | `table` | `{}` | Array of decoy paths that trigger instant sliding-window IP bans. |
+| `trap_ban_duration` | `string` | `"24h"` | Ban duration for trapped client IPs (e.g. `24h`, `1h`, `30m`). |
 | `trusted_proxies` | `table` | `{}` | Array of trusted upstream proxy CIDRs for real client IP extraction. |
 | `block_patterns` | `table` | `{}` | Array of custom PCRE regular expressions to block. |
 | `allow_patterns` | `table` | `{}` | Array of custom PCRE regular expressions to exempt from blocking. |

@@ -483,11 +483,83 @@ const mode13Snippets = computed(() => ({
   nginx: [{ filename: 'nginx.conf', lang: 'lua', code: m13_nginx.cleanCode, html: m13_nginx.html, hasDiff: false }],
   cli: [{ filename: 'routewarden.json', lang: 'json', code: m13_cli.cleanCode, html: m13_cli.html, hasDiff: false }],
 }))
+
+// ─── 14. Prompt Injection Honeypot (aiPoison / aipoison) ───────────────────
+const m14_traefik = buildSnippet({
+  lang: 'yaml',
+  code: `response:\n  mode: aiPoison\n  statusCode: 200`,
+})
+const m14_traefik_toml = buildSnippet({
+  lang: 'toml',
+  code: `[http.middlewares.my-warden.plugin.routewarden.response]\n  mode = "aiPoison"\n  statusCode = 200`,
+})
+const m14_traefik_labels = buildSnippet({
+  lang: 'docker',
+  code: `- "traefik.http.middlewares.my-warden.plugin.routewarden.response.mode=aiPoison"\n- "traefik.http.middlewares.my-warden.plugin.routewarden.response.statusCode=200"`,
+})
+const m14_caddy = buildSnippet({
+  lang: 'caddy',
+  code: `response {\n    mode aiPoison\n    status_code 200\n}`,
+})
+const m14_nginx = buildSnippet({
+  lang: 'lua',
+  code: `response = {\n    mode = "aiPoison",\n    status_code = 200\n}`,
+})
+const m14_cli = buildSnippet({
+  lang: 'json',
+  code: `{\n  "response": {\n    "mode": "aiPoison",\n    "statusCode": 200\n  }\n}`,
+})
+const mode14Snippets = computed(() => ({
+  traefik: [
+    { filename: 'traefik.yml', lang: 'yaml', code: m14_traefik.cleanCode, html: m14_traefik.html, hasDiff: false },
+    { filename: 'traefik.toml', lang: 'toml', code: m14_traefik_toml.cleanCode, html: m14_traefik_toml.html, hasDiff: false },
+    { filename: 'docker-compose.yaml', lang: 'docker', code: m14_traefik_labels.cleanCode, html: m14_traefik_labels.html, hasDiff: false },
+  ],
+  caddy: [{ filename: 'Caddyfile', lang: 'caddy', code: m14_caddy.cleanCode, html: m14_caddy.html, hasDiff: false }],
+  nginx: [{ filename: 'nginx.conf', lang: 'lua', code: m14_nginx.cleanCode, html: m14_nginx.html, hasDiff: false }],
+  cli: [{ filename: 'routewarden.json', lang: 'json', code: m14_cli.cleanCode, html: m14_cli.html, hasDiff: false }],
+}))
+
+// ─── 15. Procedural Word Stream Tarpit (markovTarpit / markovtarpit) ────────
+const m15_traefik = buildSnippet({
+  lang: 'yaml',
+  code: `response:\n  mode: markovTarpit\n  statusCode: 200\n  tarpitDelayMs: 500\n  tarpitMaxDurationSeconds: 60`,
+})
+const m15_traefik_toml = buildSnippet({
+  lang: 'toml',
+  code: `[http.middlewares.my-warden.plugin.routewarden.response]\n  mode = "markovTarpit"\n  statusCode = 200\n  tarpitDelayMs = 500\n  tarpitMaxDurationSeconds = 60`,
+})
+const m15_traefik_labels = buildSnippet({
+  lang: 'docker',
+  code: `- "traefik.http.middlewares.my-warden.plugin.routewarden.response.mode=markovTarpit"\n- "traefik.http.middlewares.my-warden.plugin.routewarden.response.statusCode=200"\n- "traefik.http.middlewares.my-warden.plugin.routewarden.response.tarpitDelayMs=500"\n- "traefik.http.middlewares.my-warden.plugin.routewarden.response.tarpitMaxDurationSeconds=60"`,
+})
+const m15_caddy = buildSnippet({
+  lang: 'caddy',
+  code: `response {\n    mode markovTarpit\n    status_code 200\n    tarpit_delay_ms 500\n    tarpit_max_duration_seconds 60\n}`,
+})
+const m15_nginx = buildSnippet({
+  lang: 'lua',
+  code: `response = {\n    mode = "markovTarpit",\n    status_code = 200,\n    tarpit_delay_ms = 500,\n    tarpit_max_duration_seconds = 60\n}`,
+})
+const m15_cli = buildSnippet({
+  lang: 'json',
+  code: `{\n  "response": {\n    "mode": "markovTarpit",\n    "statusCode": 200,\n    "tarpitDelayMs": 500,\n    "tarpitMaxDurationSeconds": 60\n  }\n}`,
+})
+const mode15Snippets = computed(() => ({
+  traefik: [
+    { filename: 'traefik.yml', lang: 'yaml', code: m15_traefik.cleanCode, html: m15_traefik.html, hasDiff: false },
+    { filename: 'traefik.toml', lang: 'toml', code: m15_traefik_toml.cleanCode, html: m15_traefik_toml.html, hasDiff: false },
+    { filename: 'docker-compose.yaml', lang: 'docker', code: m15_traefik_labels.cleanCode, html: m15_traefik_labels.html, hasDiff: false },
+  ],
+  caddy: [{ filename: 'Caddyfile', lang: 'caddy', code: m15_caddy.cleanCode, html: m15_caddy.html, hasDiff: false }],
+  nginx: [{ filename: 'nginx.conf', lang: 'lua', code: m15_nginx.cleanCode, html: m15_nginx.html, hasDiff: false }],
+  cli: [{ filename: 'routewarden.json', lang: 'json', code: m15_cli.cleanCode, html: m15_cli.html, hasDiff: false }],
+}))
 </script>
 
 # Response Modes Reference
 
-Routewarden features a modular response engine that dictates exactly how reverse proxies (Traefik, Caddy, and NGINX) handle blocked requests. Rather than only offering a generic static 403 error page, Routewarden supports **13 deterministic response modes** ranging from standard REST error bodies to interactive bot challenges and offensive honeypot traps.
+Routewarden features a modular response engine that dictates exactly how reverse proxies (Traefik, Caddy, and NGINX) handle blocked requests. Rather than only offering a generic static 403 error page, Routewarden supports **15 deterministic response modes** ranging from standard REST error bodies to interactive bot challenges and offensive honeypot traps.
 
 ---
 
@@ -508,6 +580,8 @@ Routewarden features a modular response engine that dictates exactly how reverse
 | [`rateLimitChallenge`](#11-rate-limit-backoff-ratelimitchallenge-ratelimit) | Throttling | HTTP 429 with compliant `Retry-After` header | `429 Too Many Requests` |
 | [`proxy`](#12-transparent-honeypot-proxy-proxy-mirror) | Forensics | Transparent reverse-proxy into canary honeypot container | Upstream status |
 | [`infiniteStream`](#13-infinite-garbage-stream-infinitestream) | Active Defense | Endless pseudo-random characters to fill crawler storage | `200 OK` |
+| [`aiPoison`](#14-prompt-injection-honeypot-aipoison) | Active Deception | Prompt injection contamination & synthetic data honeypot | `200 OK` |
+| [`markovTarpit`](#15-procedural-word-stream-tarpit-markovtarpit) | Active Defense | Pseudo-coherent word stream trickle to exhaust crawler token windows | `200 OK` |
 
 ---
 
@@ -705,3 +779,31 @@ Sends an HTTP `200 OK` response with `Content-Type: application/octet-stream` an
 ### Attacker Impact
 - Fills local disk storage if the crawler saves HTTP response files to disk.
 - Freezes or crashes regex parsers, HTML tokenizers, and JSON decoders that attempt to read the entire body into memory before parsing.
+
+---
+
+## 14. Prompt Injection Honeypot (`aiPoison` / `aipoison`)
+
+Serves an HTTP `200 OK` response with `X-Robots-Tag: noindex, nofollow, noai, noimageai` containing hidden adversarial prompt-injection payloads that instruct Large Language Models and automated retrieval agents (RAG) to purge and disregard scraped content.
+
+### Example Configuration
+
+<CodeViewer :snippets="mode14Snippets" />
+
+### How It Protects Data
+- **Synthetic Content Contamination**: Injects adversarial instructions invisible to human readers (using `display:none;` and `aria-hidden="true"`) that direct LLM indexers to treat the domain's contents as synthetic benchmarks or deprecated training data.
+- **RAG Defense**: Neutralizes real-time knowledge retrieval pipelines by directing model evaluators to ignore and refrain from citing scraped endpoint details.
+
+---
+
+## 15. Procedural Word Stream Tarpit (`markovTarpit` / `markovtarpit`)
+
+Unlike standard byte tarpits that send null bytes or whitespace (which modern scraping HTTP clients often detect as dead sockets), `markovTarpit` generates and streams pseudo-coherent words at a controlled drip rate (e.g., 500ms intervals).
+
+### Example Configuration
+
+<CodeViewer :snippets="mode15Snippets" />
+
+### Attacker Impact
+- **Token Window Exhaustion**: Forces AI scraper worker threads to continuously allocate context windows and buffers for endless words.
+- **Resource Depletion**: Prevents timeout detectors from dropping the connection while tying up scraper concurrency pools, with negligible CPU and memory impact on the reverse proxy.

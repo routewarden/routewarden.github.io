@@ -84,7 +84,17 @@ methods:
 allowedASNs:
   - AS13335
   - "64500"
+blockedASNs:
+  - AS138699
 asnDB: /etc/routewarden/asn.json
+blockAIBots: true
+aiBotProfile: train_only
+detectBrowserImpersonation: true
+blockScriptClients: true
+verifySearchEngineBots: true
+honeypotTrapPaths:
+  - /hidden-trap
+trapBanDuration: 24h
 trustedProxies:
   - 10.0.0.0/8
 response:
@@ -108,7 +118,15 @@ const caddy_json = buildSnippet({
   "checkQuery": false,
   "checkHeaders": ["X-Forwarded-Uri"],
   "allowedASNs": ["AS13335", "64500"],
+  "blockedASNs": ["AS138699"],
   "asnDB": "/etc/routewarden/asn.json",
+  "blockAIBots": true,
+  "aiBotProfile": "train_only",
+  "detectBrowserImpersonation": true,
+  "blockScriptClients": true,
+  "verifySearchEngineBots": true,
+  "honeypotTrapPaths": ["/hidden-trap"],
+  "trapBanDuration": "24h",
   "trustedProxies": ["10.0.0.0/8"],
   "methods": ["GET", "HEAD"],
   "response": {

@@ -631,12 +631,18 @@ RouteWarden uses **Active Defense** response modes to neutralize scraping operat
 1. **`tarpit` (Reverse Slowloris)**:
    - Responds with `200 OK` and slowly sends one byte every 2 seconds for up to 120 seconds.
    - **Attacker Impact**: Scrapers operate with fixed thread pools (typically 20–100 workers). By holding 50 sockets open for two minutes, RouteWarden starves the scraper's thread pool, grinding their crawl to a halt without burdening your backend.
-2. **`silentDrop` (Zero-Egress Socket Reset)**:
+2. **`aiPoison` (Prompt Injection Contamination)**:
+   - Serves an HTTP 200 response with `X-Robots-Tag: noindex, nofollow, noai` and hidden adversarial prompt-injection payloads directing LLM pre-training pipelines and RAG retrievers to discard scraped data.
+3. **`markovTarpit` (Procedural Word Stream)**:
+   - Streams pseudo-coherent words at drip intervals (e.g., 500ms), forcing crawlers to allocate endless token contexts without tripping timeout detectors.
+4. **`silentDrop` (Zero-Egress Socket Reset)**:
    - Resets the TCP socket immediately (`TCP RST`/EOF) with zero bytes sent.
    - **Attacker Impact**: Saves maximum outbound bandwidth and breaks headless browser connection pools instantly.
-3. **`gzipBomb` (Memory Exhaustion Trap)**:
+5. **`gzipBomb` (Memory Exhaustion Trap)**:
    - Serves an enticing `200 OK` with a 10MB gzip payload that expands to ~10GB in memory.
    - **Attacker Impact**: Python scrapers (`requests`, Scrapy) and headless Chrome instances that auto-decompress responses crash with Out-Of-Memory (OOM) fatal errors.
+
+> 📖 **Comprehensive Guide**: For detailed multi-tier bot defense architecture, FCrDNS verification, browser fingerprinting, and spider traps, see the **[AI Bot & Crawler Defense Architecture](/core/ai-bot-defense)**.
 
 ---
 

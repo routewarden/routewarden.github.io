@@ -35,6 +35,18 @@ rwarden test -c routewarden.json --ip "10.0.0.1" /admin
 # Test request body payload inspection (-b or --body)
 rwarden test -X POST -b "grant_type=password&user=admin" --check-body /identity/token
 
+# Test AI bot blocking (--block-ai-bots, --ai-bot-profile)
+rwarden test -H "User-Agent: GPTBot/1.0" --block-ai-bots /docs
+
+# Test browser impersonation detection (--detect-browser-impersonation)
+rwarden test -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0" --detect-browser-impersonation /dashboard
+
+# Test script client & headless automation blocking (--block-script-clients)
+rwarden test -H "User-Agent: python-requests/2.31.0" --block-script-clients /api/v1/data
+
+# Test search engine bot FCrDNS verification (--verify-search-engine-bots)
+rwarden test -H "User-Agent: Googlebot/2.1" --ip "198.51.100.1" --verify-search-engine-bots /
+
 # Pipe configuration via stdin
 cat routewarden.json | rwarden test -c - /admin`,
 })
@@ -660,6 +672,11 @@ Simulate candidate path extraction, normalization, and pattern matching on an ar
 | `--ip` | string | `""` | Client IP address to evaluate against `allowedIps` |
 | `--check-query` | bool | `true` | Enable or disable query string inspection |
 | `--check-body` | bool | `false` | Enable or disable request body payload inspection |
+| `--block-ai-bots` | bool | `false` | Enable AI crawler and LLM training bot detection |
+| `--ai-bot-profile` | string | `""` | AI bot profile: `train_only` (default), `all`, `aggressive`, or `custom` |
+| `--detect-browser-impersonation` | bool | `false` | Cross-validate claimed browser UA against Client Hints and headers |
+| `--block-script-clients` | bool | `false` | Block automated HTTP client libraries and headless framework headers |
+| `--verify-search-engine-bots` | bool | `false` | Cryptographically verify search engine bot authenticity via FCrDNS |
 
 ### Example Output
 
@@ -781,6 +798,23 @@ Perform deep static analysis and linting on a Routewarden policy file to catch R
 | `[file]` | string | `"routewarden.json"` | Configuration file to audit (or `-` for stdin) |
 | `-f`, `--format` | string | `"text"` | Output format: `text` (default), `json`, or `sarif` |
 | `-s`, `--strict` | bool | `false` | Strict mode: exit code 1 on warnings as well as critical flaws |
+
+### Key Audit Rules
+
+| Code | Severity | Rule Title | Description |
+|:---|:---|:---|:---|
+| `RW-A001` | Critical | Disabled RouteWarden | `enabled` explicitly set to `false` in production policy |
+| `RW-A003` | Critical | Universal Block Pattern | `blockPatterns` contains universal wildcard (`.*` or `^/`) |
+| `RW-A004` | Critical | Universal Allow Pattern | `allowPatterns` contains universal wildcard (`.*` or `^/`) |
+| `RW-A005` | Warning | Unescaped Literal Dot | Dot unescaped in pattern (e.g. `.env` instead of `\.env`) |
+| `RW-A006` | Critical | Catastrophic ReDoS Risk | Pattern contains nested quantifiers triggering catastrophic backtracking |
+| `RW-A007` | Info | Duplicate Pattern | Repeated pattern in `blockPatterns` or `allowPatterns` |
+| `RW-A008` | Info | Duplicate Body Pattern | Repeated pattern in `checkBodyPatterns` |
+| `RW-A009` | Critical | Malformed IP/CIDR Notation | Unparseable IP address or CIDR notation in `allowedIps` |
+| `RW-A011` | Critical | Invalid HTTP Status Code | Status code outside valid HTTP range (100–599) |
+| `RW-A012` | Critical | Invalid Response Mode | Unrecognized response mode name |
+| `RW-A015` | Critical | Invalid Regex Syntax | Unclosed brackets or uncompilable regex in patterns or User-Agent rules |
+| `RW-A016` | Warning | Unrecognized AI Bot Profile | `aiBotProfile` must be `train_only`, `all`, `aggressive`, or `custom` |
 
 ---
 
