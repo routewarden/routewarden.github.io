@@ -29,6 +29,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   - Automatically verifies clients presenting User-Agents for recognized search engines (`Googlebot`, `bingbot`, `Applebot`) via reverse DNS PTR validation and forward IP matching against genuine domain suffixes (`.googlebot.com`, `.google.com`, `.search.msn.com`, `.applebot.apple.com`).
   - Employs a thread-safe in-memory cache (6 hours TTL, 10,000 entries) with strict query timeouts (500ms) to eliminate per-request DNS latency.
   - Exempts genuine verified search crawlers while dropping spoofed scrapers with reason `search_engine_spoofed`.
+- **Browser Impersonation Detection (`detect_browser_impersonation`)**:
+  - Added `detect_browser_impersonation true|false` directive to detect and block bots disguising themselves with desktop/mobile browser User-Agents.
+  - Cross-validates Client Hints (`Sec-CH-UA-Platform` matching OS in User-Agent), Chromium Fetch Metadata (`Sec-Fetch-Site`, `Sec-Fetch-Mode`, `Sec-Fetch-Dest`), and mandatory companion headers (`Accept-Language`, `Accept-Encoding`).
+- **Script Client & Headless Automation Blocking (`block_script_clients`)**:
+  - Added `block_script_clients true|false` directive to block requests originating from programmatic HTTP client libraries (Python `requests`, `urllib`, `aiohttp`, `httpx`, `Scrapy`, Node `axios`, `node-fetch`, `undici`, Go `Go-http-client`, Java `OkHttp`, `curl`, `wget`) and headless automation frameworks (`X-Playwright`, `X-Puppeteer`, `X-Selenium`, `Sec-WebDriver`).
 
 ---
 

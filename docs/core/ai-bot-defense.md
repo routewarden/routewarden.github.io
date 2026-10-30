@@ -426,5 +426,113 @@ local rw = routewarden.new({
 
 ::::
 
+---
+
+## Browser Impersonation & Client Hints Cross-Check
+
+Many scraping bots and scrapers forge a legitimate browser `User-Agent` (e.g. Chrome, Edge, Safari, Firefox). When `detect_browser_impersonation` (`detectBrowserImpersonation`) is enabled, RouteWarden cross-validates claimed browsers against essential companion headers:
+
+1. **Client Hints Cross-Check (`Sec-CH-UA-Platform`)**: Validates that the platform reported by the browser matches the operating system declared in the `User-Agent` (e.g. detects an attacker claiming Windows NT 10.0 whose client hint says `"Linux"`).
+2. **Fetch Metadata (`Sec-Fetch-*`) Validation**: Confirms that requests claiming modern Chromium ($\ge$ v90) transmit standard `Sec-Fetch-Site`, `Sec-Fetch-Mode`, and `Sec-Fetch-Dest` headers.
+3. **Mandatory Companion Headers**: Ensures `Accept-Language` and `Accept-Encoding` are present. Automated scripts (such as Python `requests`) frequently omit `Accept-Language`.
+
+Violations are rejected with security reason `browser_spoofed` and pattern `missing_accept_language`, `missing_accept_encoding`, `sec_ch_ua_platform_mismatch`, or `missing_sec_fetch`.
+
+---
+
+## Script Client & Headless Automation Blocking
+
+When `block_script_clients` (`blockScriptClients`) is enabled, RouteWarden blocks default signatures and headers from programmatic HTTP libraries and headless browser automation frameworks:
+
+* **HTTP Client Libraries**: Python (`requests`, `urllib`, `aiohttp`, `httpx`, `Scrapy`, `tornado`), Node.js (`axios`, `node-fetch`, `undici`, `got`, `superagent`), Go (`Go-http-client`), Java (`OkHttp`, `Apache-HttpClient`, `Java/`), Ruby (`Faraday`, `HTTParty`), and command-line tools (`curl`, `Wget`, `libwww-perl`).
+* **Headless Framework Headers**: Detects automated scraping frameworks injecting framework headers (`X-Playwright`, `X-Puppeteer`, `X-Selenium`, `X-Scrapy`, `Sec-WebDriver`, `X-Headless`).
+
+Authorized scripts or webhooks can be exempted using `allow_user_agents` or `allowed_ips`.
+
+### Configuration Examples
+
+:::: code-group
+
+```caddyfile [Caddyfile]
+example.com {
+    routewarden {
+        # Catch forged desktop browsers
+        detect_browser_impersonation true
+
+        # Block automated HTTP libraries and headless scrapers
+        block_script_clients true
+
+        response {
+            mode text
+            status_code 403
+            custom_response_text "Access Denied: Automated Client Detected"
+        }
+    }
+    reverse_proxy app:8080
+}
+```
+
+```yaml [Traefik (dynamic_conf.yml)]
+http:
+  middlewares:
+    browser-guard:
+      plugin:
+        routewarden:
+          enabled: true
+          detectBrowserImpersonation: true
+          blockScriptClients: true
+          response:
+            mode: "text"
+            statusCode: 403
+```
+
+```toml [Traefik (dynamic_conf.toml)]
+[http.middlewares.browser-guard.plugin.routewarden]
+  enabled = true
+  detectBrowserImpersonation = true
+  blockScriptClients = true
+  [http.middlewares.browser-guard.plugin.routewarden.response]
+    mode = "text"
+    statusCode = 403
+```
+
+```yaml [Traefik (Docker Labels)]
+services:
+  app:
+    image: myapp:latest
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.app.middlewares=browser-guard@docker"
+      - "traefik.http.middlewares.browser-guard.plugin.routewarden.detectBrowserImpersonation=true"
+      - "traefik.http.middlewares.browser-guard.plugin.routewarden.blockScriptClients=true"
+```
+
+```lua [NGINX / OpenResty]
+local routewarden = require "resty.routewarden"
+local rw = routewarden.new({
+    detect_browser_impersonation = true,
+    block_script_clients = true,
+    response = {
+        mode = "text",
+        status_code = 403,
+        custom_response_text = "Access Denied: Automated Client Detected"
+    }
+})
+```
+
+```json [routewarden.json]
+{
+  "detectBrowserImpersonation": true,
+  "blockScriptClients": true,
+  "response": {
+    "mode": "text",
+    "statusCode": 403
+  }
+}
+```
+
+::::
+
+
 
 
