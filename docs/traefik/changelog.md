@@ -9,7 +9,25 @@ All notable changes to the **Traefik Warden** plugin (`github.com/routewarden/tr
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and Traefik Warden adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v1.7.0] - 2026-10-27 (Latest)
+## [v1.8.0] - 2026-10-30 (Latest)
+
+### Added
+- **AI Bot & Web Crawler Defense**:
+  - Added native detection and blocking of automated LLM scrapers and AI crawlers (`blockAIBots` / `block_ai_bots` setting).
+  - Built-in multi-tier AI bot registry with profiles: `train_only` (default: blocks mass training harvesters like `GPTBot`, `ClaudeBot`, `Bytespider`, `CCBot`), `all` (blocks all training and search bots including `PerplexityBot` and `OAI-SearchBot`), `aggressive` (blocks aggressive crawlers like Bytespider), and `custom` (`aiBotProfile` setting).
+  - Added custom User-Agent pattern blocking via `blockUserAgents` and allowlisting via `allowUserAgents`.
+- **Negative ASN Filtering (`blockedASNs`)**:
+  - Added support for blocking client IP addresses originating from hostile Autonomous Systems or scraping clouds via `blockedASNs` / `blocked_asns` (e.g. ByteDance `AS138699`, DigitalOcean `AS14061`) using local offline routing snapshot (`asnDB`).
+- **Active Deception Response Modes (`aiPoison` & `markovTarpit`)**:
+  - Added `mode: "aiPoison"`: Serves HTTP 200 with `X-Robots-Tag: noindex, nofollow, noai` and adversarial system prompt injection directives, neutralizing data poisoning into RAG and model training pipelines.
+  - Added `mode: "markovTarpit"`: Continuously streams pseudo-coherent Markov text tokens at configured delays (`tarpitDelayMs`), exhausting scraper worker capacity and token context windows.
+- **Honeypot Spider Traps & In-Memory IP Ban Table**:
+  - Added `honeypotTrapPaths` to designate invisible honeypot routes in web templates.
+  - Added zero-dependency, Yaegi-compliant thread-safe bounded in-memory sliding-window IP ban table: any crawler accessing a honeypot path is banned for `trapBanDuration` (default: `24h`), automatically rejecting subsequent requests.
+
+---
+
+## [v1.7.0] - 2026-10-27
 
 ### Added
 - **Offline ASN-Based Allowlisting (`allowedASNs` / `asnDB`)**:

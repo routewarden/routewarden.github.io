@@ -9,7 +9,25 @@ All notable changes to **NGINX Warden** (`github.com/routewarden/nginx-warden`) 
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and NGINX Warden adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v1.7.0] - 2026-10-27 (Latest)
+## [v1.8.0] - 2026-10-30 (Latest)
+
+### Added
+- **AI Bot & Web Crawler Defense**:
+  - Added native detection and blocking of automated LLM scrapers and AI crawlers (`block_ai_bots` Lua option).
+  - Built-in multi-tier AI bot registry supporting `train_only` (default: `GPTBot`, `ClaudeBot`, `Bytespider`, `CCBot`), `all` (`PerplexityBot`, `OAI-SearchBot`), `aggressive`, and `custom` profiles via `ai_bot_profile`.
+  - Added custom User-Agent pattern blocking via `block_user_agents` and allowlisting via `allow_user_agents`.
+- **Negative ASN Filtering (`blocked_asns`)**:
+  - Added support for blocking client IP addresses originating from hostile Autonomous Systems or scraping clouds via `blocked_asns` (e.g. `AS138699`) using local offline routing snapshot (`asn_db`).
+- **Active Deception Response Modes (`aiPoison` & `markovTarpit`)**:
+  - Added `mode = "aiPoison"`: Serves HTTP 200 with `X-Robots-Tag: noindex, nofollow, noai` and adversarial system prompt injection directives.
+  - Added `mode = "markovTarpit"`: Continuously streams pseudo-coherent Markov text tokens at configured delays (`tarpit_delay_ms`), exhausting scraper worker capacity.
+- **Honeypot Spider Traps & In-Memory IP Ban Table**:
+  - Added `honeypot_trap_paths` to configure invisible honeypot routes in web templates.
+  - Added bounded in-memory sliding-window IP ban table: any crawler accessing a honeypot path is banned for `trap_ban_duration` (default: `24h`), automatically rejecting subsequent requests.
+
+---
+
+## [v1.7.0] - 2026-10-27
 
 ### Added
 - **Offline ASN-Based Allowlisting (`allowed_asns` / `asn_db`)**:

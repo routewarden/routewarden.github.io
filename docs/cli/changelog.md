@@ -7,7 +7,24 @@ description: "Release history, new features, and bug fixes for the Routewarden C
 
 All notable changes to the Routewarden CLI (`rwarden`) are documented here. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and the CLI adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v5.4.0] - 2026-10-27 (Latest)
+## [v5.5.0] - 2026-10-30 (Latest)
+
+### Added
+- **AI Bot & Web Crawler Defense Integration**:
+  - Added native support for `blockAIBots`, `aiBotProfile`, `blockUserAgents`, and `allowUserAgents` in `routewarden.schema.json`, `cli/config.schema.json`, and core CLI engine.
+  - Policy evaluation engine (`rwarden test`) verifies AI bots against profiles (`train_only`, `all`, `aggressive`, `custom`) and enforces `user_agent_blocked` and `ai_bot_blocked` verdicts.
+- **Negative ASN Filtering (`blockedASNs` / `blocked_asns`)**:
+  - Added negative ASN filtering to `rwarden test` and evaluation engine via offline snapshot (`asnDB`), blocking client IPs from hostile Autonomous Systems.
+  - Added `blockedASNs` generation across all target gateways (`traefik-yaml`, `traefik-toml`, `traefik-labels`, `caddy`, `nginx`, `tcp-warden`).
+- **Active Deception Response Modes (`aiPoison` & `markovTarpit`)**:
+  - Registered `aiPoison` and `markovTarpit` modes in policy audit engine (`rwarden audit`) and CLI validation routines.
+- **Honeypot Spider Traps & In-Memory IP Ban Table**:
+  - Added `honeypotTrapPaths` and `trapBanDuration` to schema and generators.
+  - Implemented thread-safe bounded in-memory sliding-window IP ban table in CLI engine, simulating spider trap triggering and persistent IP banning.
+
+---
+
+## [v5.4.0] - 2026-10-27
 
 ### Added
 - **Offline ASN-Based Allowlisting (`allowedASNs` / `asnDB`)**:

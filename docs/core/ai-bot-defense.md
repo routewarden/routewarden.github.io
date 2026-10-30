@@ -242,11 +242,90 @@ response:
 
 ---
 
+## Honeypot Spider Traps & In-Memory IP Ban Table
+
+RouteWarden provides native honeypot spider trap detection (`honeypot_trap_paths`) paired with a high-performance in-memory sliding-window IP ban table (`trap_ban_duration`).
+
+### How It Works
+
+1. **Invisible Trap Links**: Web administrators place invisible, zero-pixel, or `rel="nofollow"` links in public HTML templates:
+   ```html
+   <a href="/hidden-trap" style="display:none;" aria-hidden="true">Site Index</a>
+   ```
+2. **Crawler Trigger**: Legitimate human users never see or click invisible links. Automated crawlers and AI spiders scrape the DOM and blindly follow every discovered `<a>` href.
+3. **Instant Sliding Ban**: When any client requests a configured honeypot path:
+   - Offending IP address is immediately banned in the gateway's bounded thread-safe ban table for `trap_ban_duration` (default: `24h`).
+   - The honeypot request receives the configured block/deception response (e.g., `403 Forbidden`, `silentDrop`, `aiPoison`, or `markovTarpit`).
+   - All subsequent requests to legitimate pages from that IP are intercepted and blocked at Stage 1 before reaching upstream backends.
+
+### Configuration Examples
+
+:::: code-group
+
+```caddyfile [Caddyfile]
+example.com {
+    routewarden {
+        # Define hidden honeypot trap paths
+        honeypot_trap_paths /hidden-trap /crawler-trap/
+
+        # Ban offenders for 24 hours (default: 24h, supports 1h, 30m, 86400)
+        trap_ban_duration 24h
+
+        # Active deception for trapped crawlers
+        response {
+            mode aiPoison
+        }
+    }
+    reverse_proxy app:8080
+}
+```
+
+```yaml [Traefik (dynamic_conf.yml)]
+http:
+  middlewares:
+    honeypot-shield:
+      plugin:
+        routewarden:
+          enabled: true
+          honeypotTrapPaths:
+            - "/hidden-trap"
+            - "/crawler-trap/"
+          trapBanDuration: "24h"
+          response:
+            mode: "aiPoison"
+```
+
+```lua [NGINX / OpenResty]
+local routewarden = require "resty.routewarden"
+local rw = routewarden.new({
+    honeypot_trap_paths = { "/hidden-trap", "/crawler-trap/" },
+    trap_ban_duration = "24h",
+    response = {
+        mode = "aiPoison"
+    }
+})
+```
+
+```json [routewarden.json]
+{
+  "honeypotTrapPaths": [
+    "/hidden-trap",
+    "/crawler-trap/"
+  ],
+  "trapBanDuration": "24h",
+  "response": {
+    "mode": "aiPoison"
+  }
+}
+```
+
+::::
+
+---
+
 ## Future Enhancements on the Roadmap
 
-### 1. Forward-Confirmed Reverse DNS (FCrDNS) Verification
+### Forward-Confirmed Reverse DNS (FCrDNS) Verification
 Automatically verify whether clients presenting `User-Agent: Googlebot` or `bingbot` genuinely originate from Google or Microsoft IP ranges, preventing scraping scripts from bypassing filters via crawler spoofing.
 
-### 2. Spider Traps (`honeypot_trap_paths`)
-Inject zero-pixel, invisible links into pages. Automated crawlers blindly follow all discovered links; any visitor hitting a trap route is automatically added to a temporary in-memory ban table.
 
