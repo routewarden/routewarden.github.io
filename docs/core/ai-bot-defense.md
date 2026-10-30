@@ -323,9 +323,108 @@ local rw = routewarden.new({
 
 ---
 
-## Future Enhancements on the Roadmap
+## Search Engine Impersonator Verification via FCrDNS
 
-### Forward-Confirmed Reverse DNS (FCrDNS) Verification
-Automatically verify whether clients presenting `User-Agent: Googlebot` or `bingbot` genuinely originate from Google or Microsoft IP ranges, preventing scraping scripts from bypassing filters via crawler spoofing.
+Aggressive AI harvesters and scraping scripts frequently forge User-Agent strings claiming to be legitimate search engine spiders (e.g., `Googlebot`, `bingbot`, `Applebot`) to bypass bot filters and scrape restricted endpoints.
+
+RouteWarden provides native **Forward-Confirmed Reverse DNS (FCrDNS)** verification (`verify_search_engine_bots` / `verifySearchEngineBots`) to mathematically verify crawler authenticity:
+
+### How FCrDNS Works
+
+1. **User-Agent Detection**: When an incoming request presents a User-Agent matching recognized search engines (`googlebot`, `google-inspectiontool`, `google-other`, `adsbot-google`, `bingbot`, `bingpreview`, `applebot`):
+2. **Reverse DNS (PTR Lookup)**: RouteWarden queries DNS for PTR records associated with the client IP and verifies that the hostname belongs to the genuine domain:
+   - Google: `.googlebot.com`, `.google.com`
+   - Microsoft / Bing: `.search.msn.com`
+   - Apple: `.applebot.apple.com`
+3. **Forward DNS (A / AAAA Lookup)**: RouteWarden resolves the PTR hostname back to its IP addresses and validates that the client IP is in the resolved IP list.
+4. **Bounded In-Memory TTL Cache**: Verification outcomes are cached (6 hours TTL, up to 10,000 entries) with strict query timeouts (500ms) to ensure zero latency overhead on subsequent requests.
+5. **Enforcement**:
+   - **Legitimate Spiders**: Exempted from generic bot blocking and allowed to crawl for search indexing.
+   - **Spoofed Impersonators**: Immediately blocked or served deception responses with reason `search_engine_spoofed` and pattern `<engine>_spoofed`.
+
+### Configuration Examples
+
+:::: code-group
+
+```caddyfile [Caddyfile]
+example.com {
+    routewarden {
+        # Block AI scrapers
+        block_ai_bots true
+
+        # Cryptographically verify search engine bots via FCrDNS
+        verify_search_engine_bots true
+
+        response {
+            mode text
+            status_code 403
+            custom_response_text "Blocked: Search Engine Impersonation Detected"
+        }
+    }
+    reverse_proxy app:8080
+}
+```
+
+```yaml [Traefik (dynamic_conf.yml)]
+http:
+  middlewares:
+    fcrdns-guard:
+      plugin:
+        routewarden:
+          enabled: true
+          blockAIBots: true
+          verifySearchEngineBots: true
+          response:
+            mode: "text"
+            statusCode: 403
+```
+
+```toml [Traefik (dynamic_conf.toml)]
+[http.middlewares.fcrdns-guard.plugin.routewarden]
+  enabled = true
+  blockAIBots = true
+  verifySearchEngineBots = true
+  [http.middlewares.fcrdns-guard.plugin.routewarden.response]
+    mode = "text"
+    statusCode = 403
+```
+
+```yaml [Traefik (Docker Labels)]
+services:
+  app:
+    image: myapp:latest
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.app.middlewares=fcrdns-guard@docker"
+      - "traefik.http.middlewares.fcrdns-guard.plugin.routewarden.blockAIBots=true"
+      - "traefik.http.middlewares.fcrdns-guard.plugin.routewarden.verifySearchEngineBots=true"
+```
+
+```lua [NGINX / OpenResty]
+local routewarden = require "resty.routewarden"
+local rw = routewarden.new({
+    block_ai_bots = true,
+    verify_search_engine_bots = true,
+    response = {
+        mode = "text",
+        status_code = 403,
+        custom_response_text = "Blocked: Search Engine Impersonation Detected"
+    }
+})
+```
+
+```json [routewarden.json]
+{
+  "blockAIBots": true,
+  "verifySearchEngineBots": true,
+  "response": {
+    "mode": "text",
+    "statusCode": 403
+  }
+}
+```
+
+::::
+
 
 

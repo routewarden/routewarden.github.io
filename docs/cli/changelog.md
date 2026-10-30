@@ -21,6 +21,10 @@ All notable changes to the Routewarden CLI (`rwarden`) are documented here. The 
 - **Honeypot Spider Traps & In-Memory IP Ban Table**:
   - Added `honeypotTrapPaths` and `trapBanDuration` to schema and generators.
   - Implemented thread-safe bounded in-memory sliding-window IP ban table in CLI engine, simulating spider trap triggering and persistent IP banning.
+- **Search Engine Impersonator Verification via FCrDNS (`verifySearchEngineBots`)**:
+  - Added `verifySearchEngineBots` / `verify_search_engine_bots` to `routewarden.schema.json` and `cli/config.schema.json`.
+  - Added Forward-Confirmed Reverse DNS verifier to CLI evaluation engine (`rwarden test`) with TTL cache.
+  - Added `verifySearchEngineBots` configuration generation across all target gateways (`traefik-yaml`, `traefik-toml`, `traefik-labels`, `caddy`, `nginx`).
 
 ---
 

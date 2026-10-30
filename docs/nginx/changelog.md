@@ -24,6 +24,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **Honeypot Spider Traps & In-Memory IP Ban Table**:
   - Added `honeypot_trap_paths` to configure invisible honeypot routes in web templates.
   - Added bounded in-memory sliding-window IP ban table: any crawler accessing a honeypot path is banned for `trap_ban_duration` (default: `24h`), automatically rejecting subsequent requests.
+- **Search Engine Impersonator Verification via FCrDNS (`verify_search_engine_bots`)**:
+  - Added Forward-Confirmed Reverse DNS verification setting `verify_search_engine_bots`.
+  - Performs reverse DNS PTR lookups and forward IP cross-validation for crawlers presenting Googlebot, bingbot, or Applebot User-Agents against authorized domain suffixes (`.googlebot.com`, `.google.com`, `.search.msn.com`, `.applebot.apple.com`).
+  - Includes a bounded in-memory cache with 6-hour TTL (up to 10,000 entries) and 500ms timeout.
+  - Allows verified search engine spiders through to upstream services while instantly blocking spoofed bots (`search_engine_spoofed`).
 
 ---
 
