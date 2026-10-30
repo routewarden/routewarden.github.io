@@ -1087,13 +1087,15 @@ RouteWarden provides native **Forward-Confirmed Reverse DNS (FCrDNS)** verificat
 
 ## Browser Impersonation & Client Hints Cross-Check
 
-Many scraping bots and scrapers forge a legitimate browser `User-Agent` (e.g. Chrome, Edge, Safari, Firefox). When `detect_browser_impersonation` (`detectBrowserImpersonation`) is enabled, RouteWarden cross-validates claimed browsers against essential companion headers:
+Many scraping bots and scrapers forge a legitimate browser `User-Agent` (e.g. Chrome, Edge, Safari, Firefox). When `detect_browser_impersonation` (`detectBrowserImpersonation`) is enabled, RouteWarden cross-validates claimed browsers against essential companion headers and Client Hints:
 
-1. **Client Hints Cross-Check (`Sec-CH-UA-Platform`)**: Validates that the platform reported by the browser matches the operating system declared in the `User-Agent` (e.g. detects an attacker claiming Windows NT 10.0 whose client hint says `"Linux"`).
-2. **Fetch Metadata (`Sec-Fetch-*`) Validation**: Confirms that requests claiming modern Chromium ($\ge$ v90) transmit standard `Sec-Fetch-Site`, `Sec-Fetch-Mode`, and `Sec-Fetch-Dest` headers.
-3. **Mandatory Companion Headers**: Ensures `Accept-Language` and `Accept-Encoding` are present. Automated scripts (such as Python `requests`) frequently omit `Accept-Language`.
+1. **Client Hints Platform Cross-Check (`Sec-CH-UA-Platform`)**: Validates that the platform reported by the browser matches the operating system declared in the `User-Agent` (e.g. detects an attacker claiming Windows NT 10.0 whose client hint says `"Linux"`). Trigger reason: `sec_ch_ua_platform_mismatch`.
+2. **Client Hints Mobile Form Factor (`Sec-CH-UA-Mobile`)**: Cross-checks mobile indicators against the client form factor (e.g. detects a desktop User-Agent sending `?1`, or an iPhone/Android mobile device claiming `?0`). Trigger reason: `sec_ch_ua_mobile_mismatch`.
+3. **Client Hints Brand & Version Integrity (`Sec-CH-UA`)**: Validates that non-Chromium browsers (Firefox, Safari) do not forge Chromium Client Hints (`sec_ch_ua_brand_mismatch`), and modern Chromium browsers ($\ge$ v89) advertising client hints do not leave `Sec-CH-UA` blank (`missing_sec_ch_ua`).
+4. **Fetch Metadata (`Sec-Fetch-*`) Validation & Consistency**: Confirms that requests claiming modern Chromium ($\ge$ v90) transmit standard `Sec-Fetch-Site`, `Sec-Fetch-Mode`, and `Sec-Fetch-Dest` headers (`missing_sec_fetch`), and cross-checks that top-level document requests (`Sec-Fetch-Dest: document`) use navigation mode (`Sec-Fetch-Mode: navigate`) (`sec_fetch_mode_mismatch`).
+5. **Mandatory Companion Headers**: Ensures `Accept-Language` and `Accept-Encoding` are present. Automated scripts (such as Python `requests`) frequently omit `Accept-Language`. Trigger reasons: `missing_accept_language`, `missing_accept_encoding`.
 
-Violations are rejected with security reason `browser_spoofed` and pattern `missing_accept_language`, `missing_accept_encoding`, `sec_ch_ua_platform_mismatch`, or `missing_sec_fetch`.
+Violations are rejected with security reason `browser_spoofed` and the matching integrity failure pattern.
 
 ---
 
@@ -1101,8 +1103,8 @@ Violations are rejected with security reason `browser_spoofed` and pattern `miss
 
 When `block_script_clients` (`blockScriptClients`) is enabled, RouteWarden blocks default signatures and headers from programmatic HTTP libraries and headless browser automation frameworks:
 
-* **HTTP Client Libraries**: Python (`requests`, `urllib`, `aiohttp`, `httpx`, `Scrapy`, `tornado`), Node.js (`axios`, `node-fetch`, `undici`, `got`, `superagent`), Go (`Go-http-client`), Java (`OkHttp`, `Apache-HttpClient`, `Java/`), Ruby (`Faraday`, `HTTParty`), and command-line tools (`curl`, `Wget`, `libwww-perl`).
-* **Headless Framework Headers**: Detects automated scraping frameworks injecting framework headers (`X-Playwright`, `X-Puppeteer`, `X-Selenium`, `X-Scrapy`, `Sec-WebDriver`, `X-Headless`).
+* **HTTP Client Libraries**: PHP (`Guzzle`), Rust (`reqwest`), Python (`requests`, `urllib`, `aiohttp`, `httpx`, `Scrapy`, `tornado`, `curl-cffi`, `mechanize`), Node.js (`axios`, `node-fetch`, `undici`, `got`, `superagent`), Go (`Go-http-client`), Java (`OkHttp`, `Apache-HttpClient`, `Java/`), Ruby (`Faraday`, `HTTParty`), and command-line tools (`curl`, `Wget`, `libwww-perl`).
+* **Headless Framework Headers**: Detects automated scraping and testing frameworks injecting framework headers (`X-Playwright`, `X-Puppeteer`, `X-Selenium`, `X-Scrapy`, `X-Cypress`, `Sec-WebDriver`, `X-Headless`, `X-Headless-Chrome`, `X-Automation`).
 
 Authorized scripts or webhooks can be exempted using `allow_user_agents` or `allowed_ips`.
 
