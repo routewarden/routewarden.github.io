@@ -29,11 +29,11 @@ All notable changes to the Routewarden CLI (`rwarden`) are documented here. The 
   - Added `verifySearchEngineBots` configuration generation across all target gateways (`traefik-yaml`, `traefik-toml`, `traefik-labels`, `caddy`, `nginx`).
 - **Browser Impersonation Detection (`detectBrowserImpersonation`)**:
   - Added `detectBrowserImpersonation` / `detect_browser_impersonation` to schemas and CLI policy evaluation engine.
-  - Implemented Client Hints (`Sec-CH-UA-Platform`) and Chromium Fetch Metadata cross-checking against claimed browser User-Agents in `rwarden test`.
+  - Implemented Client Hints (`Sec-CH-UA-Platform`, `Sec-CH-UA-Mobile`, `Sec-CH-UA` brand integrity) and Chromium Fetch Metadata cross-checking against claimed browser User-Agents in `rwarden test`.
   - Added generator support for Traefik YAML/TOML/Labels, Caddyfile, and NGINX Lua.
 - **Script Client & Headless Automation Blocking (`blockScriptClients`)**:
   - Added `blockScriptClients` / `block_script_clients` to schemas and CLI evaluation engine.
-  - Added automated HTTP library and headless framework header signature verification.
+  - Added automated HTTP library (requests, Guzzle, reqwest, axios, curl-cffi, mechanize) and headless framework header signature verification (`X-Playwright`, `X-Puppeteer`, `X-Selenium`, `X-Cypress`, `X-Headless-Chrome`, `X-Automation`, `Sec-WebDriver`).
   - Added generator support across all supported gateway outputs.
 
 ---

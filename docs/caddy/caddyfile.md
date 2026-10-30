@@ -252,8 +252,8 @@ To resolve this, declare directive ordering in your Caddyfile's global options b
 | `ai_bot_profile` | `string` | `""` | AI bot profile: `train_only` (default), `all`, `aggressive`, or `custom`. |
 | `block_user_agents` | `list` | `[]` | Custom regex patterns matching client User-Agents to block. |
 | `allow_user_agents` | `list` | `[]` | Custom regex patterns matching client User-Agents to allow. |
-| `detect_browser_impersonation` | `bool` | `false` | Cross-validates browser User-Agents against Client Hints and companion headers. |
-| `block_script_clients` | `bool` | `false` | Blocks automated HTTP client libraries and headless framework headers. |
+| `detect_browser_impersonation` | `bool` | `false` | Cross-validates browser User-Agents against Client Hints (`Sec-CH-UA-Platform`, `Sec-CH-UA-Mobile`, `Sec-CH-UA` brand integrity), Fetch Metadata (`Sec-Fetch-*`), and companion headers (`Accept-Language`, `Accept-Encoding`). |
+| `block_script_clients` | `bool` | `false` | Blocks automated HTTP client libraries (requests, Guzzle, reqwest, axios, curl) and headless framework headers (`X-Playwright`, `X-Puppeteer`, `X-Cypress`, `Sec-WebDriver`). |
 | `verify_search_engine_bots` | `bool` | `false` | Verifies Googlebot, Bingbot, and Applebot authenticity via FCrDNS. |
 | `honeypot_trap_paths` | `list` | `[]` | Hidden trap paths that trigger instant sliding-window IP bans. |
 | `trap_ban_duration` | `string` | `"24h"` | Ban duration for trapped IPs (e.g., `24h`, `1h`, `30m`). |

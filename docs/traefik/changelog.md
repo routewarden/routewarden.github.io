@@ -31,9 +31,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   - Allows verified search engine spiders through to upstream services while instantly blocking spoofed bots (`search_engine_spoofed`).
 - **Browser Impersonation Detection (`detectBrowserImpersonation`)**:
   - Added `detectBrowserImpersonation` / `detect_browser_impersonation` option to detect and block bots disguising themselves with desktop/mobile browser User-Agents.
-  - Cross-validates Client Hints (`Sec-CH-UA-Platform` matching OS in User-Agent), Chromium Fetch Metadata (`Sec-Fetch-Site`, `Sec-Fetch-Mode`, `Sec-Fetch-Dest`), and mandatory companion headers (`Accept-Language`, `Accept-Encoding`).
+  - Cross-validates Client Hints (`Sec-CH-UA-Platform` matching OS in User-Agent, `Sec-CH-UA-Mobile` form factor consistency, `Sec-CH-UA` presence on modern Chromium $\ge 89$, and brand integrity), Chromium Fetch Metadata (`Sec-Fetch-Site`, `Sec-Fetch-Mode`, `Sec-Fetch-Dest`), and mandatory companion headers (`Accept-Language`, `Accept-Encoding`).
 - **Script Client & Headless Automation Blocking (`blockScriptClients`)**:
-  - Added `blockScriptClients` / `block_script_clients` option to block requests originating from programmatic HTTP client libraries (Python `requests`, `urllib`, `aiohttp`, `httpx`, `Scrapy`, Node `axios`, `node-fetch`, `undici`, Go `Go-http-client`, Java `OkHttp`, `curl`, `wget`) and headless automation frameworks (`X-Playwright`, `X-Puppeteer`, `X-Selenium`, `Sec-WebDriver`).
+  - Added `blockScriptClients` / `block_script_clients` option to block requests originating from programmatic HTTP client libraries (Python `requests`, `urllib`, `aiohttp`, `httpx`, `Scrapy`, `curl-cffi`, `mechanize`, PHP `Guzzle`, Rust `reqwest`, Node `axios`, `node-fetch`, `undici`, Go `Go-http-client`, Java `OkHttp`, `curl`, `wget`) and headless automation frameworks (`X-Playwright`, `X-Puppeteer`, `X-Selenium`, `X-Cypress`, `X-Headless-Chrome`, `X-Automation`, `Sec-WebDriver`).
 
 ---
 

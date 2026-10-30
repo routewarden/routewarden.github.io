@@ -228,8 +228,8 @@ This reference covers all configuration options available in **Traefik Warden**.
 | `aiBotProfile` | `string` | `""` | AI bot profile filter: `train_only` (default), `all`, `aggressive`, or `custom`. |
 | `blockUserAgents` | `[]string` | `[]` | Custom regular expression patterns matching client User-Agents to block. |
 | `allowUserAgents` | `[]string` | `[]` | Custom regular expression patterns matching client User-Agents to permit. |
-| `detectBrowserImpersonation` | `bool` | `false` | Cross-validates claimed browser User-Agents against Client Hints (`Sec-CH-UA-Platform`), Chromium Fetch Metadata (`Sec-Fetch-*`), and companion headers (`Accept-Language`, `Accept-Encoding`). |
-| `blockScriptClients` | `bool` | `false` | Blocks automated HTTP client library signatures (requests, axios, curl) and headless automation framework headers (`X-Playwright`, `X-Puppeteer`, `Sec-WebDriver`). |
+| `detectBrowserImpersonation` | `bool` | `false` | Cross-validates claimed browser User-Agents against Client Hints (`Sec-CH-UA-Platform`, `Sec-CH-UA-Mobile`, `Sec-CH-UA` brand integrity), Chromium Fetch Metadata (`Sec-Fetch-*`), and companion headers (`Accept-Language`, `Accept-Encoding`). |
+| `blockScriptClients` | `bool` | `false` | Blocks automated HTTP client library signatures (requests, Guzzle, reqwest, axios, curl) and headless automation framework headers (`X-Playwright`, `X-Puppeteer`, `X-Cypress`, `Sec-WebDriver`). |
 | `verifySearchEngineBots` | `bool` | `false` | Verifies genuine search engine crawlers (Googlebot, Bingbot, Applebot) via Forward-Confirmed Reverse DNS (FCrDNS), dropping spoofed impersonators. |
 | `honeypotTrapPaths` | `[]string` | `[]` | Hidden decoy URL paths. Any client requesting these paths triggers an instant IP ban in an in-memory sliding-window table. |
 | `trapBanDuration` | `string` | `"24h"` | Sliding-window ban duration for trapped client IPs (e.g., `24h`, `1h`, `30m`). |

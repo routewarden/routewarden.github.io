@@ -236,8 +236,8 @@ Initialize Routewarden using `routewarden.new(config)` within NGINX's `init_by_l
 | `ai_bot_profile` | `string` | `nil` | AI bot profile: `train_only` (default), `all`, `aggressive`, or `custom`. |
 | `block_user_agents` | `table` | `{}` | Array of custom PCRE regular expressions matching client User-Agents to block. |
 | `allow_user_agents` | `table` | `{}` | Array of custom PCRE regular expressions matching client User-Agents to allow. |
-| `detect_browser_impersonation` | `boolean` | `false` | Cross-validates browser User-Agents against Client Hints and companion headers. |
-| `block_script_clients` | `boolean` | `false` | Blocks automated HTTP client libraries and headless framework headers. |
+| `detect_browser_impersonation` | `boolean` | `false` | Cross-validates browser User-Agents against Client Hints (`Sec-CH-UA-Platform`, `Sec-CH-UA-Mobile`, `Sec-CH-UA` brand integrity), Fetch Metadata (`Sec-Fetch-*`), and companion headers (`Accept-Language`, `Accept-Encoding`). |
+| `block_script_clients` | `boolean` | `false` | Blocks automated HTTP client libraries (requests, Guzzle, reqwest, axios, curl) and headless automation framework headers (`X-Playwright`, `X-Puppeteer`, `X-Cypress`, `Sec-WebDriver`). |
 | `verify_search_engine_bots` | `boolean` | `false` | Cryptographically verifies search engine bot authenticity via FCrDNS. |
 | `honeypot_trap_paths` | `table` | `{}` | Array of decoy paths that trigger instant sliding-window IP bans. |
 | `trap_ban_duration` | `string` | `"24h"` | Ban duration for trapped client IPs (e.g. `24h`, `1h`, `30m`). |
