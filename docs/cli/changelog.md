@@ -13,6 +13,8 @@ All notable changes to the Routewarden CLI (`rwarden`) are documented here. The 
 - **AI Bot & Web Crawler Defense Integration**:
   - Added native support for `blockAIBots`, `aiBotProfile`, `blockUserAgents`, and `allowUserAgents` in `routewarden.schema.json`, `cli/config.schema.json`, and core CLI engine.
   - Policy evaluation engine (`rwarden test`) verifies AI bots against profiles (`train_only`, `all`, `aggressive`, `custom`) and enforces `user_agent_blocked` and `ai_bot_blocked` verdicts.
+  - Added CLI test flags to `rwarden test`: `--block-ai-bots`, `--ai-bot-profile`, `--detect-browser-impersonation`, `--block-script-clients`, and `--verify-search-engine-bots` for ad-hoc policy debugging without creating a JSON config file.
+  - Added configuration audit rules `RW-A015` (regex syntax auditing in `blockUserAgents` and `allowUserAgents`) and `RW-A016` (`aiBotProfile` validity check) to `rwarden audit`.
 - **Negative ASN Filtering (`blockedASNs` / `blocked_asns`)**:
   - Added negative ASN filtering to `rwarden test` and evaluation engine via offline snapshot (`asnDB`), blocking client IPs from hostile Autonomous Systems.
   - Added `blockedASNs` generation across all target gateways (`traefik-yaml`, `traefik-toml`, `traefik-labels`, `caddy`, `nginx`, `tcp-warden`).
