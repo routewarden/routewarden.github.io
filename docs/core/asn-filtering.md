@@ -99,10 +99,10 @@ const nginx_cfg = buildSnippet({
 local routewarden = require("resty.routewarden")
 
 warden = routewarden.new({
-    -- Allowed ASN list # [!code ++]
-    allowed_asns = { "AS13335", "64500" }, -- [!code ++]
-    -- Offline JSON snapshot path # [!code ++]
-    asn_db = "/etc/routewarden/asn.json", -- [!code ++]
+    -- Allowed ASN list
+    allowed_asns = { "AS13335", "64500" }, # [!code ++]
+    -- Offline JSON snapshot path
+    asn_db = "/etc/routewarden/asn.json", # [!code ++]
     -- Trusted proxy subnets
     trusted_proxies = { "10.0.0.0/8", "172.16.0.0/12" },
     response = {

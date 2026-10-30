@@ -47,7 +47,7 @@ const full_config = buildSnippet({
   lang: 'lua',
   code: `warden = routewarden.new({
     -- Load base configuration from shared JSON policy file (optional)
-    config_file = "/etc/routewarden/routewarden.json", -- [!code ++]
+    config_file = "/etc/routewarden/routewarden.json", # [!code ++]
 
     -- Master toggle
     enabled = true,                        -- Default: true

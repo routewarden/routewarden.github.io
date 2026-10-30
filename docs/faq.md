@@ -100,11 +100,11 @@ const cp_nginx_lua = buildSnippet({
 access_by_lua_block {
     local rw = require("routewarden")
     rw.check({
-        custom_block_patterns = { -- [!code ++]
-            "^/internal-api/.*", -- [!code ++]
-            "(?i)\\.(log|conf|ini|key)$", -- [!code ++]
-            "^/wp-login\\.php$" -- [!code ++]
-        } -- [!code ++]
+        custom_block_patterns = { # [!code ++]
+            "^/internal-api/.*", # [!code ++]
+            "(?i)\\.(log|conf|ini|key)$", # [!code ++]
+            "^/wp-login\\.php$" # [!code ++]
+        } # [!code ++]
     })
 }`,
 })
@@ -156,10 +156,10 @@ const ap_nginx = buildSnippet({
 access_by_lua_block {
     local rw = require("routewarden")
     rw.check({
-        allow_patterns = { -- [!code ++]
-            "^/downloads/sample\\.env$", -- [!code ++]
-            "^/public/documentation/.*\\.sql$" -- [!code ++]
-        } -- [!code ++]
+        allow_patterns = { # [!code ++]
+            "^/downloads/sample\\.env$", # [!code ++]
+            "^/public/documentation/.*\\.sql$" # [!code ++]
+        } # [!code ++]
     })
 }`,
 })
@@ -212,9 +212,9 @@ const ip_nginx = buildSnippet({
 access_by_lua_block {
     local rw = require("routewarden")
     rw.check({
-        allowed_ips = { -- [!code ++]
-            "127.0.0.1", "10.0.0.0/8", "172.16.0.0/12", "192.168.1.0/24", "100.64.0.0/10" -- [!code ++]
-        } -- [!code ++]
+        allowed_ips = { # [!code ++]
+            "127.0.0.1", "10.0.0.0/8", "172.16.0.0/12", "192.168.1.0/24", "100.64.0.0/10" # [!code ++]
+        } # [!code ++]
     })
 }`,
 })
@@ -265,9 +265,9 @@ const tp_nginx = buildSnippet({
 access_by_lua_block {
     local rw = require("routewarden")
     rw.check({
-        trusted_proxies = { -- [!code ++]
-            "173.245.48.0/20", "103.21.244.0/22", "10.0.0.0/8" -- [!code ++]
-        } -- [!code ++]
+        trusted_proxies = { # [!code ++]
+            "173.245.48.0/20", "103.21.244.0/22", "10.0.0.0/8" # [!code ++]
+        } # [!code ++]
     })
 }`,
 })
