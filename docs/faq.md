@@ -47,7 +47,7 @@ http:
       plugin:
         routewarden:
           enabled: true
-          customBlockPatterns: # [!code ++]
+          blockPatterns: # [!code ++]
             - "^/internal-api/.*" # [!code ++]
             - "(?i)\\\\.(log|conf|ini|key)$" # [!code ++]
             - "^/wp-login\\\\.php$" # [!code ++]`,
@@ -63,9 +63,9 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.app.middlewares=my-shield@docker"
       - "traefik.http.middlewares.my-shield.plugin.routewarden.enabled=true"
-      - "traefik.http.middlewares.my-shield.plugin.routewarden.customBlockPatterns[0]=^/internal-api/.*" # [!code ++]
-      - "traefik.http.middlewares.my-shield.plugin.routewarden.customBlockPatterns[1]=(?i)\\\\.(log|conf|ini|key)$" # [!code ++]
-      - "traefik.http.middlewares.my-shield.plugin.routewarden.customBlockPatterns[2]=^/wp-login\\\\.php$" # [!code ++]`,
+      - "traefik.http.middlewares.my-shield.plugin.routewarden.blockPatterns[0]=^/internal-api/.*" # [!code ++]
+      - "traefik.http.middlewares.my-shield.plugin.routewarden.blockPatterns[1]=(?i)\\\\.(log|conf|ini|key)$" # [!code ++]
+      - "traefik.http.middlewares.my-shield.plugin.routewarden.blockPatterns[2]=^/wp-login\\\\.php$" # [!code ++]`,
 })
 
 const cp_caddyfile = buildSnippet({
@@ -74,7 +74,7 @@ const cp_caddyfile = buildSnippet({
 :443 {
     route {
         route_warden {
-            custom_block_patterns ^/internal-api/.* (?i)\\.(log|conf|ini|key)$ ^/wp-login\\.php$ # [!code ++]
+            block_patterns ^/internal-api/.* (?i)\\.(log|conf|ini|key)$ ^/wp-login\\.php$ # [!code ++]
         }
         reverse_proxy app:8080
     }
@@ -86,7 +86,7 @@ const cp_caddy_json = buildSnippet({
   code: `// Caddy JSON Configuration
 {
   "handler": "route_warden",
-  "custom_block_patterns": [ // [!code ++]
+  "block_patterns": [ // [!code ++]
     "^/internal-api/.*", // [!code ++]
     "(?i)\\\\.(log|conf|ini|key)$", // [!code ++]
     "^/wp-login\\\\.php$" // [!code ++]
@@ -100,7 +100,7 @@ const cp_nginx_lua = buildSnippet({
 access_by_lua_block {
     local rw = require("routewarden")
     rw.check({
-        custom_block_patterns = { # [!code ++]
+        block_patterns = { # [!code ++]
             "^/internal-api/.*", # [!code ++]
             "(?i)\\.(log|conf|ini|key)$", # [!code ++]
             "^/wp-login\\.php$" # [!code ++]
@@ -606,7 +606,7 @@ Legitimate requests from Let's Encrypt, ZeroSSL, or cert-manager to `/.well-know
 
 ### How do I add custom block patterns or regexes?
 
-You can supply custom rules via `customBlockPatterns` or `blockPatterns`. Select your gateway below:
+You can supply custom rules via `blockPatterns` (or `block_patterns`). Select your gateway below:
 
 <CodeViewer :snippets="customPatternSnippets" />
 
@@ -614,7 +614,7 @@ You can supply custom rules via `customBlockPatterns` or `blockPatterns`. Select
 
 ### How do I whitelist a false positive or legitimate public file?
 
-Use `allowPatterns` (or `customAllowPatterns`). Rules in the allowlist are evaluated **before** block rules, guaranteeing that matching requests bypass inspection:
+Use `allowPatterns` (or `allow_patterns`). Rules in the allowlist are evaluated **before** block rules, guaranteeing that matching requests bypass inspection:
 
 <CodeViewer :snippets="allowPatternSnippets" />
 

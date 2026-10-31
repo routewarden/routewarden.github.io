@@ -52,7 +52,7 @@ const full_config = buildSnippet({
     -- Master toggle
     enabled = true,                        -- Default: true
     debug = false,                         -- Default: false (outputs trace logs via ngx.log)
-    security_log = true,                   -- Default: false (emits JSON security events for CrowdSec/SIEM)
+    security_log = true,                   -- Default: true (emits JSON security events for CrowdSec/SIEM)
 
     -- Built-in rules
     enable_default_patterns = true,        -- Default: true (blocks .env, .git, .aws, dumps, actuator)
