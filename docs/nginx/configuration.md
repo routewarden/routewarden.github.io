@@ -83,6 +83,7 @@ const full_config = buildSnippet({
     trusted_proxies = { "10.0.0.0/8" },
 
     -- AI Bot & Crawler Defense
+    bot_defense_level = "standard",
     block_ai_bots = true,
     ai_bot_profile = "train_only",
     block_user_agents = { "(?i)badbot" },
@@ -232,6 +233,7 @@ Initialize Routewarden using `routewarden.new(config)` within NGINX's `init_by_l
 | `allowed_asns` | `table` | `{}` | Array of Autonomous System Numbers (`"AS64500"`, `"64500"`) allowed to bypass inspection. |
 | `blocked_asns` | `table` | `{}` | Array of Autonomous System Numbers whose client IPs are blocked. Requires `asn_db`. |
 | `asn_db` | `string` | `nil` | Path to local JSON ASN routing snapshot file. |
+| `bot_defense_level` | `string` | `nil` | Preset bot defense level (`"off"`, `"light"`, `"standard"`, `"strict"`, `"aggressive"`). Activates pre-tuned bot defenses. |
 | `block_ai_bots` | `boolean` | `false` | Enables automatic blocking of known AI scrapers & LLM training crawlers. |
 | `ai_bot_profile` | `string` | `nil` | AI bot profile: `train_only` (default), `all`, `aggressive`, or `custom`. |
 | `block_user_agents` | `table` | `{}` | Array of custom PCRE regular expressions matching client User-Agents to block. |

@@ -87,6 +87,7 @@ allowedASNs:
 blockedASNs:
   - AS138699
 asnDB: /etc/routewarden/asn.json
+botDefenseLevel: standard
 blockAIBots: true
 aiBotProfile: train_only
 detectBrowserImpersonation: true
@@ -120,6 +121,7 @@ const caddy_json = buildSnippet({
   "allowedASNs": ["AS13335", "64500"],
   "blockedASNs": ["AS138699"],
   "asnDB": "/etc/routewarden/asn.json",
+  "botDefenseLevel": "standard",
   "blockAIBots": true,
   "aiBotProfile": "train_only",
   "detectBrowserImpersonation": true,

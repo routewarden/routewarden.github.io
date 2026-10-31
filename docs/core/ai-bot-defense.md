@@ -954,6 +954,88 @@ const browserGuardSnippets = computed(() => ({
     { filename: 'routewarden.json', lang: 'json', code: guard_cli.cleanCode, html: guard_cli.html, hasDiff: false },
   ],
 }))
+
+// ─── 10. Bot Defense Level Presets (botDefenseLevel) ────────────────────────
+const preset_traefik_yaml = buildSnippet({
+  lang: 'yaml',
+  code: `http:
+  middlewares:
+    bot-shield:
+      plugin:
+        routewarden:
+          enabled: true
+          # Levels: off, light, standard (recommended), strict, aggressive
+          botDefenseLevel: "standard"
+          # Optional granular overrides:
+          # aiBotProfile: "all"`,
+})
+
+const preset_traefik_toml = buildSnippet({
+  lang: 'toml',
+  code: `[http.middlewares.bot-shield.plugin.routewarden]
+  enabled = true
+  botDefenseLevel = "standard"`,
+})
+
+const preset_traefik_labels = buildSnippet({
+  lang: 'docker',
+  code: `services:
+  app:
+    image: myapp:latest
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.app.middlewares=bot-shield@docker"
+      - "traefik.http.middlewares.bot-shield.plugin.routewarden.enabled=true"
+      - "traefik.http.middlewares.bot-shield.plugin.routewarden.botDefenseLevel=standard"`,
+})
+
+const preset_caddy = buildSnippet({
+  lang: 'caddy',
+  code: `example.com {
+    routewarden {
+        # Levels: off, light, standard, strict, aggressive
+        bot_defense_level standard
+
+        # Optional granular override:
+        # detect_browser_impersonation false
+    }
+    reverse_proxy app:8080
+}`,
+})
+
+const preset_nginx = buildSnippet({
+  lang: 'lua',
+  code: `local routewarden = require("resty.routewarden")
+local rw = routewarden.new({
+    -- Levels: "off", "light", "standard", "strict", "aggressive"
+    bot_defense_level = "standard"
+})`,
+})
+
+const preset_cli = buildSnippet({
+  lang: 'json',
+  code: `{
+  "$schema": "https://routewarden.github.io/schema.json",
+  "botDefenseLevel": "standard"
+}`,
+})
+
+const botDefensePresetSnippets = computed(() => ({
+  traefik: [
+    { filename: 'traefik.yml', lang: 'yaml', code: preset_traefik_yaml.cleanCode, html: preset_traefik_yaml.html, hasDiff: false },
+    { filename: 'traefik.toml', lang: 'toml', code: preset_traefik_toml.cleanCode, html: preset_traefik_toml.html, hasDiff: false },
+    { filename: 'docker-compose.yaml', lang: 'docker', code: preset_traefik_labels.cleanCode, html: preset_traefik_labels.html, hasDiff: false },
+  ],
+  caddy: [
+    { filename: 'Caddyfile', lang: 'caddy', code: preset_caddy.cleanCode, html: preset_caddy.html, hasDiff: false },
+  ],
+  nginx: [
+    { filename: 'nginx.conf', lang: 'lua', code: preset_nginx.cleanCode, html: preset_nginx.html, hasDiff: false },
+  ],
+  cli: [
+    { filename: 'routewarden.json', lang: 'json', code: preset_cli.cleanCode, html: preset_cli.html, hasDiff: false },
+  ],
+}))
 </script>
 
 # AI Bot & Web Crawler Defense
@@ -994,6 +1076,29 @@ RouteWarden counters AI crawlers using a defense-in-depth pipeline:
 ---
 
 ## Defense Strategies & Configurations
+
+### Level-Based Defense Presets (`botDefenseLevel` / `bot_defense_level`)
+
+To avoid configuring multiple individual toggles, RouteWarden provides **curated defense tier presets** through `botDefenseLevel` (`bot_defense_level` in Caddy/NGINX). A single directive activates pre-tuned combinations of AI bot filtering, browser impersonation cross-checks, script client blocking, and FCrDNS search engine verification.
+
+#### Preset Tier Matrix
+
+| Preset Level | Aliases | AI Bot Blocking | AI Bot Profile | Browser Impersonation | Script Clients | FCrDNS Verification | Best Used For |
+|---|---|---|---|---|---|---|---|
+| `off` | `none` | ❌ Off | — | ❌ Off | ❌ Off | ❌ Off | Default state; all bot defenses disabled or configured manually. |
+| `light` | `relaxed` | ✅ Yes | `train_only` | ❌ Off | ✅ Blocked | ✅ Verified | Low-risk environments, public APIs, or setups with non-standard internal browsers. |
+| **`standard`** | `moderate` | ✅ Yes | `train_only` | ✅ Enforced | ✅ Blocked | ✅ Verified | **Recommended for production.** Allows search/RAG bots (`PerplexityBot`) for citation traffic while blocking LLM harvesters & forged browsers. |
+| `strict` | — | ✅ Yes | `all` | ✅ Enforced | ✅ Blocked | ✅ Verified | Complete AI quarantine. Blocks all LLM training scrapers as well as conversational search bots. |
+| `aggressive` | `paranoia` | ✅ Yes | `aggressive` | ✅ Enforced | ✅ Blocked | ✅ Verified | High-traffic public sites targeted by high-frequency scrapers (`Bytespider`, `ClaudeBot`, `CCBot`). |
+
+> [!TIP] Granular Overrides
+> Explicitly specifying any individual defense option (such as `detect_browser_impersonation: false` or `ai_bot_profile: "all"`) immediately overrides the preset defaults. Presets set intelligent baselines without constraining customization.
+
+#### Configuration Examples
+
+<CodeViewer :snippets="botDefensePresetSnippets" />
+
+---
 
 ### Strategy 1: Active Tarpitting (Reverse Slowloris)
 Lock the scraper's worker threads by acknowledging the connection and trickling single bytes at slow intervals (e.g., 1 byte every 2 seconds).

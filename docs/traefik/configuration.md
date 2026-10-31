@@ -224,6 +224,7 @@ This reference covers all configuration options available in **Traefik Warden**.
 | `allowedASNs` | `[]string` | `[]` | List of Autonomous System Numbers (`"64500"` or `"AS64500"`) whose client IPs bypass inspection. Requires `asnDB`. |
 | `blockedASNs` | `[]string` | `[]` | List of hostile or crawler Autonomous System Numbers whose client IPs are blocked. Requires `asnDB`. |
 | `asnDB` | `string` | `""` | Absolute filesystem path to local JSON ASN-to-CIDR routing snapshot file. |
+| `botDefenseLevel` | `string` | `""` | Preset bot defense level (`"off"`, `"light"`, `"standard"`, `"strict"`, `"aggressive"`). Activates pre-tuned combinations of AI bot defense, browser impersonation checks, script client blocking, and FCrDNS. |
 | `blockAIBots` | `bool` | `false` | Enables automatic blocking of known AI scrapers, LLM training bots, and crawlers. |
 | `aiBotProfile` | `string` | `""` | AI bot profile filter: `train_only` (default), `all`, `aggressive`, or `custom`. |
 | `blockUserAgents` | `[]string` | `[]` | Custom regular expression patterns matching client User-Agents to block. |

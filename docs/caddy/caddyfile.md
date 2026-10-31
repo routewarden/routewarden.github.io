@@ -83,6 +83,7 @@ const schema_code = buildSnippet({
     trusted_proxies <cidrs...>                  # Upstream proxies trusted for client IP resolution
 
     # AI Bot & Web Crawler Defense
+    bot_defense_level <level>                   # e.g. standard (presets: off, light, standard, strict, aggressive)
     block_ai_bots <true|false>                  # Default: false (block known AI scrapers & LLM bots)
     ai_bot_profile <profile>                    # e.g. train_only (default), all, aggressive, custom
     block_user_agents <regex...>                # Custom regex patterns matching User-Agents to block
@@ -248,6 +249,7 @@ To resolve this, declare directive ordering in your Caddyfile's global options b
 | `allowed_asns` | `list` | `[]` | Autonomous System Numbers (`AS64500`, `64500`) allowed to bypass inspection. Bare `allowed_asns` clears inherited list. |
 | `blocked_asns` | `list` | `[]` | Autonomous System Numbers whose client IPs are blocked. Requires `asn_db`. |
 | `asn_db` | `string` | `""` | Path to local JSON ASN routing snapshot database. |
+| `bot_defense_level` | `string` | `""` | Preset bot defense level (`off`, `light`, `standard`, `strict`, `aggressive`). Activates pre-tuned bot defenses. |
 | `block_ai_bots` | `bool` | `false` | Enables automatic blocking of known AI crawlers and LLM training bots. |
 | `ai_bot_profile` | `string` | `""` | AI bot profile: `train_only` (default), `all`, `aggressive`, or `custom`. |
 | `block_user_agents` | `list` | `[]` | Custom regex patterns matching client User-Agents to block. |

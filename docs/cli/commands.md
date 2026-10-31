@@ -35,6 +35,9 @@ rwarden test -c routewarden.json --ip "10.0.0.1" /admin
 # Test request body payload inspection (-b or --body)
 rwarden test -X POST -b "grant_type=password&user=admin" --check-body /identity/token
 
+# Test bot defense preset level (--bot-defense-level)
+rwarden test -H "User-Agent: GPTBot/1.0" --bot-defense-level standard /docs
+
 # Test AI bot blocking (--block-ai-bots, --ai-bot-profile)
 rwarden test -H "User-Agent: GPTBot/1.0" --block-ai-bots /docs
 
@@ -672,6 +675,7 @@ Simulate candidate path extraction, normalization, and pattern matching on an ar
 | `--ip` | string | `""` | Client IP address to evaluate against `allowedIps` |
 | `--check-query` | bool | `true` | Enable or disable query string inspection |
 | `--check-body` | bool | `false` | Enable or disable request body payload inspection |
+| `--bot-defense-level` | string | `""` | Bot defense preset tier (`off`, `light`, `standard`, `strict`, `aggressive`) |
 | `--block-ai-bots` | bool | `false` | Enable AI crawler and LLM training bot detection |
 | `--ai-bot-profile` | string | `""` | AI bot profile: `train_only` (default), `all`, `aggressive`, or `custom` |
 | `--detect-browser-impersonation` | bool | `false` | Cross-validate claimed browser UA against Client Hints and headers |
