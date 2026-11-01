@@ -66,6 +66,11 @@ export function extractCandidatePaths(rawPath: string, shouldCheckQuery = false)
       const extractedPath = rest.substring(match.index)
       candidatesSet.add(extractedPath)
       transformations.push(`Extracted path from absolute URI: ${extractedPath}`)
+      pathPart = extractedPath
+    } else {
+      pathPart = '/'
+      candidatesSet.add('/')
+      transformations.push('Extracted path from absolute URI: /')
     }
   }
 

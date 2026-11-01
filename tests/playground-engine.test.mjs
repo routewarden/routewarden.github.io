@@ -238,6 +238,8 @@ test('playground engine & generator: comprehensive test matrix (100+ cases)', as
       { name: 'Trailing dot on path segment', raw: '/sub./.env', shouldBlock: true },
       { name: 'Absolute URI scheme and authority', raw: 'http://example.com/wp-config.php', shouldBlock: true },
       { name: 'Absolute URI with Windows backslash', raw: 'http://example.com\\.env', shouldBlock: true },
+      { name: 'Absolute URI with multi-layer percent-encoded traversal', raw: 'http://example.com/%252e%252e/.env', shouldBlock: true },
+      { name: 'Absolute URI with Windows backslash traversal', raw: 'http://example.com\\admin\\..\\.env', shouldBlock: true },
       { name: 'Combined NTFS ADS and trailing dot', raw: '/wp-config.php::$DATA.', shouldBlock: true },
       { name: 'Path traversal upward combined with trailing dot', raw: '/sub/../settings.py.', shouldBlock: true },
       { name: 'Mixed backslash and trailing dot', raw: '\\app\\..\\settings.py.', shouldBlock: true },
