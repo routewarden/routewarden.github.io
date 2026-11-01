@@ -830,6 +830,7 @@ Perform deep static analysis and linting on a Routewarden policy file to catch R
 | `RW-A026` | Warning | Mutation Methods Missing | `checkBody` enabled but `methods` contains only read-only verbs (e.g. GET) |
 | `RW-A027` | Critical/Warning | Malformed Header Name | Header in `checkHeaders` contains colon, space, or invalid token characters |
 | `RW-A028` | Critical/Warning | Invalid Body Buffer Limit | Negative `checkBodyMaxBytes` or excessive limit (>10MB) risking memory exhaustion |
+| `RW-A029` | Critical/Warning | Honeypot Trap Misconfiguration | Empty path or root path (`/`) in `honeypotTrapPaths` risking catastrophic lockouts |
 
 ---
 

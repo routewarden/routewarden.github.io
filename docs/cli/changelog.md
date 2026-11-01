@@ -17,7 +17,8 @@ All notable changes to the Routewarden CLI (`rwarden`) are documented here. The 
   - Added whitespace trimming and single/double quote unquoting for `checkHeaders` values.
   - Strips encoded query (`%3f`) and fragment (`%23`) delimiters in candidate extraction.
   - Added recursive root envelope unwrapping (`unwrapConfigMap` in `ParseConfig`) supporting Helm values (`routewarden`/`routeWarden`), Traefik middlewares root, and plugin objects in both JSON and YAML policies.
-  - Added policy audit rules `RW-A025` (RFC 9110 HTTP method validation), `RW-A026` (body inspection without mutating verbs), `RW-A027` (malformed header tokens in `checkHeaders`), and `RW-A028` (negative or excessive `checkBodyMaxBytes` buffer limits).
+  - Added policy audit rules `RW-A025` (RFC 9110 HTTP method validation), `RW-A026` (body inspection without mutating verbs), `RW-A027` (malformed header tokens in `checkHeaders`), `RW-A028` (negative or excessive `checkBodyMaxBytes` buffer limits), and `RW-A029` (empty or root `/` honeypot trap path misconfiguration).
+  - Implemented case-insensitive honeypot spider trap matching (`EqualFold` and prefix matching) preventing casing-based trap evasion, with root path safeguard (`/` ignored to prevent catastrophic lockouts).
   - Extended policy diffing engine (`rwarden diff`) to evaluate posture impact for `checkHeaders` and `methods`.
 - **AI Bot & Web Crawler Defense Integration**:
   - Added native support for `blockAIBots`, `aiBotProfile`, `blockUserAgents`, and `allowUserAgents` in `routewarden.schema.json`, `cli/config.schema.json`, and core CLI engine.
