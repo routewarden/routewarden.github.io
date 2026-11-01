@@ -226,12 +226,12 @@ This reference covers all configuration options available in **Traefik Warden**.
 | `asnDB` | `string` | `""` | Absolute filesystem path to local JSON ASN-to-CIDR routing snapshot file. |
 | `botDefenseLevel` | `string` | `""` | Preset bot defense level (`"off"`, `"light"`, `"standard"`, `"strict"`, `"aggressive"`). Activates pre-tuned combinations of AI bot defense, browser impersonation checks, script client blocking, and FCrDNS. |
 | `blockAIBots` | `bool` | `false` | Enables automatic blocking of known AI scrapers, LLM training bots, and crawlers. |
-| `aiBotProfile` | `string` | `""` | AI bot profile filter: `train_only` (default), `all`, `aggressive`, or `custom`. |
+| `aiBotProfile` | `string` | `""` | AI bot profile filter: `train_only` (default), `search_only`, `agents_only`, `all`, `aggressive`, or `custom`. |
 | `blockUserAgents` | `[]string` | `[]` | Custom regular expression patterns matching client User-Agents to block. |
 | `allowUserAgents` | `[]string` | `[]` | Custom regular expression patterns matching client User-Agents to permit. |
 | `detectBrowserImpersonation` | `bool` | `false` | Cross-validates claimed browser User-Agents against Client Hints (`Sec-CH-UA-Platform`, `Sec-CH-UA-Mobile`, `Sec-CH-UA` brand integrity), Chromium Fetch Metadata (`Sec-Fetch-*`), and companion headers (`Accept-Language`, `Accept-Encoding`). |
 | `blockScriptClients` | `bool` | `false` | Blocks automated HTTP client library signatures (requests, Guzzle, reqwest, axios, curl) and headless automation framework headers (`X-Playwright`, `X-Puppeteer`, `X-Cypress`, `Sec-WebDriver`). |
-| `verifySearchEngineBots` | `bool` | `false` | Verifies genuine search engine crawlers (Googlebot, Bingbot, Applebot) via Forward-Confirmed Reverse DNS (FCrDNS), dropping spoofed impersonators. |
+| `verifySearchEngineBots` | `bool` | `false` | Verifies genuine search engine crawlers (Google, Bing, Apple, Yandex, Baidu, DuckDuckGo, Yahoo, Naver, Sogou, Mojeek) via Forward-Confirmed Reverse DNS (FCrDNS), dropping spoofed impersonators. |
 | `honeypotTrapPaths` | `[]string` | `[]` | Hidden decoy URL paths. Any client requesting these paths triggers an instant IP ban in an in-memory sliding-window table. |
 | `trapBanDuration` | `string` | `"24h"` | Sliding-window ban duration for trapped client IPs (e.g., `24h`, `1h`, `30m`). |
 | `trustedProxies` | `[]string` | `[]` | Upstream proxies/load-balancers trusted for `X-Forwarded-For` / `X-Real-IP`. Untrusted connections use socket IP directly. |

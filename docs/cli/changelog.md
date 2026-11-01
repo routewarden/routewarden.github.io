@@ -22,9 +22,11 @@ All notable changes to the Routewarden CLI (`rwarden`) are documented here. The 
   - Extended policy diffing engine (`rwarden diff`) to evaluate posture impact for `checkHeaders` and `methods`.
 - **AI Bot & Web Crawler Defense Integration**:
   - Added native support for `blockAIBots`, `aiBotProfile`, `blockUserAgents`, and `allowUserAgents` in `routewarden.schema.json`, `cli/config.schema.json`, and core CLI engine.
-  - Policy evaluation engine (`rwarden test`) verifies AI bots against profiles (`train_only`, `all`, `aggressive`, `custom`) and enforces `user_agent_blocked` and `ai_bot_blocked` verdicts.
+  - Expanded AI Bot Registry with 2026 crawlers and scrapers: MistralBot, DeepSeekBot, Cohere-AI, Exabot, MetaphorBot, Cotalker, PetalBot.
+  - Introduced granular bot profiles: `search_only` (blocks citation search bots like PerplexityBot, GrokBot, Twitterbot, DuckAssistBot) and `agents_only` (blocks agentic AI scrapers like Firecrawl, Apify, Zyte, BrightData, Crawlbase, ScrapingBee, AutoGPT, LangChain, LlamaIndex), alongside `train_only`, `all`, `aggressive`, and `custom`.
+  - Policy evaluation engine (`rwarden test`) verifies AI bots against profiles (`train_only`, `search_only`, `agents_only`, `all`, `aggressive`, `custom`) and enforces `user_agent_blocked` and `ai_bot_blocked` verdicts.
   - Added CLI test flags to `rwarden test`: `--block-ai-bots`, `--ai-bot-profile`, `--detect-browser-impersonation`, `--block-script-clients`, and `--verify-search-engine-bots` for ad-hoc policy debugging without creating a JSON config file.
-  - Added configuration audit rules `RW-A015` (regex syntax auditing in `blockUserAgents` and `allowUserAgents`) and `RW-A016` (`aiBotProfile` validity check) to `rwarden audit`.
+  - Added configuration audit rules `RW-A015` (regex syntax auditing in `blockUserAgents` and `allowUserAgents`), `RW-A016` (`aiBotProfile` validity check including `search_only` and `agents_only`), and `RW-A030` (missing FCrDNS search engine verification advisory when AI bot defense is active).
 - **Negative ASN Filtering (`blockedASNs` / `blocked_asns`)**:
   - Added negative ASN filtering to `rwarden test` and evaluation engine via offline snapshot (`asnDB`), blocking client IPs from hostile Autonomous Systems.
   - Added `blockedASNs` generation across all target gateways (`traefik-yaml`, `traefik-toml`, `traefik-labels`, `caddy`, `nginx`, `tcp-warden`).
@@ -36,6 +38,7 @@ All notable changes to the Routewarden CLI (`rwarden`) are documented here. The 
 - **Search Engine Impersonator Verification via FCrDNS (`verifySearchEngineBots`)**:
   - Added `verifySearchEngineBots` / `verify_search_engine_bots` to `routewarden.schema.json` and `cli/config.schema.json`.
   - Added Forward-Confirmed Reverse DNS verifier to CLI evaluation engine (`rwarden test`) with TTL cache.
+  - Expanded verified search engine support across 10 global search engines: Google, Bing, Apple, Yandex, Baidu, DuckDuckGo, Yahoo, Naver, Sogou, and Mojeek.
   - Added `verifySearchEngineBots` configuration generation across all target gateways (`traefik-yaml`, `traefik-toml`, `traefik-labels`, `caddy`, `nginx`).
 - **Browser Impersonation Detection (`detectBrowserImpersonation`)**:
   - Added `detectBrowserImpersonation` / `detect_browser_impersonation` to schemas and CLI policy evaluation engine.

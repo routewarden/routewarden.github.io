@@ -818,7 +818,7 @@ Perform deep static analysis and linting on a Routewarden policy file to catch R
 | `RW-A011` | Critical | Invalid HTTP Status Code | Status code outside valid HTTP range (100–599) |
 | `RW-A012` | Critical | Invalid Response Mode | Unrecognized response mode name |
 | `RW-A015` | Critical | Invalid Regex Syntax | Unclosed brackets or uncompilable regex in patterns or User-Agent rules |
-| `RW-A016` | Warning | Unrecognized AI Bot Profile | `aiBotProfile` must be `train_only`, `all`, `aggressive`, or `custom` |
+| `RW-A016` | Warning | Unrecognized AI Bot Profile | `aiBotProfile` must be `train_only`, `search_only`, `agents_only`, `all`, `aggressive`, or `custom` |
 | `RW-A017` | Warning | Unrecognized Bot Defense Level | Unrecognized level name in `botDefenseLevel` |
 | `RW-A018` | Critical | Missing ASN Database | ASN allow/block configured without providing `asnDB` file path |
 | `RW-A019` | Critical | Malformed ASN Identifier | Unparseable ASN format in `allowedASNs` or `blockedASNs` |
@@ -831,6 +831,7 @@ Perform deep static analysis and linting on a Routewarden policy file to catch R
 | `RW-A027` | Critical/Warning | Malformed Header Name | Header in `checkHeaders` contains colon, space, or invalid token characters |
 | `RW-A028` | Critical/Warning | Invalid Body Buffer Limit | Negative `checkBodyMaxBytes` or excessive limit (>10MB) risking memory exhaustion |
 | `RW-A029` | Critical/Warning | Honeypot Trap Misconfiguration | Empty path or root path (`/`) in `honeypotTrapPaths` risking catastrophic lockouts |
+| `RW-A030` | Info | Missing Search Engine FCrDNS Verification | `blockAIBots` enabled without `verifySearchEngineBots`, risking search crawler blocking or impostor spoofing |
 
 ---
 
