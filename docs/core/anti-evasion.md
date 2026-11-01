@@ -33,3 +33,23 @@ Attackers append null bytes to confuse string termination in C-based runtimes or
 
 ### 5. Directory Traversal Canonicalization
 Complex dot-segment sequences attempting to climb out of public folders (`/assets/../../.env`) are collapsed via Go's `path.Clean` logic.
+
+### 6. Malformed Percent-Encoding (Denial-of-Decoding)
+Attackers append invalid percent sequences (e.g. `%zz` or unescaped `%`) alongside multi-layer encoded traversals (`/%252e%252e/.env%zz`). Standard decoders error out and abandon unescaping, while downstream servers decode valid segments.
+- **Payload**: `/%252e%252e/.env%zz` or `/search?file=/%252e%252e/.env%`
+- **Defense**: Routewarden uses lenient percent decoding across all gateways (`cli`, `traefik`, `caddy`, `nginx`, `docs`), unescaping valid 2-hex digit sequences while preserving malformed characters to prevent denial-of-decoding bypasses.
+
+### 7. Encoded Query & Fragment Delimiters (`%3f`, `%23`)
+Encoded question marks and hash fragments decode to literal `?` and `#` during multi-layer normalization.
+- **Payload**: `/backup.sql%3fparam=value` or `/database.sql%23section`
+- **Defense**: Candidate extraction strips both query (`?`) and fragment (`#`) delimiters from normalized paths before evaluating end-anchored regex patterns.
+
+### 8. Trailing Directory Slash Normalization
+End-anchored directory block rules (e.g. `(?i)^/admin/$`) can be bypassed if the normalizer collapses trailing slashes to `/admin`.
+- **Payload**: `/admin/` vs `/admin`
+- **Defense**: Candidate path generation produces both canonical cleaned paths and trailing slash variants (`p + "/"`), ensuring directory anchor rules match regardless of trailing slash presence.
+
+### 9. Header Whitespace & Quote Stripping
+Monitored forwarded and rewrite headers (`checkHeaders`) containing leading/trailing whitespace or quotation marks.
+- **Payload**: `X-Forwarded-Prefix:  /.env ` or `X-Forwarded-Prefix: "/wp-config.php"`
+- **Defense**: Whitespace is trimmed and single/double quotes are stripped before candidate path expansion.

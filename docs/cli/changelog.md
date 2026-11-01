@@ -10,6 +10,15 @@ All notable changes to the Routewarden CLI (`rwarden`) are documented here. The 
 ## [v5.5.0] - 2026-10-30 (Latest)
 
 ### Added
+- **Security & Anti-Evasion Hardening & Parity**:
+  - Implemented lenient multi-layer percent-unescaping in core engine, query inspector, and body parser, preventing denial-of-decoding bypasses caused by malformed percent-encoding (`%zz`, trailing `%`).
+  - Standardized multi-layer decoding pass limit to 5 across all gateways to defeat quadruple and quintuple percent-encoded traversals (`/%2525252e%2525252e/...`).
+  - Candidate path extraction emits trailing slash variants (`p + "/"`) for directory paths, ensuring end-anchored patterns (e.g. `(?i)^/admin/$`) match.
+  - Added whitespace trimming and single/double quote unquoting for `checkHeaders` values.
+  - Strips encoded query (`%3f`) and fragment (`%23`) delimiters in candidate extraction.
+  - Added recursive root envelope unwrapping (`unwrapConfigMap` in `ParseConfig`) supporting Helm values (`routewarden`/`routeWarden`), Traefik middlewares root, and plugin objects in both JSON and YAML policies.
+  - Added policy audit rules `RW-A025` (RFC 9110 HTTP method validation), `RW-A026` (body inspection without mutating verbs), `RW-A027` (malformed header tokens in `checkHeaders`), and `RW-A028` (negative or excessive `checkBodyMaxBytes` buffer limits).
+  - Extended policy diffing engine (`rwarden diff`) to evaluate posture impact for `checkHeaders` and `methods`.
 - **AI Bot & Web Crawler Defense Integration**:
   - Added native support for `blockAIBots`, `aiBotProfile`, `blockUserAgents`, and `allowUserAgents` in `routewarden.schema.json`, `cli/config.schema.json`, and core CLI engine.
   - Policy evaluation engine (`rwarden test`) verifies AI bots against profiles (`train_only`, `all`, `aggressive`, `custom`) and enforces `user_agent_blocked` and `ai_bot_blocked` verdicts.

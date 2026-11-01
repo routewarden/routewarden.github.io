@@ -216,14 +216,33 @@ test('playground engine & generator: comprehensive test matrix (100+ cases)', as
       { name: 'Directory traversal with current dir dots', raw: '/././sub/./.git/config' },
       { name: 'Null byte injection (%00)', raw: '/.env%00.jpg' },
       { name: 'Raw null byte injection (\\0)', raw: '/.env\0.png' },
+      { name: 'Null byte extension truncation (%00)', raw: '/config.ini%00.jpg', shouldBlock: true },
+      { name: 'Raw null byte extension truncation (\\0)', raw: '/database.backup.sql\0.png', shouldBlock: true },
       { name: 'Uppercase extension bypass (.ENV)', raw: '/project/.ENV' },
       { name: 'Mixed case extension (.SqL)', raw: '/database.SqL' },
       { name: 'Query parameter evasion without checkQuery', raw: '/search?file=/.env' },
       { name: 'Query parameter evasion with checkQuery', raw: '/search?file=/.env', checkQuery: true, shouldBlock: true },
+      { name: 'Query parameter key evasion with checkQuery', raw: '/search?.env=1', checkQuery: true, shouldBlock: true },
+      { name: 'Query parameter value without slash with checkQuery', raw: '/search?file=.env', checkQuery: true, shouldBlock: true },
+      { name: 'Query parameter semicolon delimiter evasion with checkQuery', raw: '/search?safe=1;file=.env', checkQuery: true, shouldBlock: true },
+      { name: 'Query parameter encoded ampersand delimiter evasion with checkQuery', raw: '/search?safe=1%26file=.env', checkQuery: true, shouldBlock: true },
+      { name: 'Query parameter multiple params sensitive extension with checkQuery', raw: '/search?file=backup.sql&page=1', checkQuery: true, shouldBlock: true },
       { name: 'Encoded traversal %2e%2e%2f', raw: '/%2e%2e%2f.git/HEAD' },
       { name: 'Repeated slashes', raw: '///.env' },
       { name: 'Trailing slash on sensitive folder', raw: '/.git/' },
-      { name: 'Matrix param with traversal', raw: '/static;v=1/../.env' }
+      { name: 'Matrix param with traversal', raw: '/static;v=1/../.env' },
+      { name: 'NTFS Alternate Data Stream (::$DATA)', raw: '/wp-config.php::$DATA', shouldBlock: true },
+      { name: 'NTFS Alternate Data Stream case-insensitive (::$data)', raw: '/settings.py::$data', shouldBlock: true },
+      { name: 'Trailing dot evasion', raw: '/settings.py.', shouldBlock: true },
+      { name: 'Trailing space evasion', raw: '/server.key%20', shouldBlock: true },
+      { name: 'Trailing dot on path segment', raw: '/sub./.env', shouldBlock: true },
+      { name: 'Absolute URI scheme and authority', raw: 'http://example.com/wp-config.php', shouldBlock: true },
+      { name: 'Absolute URI with Windows backslash', raw: 'http://example.com\\.env', shouldBlock: true },
+      { name: 'Combined NTFS ADS and trailing dot', raw: '/wp-config.php::$DATA.', shouldBlock: true },
+      { name: 'Path traversal upward combined with trailing dot', raw: '/sub/../settings.py.', shouldBlock: true },
+      { name: 'Mixed backslash and trailing dot', raw: '\\app\\..\\settings.py.', shouldBlock: true },
+      { name: 'Semicolon matrix parameter combined with trailing dot', raw: '/app;param=1/settings.py.', shouldBlock: true },
+      { name: 'URL-encoded dot extension evasion (%2e)', raw: '/settings.py%2e', shouldBlock: true }
     ]
 
     for (const ev of evasionVectors) {
@@ -372,7 +391,11 @@ test('playground engine & generator: comprehensive test matrix (100+ cases)', as
       { ip: '172.32.0.1', expectedMatch: false },
       { ip: '192.168.1.100', expectedMatch: true },
       { ip: '192.168.2.100', expectedMatch: false },
-      { ip: '0.0.0.0', expectedMatch: false }
+      { ip: '0.0.0.0', expectedMatch: false },
+      { ip: '::ffff:127.0.0.1', expectedMatch: true },
+      { ip: '[::ffff:192.168.1.100]:54321', expectedMatch: true },
+      { ip: '::ffff:10.5.20.1', expectedMatch: true },
+      { ip: '::ffff:198.51.100.1', expectedMatch: false }
     ]
 
     for (const c of ipChecks) {
@@ -769,6 +792,119 @@ test('playground engine & generator: comprehensive test matrix (100+ cases)', as
       })
       assert.equal(res.verdict, 'BYPASS')
       assert.equal(res.reason, 'IP whitelisted')
+    })
+  })
+
+  await t.test('Section 13: Trailing Slash Anti-Evasion & Candidate Path Variants', async (st) => {
+    const trailingBlocks = ['(?i)^/admin/$']
+
+    await st.test('blocks /admin/ with exact pattern match', () => {
+      const res = evaluateRequest({
+        testPath: '/admin/',
+        customBlockList: trailingBlocks,
+        customAllowList: []
+      })
+      assert.equal(res.verdict, 'BLOCK')
+      assert.equal(res.customPattern, '(?i)^/admin/$')
+    })
+
+    await st.test('blocks /admin with candidate trailing slash variant', () => {
+      const res = evaluateRequest({
+        testPath: '/admin',
+        customBlockList: trailingBlocks,
+        customAllowList: []
+      })
+      assert.equal(res.verdict, 'BLOCK')
+      assert.equal(res.customPattern, '(?i)^/admin/$')
+    })
+
+    await st.test('extractCandidatePaths includes both /admin and /admin/', () => {
+      const cands = extractCandidatePaths('/admin')
+      assert.ok(cands.candidates.includes('/admin'))
+      assert.ok(cands.candidates.includes('/admin/'))
+    })
+  })
+
+  await t.test('Section 14: Encoded Delimiters (%3f, %23) & Whitespace (%0d, %0a, %09) Anti-Evasion', async (st) => {
+    await st.test('defeats encoded question mark in sensitive extension: /backup.sql%3fparam=value', () => {
+      const res = evaluateRequest({
+        testPath: '/backup.sql%3fparam=value'
+      })
+      assert.equal(res.verdict, 'BLOCK')
+      assert.equal(res.ruleId, 'block-env')
+    })
+
+    await st.test('defeats encoded fragment in sensitive extension: /database.sql%23section', () => {
+      const res = evaluateRequest({
+        testPath: '/database.sql%23section'
+      })
+      assert.equal(res.verdict, 'BLOCK')
+      assert.equal(res.ruleId, 'block-env')
+    })
+
+    await st.test('defeats combined encoded query & fragment: /server.key%3ffoo%23bar', () => {
+      const res = evaluateRequest({
+        testPath: '/server.key%3ffoo%23bar'
+      })
+      assert.equal(res.verdict, 'BLOCK')
+      assert.equal(res.ruleId, 'block-keys')
+    })
+
+    await st.test('defeats encoded carriage return: /.env%0d', () => {
+      const res = evaluateRequest({
+        testPath: '/.env%0d'
+      })
+      assert.equal(res.verdict, 'BLOCK')
+      assert.equal(res.ruleId, 'block-env')
+    })
+
+    await st.test('defeats encoded newline: /.env%0a', () => {
+      const res = evaluateRequest({
+        testPath: '/.env%0a'
+      })
+      assert.equal(res.verdict, 'BLOCK')
+      assert.equal(res.ruleId, 'block-env')
+    })
+
+    await st.test('defeats encoded horizontal tab: /.env%09', () => {
+      const res = evaluateRequest({
+        testPath: '/.env%09'
+      })
+      assert.equal(res.verdict, 'BLOCK')
+      assert.equal(res.ruleId, 'block-env')
+    })
+
+    await st.test('defeats malformed percent sequence with multi-layer traversal: /%252e%252e/.env%zz', () => {
+      const res = evaluateRequest({
+        testPath: '/%252e%252e/.env%zz'
+      })
+      assert.equal(res.verdict, 'BLOCK')
+      assert.equal(res.ruleId, 'block-env')
+    })
+
+    await st.test('defeats trailing percent with multi-layer traversal: /%252e%252e/.env%', () => {
+      const res = evaluateRequest({
+        testPath: '/%252e%252e/.env%'
+      })
+      assert.equal(res.verdict, 'BLOCK')
+      assert.equal(res.ruleId, 'block-env')
+    })
+
+    await st.test('defeats malformed percent sequence in query: /search?target=/%252e%252e/.env%zz', () => {
+      const res = evaluateRequest({
+        testPath: '/search?target=/%252e%252e/.env%zz',
+        checkQuery: true
+      })
+      assert.equal(res.verdict, 'BLOCK')
+      assert.equal(res.ruleId, 'block-env')
+    })
+
+    await st.test('defeats quadruple percent-encoded traversal: /%2525252e%2525252e/.env', () => {
+      const res = evaluateRequest({
+        testPath: '/%2525252e%2525252e/.env'
+      })
+      assert.equal(res.verdict, 'BLOCK')
+      assert.equal(res.ruleId, 'block-env')
     })
   })
 })

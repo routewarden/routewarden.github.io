@@ -10,6 +10,14 @@ export interface CandidateExtractionResult {
   transformations: string[]
 }
 
+function lenientDecodeURI(str: string): string {
+  try {
+    return decodeURIComponent(str)
+  } catch {
+    return str.replace(/%([0-9a-fA-F]{2})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
+  }
+}
+
 export function extractCandidatePaths(rawPath: string, shouldCheckQuery = false): CandidateExtractionResult {
   const transformations: string[] = []
   const candidatesSet = new Set<string>()
@@ -25,14 +33,40 @@ export function extractCandidatePaths(rawPath: string, shouldCheckQuery = false)
     }
   }
 
-  // 1. Separate path and query string
+  // 1. Separate path, query string, and fragment
   let pathPart = input
   let queryPart = ''
   const qIdx = input.indexOf('?')
-  if (qIdx >= 0) {
-    pathPart = input.substring(0, qIdx)
-    queryPart = input.substring(qIdx + 1)
-    transformations.push(`Separated query string: ?${queryPart}`)
+  const hIdx = input.indexOf('#')
+  let delimIdx = -1
+  if (qIdx >= 0 && hIdx >= 0) {
+    delimIdx = Math.min(qIdx, hIdx)
+  } else if (qIdx >= 0) {
+    delimIdx = qIdx
+  } else if (hIdx >= 0) {
+    delimIdx = hIdx
+  }
+  if (delimIdx >= 0) {
+    pathPart = input.substring(0, delimIdx)
+    if (qIdx >= 0 && (hIdx < 0 || qIdx < hIdx)) {
+      queryPart = input.substring(qIdx + 1)
+      if (queryPart.includes('#')) {
+        queryPart = queryPart.substring(0, queryPart.indexOf('#'))
+      }
+    }
+    transformations.push(`Separated query/fragment from path: ${pathPart}`)
+  }
+
+  // 1a. Absolute URI extraction
+  if (pathPart.includes('://')) {
+    const schemeIdx = pathPart.indexOf('://')
+    const rest = pathPart.substring(schemeIdx + 3)
+    const match = rest.match(/[/\\]/)
+    if (match && match.index !== undefined) {
+      const extractedPath = rest.substring(match.index)
+      candidatesSet.add(extractedPath)
+      transformations.push(`Extracted path from absolute URI: ${extractedPath}`)
+    }
   }
 
   if (!pathPart.startsWith('/')) {
@@ -45,14 +79,10 @@ export function extractCandidatePaths(rawPath: string, shouldCheckQuery = false)
   let prev = pathPart
   let passes = 0
   while (passes < 5) {
-    try {
-      const unescaped = decodeURIComponent(prev)
-      if (unescaped === prev) break
-      prev = unescaped
-      passes++
-    } catch {
-      break
-    }
+    const unescaped = lenientDecodeURI(prev)
+    if (unescaped === prev) break
+    prev = unescaped
+    passes++
   }
   if (passes > 0) {
     transformations.push(`Decoded ${passes} layer(s) percent-encoding`)
@@ -61,10 +91,17 @@ export function extractCandidatePaths(rawPath: string, shouldCheckQuery = false)
 
   let working = prev
 
-  // 3. Null bytes stripping
+  // 3. Null bytes stripping & truncation
   if (working.includes('\0') || working.includes('%00')) {
+    const nullIdx = working.indexOf('\0') !== -1 ? working.indexOf('\0') : working.indexOf('%00')
+    if (nullIdx !== -1) {
+      const truncated = working.substring(0, nullIdx)
+      if (truncated) {
+        candidatesSet.add(truncated)
+      }
+    }
     working = working.replace(/\0|%00/gi, '')
-    transformations.push('Stripped null bytes (\\x00 / %00)')
+    transformations.push('Neutralized null bytes (\\x00 / %00)')
     candidatesSet.add(working)
   }
 
@@ -81,6 +118,34 @@ export function extractCandidatePaths(rawPath: string, shouldCheckQuery = false)
     transformations.push('Stripped matrix params (;...)')
     candidatesSet.add(withoutMatrix)
     working = withoutMatrix
+  }
+
+  // 5a. Windows NTFS Alternate Data Streams (::$DATA) evasion
+  if (/::\$data/i.test(working)) {
+    const withoutData = working.replace(/::\$data/gi, '')
+    transformations.push('Stripped NTFS Alternate Data Stream (::$DATA)')
+    candidatesSet.add(withoutData)
+    working = withoutData
+  }
+
+  // 5b. Strip embedded query (?) and fragments (#) from working path
+  if (working.includes('?') || working.includes('#')) {
+    const qI = working.indexOf('?')
+    const hI = working.indexOf('#')
+    let dI = -1
+    if (qI !== -1 && hI !== -1) {
+      dI = Math.min(qI, hI)
+    } else {
+      dI = qI !== -1 ? qI : hI
+    }
+    if (dI !== -1) {
+      const stripped = working.substring(0, dI)
+      if (stripped) {
+        candidatesSet.add(stripped)
+        working = stripped
+        transformations.push('Stripped embedded query/fragment (?/#)')
+      }
+    }
   }
 
   // 6. Canonical traversal resolution
@@ -104,18 +169,82 @@ export function extractCandidatePaths(rawPath: string, shouldCheckQuery = false)
   const canonical = '/' + resolved.join('/')
   candidatesSet.add(canonical)
 
+  // 6a. Strip trailing dots and spaces from path segments (Windows/IIS Win32 API evasion)
+  for (const c of [working, canonical]) {
+    if (c.includes('.') || c.includes(' ') || c.includes('\t') || c.includes('\r') || c.includes('\n')) {
+      const parts = c.split('/')
+      let modified = false
+      const cleaned = parts.map(seg => {
+        if (seg === '.' || seg === '..' || !seg) return seg
+        const trimmed = seg.replace(/[. \t\r\n]+$/, '')
+        if (trimmed !== seg && trimmed.length > 0) {
+          modified = true
+          return trimmed
+        }
+        return seg
+      })
+      if (modified) {
+        const segs = cleaned.filter(s => s.length > 0 && s !== '.')
+        const resSegs: string[] = []
+        for (const s of segs) {
+          if (s === '..') resSegs.pop()
+          else resSegs.push(s)
+        }
+        const dotTrimmed = '/' + resSegs.join('/')
+        transformations.push('Stripped trailing dots and spaces from path segments')
+        candidatesSet.add(dotTrimmed)
+      }
+    }
+  }
+
   // 7. Query candidates if checkQuery is active
   if (shouldCheckQuery && queryPart) {
     candidatesSet.add(input)
     candidatesSet.add(`${canonical}?${queryPart}`)
     candidatesSet.add(queryPart)
-    try {
-      const decodedQuery = decodeURIComponent(queryPart)
-      if (decodedQuery !== queryPart) {
-        candidatesSet.add(decodedQuery)
-        candidatesSet.add(`${canonical}?${decodedQuery}`)
+    let decodedQuery = lenientDecodeURI(queryPart)
+    if (decodedQuery !== queryPart) {
+      candidatesSet.add(decodedQuery)
+      candidatesSet.add(`${canonical}?${decodedQuery}`)
+    }
+
+    const queriesToParse = [queryPart]
+    if (decodedQuery !== queryPart) {
+      queriesToParse.push(decodedQuery)
+    }
+
+    for (const qStr of queriesToParse) {
+      const pairs = qStr.split(/[&;]+/).filter(Boolean)
+      for (const pair of pairs) {
+        const eqIdx = pair.indexOf('=')
+        let k = pair
+        let v = ''
+        if (eqIdx !== -1) {
+          k = pair.slice(0, eqIdx)
+          v = pair.slice(eqIdx + 1)
+        }
+        if (k) {
+          candidatesSet.add(k)
+          const decK = lenientDecodeURI(k)
+          if (decK !== k) candidatesSet.add(decK)
+          const kNorm = extractCandidatePaths(k, false)
+          kNorm.candidates.forEach(c => candidatesSet.add(c))
+        }
+        if (v) {
+          candidatesSet.add(v)
+          const decV = lenientDecodeURI(v)
+          if (decV !== v) candidatesSet.add(decV)
+          const vNorm = extractCandidatePaths(v, false)
+          vNorm.candidates.forEach(c => candidatesSet.add(c))
+        }
       }
-    } catch {}
+    }
+  }
+
+  for (const c of Array.from(candidatesSet)) {
+    if (c && c !== '/' && !c.endsWith('/') && !c.includes('?')) {
+      candidatesSet.add(c + '/')
+    }
   }
 
   const candidates = Array.from(candidatesSet).filter(Boolean)
@@ -135,6 +264,12 @@ export function cleanIp(raw: string): string {
   } else if (s.includes(':') && s.split(':').length === 2 && !s.includes('::')) {
     // IPv4:port
     s = s.split(':')[0]
+  }
+  if (s.toLowerCase().startsWith('::ffff:') && s.includes('.')) {
+    s = s.slice(7)
+    if (s.includes(':')) {
+      s = s.split(':')[0]
+    }
   }
   return s.trim()
 }

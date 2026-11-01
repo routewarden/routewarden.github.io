@@ -819,6 +819,17 @@ Perform deep static analysis and linting on a Routewarden policy file to catch R
 | `RW-A012` | Critical | Invalid Response Mode | Unrecognized response mode name |
 | `RW-A015` | Critical | Invalid Regex Syntax | Unclosed brackets or uncompilable regex in patterns or User-Agent rules |
 | `RW-A016` | Warning | Unrecognized AI Bot Profile | `aiBotProfile` must be `train_only`, `all`, `aggressive`, or `custom` |
+| `RW-A017` | Warning | Unrecognized Bot Defense Level | Unrecognized level name in `botDefenseLevel` |
+| `RW-A018` | Critical | Missing ASN Database | ASN allow/block configured without providing `asnDB` file path |
+| `RW-A019` | Critical | Malformed ASN Identifier | Unparseable ASN format in `allowedASNs` or `blockedASNs` |
+| `RW-A020` | Warning | Invalid Trap Ban Duration | Unparseable duration string in `trapBanDuration` |
+| `RW-A022` | Critical | Universal Allowlist CIDR | `0.0.0.0/0` or `::/0` in `allowedIps` unconditionally bypasses all security rules |
+| `RW-A023` | Critical | Universal Trusted Proxy CIDR | `0.0.0.0/0` or `::/0` in `trustedProxies` enables arbitrary IP spoofing |
+| `RW-A024` | Info | Case-Sensitive Block Pattern | Block pattern lacks `(?i)` flag, risking bypass on case-insensitive filesystems |
+| `RW-A025` | Warning | Invalid HTTP Method | Unrecognized, lowercase, or empty method name in `methods` |
+| `RW-A026` | Warning | Mutation Methods Missing | `checkBody` enabled but `methods` contains only read-only verbs (e.g. GET) |
+| `RW-A027` | Critical/Warning | Malformed Header Name | Header in `checkHeaders` contains colon, space, or invalid token characters |
+| `RW-A028` | Critical/Warning | Invalid Body Buffer Limit | Negative `checkBodyMaxBytes` or excessive limit (>10MB) risking memory exhaustion |
 
 ---
 
