@@ -27,6 +27,13 @@ All notable changes to the Routewarden CLI (`rwarden`) are documented here. The 
   - Policy evaluation engine (`rwarden test`) verifies AI bots against profiles (`train_only`, `search_only`, `agents_only`, `all`, `aggressive`, `custom`) and enforces `user_agent_blocked` and `ai_bot_blocked` verdicts.
   - Added CLI test flags to `rwarden test`: `--block-ai-bots`, `--ai-bot-profile`, `--detect-browser-impersonation`, `--block-script-clients`, and `--verify-search-engine-bots` for ad-hoc policy debugging without creating a JSON config file.
   - Added configuration audit rules `RW-A015` (regex syntax auditing in `blockUserAgents` and `allowUserAgents`), `RW-A016` (`aiBotProfile` validity check including `search_only` and `agents_only`), and `RW-A030` (missing FCrDNS search engine verification advisory when AI bot defense is active).
+- **Edge robots.txt Dynamic Honeypot Injection & Enforcement**:
+  - Implemented dynamic `robots.txt` honeypot trap injection with deterministic daily rotating HMAC-SHA256 tokens (`/_rw_trap_<token>/`).
+  - Added UTC day rollover tolerance accepting both current and previous day trap prefixes.
+  - Intercepts `/robots.txt` in reverse proxies and middleware, appending dynamic `Disallow` directives or synthesizing 200 OK responses when origin returns 404.
+  - Added configuration directives `enableRobotsTxtHoneypot` / `enable_robots_txt_honeypot` and `robotsTxtHoneypotSecret` / `robots_txt_honeypot_secret`.
+  - Added audit rule `RW-A031` (warning when `allowPatterns` shadows dynamic honeypot traps).
+  - Extended gateway generators and policy diffing across Traefik YAML/TOML/Labels, Caddyfile, and NGINX Lua.
 - **Negative ASN Filtering (`blockedASNs` / `blocked_asns`)**:
   - Added negative ASN filtering to `rwarden test` and evaluation engine via offline snapshot (`asnDB`), blocking client IPs from hostile Autonomous Systems.
   - Added `blockedASNs` generation across all target gateways (`traefik-yaml`, `traefik-toml`, `traefik-labels`, `caddy`, `nginx`, `tcp-warden`).

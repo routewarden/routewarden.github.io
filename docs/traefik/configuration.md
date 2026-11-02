@@ -233,6 +233,8 @@ This reference covers all configuration options available in **Traefik Warden**.
 | `blockScriptClients` | `bool` | `false` | Blocks automated HTTP client library signatures (requests, Guzzle, reqwest, axios, curl) and headless automation framework headers (`X-Playwright`, `X-Puppeteer`, `X-Cypress`, `Sec-WebDriver`). |
 | `verifySearchEngineBots` | `bool` | `false` | Verifies genuine search engine crawlers (Google, Bing, Apple, Yandex, Baidu, DuckDuckGo, Yahoo, Naver, Sogou, Mojeek) via Forward-Confirmed Reverse DNS (FCrDNS), dropping spoofed impersonators. |
 | `honeypotTrapPaths` | `[]string` | `[]` | Hidden decoy URL paths. Any client requesting these paths triggers an instant IP ban in an in-memory sliding-window table. |
+| `enableRobotsTxtHoneypot` | `bool` | `false` | Dynamically injects daily rotating `Disallow: /_rw_trap_<token>/` entries into `/robots.txt` and bans scrapers that crawl them. Synthesizes 200 OK when upstream 404s. |
+| `robotsTxtHoneypotSecret` | `string` | `""` | Secret seed used to derive deterministic HMAC-SHA256 daily rotating tokens for robots.txt honeypot traps. |
 | `trapBanDuration` | `string` | `"24h"` | Sliding-window ban duration for trapped client IPs (e.g., `24h`, `1h`, `30m`). |
 | `trustedProxies` | `[]string` | `[]` | Upstream proxies/load-balancers trusted for `X-Forwarded-For` / `X-Real-IP`. Untrusted connections use socket IP directly. |
 | `methods` | `[]string` | `["GET"]` | HTTP request verbs to inspect (e.g. `["GET", "POST"]`). Supports wildcard `"*"` or `"ALL"` to inspect all verbs. Auto-expanded to include `POST`, `PUT`, `PATCH` when `checkBody` is enabled without explicit methods. |

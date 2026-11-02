@@ -832,6 +832,7 @@ Perform deep static analysis and linting on a Routewarden policy file to catch R
 | `RW-A028` | Critical/Warning | Invalid Body Buffer Limit | Negative `checkBodyMaxBytes` or excessive limit (>10MB) risking memory exhaustion |
 | `RW-A029` | Critical/Warning | Honeypot Trap Misconfiguration | Empty path or root path (`/`) in `honeypotTrapPaths` risking catastrophic lockouts |
 | `RW-A030` | Info | Missing Search Engine FCrDNS Verification | `blockAIBots` enabled without `verifySearchEngineBots`, risking search crawler blocking or impostor spoofing |
+| `RW-A031` | Warning | Robots Honeypot Trap Shadowed by Allow Pattern | `enableRobotsTxtHoneypot` is active but an `allowPatterns` entry shadows `/_rw_trap_` paths, rendering honeypot defense ineffective |
 
 ---
 
