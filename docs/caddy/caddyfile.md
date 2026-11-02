@@ -99,7 +99,7 @@ const schema_code = buildSnippet({
 
     # Response Actions
     response {
-        mode <json|html|text|xml|redirect|captcha|silent_drop|gzip_bomb|tarpit|fake_success|ratelimit|proxy|infinite_stream|ai_poison|markov_tarpit>
+        mode <json|html|text|xml|redirect|captcha|silent_drop|gzip_bomb|tarpit|fake_success|ratelimit|proxy|infinite_stream|ai_poison|markov_tarpit|pow_challenge>
         status_code <int>
         body <string>
         redirect_url <url>
@@ -108,6 +108,9 @@ const schema_code = buildSnippet({
         retry_after_seconds <int>
         tarpit_delay_ms <int>
         stream_size_mb <int>
+        pow_difficulty <int>
+        pow_secret <string>
+        pow_timeout_seconds <int>
 
         captcha {
             provider <turnstile|hcaptcha|recaptcha>
@@ -367,6 +370,7 @@ When enabled (default), Caddy Warden immediately allows standard public resource
 | `fake_success` | `status_code`, `body` | Synthetic decoy responses (`wp-login`, fake `.env`) |
 | `ai_poison` | None | Serves HTTP 200 with prompt injection directives & `noai` robots tag |
 | `markov_tarpit` | `tarpit_delay_ms` | Procedural word stream trickle to exhaust crawler context windows |
+| `pow_challenge` | `pow_difficulty`, `pow_secret`, `pow_timeout_seconds` | Cryptographic Proof-of-Work challenge solver (<2KB inline HTML/JS) returning HTTP 429 |
 
 > [!WARNING]
 > **`silent_drop` Behind Edge Proxies / CDNs (502 Bad Gateway)**:

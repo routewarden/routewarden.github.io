@@ -349,8 +349,8 @@ When `enableDefaultAllowPatterns: true` (default), Routewarden immediately permi
 
 | Key | Type | Default | Description |
 |---|---|---|---|
-| `mode` | `string` | `"text"` | Response mode: `json`, `html`, `text`, `xml`, `redirect`, `captcha`, `silentDrop`, `gzipBomb` (`bomb`), `tarpit`, `fakeSuccess` (`decoy`), `rateLimitChallenge` (`ratelimit`), `proxy` (`mirror`), `infiniteStream` (`garbagestream`), `aiPoison`, or `markovTarpit`. |
-| `statusCode` | `int` | `403` | HTTP status code returned to client (use `200` for honeypots / deception, `429` for rate limit challenge). |
+| `mode` | `string` | `"text"` | Response mode: `json`, `html`, `text`, `xml`, `redirect`, `captcha`, `silentDrop`, `gzipBomb` (`bomb`), `tarpit`, `fakeSuccess` (`decoy`), `rateLimitChallenge` (`ratelimit`), `proxy` (`mirror`), `infiniteStream` (`garbagestream`), `aiPoison`, `markovTarpit`, or `powChallenge` (`pow`, `proofOfWork`, `hashcash`). |
+| `statusCode` | `int` | `403` | HTTP status code returned to client (use `200` for honeypots / deception, `429` for rate limit challenge or powChallenge). |
 | `body` | `string` | `""` | Response body for `json`, `html`, `xml`, or `text` mode. |
 | `headers` | `map[string]string` | `{}` | Custom HTTP response headers injected into blocked responses. |
 | `redirectUrl` | `string` | `""` | Target URL when `mode: redirect`. |
@@ -361,6 +361,9 @@ When `enableDefaultAllowPatterns: true` (default), Routewarden immediately permi
 | `tarpitDelayMs` | `int` | `1000` | Milliseconds between trickle bytes when `mode: tarpit` (stalls scanner connections). |
 | `tarpitMaxDurationSeconds` | `int` | `60` | Maximum seconds before terminating stalled connection in `mode: tarpit`. |
 | `streamSizeMB` | `int` | `50` | Total garbage data size in Megabytes when `mode: infiniteStream`. |
+| `powDifficulty` | `int` | `16` | Required leading zero bits in SHA-256 output when `mode: powChallenge` (recommended: 8–24). |
+| `powSecret` | `string` | `""` | Secret seed used to compute HMAC-SHA256 signatures for stateless challenge verification when `mode: powChallenge`. |
+| `powTimeoutSeconds` | `int` | `300` | Expiration and validity window in seconds for proof-of-work challenges and solution tokens. |
 
 ### Captcha Options (`response.captcha`)
 

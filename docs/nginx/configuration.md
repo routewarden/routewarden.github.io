@@ -110,7 +110,7 @@ const full_config = buildSnippet({
         mode = "json",                     -- Options: json, html, text, xml, redirect, captcha,
                                            -- silentDrop, gzipBomb, tarpit, fakeSuccess,
                                            -- rateLimitChallenge, proxy, infiniteStream,
-                                           -- aiPoison, markovTarpit
+                                           -- aiPoison, markovTarpit, powChallenge
         status_code = 403,
         body = '{"error":"Access Denied"}',
         headers = {
@@ -123,6 +123,9 @@ const full_config = buildSnippet({
         tarpit_delay_ms = 1000,
         tarpit_max_duration_seconds = 60,
         stream_size_mb = 100,
+        pow_difficulty = 16,
+        pow_secret = "your-cryptographic-pow-secret",
+        pow_timeout_seconds = 300,
         captcha = {
             provider = "turnstile",        -- Options: turnstile, hcaptcha, recaptcha
             site_key = "0x4AAAAAAAxxyyzz",
@@ -321,6 +324,7 @@ Routewarden for NGINX supports 13 response modes matching the core engine:
 | `rateLimitChallenge` | `retry_after_seconds` (300) | Returns HTTP 429 with standard `Retry-After` header. |
 | `proxy` | `proxy_url` | Transparently proxies request to an internal canary or forensic honeypot container. |
 | `infiniteStream` | `stream_size_mb` (100) | Streams high-speed random characters to exhaust scanner storage and buffers. |
+| `powChallenge` | `pow_difficulty`, `pow_secret`, `pow_timeout_seconds` | Cryptographic Proof-of-Work challenge solver (<2KB inline HTML/JS) returning HTTP 429. |
 
 ---
 

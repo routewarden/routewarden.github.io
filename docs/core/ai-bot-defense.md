@@ -13,19 +13,24 @@ const pipeline_ascii = buildSnippet({
   code: `[ Incoming Request ]
          │
          ▼
-[ 1. ASN & IP Gating ] ────────► Allowed ASN/IP? Bypass
-         │                       ► Known Scraper Cloud ASN? Drop / Tarpit
-         ▼
-[ 2. User-Agent & Header Inspection ]
-         │                       ► Matches Training Scraper? Execute Response Mode
-         ▼
-[ 3. Impersonation Verification (FCrDNS) ]
-         │                       ► Claims Googlebot but fails DNS check? Drop
-         ▼
-[ 4. Honeypot Spider Traps ] ───► Hit invisible /.rw-trap? Auto-Ban IP
+[ 0. PoW Token Verification ] ──► Valid rw_pow Cookie / Header? Bypass Inspection
          │
          ▼
+[ 1. ASN & IP Gating ] ────────► Allowed ASN/IP? Bypass
+         │                       ► blockCloudHosts / blockedASNs? Drop / Classify
+         ▼
+[ 2. User-Agent & Header Inspection ]
+         │                       ► Matches AI Bot Catalog / Profile? Challenge / Block
+         │                       ► GREASE / Header Ordering Anomaly? Block
+         ▼
+[ 3. Impersonation Verification (FCrDNS) ]
+         │                       ► Claims 10 Search Engines? Mathematically Verify DNS
+         ▼
+[ 4. Honeypot Spider Traps ] ───► Dynamic /_rw_trap_<token>/ in robots.txt? Auto-Ban IP
+         │                       ► Static Honeypot Paths? Auto-Ban IP
+         ▼
 [ 5. Active Response Execution ]
+         ├─► powChallenge (Zero-Dependency Web Crypto Proof-of-Work Challenge)
          ├─► aiPoison (Prompt Injection Contamination)
          ├─► markovTarpit (Procedural Word Stream Trickle)
          ├─► tarpit (Reverse Slowloris Connection Lock)
@@ -1036,6 +1041,317 @@ const botDefensePresetSnippets = computed(() => ({
     { filename: 'routewarden.json', lang: 'json', code: preset_cli.cleanCode, html: preset_cli.html, hasDiff: false },
   ],
 }))
+
+// ─── 11. Edge robots.txt Dynamic Honeypot (enableRobotsTxtHoneypot) ─────────
+const robots_traefik_yaml = buildSnippet({
+  lang: 'yaml',
+  code: `http:
+  middlewares:
+    robots-trap:
+      plugin:
+        routewarden:
+          enabled: true
+          enableRobotsTxtHoneypot: true
+          robotsTxtHoneypotSecret: "your-persistent-seed-secret"
+          trapBanDuration: "24h"
+          response:
+            mode: "aiPoison"`,
+})
+
+const robots_traefik_toml = buildSnippet({
+  lang: 'toml',
+  code: `[http.middlewares.robots-trap.plugin.routewarden]
+  enabled = true
+  enableRobotsTxtHoneypot = true
+  robotsTxtHoneypotSecret = "your-persistent-seed-secret"
+  trapBanDuration = "24h"
+
+[http.middlewares.robots-trap.plugin.routewarden.response]
+  mode = "aiPoison"`,
+})
+
+const robots_traefik_labels = buildSnippet({
+  lang: 'docker',
+  code: `services:
+  app:
+    image: myapp:latest
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.app.middlewares=robots-trap@docker"
+      - "traefik.http.middlewares.robots-trap.plugin.routewarden.enabled=true"
+      - "traefik.http.middlewares.robots-trap.plugin.routewarden.enableRobotsTxtHoneypot=true"
+      - "traefik.http.middlewares.robots-trap.plugin.routewarden.robotsTxtHoneypotSecret=your-persistent-seed-secret"
+      - "traefik.http.middlewares.robots-trap.plugin.routewarden.trapBanDuration=24h"`,
+})
+
+const robots_caddy = buildSnippet({
+  lang: 'caddy',
+  code: `example.com {
+    routewarden {
+        # Inject dynamic daily rotating Disallow bait into /robots.txt
+        enable_robots_txt_honeypot true
+        robots_txt_honeypot_secret "your-persistent-seed-secret"
+        trap_ban_duration 24h
+
+        response {
+            mode aiPoison
+        }
+    }
+    reverse_proxy app:8080
+}`,
+})
+
+const robots_nginx = buildSnippet({
+  lang: 'lua',
+  code: `local routewarden = require("resty.routewarden")
+local rw = routewarden.new({
+    enable_robots_txt_honeypot = true,
+    robots_txt_honeypot_secret = "your-persistent-seed-secret",
+    trap_ban_duration = "24h",
+    response = {
+        mode = "aiPoison"
+    }
+})`,
+})
+
+const robots_cli = buildSnippet({
+  lang: 'json',
+  code: `{
+  "$schema": "https://routewarden.github.io/schema.json",
+  "enableRobotsTxtHoneypot": true,
+  "robotsTxtHoneypotSecret": "your-persistent-seed-secret",
+  "trapBanDuration": "24h",
+  "response": {
+    "mode": "aiPoison"
+  }
+}`,
+})
+
+const robotsHoneypotSnippets = computed(() => ({
+  traefik: [
+    { filename: 'traefik.yml', lang: 'yaml', code: robots_traefik_yaml.cleanCode, html: robots_traefik_yaml.html, hasDiff: false },
+    { filename: 'traefik.toml', lang: 'toml', code: robots_traefik_toml.cleanCode, html: robots_traefik_toml.html, hasDiff: false },
+    { filename: 'docker-compose.yaml', lang: 'docker', code: robots_traefik_labels.cleanCode, html: robots_traefik_labels.html, hasDiff: false },
+  ],
+  caddy: [
+    { filename: 'Caddyfile', lang: 'caddy', code: robots_caddy.cleanCode, html: robots_caddy.html, hasDiff: false },
+  ],
+  nginx: [
+    { filename: 'nginx.conf', lang: 'lua', code: robots_nginx.cleanCode, html: robots_nginx.html, hasDiff: false },
+  ],
+  cli: [
+    { filename: 'routewarden.json', lang: 'json', code: robots_cli.cleanCode, html: robots_cli.html, hasDiff: false },
+  ],
+}))
+
+// ─── 12. Datacenter & Cloud Hosting IP Classifier (blockCloudHosts) ─────────
+const cloud_traefik_yaml = buildSnippet({
+  lang: 'yaml',
+  code: `http:
+  middlewares:
+    cloud-shield:
+      plugin:
+        routewarden:
+          enabled: true
+          # Block AWS, GCP, Azure, Hetzner, DigitalOcean scraper IPs
+          blockCloudHosts: true
+          # Offline ASN database (required for cloud host classification)
+          asnDB: "/etc/routewarden/asn-snapshot.json"
+          # Verify search engines so genuine crawlers (Googlebot) are not dropped
+          verifySearchEngineBots: true
+          # Allow webhooks from third-party services
+          allowPatterns:
+            - "^/api/webhooks/.*"`,
+})
+
+const cloud_traefik_toml = buildSnippet({
+  lang: 'toml',
+  code: `[http.middlewares.cloud-shield.plugin.routewarden]
+  enabled = true
+  blockCloudHosts = true
+  asnDB = "/etc/routewarden/asn-snapshot.json"
+  verifySearchEngineBots = true
+  allowPatterns = ["^/api/webhooks/.*"]`,
+})
+
+const cloud_traefik_labels = buildSnippet({
+  lang: 'docker',
+  code: `services:
+  app:
+    image: myapp:latest
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.app.middlewares=cloud-shield@docker"
+      - "traefik.http.middlewares.cloud-shield.plugin.routewarden.enabled=true"
+      - "traefik.http.middlewares.cloud-shield.plugin.routewarden.blockCloudHosts=true"
+      - "traefik.http.middlewares.cloud-shield.plugin.routewarden.asnDB=/etc/routewarden/asn-snapshot.json"
+      - "traefik.http.middlewares.cloud-shield.plugin.routewarden.verifySearchEngineBots=true"`,
+})
+
+const cloud_caddy = buildSnippet({
+  lang: 'caddy',
+  code: `example.com {
+    routewarden {
+        # Block cloud and datacenter scrapers
+        block_cloud_hosts true
+        asn_db /etc/routewarden/asn-snapshot.json
+        verify_search_engine_bots true
+
+        # Webhook route exemptions
+        allow_patterns ^/api/webhooks/.*
+    }
+    reverse_proxy app:8080
+}`,
+})
+
+const cloud_nginx = buildSnippet({
+  lang: 'lua',
+  code: `local routewarden = require("resty.routewarden")
+local rw = routewarden.new({
+    block_cloud_hosts = true,
+    asn_db = "/etc/routewarden/asn-snapshot.json",
+    verify_search_engine_bots = true,
+    allow_patterns = { "^/api/webhooks/.*" }
+})`,
+})
+
+const cloud_cli = buildSnippet({
+  lang: 'json',
+  code: `{
+  "$schema": "https://routewarden.github.io/schema.json",
+  "blockCloudHosts": true,
+  "asnDB": "/etc/routewarden/asn-snapshot.json",
+  "verifySearchEngineBots": true,
+  "allowPatterns": [
+    "^/api/webhooks/.*"
+  ]
+}`,
+})
+
+const cloudHostSnippets = computed(() => ({
+  traefik: [
+    { filename: 'traefik.yml', lang: 'yaml', code: cloud_traefik_yaml.cleanCode, html: cloud_traefik_yaml.html, hasDiff: false },
+    { filename: 'traefik.toml', lang: 'toml', code: cloud_traefik_toml.cleanCode, html: cloud_traefik_toml.html, hasDiff: false },
+    { filename: 'docker-compose.yaml', lang: 'docker', code: cloud_traefik_labels.cleanCode, html: cloud_traefik_labels.html, hasDiff: false },
+  ],
+  caddy: [
+    { filename: 'Caddyfile', lang: 'caddy', code: cloud_caddy.cleanCode, html: cloud_caddy.html, hasDiff: false },
+  ],
+  nginx: [
+    { filename: 'nginx.conf', lang: 'lua', code: cloud_nginx.cleanCode, html: cloud_nginx.html, hasDiff: false },
+  ],
+  cli: [
+    { filename: 'routewarden.json', lang: 'json', code: cloud_cli.cleanCode, html: cloud_cli.html, hasDiff: false },
+  ],
+}))
+
+// ─── 13. Cryptographic Proof-of-Work Challenge (powChallenge) ────────────────
+const pow_traefik_yaml = buildSnippet({
+  lang: 'yaml',
+  code: `http:
+  middlewares:
+    pow-challenge:
+      plugin:
+        routewarden:
+          enabled: true
+          blockAIBots: true
+          response:
+            mode: "powChallenge"
+            powDifficulty: 16
+            powSecret: "your-cryptographic-pow-secret"
+            powTimeoutSeconds: 300`,
+})
+
+const pow_traefik_toml = buildSnippet({
+  lang: 'toml',
+  code: `[http.middlewares.pow-challenge.plugin.routewarden]
+  enabled = true
+  blockAIBots = true
+
+[http.middlewares.pow-challenge.plugin.routewarden.response]
+  mode = "powChallenge"
+  powDifficulty = 16
+  powSecret = "your-cryptographic-pow-secret"
+  powTimeoutSeconds = 300`,
+})
+
+const pow_traefik_labels = buildSnippet({
+  lang: 'docker',
+  code: `services:
+  app:
+    image: myapp:latest
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.app.middlewares=pow-challenge@docker"
+      - "traefik.http.middlewares.pow-challenge.plugin.routewarden.enabled=true"
+      - "traefik.http.middlewares.pow-challenge.plugin.routewarden.blockAIBots=true"
+      - "traefik.http.middlewares.pow-challenge.plugin.routewarden.response.mode=powChallenge"
+      - "traefik.http.middlewares.pow-challenge.plugin.routewarden.response.powDifficulty=16"
+      - "traefik.http.middlewares.pow-challenge.plugin.routewarden.response.powSecret=your-cryptographic-pow-secret"
+      - "traefik.http.middlewares.pow-challenge.plugin.routewarden.response.powTimeoutSeconds=300"`,
+})
+
+const pow_caddy = buildSnippet({
+  lang: 'caddy',
+  code: `example.com {
+    routewarden {
+        block_ai_bots true
+
+        response {
+            mode powChallenge
+            pow_difficulty 16
+            pow_secret "your-cryptographic-pow-secret"
+            pow_timeout_seconds 300
+        }
+    }
+    reverse_proxy app:8080
+}`,
+})
+
+const pow_nginx = buildSnippet({
+  lang: 'lua',
+  code: `local routewarden = require("resty.routewarden")
+local rw = routewarden.new({
+    block_ai_bots = true,
+    response = {
+        mode = "powChallenge",
+        pow_difficulty = 16,
+        pow_secret = "your-cryptographic-pow-secret",
+        pow_timeout_seconds = 300
+    }
+})`,
+})
+
+const pow_cli = buildSnippet({
+  lang: 'json',
+  code: `{
+  "$schema": "https://routewarden.github.io/schema.json",
+  "blockAIBots": true,
+  "response": {
+    "mode": "powChallenge",
+    "powDifficulty": 16,
+    "powSecret": "your-cryptographic-pow-secret",
+    "powTimeoutSeconds": 300
+  }
+}`,
+})
+
+const powSnippets = computed(() => ({
+  traefik: [
+    { filename: 'traefik.yml', lang: 'yaml', code: pow_traefik_yaml.cleanCode, html: pow_traefik_yaml.html, hasDiff: false },
+    { filename: 'traefik.toml', lang: 'toml', code: pow_traefik_toml.cleanCode, html: pow_traefik_toml.html, hasDiff: false },
+    { filename: 'docker-compose.yaml', lang: 'docker', code: pow_traefik_labels.cleanCode, html: pow_traefik_labels.html, hasDiff: false },
+  ],
+  caddy: [
+    { filename: 'Caddyfile', lang: 'caddy', code: pow_caddy.cleanCode, html: pow_caddy.html, hasDiff: false },
+  ],
+  nginx: [
+    { filename: 'nginx.conf', lang: 'lua', code: pow_nginx.cleanCode, html: pow_nginx.html, hasDiff: false },
+  ],
+  cli: [
+    { filename: 'routewarden.json', lang: 'json', code: pow_cli.cleanCode, html: pow_cli.html, hasDiff: false },
+  ],
+}))
 </script>
 
 # AI Bot & Web Crawler Defense
@@ -1163,6 +1479,24 @@ RouteWarden provides native honeypot spider trap detection (`honeypot_trap_paths
 
 <CodeViewer :snippets="honeypotSnippets" />
 
+### Edge robots.txt Dynamic Honeypot Injection (`enableRobotsTxtHoneypot`)
+
+Static honeypots embedded in HTML pages can occasionally be detected by sophisticated crawlers that analyze DOM deltas across sitemaps. RouteWarden introduces **Edge `robots.txt` Dynamic Honeypot Injection** (`enableRobotsTxtHoneypot` / `enable_robots_txt_honeypot`):
+
+1. **Dynamic Disallow Bait**: When RouteWarden intercepts requests to `/robots.txt`, it appends a daily rotating pseudorandom honeypot trap rule:
+   ```txt
+   User-agent: *
+   Disallow: /_rw_trap_f8a3e9c1/
+   ```
+2. **Deterministic HMAC-SHA256 Token Rotation**: Trap tokens are deterministically derived using HMAC-SHA256 (`HMAC(Secret, YYYY-MM-DD)`), requiring zero shared database state across distributed reverse proxy clusters. An optional `robotsTxtHoneypotSecret` (`robots_txt_honeypot_secret`) customizes the secret seed.
+3. **UTC Rollover Tolerance**: RouteWarden accepts both current UTC day and previous UTC day trap tokens, preventing edge false-positives around midnight UTC.
+4. **Origin 404 Synthesis**: If the upstream origin server does not provide a `/robots.txt` file (returning 404), RouteWarden synthesizes a valid 200 OK `robots.txt` payload containing the dynamic honeypot disallow directive.
+5. **Instant IP Ban**: Any automated crawler that ignores `robots.txt` directives and requests the injected trap path is immediately added to the in-memory sliding-window `BanTable` for `trapBanDuration` (default: 24h).
+
+#### Edge robots.txt Configuration Examples
+
+<CodeViewer :snippets="robotsHoneypotSnippets" />
+
 ---
 
 ## Search Engine Impersonator Verification via FCrDNS
@@ -1173,11 +1507,18 @@ RouteWarden provides native **Forward-Confirmed Reverse DNS (FCrDNS)** verificat
 
 ### How FCrDNS Works
 
-1. **User-Agent Detection**: When an incoming request presents a User-Agent matching recognized search engines (`googlebot`, `google-inspectiontool`, `google-other`, `adsbot-google`, `bingbot`, `bingpreview`, `applebot`).
+1. **User-Agent Detection**: When an incoming request presents a User-Agent matching recognized search engines (`googlebot`, `google-inspectiontool`, `google-other`, `adsbot-google`, `bingbot`, `bingpreview`, `applebot`, `yandex`, `baiduspider`, `duckduckbot`, `slurp`, `yeti`, `sogou`, `mojeek`).
 2. **Reverse DNS (PTR Lookup)**: RouteWarden queries DNS for PTR records associated with the client IP and verifies that the hostname belongs to the genuine domain:
-   - Google: `.googlebot.com`, `.google.com`
-   - Microsoft / Bing: `.search.msn.com`
-   - Apple: `.applebot.apple.com`
+   - **Google**: `.googlebot.com`, `.google.com`
+   - **Microsoft / Bing**: `.search.msn.com`
+   - **Apple**: `.applebot.apple.com`
+   - **Yandex**: `.yandex.ru`, `.yandex.net`, `.yandex.com`
+   - **Baidu**: `.baidu.com`, `.baidu.jp`
+   - **DuckDuckGo**: `.duckduckgo.com`
+   - **Yahoo / Slurp**: `.crawl.yahoo.net`
+   - **Naver**: `.naver.com`
+   - **Sogou**: `.sogou.com`
+   - **Mojeek**: `.mojeek.com`
 3. **Forward DNS (A / AAAA Lookup)**: RouteWarden resolves the PTR hostname back to its IP addresses and validates that the client IP is in the resolved IP list.
 4. **Bounded In-Memory TTL Cache**: Verification outcomes are cached (6 hours TTL, up to 10,000 entries) with strict query timeouts (500ms) to ensure zero latency overhead on subsequent requests.
 5. **Enforcement**:
@@ -1199,6 +1540,8 @@ Many scraping bots and scrapers forge a legitimate browser `User-Agent` (e.g. Ch
 3. **Client Hints Brand & Version Integrity (`Sec-CH-UA`)**: Validates that non-Chromium browsers (Firefox, Safari) do not forge Chromium Client Hints (`sec_ch_ua_brand_mismatch`), and modern Chromium browsers ($\ge$ v89) advertising client hints do not leave `Sec-CH-UA` blank (`missing_sec_ch_ua`).
 4. **Fetch Metadata (`Sec-Fetch-*`) Validation & Consistency**: Confirms that requests claiming modern Chromium ($\ge$ v90) transmit standard `Sec-Fetch-Site`, `Sec-Fetch-Mode`, and `Sec-Fetch-Dest` headers (`missing_sec_fetch`), and cross-checks that top-level document requests (`Sec-Fetch-Dest: document`) use navigation mode (`Sec-Fetch-Mode: navigate`) (`sec_fetch_mode_mismatch`).
 5. **Mandatory Companion Headers**: Ensures `Accept-Language` and `Accept-Encoding` are present. Automated scripts (such as Python `requests`) frequently omit `Accept-Language`. Trigger reasons: `missing_accept_language`, `missing_accept_encoding`.
+6. **Chromium GREASE Brand Verification**: Validates that modern Chromium ($\ge$ v89) requests transmit randomized GREASE brand tokens (`Not?A_Brand`, `Not_A Brand`, `Not=A?Brand`) required by Google Chromium specifications. Automated scripts and basic headless wrappers frequently forget to generate GREASE tokens. Trigger reason: `missing_grease_brand`.
+7. **HTTP Header Order Anomaly Detection**: Real browsers serialize HTTP headers in deterministic structural sequences (e.g., Chromium places `Sec-CH-UA` before `User-Agent` and `Accept`). RouteWarden evaluates header order anomalies to detect scraping scripts and headless wrappers that serialize `User-Agent` or `Accept` first. Trigger reason: `header_order_anomaly`.
 
 Violations are rejected with security reason `browser_spoofed` and the matching integrity failure pattern.
 
@@ -1216,3 +1559,35 @@ Authorized scripts or webhooks can be exempted using `allow_user_agents` or `all
 ### Configuration Examples
 
 <CodeViewer :snippets="browserGuardSnippets" />
+
+---
+
+## Datacenter & Cloud Hosting IP Classifier (`blockCloudHosts`)
+
+Distributed commercial scraping fleets and AI harvesting crawlers frequently deploy across major cloud hosting providers and virtual private servers (AWS, Google Cloud, Microsoft Azure, Hetzner, DigitalOcean, OVH, Linode, Oracle Cloud, Alibaba Cloud, Tencent Cloud, ByteDance).
+
+When `block_cloud_hosts` (`blockCloudHosts`) is enabled alongside an offline ASN database (`asnDB` / `asn_db`), RouteWarden inspects the client's Autonomous System Number and enforces granular classification:
+
+1. **Datacenter Browser Impersonation**: If a client claims to be an interactive desktop or mobile browser (e.g. Chrome, Safari, Edge) but originates from a cloud hosting or datacenter IP range, RouteWarden immediately classifies the request as `datacenter_browser_impersonation` and blocks it.
+2. **Cloud Host Scraper Blocking**: Non-browser requests originating from cloud hosting IP ranges are flagged with verdict `cloud_host_blocked`.
+3. **Legitimate Search Engine Exemptions**: Search engine crawlers hosted on cloud infrastructure (e.g. Googlebot running on GCP `AS15169`) that pass Forward-Confirmed Reverse DNS (`verifySearchEngineBots`) are automatically exempted from cloud hosting blocks.
+4. **Webhook & API Exemptions**: Non-interactive API routes (e.g. `/api/webhooks/.*`) and explicit `allowedIps` bypass cloud host classification.
+
+### Configuration Examples
+
+<CodeViewer :snippets="cloudHostSnippets" />
+
+---
+
+## Cryptographic Proof-of-Work Challenge (`powChallenge`)
+
+Rather than relying on third-party CAPTCHA widgets that leak visitor telemetry, break automated integration tests, or degrade user experience, RouteWarden provides **Cryptographic Proof-of-Work (PoW)** challenge escalation:
+
+1. **Zero-Dependency Web Crypto Solver**: When a request is challenged, RouteWarden responds with HTTP `429 Too Many Requests` containing an inline, self-contained HTML/JS challenge page (<2KB). The client script solves a Hashcash SHA-256 puzzle in 200–800ms using the browser's native `crypto.subtle` API across parallel worker batches.
+2. **Stateless IP-Bound HMAC Challenges**: Challenge tokens are cryptographically bound to the client's normalized IP address (`challenge = base64(prefix:difficulty:ip:timestamp:hmac)`), preventing token theft and replay across residential proxy pools.
+3. **Stateless Solution Verification**: Gateways verify solutions in $O(1)$ time by verifying the HMAC signature and counting leading zero bits in `SHA256(challenge + ":" + nonce)`.
+4. **Bypass with Honeypot Immutability**: Clients that present a valid `rw_pow` cookie or `X-RouteWarden-PoW` header are granted immediate bypass through route block rules and bot suspicion filters. However, honeypot spider traps (`robots.txt` dynamic bait traps) and administrative IP bans remain immutable and strictly blocked.
+
+### Configuration Examples
+
+<CodeViewer :snippets="powSnippets" />

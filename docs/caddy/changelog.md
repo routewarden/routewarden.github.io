@@ -34,6 +34,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   - Cross-validates Client Hints (`Sec-CH-UA-Platform` matching OS in User-Agent, `Sec-CH-UA-Mobile` form factor consistency, `Sec-CH-UA` presence on modern Chromium $\ge 89$, and brand integrity), Chromium Fetch Metadata (`Sec-Fetch-Site`, `Sec-Fetch-Mode`, `Sec-Fetch-Dest`), and mandatory companion headers (`Accept-Language`, `Accept-Encoding`).
 - **Script Client & Headless Automation Blocking (`block_script_clients`)**:
   - Added `block_script_clients true|false` directive to block requests originating from programmatic HTTP client libraries (Python `requests`, `urllib`, `aiohttp`, `httpx`, `Scrapy`, `curl-cffi`, `mechanize`, PHP `Guzzle`, Rust `reqwest`, Node `axios`, `node-fetch`, `undici`, Go `Go-http-client`, Java `OkHttp`, `curl`, `wget`) and headless automation frameworks (`X-Playwright`, `X-Puppeteer`, `X-Selenium`, `X-Cypress`, `X-Headless-Chrome`, `X-Automation`, `Sec-WebDriver`).
+- **Edge robots.txt Dynamic Honeypot Injection (`enable_robots_txt_honeypot`)**:
+  - Added `enable_robots_txt_honeypot true|false` and `robots_txt_honeypot_secret <string>` Caddyfile directives.
+  - Dynamically injects daily rotating `Disallow: /_rw_trap_<token>/` bait with HMAC-SHA256 rotation and UTC rollover tolerance, trapping non-compliant scrapers into `BanTable`.
+- **10-Engine Global FCrDNS Verification (`verify_search_engine_bots`)**:
+  - Expanded search engine verification to 10 global engines: Google, Bing, Apple, Yandex, Baidu, DuckDuckGo, Yahoo, Naver, Sogou, and Mojeek.
+- **Chromium GREASE & Header Order Anomaly Detection (`detect_browser_impersonation`)**:
+  - Added Chromium GREASE brand validation (`missing_grease_brand`) and HTTP header order anomaly detection (`header_order_anomaly`).
+- **Datacenter & Cloud Hosting IP Classification (`block_cloud_hosts`)**:
+  - Added `block_cloud_hosts true|false` directive to classify and block datacenter scrapers and browser impersonators from AWS, GCP, Azure, Hetzner, DigitalOcean, OVH, Linode, Oracle, ByteDance, with FCrDNS exemptions for legitimate search crawlers.
+- **Cryptographic Proof-of-Work Challenge Mode (`powChallenge` / `pow_challenge`)**:
+  - Added `mode powChallenge` with Caddyfile subdirectives: `pow_difficulty <int>`, `pow_secret <string>`, `pow_timeout_seconds <int>`.
+  - Serves zero-dependency Web Crypto Hashcash solver (<2KB) returning HTTP 429, allowing solved `rw_pow` cookie to bypass route blocks while keeping honeypot traps and hard IP bans immutable.
 
 ---
 

@@ -34,6 +34,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   - Cross-validates Client Hints (`Sec-CH-UA-Platform` matching OS in User-Agent, `Sec-CH-UA-Mobile` form factor consistency, `Sec-CH-UA` presence on modern Chromium $\ge 89$, and brand integrity), Chromium Fetch Metadata (`Sec-Fetch-Site`, `Sec-Fetch-Mode`, `Sec-Fetch-Dest`), and mandatory companion headers (`Accept-Language`, `Accept-Encoding`).
 - **Script Client & Headless Automation Blocking (`blockScriptClients`)**:
   - Added `blockScriptClients` / `block_script_clients` option to block requests originating from programmatic HTTP client libraries (Python `requests`, `urllib`, `aiohttp`, `httpx`, `Scrapy`, `curl-cffi`, `mechanize`, PHP `Guzzle`, Rust `reqwest`, Node `axios`, `node-fetch`, `undici`, Go `Go-http-client`, Java `OkHttp`, `curl`, `wget`) and headless automation frameworks (`X-Playwright`, `X-Puppeteer`, `X-Selenium`, `X-Cypress`, `X-Headless-Chrome`, `X-Automation`, `Sec-WebDriver`).
+- **Edge robots.txt Dynamic Honeypot Injection (`enableRobotsTxtHoneypot`)**:
+  - Dynamically injects daily rotating `Disallow: /_rw_trap_<token>/` entries into `/robots.txt` with HMAC-SHA256 tokens and UTC day rollover tolerance.
+  - Synthesizes 200 OK `robots.txt` responses when origin returns 404, trapping non-compliant crawlers into `BanTable`.
+- **10-Engine Global FCrDNS Verification (`verifySearchEngineBots`)**:
+  - Expanded search engine verification to 10 global engines: Google, Bing, Apple, Yandex, Baidu, DuckDuckGo, Yahoo, Naver, Sogou, and Mojeek.
+- **Chromium GREASE & Header Order Anomaly Detection (`detectBrowserImpersonation`)**:
+  - Validates Chromium GREASE brand presence (`missing_grease_brand`) and detects HTTP header order anomalies (`header_order_anomaly`).
+- **Datacenter & Cloud Hosting IP Classification (`blockCloudHosts`)**:
+  - Identifies and blocks requests from major cloud infrastructure (AWS, GCP, Azure, Hetzner, DigitalOcean, OVH, Linode, Oracle, ByteDance), emitting `datacenter_browser_impersonation` or `cloud_host_blocked` with FCrDNS exemptions for legitimate search crawlers.
+- **Cryptographic Proof-of-Work Challenge Mode (`powChallenge`)**:
+  - Added zero-dependency client-side Hashcash challenge solver (<2KB inline HTML/JS using Web Crypto `crypto.subtle`) returning HTTP 429.
+  - $O(1)$ stateless token verification via normalized client IP binding and HMAC-SHA256 signatures (`powDifficulty`, `powSecret`, `powTimeoutSeconds`).
+  - Solved `rw_pow` cookie or `X-RouteWarden-PoW` bypasses bot inspection while keeping honeypot traps and hard IP bans immutable.
 
 ---
 
