@@ -76,17 +76,30 @@ const schema_code = buildSnippet({
     # IP / CIDR Subnet Allowlist (Bypasses all checks)
     allowed_ips <ip_or_cidr...>
 
-    # ASN Allowlist & Offline Routing DB (Bypasses all checks)
+    # ASN Allowlist, Blocklist & Offline Routing DB
     allowed_asns <asns...>                      # e.g. AS13335 64500 (bare directive clears inherited)
+    blocked_asns <asns...>                      # e.g. AS138699 (blocked crawler / proxy ASNs)
     asn_db <path>                               # e.g. /etc/routewarden/asn.json
     trusted_proxies <cidrs...>                  # Upstream proxies trusted for client IP resolution
+
+    # AI Bot & Web Crawler Defense
+    bot_defense_level <level>                   # e.g. standard (presets: off, light, standard, strict, aggressive)
+    block_ai_bots <true|false>                  # Default: false (block known AI scrapers & LLM bots)
+    ai_bot_profile <profile>                    # e.g. train_only (default), all, aggressive, custom
+    block_user_agents <regex...>                # Custom regex patterns matching User-Agents to block
+    allow_user_agents <regex...>                # Custom regex patterns matching User-Agents to allow
+    detect_browser_impersonation <true|false>   # Default: false (cross-check Client Hints and companion headers)
+    block_script_clients <true|false>           # Default: false (block automated HTTP clients & headless scrapers)
+    verify_search_engine_bots <true|false>      # Default: false (verify Googlebot/Bingbot/Applebot via FCrDNS)
+    honeypot_trap_paths <paths...>              # Decoy paths that trigger instant IP bans
+    trap_ban_duration <duration>                # Ban duration for trapped IPs (default: 24h)
 
     # HTTP Methods to Inspect (Default: GET)
     methods <methods...>
 
     # Response Actions
     response {
-        mode <json|html|text|xml|redirect|captcha|silent_drop|gzip_bomb|tarpit|fake_success|ratelimit|proxy|infinite_stream>
+        mode <json|html|text|xml|redirect|captcha|silent_drop|gzip_bomb|tarpit|fake_success|ratelimit|proxy|infinite_stream|ai_poison|markov_tarpit|pow_challenge>
         status_code <int>
         body <string>
         redirect_url <url>
@@ -95,6 +108,9 @@ const schema_code = buildSnippet({
         retry_after_seconds <int>
         tarpit_delay_ms <int>
         stream_size_mb <int>
+        pow_difficulty <int>
+        pow_secret <string>
+        pow_timeout_seconds <int>
 
         captcha {
             provider <turnstile|hcaptcha|recaptcha>
@@ -234,7 +250,18 @@ To resolve this, declare directive ordering in your Caddyfile's global options b
 | `allow_patterns` | `list` | `[]` | Regex patterns that should always be allowed through. |
 | `allowed_ips` | `list` | `[]` | IPv4, IPv6, or CIDR blocks exempted from checks. |
 | `allowed_asns` | `list` | `[]` | Autonomous System Numbers (`AS64500`, `64500`) allowed to bypass inspection. Bare `allowed_asns` clears inherited list. |
+| `blocked_asns` | `list` | `[]` | Autonomous System Numbers whose client IPs are blocked. Requires `asn_db`. |
 | `asn_db` | `string` | `""` | Path to local JSON ASN routing snapshot database. |
+| `bot_defense_level` | `string` | `""` | Preset bot defense level (`off`, `light`, `standard`, `strict`, `aggressive`). Activates pre-tuned bot defenses. |
+| `block_ai_bots` | `bool` | `false` | Enables automatic blocking of known AI crawlers and LLM training bots. |
+| `ai_bot_profile` | `string` | `""` | AI bot profile: `train_only` (default), `all`, `aggressive`, or `custom`. |
+| `block_user_agents` | `list` | `[]` | Custom regex patterns matching client User-Agents to block. |
+| `allow_user_agents` | `list` | `[]` | Custom regex patterns matching client User-Agents to allow. |
+| `detect_browser_impersonation` | `bool` | `false` | Cross-validates browser User-Agents against Client Hints (`Sec-CH-UA-Platform`, `Sec-CH-UA-Mobile`, `Sec-CH-UA` brand integrity), Fetch Metadata (`Sec-Fetch-*`), and companion headers (`Accept-Language`, `Accept-Encoding`). |
+| `block_script_clients` | `bool` | `false` | Blocks automated HTTP client libraries (requests, Guzzle, reqwest, axios, curl) and headless framework headers (`X-Playwright`, `X-Puppeteer`, `X-Cypress`, `Sec-WebDriver`). |
+| `verify_search_engine_bots` | `bool` | `false` | Verifies Googlebot, Bingbot, and Applebot authenticity via FCrDNS. |
+| `honeypot_trap_paths` | `list` | `[]` | Hidden trap paths that trigger instant sliding-window IP bans. |
+| `trap_ban_duration` | `string` | `"24h"` | Ban duration for trapped IPs (e.g., `24h`, `1h`, `30m`). |
 | `trusted_proxies` | `list` | `[]` | Trusted upstream reverse proxies / CIDRs for real client IP extraction. |
 | `methods` | `list` | `["GET"]` | HTTP verbs to inspect (e.g. `methods GET POST`). Non-matching verbs bypass inspection. |
 
@@ -341,6 +368,9 @@ When enabled (default), Caddy Warden immediately allows standard public resource
 | `ratelimit` | `status_code`, `retry_after_seconds` | 429 Too Many Requests response |
 | `proxy` | `proxy_url` | Transparent canary/forensics honeypot mirror |
 | `fake_success` | `status_code`, `body` | Synthetic decoy responses (`wp-login`, fake `.env`) |
+| `ai_poison` | None | Serves HTTP 200 with prompt injection directives & `noai` robots tag |
+| `markov_tarpit` | `tarpit_delay_ms` | Procedural word stream trickle to exhaust crawler context windows |
+| `pow_challenge` | `pow_difficulty`, `pow_secret`, `pow_timeout_seconds` | Cryptographic Proof-of-Work challenge solver (<2KB inline HTML/JS) returning HTTP 429 |
 
 > [!WARNING]
 > **`silent_drop` Behind Edge Proxies / CDNs (502 Bad Gateway)**:

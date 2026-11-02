@@ -30,6 +30,9 @@ const streamSizeMB = defineModel<number>('streamSizeMB', { required: true })
 const captchaProvider = defineModel<'turnstile' | 'hcaptcha' | 'recaptcha'>('captchaProvider', { required: true })
 const captchaSiteKey = defineModel<string>('captchaSiteKey', { required: true })
 const captchaTitle = defineModel<string>('captchaTitle', { required: true })
+const powDifficulty = defineModel<number>('powDifficulty', { default: 16 })
+const powSecret = defineModel<string>('powSecret', { default: '' })
+const powTimeoutSeconds = defineModel<number>('powTimeoutSeconds', { default: 300 })
 const testMethod = defineModel<string>('testMethod', { required: true })
 
 const isStatusDisabled = computed(() => {
@@ -68,6 +71,7 @@ const isStatusDisabled = computed(() => {
               <option value="redirect">Sinkhole Redirect</option>
               <option value="proxy">Honeypot Reverse Proxy</option>
               <option value="captcha">Interactive CAPTCHA</option>
+              <option value="powChallenge">Proof-of-Work Challenge (PoW)</option>
               <option value="rateLimitChallenge">Rate Limit Challenge (429)</option>
             </optgroup>
           </select>
@@ -172,6 +176,28 @@ const isStatusDisabled = computed(() => {
         <div class="rw-sub-field rw-flex-1">
           <span class="rw-field-label">Page Title:</span>
           <input v-model="captchaTitle" class="rw-field-input" placeholder="Verification Title" />
+        </div>
+      </div>
+
+      <!-- Proof-of-Work Challenge -->
+      <div v-if="responseMode === 'powChallenge'" class="rw-field-row rw-wrap-row">
+        <div class="rw-sub-field">
+          <span class="rw-field-label">Difficulty:</span>
+          <div class="rw-unit-field">
+            <input v-model.number="powDifficulty" type="number" min="8" max="24" class="rw-mini-num" />
+            <span class="rw-unit-text">zero bits</span>
+          </div>
+        </div>
+        <div class="rw-sub-field rw-flex-1">
+          <span class="rw-field-label">HMAC Secret:</span>
+          <input v-model="powSecret" class="rw-field-input mono" placeholder="Optional signing secret" />
+        </div>
+        <div class="rw-sub-field">
+          <span class="rw-field-label">Timeout:</span>
+          <div class="rw-unit-field">
+            <input v-model.number="powTimeoutSeconds" type="number" min="10" step="30" class="rw-mini-num" />
+            <span class="rw-unit-text">seconds</span>
+          </div>
         </div>
       </div>
 

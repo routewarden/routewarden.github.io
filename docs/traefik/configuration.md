@@ -222,7 +222,21 @@ This reference covers all configuration options available in **Traefik Warden**.
 | `allowPatterns` | `[]string` | `[]` | Additional custom regex patterns to explicitly allow even if matching blocked rules. |
 | `allowedIps` | `[]string` | `[]` | Whitelisted IPv4/IPv6 addresses or CIDR subnets (e.g., `10.0.0.0/8`, `127.0.0.1`). |
 | `allowedASNs` | `[]string` | `[]` | List of Autonomous System Numbers (`"64500"` or `"AS64500"`) whose client IPs bypass inspection. Requires `asnDB`. |
+| `blockedASNs` | `[]string` | `[]` | List of hostile or crawler Autonomous System Numbers whose client IPs are blocked. Requires `asnDB`. |
 | `asnDB` | `string` | `""` | Absolute filesystem path to local JSON ASN-to-CIDR routing snapshot file. |
+| `botDefenseLevel` | `string` | `""` | Preset bot defense level (`"off"`, `"light"`, `"standard"`, `"strict"`, `"aggressive"`). Activates pre-tuned combinations of AI bot defense, browser impersonation checks, script client blocking, and FCrDNS. |
+| `blockAIBots` | `bool` | `false` | Enables automatic blocking of known AI scrapers, LLM training bots, and crawlers. |
+| `aiBotProfile` | `string` | `""` | AI bot profile filter: `train_only` (default), `search_only`, `agents_only`, `all`, `aggressive`, or `custom`. |
+| `blockUserAgents` | `[]string` | `[]` | Custom regular expression patterns matching client User-Agents to block. |
+| `allowUserAgents` | `[]string` | `[]` | Custom regular expression patterns matching client User-Agents to permit. |
+| `detectBrowserImpersonation` | `bool` | `false` | Cross-validates claimed browser User-Agents against Client Hints (`Sec-CH-UA-Platform`, `Sec-CH-UA-Mobile`, `Sec-CH-UA` brand integrity with GREASE verification), Chromium Fetch Metadata (`Sec-Fetch-*`), companion headers (`Accept-Language`, `Accept-Encoding`), and header ordering anomalies. |
+| `blockScriptClients` | `bool` | `false` | Blocks automated HTTP client library signatures (requests, Guzzle, reqwest, axios, curl) and headless automation framework headers (`X-Playwright`, `X-Puppeteer`, `X-Cypress`, `Sec-WebDriver`). |
+| `blockCloudHosts` | `bool` | `false` | Identifies and blocks requests originating from major cloud hosting and datacenter ASNs (AWS, GCP, Azure, Hetzner, etc.), dropping datacenter scrapers and browser impersonators while exempting verified search crawlers and route allow patterns. |
+| `verifySearchEngineBots` | `bool` | `false` | Verifies genuine search engine crawlers (Google, Bing, Apple, Yandex, Baidu, DuckDuckGo, Yahoo, Naver, Sogou, Mojeek) via Forward-Confirmed Reverse DNS (FCrDNS), dropping spoofed impersonators. |
+| `honeypotTrapPaths` | `[]string` | `[]` | Hidden decoy URL paths. Any client requesting these paths triggers an instant IP ban in an in-memory sliding-window table. |
+| `enableRobotsTxtHoneypot` | `bool` | `false` | Dynamically injects daily rotating `Disallow: /_rw_trap_<token>/` entries into `/robots.txt` and bans scrapers that crawl them. Synthesizes 200 OK when upstream 404s. |
+| `robotsTxtHoneypotSecret` | `string` | `""` | Secret seed used to derive deterministic HMAC-SHA256 daily rotating tokens for robots.txt honeypot traps. |
+| `trapBanDuration` | `string` | `"24h"` | Sliding-window ban duration for trapped client IPs (e.g., `24h`, `1h`, `30m`). |
 | `trustedProxies` | `[]string` | `[]` | Upstream proxies/load-balancers trusted for `X-Forwarded-For` / `X-Real-IP`. Untrusted connections use socket IP directly. |
 | `methods` | `[]string` | `["GET"]` | HTTP request verbs to inspect (e.g. `["GET", "POST"]`). Supports wildcard `"*"` or `"ALL"` to inspect all verbs. Auto-expanded to include `POST`, `PUT`, `PATCH` when `checkBody` is enabled without explicit methods. |
 | `checkQuery` | `bool` | `false` | Also inspects the URL raw query string for blocked patterns. |
@@ -331,12 +345,12 @@ When `enableDefaultAllowPatterns: true` (default), Routewarden immediately permi
 
 ## Response Configuration (`response`)
 
-> 📖 **Deep Dive**: For an in-depth breakdown of all 11+ response behaviors, limitations, attacker impacts, and security cautions, visit the **[Response Modes Reference](/core/response-modes)**.
+> 📖 **Deep Dive**: For an in-depth breakdown of all 15 response behaviors, limitations, attacker impacts, and security cautions, visit the **[Response Modes Reference](/core/response-modes)**.
 
 | Key | Type | Default | Description |
 |---|---|---|---|
-| `mode` | `string` | `"text"` | Response mode: `json`, `html`, `text`, `xml`, `redirect`, `captcha`, `silentDrop`, `gzipBomb` (`bomb`), `tarpit`, `fakeSuccess` (`decoy`), `rateLimitChallenge` (`ratelimit`), `proxy` (`mirror`), or `infiniteStream` (`garbagestream`). |
-| `statusCode` | `int` | `403` | HTTP status code returned to client (use `200` for honeypots / deception, `429` for rate limit challenge). |
+| `mode` | `string` | `"text"` | Response mode: `json`, `html`, `text`, `xml`, `redirect`, `captcha`, `silentDrop`, `gzipBomb` (`bomb`), `tarpit`, `fakeSuccess` (`decoy`), `rateLimitChallenge` (`ratelimit`), `proxy` (`mirror`), `infiniteStream` (`garbagestream`), `aiPoison`, `markovTarpit`, or `powChallenge` (`pow`, `proofOfWork`, `hashcash`). |
+| `statusCode` | `int` | `403` | HTTP status code returned to client (use `200` for honeypots / deception, `429` for rate limit challenge or powChallenge). |
 | `body` | `string` | `""` | Response body for `json`, `html`, `xml`, or `text` mode. |
 | `headers` | `map[string]string` | `{}` | Custom HTTP response headers injected into blocked responses. |
 | `redirectUrl` | `string` | `""` | Target URL when `mode: redirect`. |
@@ -347,6 +361,9 @@ When `enableDefaultAllowPatterns: true` (default), Routewarden immediately permi
 | `tarpitDelayMs` | `int` | `1000` | Milliseconds between trickle bytes when `mode: tarpit` (stalls scanner connections). |
 | `tarpitMaxDurationSeconds` | `int` | `60` | Maximum seconds before terminating stalled connection in `mode: tarpit`. |
 | `streamSizeMB` | `int` | `50` | Total garbage data size in Megabytes when `mode: infiniteStream`. |
+| `powDifficulty` | `int` | `16` | Required leading zero bits in SHA-256 output when `mode: powChallenge` (recommended: 8–24). |
+| `powSecret` | `string` | `""` | Secret seed used to compute HMAC-SHA256 signatures for stateless challenge verification when `mode: powChallenge`. |
+| `powTimeoutSeconds` | `int` | `300` | Expiration and validity window in seconds for proof-of-work challenges and solution tokens. |
 
 ### Captcha Options (`response.captcha`)
 

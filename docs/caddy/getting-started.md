@@ -567,6 +567,6 @@ If you configure Caddy via its native JSON API:
 
 - [Routewarden Core Architecture & Anti-Evasion Engine](/core/architecture)
 - [Routewarden CLI Documentation](/cli/)
-- [Response Modes Deep Dive (13 Actions)](/core/response-modes)
+- [Response Modes Deep Dive (15 Actions)](/core/response-modes)
 - [Custom Path Patterns Reference](/core/custom-patterns)
 - [Caddy-Warden GitHub Repository](https://github.com/routewarden/caddy-warden)

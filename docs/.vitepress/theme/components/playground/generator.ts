@@ -12,6 +12,7 @@ export type ResponseMode =
   | 'rateLimitChallenge'
   | 'proxy'
   | 'infiniteStream'
+  | 'powChallenge'
 
 export interface SnippetOptions {
   snippetFormat: string
@@ -39,6 +40,9 @@ export interface SnippetOptions {
   captchaProvider: 'turnstile' | 'hcaptcha' | 'recaptcha'
   captchaSiteKey: string
   captchaTitle: string
+  powDifficulty?: number
+  powSecret?: string
+  powTimeoutSeconds?: number
   testMethod: string
   testPath: string
   testIp: string
@@ -51,6 +55,7 @@ export function generateGatewaySnippet(opts: SnippetOptions): string {
     checkQuery, blockList, allowList, ipList, methodsList, hasCustomMethods, responseMode,
     statusCode, customBody, redirectUrl, proxyUrl, gzipBombMB, tarpitDelayMs, tarpitMaxDurationSeconds,
     retryAfterSeconds, streamSizeMB, captchaProvider, captchaSiteKey, captchaTitle,
+    powDifficulty, powSecret, powTimeoutSeconds,
     testMethod, testPath, testIp
   } = opts
   const trustedProxiesList = opts.trustedProxiesList || []
@@ -105,6 +110,11 @@ export function generateGatewaySnippet(opts: SnippetOptions): string {
       out += `        provider ${captchaProvider}\n`
       out += `        site_key "${captchaSiteKey}"\n`
       out += `      }\n`
+    }
+    if (responseMode === 'powChallenge') {
+      out += `      pow_difficulty ${powDifficulty || 16}\n`
+      if (powSecret) out += `      pow_secret "${powSecret}"\n`
+      out += `      pow_timeout_seconds ${powTimeoutSeconds || 300}\n`
     }
     out += `    }\n  }\n  reverse_proxy localhost:8080\n}`
     return out
@@ -163,6 +173,11 @@ export function generateGatewaySnippet(opts: SnippetOptions): string {
       out += `                provider = "${captchaProvider}",\n`
       out += `                site_key = "${captchaSiteKey}",\n`
       out += `            },\n`
+    }
+    if (responseMode === 'powChallenge') {
+      out += `            pow_difficulty = ${powDifficulty || 16},\n`
+      if (powSecret) out += `            pow_secret = "${powSecret}",\n`
+      out += `            pow_timeout_seconds = ${powTimeoutSeconds || 300},\n`
     }
     out += `        }\n`
     out += `    })\n`
@@ -231,6 +246,11 @@ export function generateGatewaySnippet(opts: SnippetOptions): string {
       out += `              siteKey: "${captchaSiteKey}"\n`
       out += `              title: "${captchaTitle}"\n`
     }
+    if (responseMode === 'powChallenge') {
+      out += `            powDifficulty: ${powDifficulty || 16}\n`
+      if (powSecret) out += `            powSecret: "${powSecret}"\n`
+      out += `            powTimeoutSeconds: ${powTimeoutSeconds || 300}\n`
+    }
     return out
   }
 
@@ -284,6 +304,11 @@ export function generateGatewaySnippet(opts: SnippetOptions): string {
       out += `siteKey = "${captchaSiteKey}"\n`
       out += `title = "${captchaTitle}"\n`
     }
+    if (responseMode === 'powChallenge') {
+      out += `powDifficulty = ${powDifficulty || 16}\n`
+      if (powSecret) out += `powSecret = "${powSecret}"\n`
+      out += `powTimeoutSeconds = ${powTimeoutSeconds || 300}\n`
+    }
     return out
   }
 
@@ -326,6 +351,11 @@ export function generateGatewaySnippet(opts: SnippetOptions): string {
     if (responseMode === 'captcha') {
       out += `      - "${prefix}.response.captcha.provider=${captchaProvider}"\n`
       out += `      - "${prefix}.response.captcha.siteKey=${captchaSiteKey}"\n`
+    }
+    if (responseMode === 'powChallenge') {
+      out += `      - "${prefix}.response.powDifficulty=${powDifficulty || 16}"\n`
+      if (powSecret) out += `      - "${prefix}.response.powSecret=${powSecret}"\n`
+      out += `      - "${prefix}.response.powTimeoutSeconds=${powTimeoutSeconds || 300}"\n`
     }
     return out
   }
@@ -373,6 +403,11 @@ export function generateGatewaySnippet(opts: SnippetOptions): string {
     if (responseMode === 'infiniteStream') out += `        streamSizeMB: ${streamSizeMB}\n`
     if (responseMode === 'captcha') {
       out += `        captcha:\n          provider: "${captchaProvider}"\n          siteKey: "${captchaSiteKey}"\n          title: "${captchaTitle}"\n`
+    }
+    if (responseMode === 'powChallenge') {
+      out += `        powDifficulty: ${powDifficulty || 16}\n`
+      if (powSecret) out += `        powSecret: "${powSecret}"\n`
+      out += `        powTimeoutSeconds: ${powTimeoutSeconds || 300}\n`
     }
     return out
   }
@@ -427,6 +462,11 @@ export function generateGatewaySnippet(opts: SnippetOptions): string {
       out += `            provider ${captchaProvider}\n`
       out += `            site_key "${captchaSiteKey}"\n`
       out += `          }\n`
+    }
+    if (responseMode === 'powChallenge') {
+      out += `          pow_difficulty ${powDifficulty || 16}\n`
+      if (powSecret) out += `          pow_secret "${powSecret}"\n`
+      out += `          pow_timeout_seconds ${powTimeoutSeconds || 300}\n`
     }
     out += `        }\n      }\n      reverse_proxy app-service.default.svc.cluster.local:80\n    }\n`
     return out
@@ -488,6 +528,11 @@ export function generateGatewaySnippet(opts: SnippetOptions): string {
       out += `              site_key = "${captchaSiteKey}",\n`
       out += `            },\n`
     }
+    if (responseMode === 'powChallenge') {
+      out += `              pow_difficulty = ${powDifficulty || 16},\n`
+      if (powSecret) out += `              pow_secret = "${powSecret}",\n`
+      out += `              pow_timeout_seconds = ${powTimeoutSeconds || 300},\n`
+    }
     out += `          }\n`
     out += `        })\n`
     out += `      }\n`
@@ -532,6 +577,11 @@ export function generateGatewaySnippet(opts: SnippetOptions): string {
         siteKey: captchaSiteKey,
         title: captchaTitle
       }
+    }
+    if (responseMode === 'powChallenge') {
+      respObj.powDifficulty = powDifficulty || 16
+      if (powSecret) respObj.powSecret = powSecret
+      respObj.powTimeoutSeconds = powTimeoutSeconds || 300
     }
     configObj.response = respObj
     return JSON.stringify(configObj, null, 2)
