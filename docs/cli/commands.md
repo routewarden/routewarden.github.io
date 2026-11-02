@@ -820,7 +820,7 @@ Perform deep static analysis and linting on a Routewarden policy file to catch R
 | `RW-A015` | Critical | Invalid Regex Syntax | Unclosed brackets or uncompilable regex in patterns or User-Agent rules |
 | `RW-A016` | Warning | Unrecognized AI Bot Profile | `aiBotProfile` must be `train_only`, `search_only`, `agents_only`, `all`, `aggressive`, or `custom` |
 | `RW-A017` | Warning | Unrecognized Bot Defense Level | Unrecognized level name in `botDefenseLevel` |
-| `RW-A018` | Critical | Missing ASN Database | ASN allow/block configured without providing `asnDB` file path |
+| `RW-A018` | Critical | Missing ASN Database | ASN allow/block or `blockCloudHosts` configured without providing `asnDB` file path |
 | `RW-A019` | Critical | Malformed ASN Identifier | Unparseable ASN format in `allowedASNs` or `blockedASNs` |
 | `RW-A020` | Warning | Invalid Trap Ban Duration | Unparseable duration string in `trapBanDuration` |
 | `RW-A022` | Critical | Universal Allowlist CIDR | `0.0.0.0/0` or `::/0` in `allowedIps` unconditionally bypasses all security rules |
@@ -833,6 +833,7 @@ Perform deep static analysis and linting on a Routewarden policy file to catch R
 | `RW-A029` | Critical/Warning | Honeypot Trap Misconfiguration | Empty path or root path (`/`) in `honeypotTrapPaths` risking catastrophic lockouts |
 | `RW-A030` | Info | Missing Search Engine FCrDNS Verification | `blockAIBots` enabled without `verifySearchEngineBots`, risking search crawler blocking or impostor spoofing |
 | `RW-A031` | Warning | Robots Honeypot Trap Shadowed by Allow Pattern | `enableRobotsTxtHoneypot` is active but an `allowPatterns` entry shadows `/_rw_trap_` paths, rendering honeypot defense ineffective |
+| `RW-A032` | Info | Cloud Host Classifier Without Search Engine Verification | `blockCloudHosts` enabled without `verifySearchEngineBots`, risking blocking legitimate crawlers (Googlebot, Bingbot) hosted on cloud IP ranges |
 
 ---
 

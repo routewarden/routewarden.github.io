@@ -50,7 +50,16 @@ All notable changes to the Routewarden CLI (`rwarden`) are documented here. The 
 - **Browser Impersonation Detection (`detectBrowserImpersonation`)**:
   - Added `detectBrowserImpersonation` / `detect_browser_impersonation` to schemas and CLI policy evaluation engine.
   - Implemented Client Hints (`Sec-CH-UA-Platform`, `Sec-CH-UA-Mobile`, `Sec-CH-UA` brand integrity) and Chromium Fetch Metadata cross-checking against claimed browser User-Agents in `rwarden test`.
+  - Added Chromium GREASE brand validation (`missing_grease_brand`) ensuring modern Chrome v89+ requests include randomized GREASE brands (`Not?A_Brand`, `Not_A Brand`).
+  - Added HTTP header order anomaly detection (`DetectBrowserHeaderOrder` / `header_order_anomaly`), detecting script scrapers that serialize `User-Agent` or `Accept` before `Sec-CH-UA`.
   - Added generator support for Traefik YAML/TOML/Labels, Caddyfile, and NGINX Lua.
+- **Datacenter & Cloud Hosting IP Classification (`blockCloudHosts`)**:
+  - Added `blockCloudHosts` / `block_cloud_hosts` to schemas, CLI evaluation engine, and all reverse proxy gateways.
+  - Classifies client IPs against major cloud hosting providers and datacenter ASNs (AWS, GCP, Azure, Hetzner, DigitalOcean, OVH, Linode, ByteDance, Oracle Cloud, Tencent Cloud, Alibaba Cloud).
+  - Emits specific verdicts: `datacenter_browser_impersonation` for claimed browsers from cloud infrastructure and `cloud_host_blocked` for non-browser cloud scrapers.
+  - Exempts genuine search engine crawlers verified via FCrDNS (e.g. Googlebot on GCP AS15169), route allow patterns (e.g. non-interactive `/api/webhook` routes), and explicit `allowedIps`.
+  - Added configuration audit rule `RW-A032` (SeverityInfo advisory when `blockCloudHosts` is enabled without `verifySearchEngineBots`) and updated `RW-A018` to enforce `asnDB` availability.
+  - Added multi-gateway code generators and policy diffing support.
 - **Script Client & Headless Automation Blocking (`blockScriptClients`)**:
   - Added `blockScriptClients` / `block_script_clients` to schemas and CLI evaluation engine.
   - Added automated HTTP library (requests, Guzzle, reqwest, axios, curl-cffi, mechanize) and headless framework header signature verification (`X-Playwright`, `X-Puppeteer`, `X-Selenium`, `X-Cypress`, `X-Headless-Chrome`, `X-Automation`, `Sec-WebDriver`).
