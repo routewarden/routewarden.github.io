@@ -7,7 +7,74 @@ description: "Release history, new features, and bug fixes for the Routewarden C
 
 All notable changes to the Routewarden CLI (`rwarden`) are documented here. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and the CLI adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v5.4.0] - 2026-10-27 (Latest)
+## [v5.5.0] - 2026-10-30 (Latest)
+
+### Added
+- **Security & Anti-Evasion Hardening & Parity**:
+  - Implemented lenient multi-layer percent-unescaping in core engine, query inspector, and body parser, preventing denial-of-decoding bypasses caused by malformed percent-encoding (`%zz`, trailing `%`).
+  - Standardized multi-layer decoding pass limit to 5 across all gateways to defeat quadruple and quintuple percent-encoded traversals (`/%2525252e%2525252e/...`).
+  - Candidate path extraction emits trailing slash variants (`p + "/"`) for directory paths, ensuring end-anchored patterns (e.g. `(?i)^/admin/$`) match.
+  - Added whitespace trimming and single/double quote unquoting for `checkHeaders` values.
+  - Strips encoded query (`%3f`) and fragment (`%23`) delimiters in candidate extraction.
+  - Added recursive root envelope unwrapping (`unwrapConfigMap` in `ParseConfig`) supporting Helm values (`routewarden`/`routeWarden`), Traefik middlewares root, and plugin objects in both JSON and YAML policies.
+  - Added policy audit rules `RW-A025` (RFC 9110 HTTP method validation), `RW-A026` (body inspection without mutating verbs), `RW-A027` (malformed header tokens in `checkHeaders`), `RW-A028` (negative or excessive `checkBodyMaxBytes` buffer limits), and `RW-A029` (empty or root `/` honeypot trap path misconfiguration).
+  - Implemented case-insensitive honeypot spider trap matching (`EqualFold` and prefix matching) preventing casing-based trap evasion, with root path safeguard (`/` ignored to prevent catastrophic lockouts).
+  - Extended policy diffing engine (`rwarden diff`) to evaluate posture impact for `checkHeaders` and `methods`.
+- **AI Bot & Web Crawler Defense Integration**:
+  - Added native support for `blockAIBots`, `aiBotProfile`, `blockUserAgents`, and `allowUserAgents` in `routewarden.schema.json`, `cli/config.schema.json`, and core CLI engine.
+  - Expanded AI Bot Registry with 2026 crawlers and scrapers: MistralBot, DeepSeekBot, Cohere-AI, Exabot, MetaphorBot, Cotalker, PetalBot.
+  - Introduced granular bot profiles: `search_only` (blocks citation search bots like PerplexityBot, GrokBot, Twitterbot, DuckAssistBot) and `agents_only` (blocks agentic AI scrapers like Firecrawl, Apify, Zyte, BrightData, Crawlbase, ScrapingBee, AutoGPT, LangChain, LlamaIndex), alongside `train_only`, `all`, `aggressive`, and `custom`.
+  - Policy evaluation engine (`rwarden test`) verifies AI bots against profiles (`train_only`, `search_only`, `agents_only`, `all`, `aggressive`, `custom`) and enforces `user_agent_blocked` and `ai_bot_blocked` verdicts.
+  - Added CLI test flags to `rwarden test`: `--block-ai-bots`, `--ai-bot-profile`, `--detect-browser-impersonation`, `--block-script-clients`, and `--verify-search-engine-bots` for ad-hoc policy debugging without creating a JSON config file.
+  - Added configuration audit rules `RW-A015` (regex syntax auditing in `blockUserAgents` and `allowUserAgents`), `RW-A016` (`aiBotProfile` validity check including `search_only` and `agents_only`), and `RW-A030` (missing FCrDNS search engine verification advisory when AI bot defense is active).
+- **Edge robots.txt Dynamic Honeypot Injection & Enforcement**:
+  - Implemented dynamic `robots.txt` honeypot trap injection with deterministic daily rotating HMAC-SHA256 tokens (`/_rw_trap_<token>/`).
+  - Added UTC day rollover tolerance accepting both current and previous day trap prefixes.
+  - Intercepts `/robots.txt` in reverse proxies and middleware, appending dynamic `Disallow` directives or synthesizing 200 OK responses when origin returns 404.
+  - Added configuration directives `enableRobotsTxtHoneypot` / `enable_robots_txt_honeypot` and `robotsTxtHoneypotSecret` / `robots_txt_honeypot_secret`.
+  - Added audit rule `RW-A031` (warning when `allowPatterns` shadows dynamic honeypot traps).
+  - Extended gateway generators and policy diffing across Traefik YAML/TOML/Labels, Caddyfile, and NGINX Lua.
+- **Negative ASN Filtering (`blockedASNs` / `blocked_asns`)**:
+  - Added negative ASN filtering to `rwarden test` and evaluation engine via offline snapshot (`asnDB`), blocking client IPs from hostile Autonomous Systems.
+  - Added `blockedASNs` generation across all target gateways (`traefik-yaml`, `traefik-toml`, `traefik-labels`, `caddy`, `nginx`, `tcp-warden`).
+- **Active Deception Response Modes (`aiPoison` & `markovTarpit`)**:
+  - Registered `aiPoison` and `markovTarpit` modes in policy audit engine (`rwarden audit`) and CLI validation routines.
+- **Honeypot Spider Traps & In-Memory IP Ban Table**:
+  - Added `honeypotTrapPaths` and `trapBanDuration` to schema and generators.
+  - Implemented thread-safe bounded in-memory sliding-window IP ban table in CLI engine, simulating spider trap triggering and persistent IP banning.
+- **Search Engine Impersonator Verification via FCrDNS (`verifySearchEngineBots`)**:
+  - Added `verifySearchEngineBots` / `verify_search_engine_bots` to `routewarden.schema.json` and `cli/config.schema.json`.
+  - Added Forward-Confirmed Reverse DNS verifier to CLI evaluation engine (`rwarden test`) with TTL cache.
+  - Expanded verified search engine support across 10 global search engines: Google, Bing, Apple, Yandex, Baidu, DuckDuckGo, Yahoo, Naver, Sogou, and Mojeek.
+  - Added `verifySearchEngineBots` configuration generation across all target gateways (`traefik-yaml`, `traefik-toml`, `traefik-labels`, `caddy`, `nginx`).
+- **Browser Impersonation Detection (`detectBrowserImpersonation`)**:
+  - Added `detectBrowserImpersonation` / `detect_browser_impersonation` to schemas and CLI policy evaluation engine.
+  - Implemented Client Hints (`Sec-CH-UA-Platform`, `Sec-CH-UA-Mobile`, `Sec-CH-UA` brand integrity) and Chromium Fetch Metadata cross-checking against claimed browser User-Agents in `rwarden test`.
+  - Added Chromium GREASE brand validation (`missing_grease_brand`) ensuring modern Chrome v89+ requests include randomized GREASE brands (`Not?A_Brand`, `Not_A Brand`).
+  - Added HTTP header order anomaly detection (`DetectBrowserHeaderOrder` / `header_order_anomaly`), detecting script scrapers that serialize `User-Agent` or `Accept` before `Sec-CH-UA`.
+  - Added generator support for Traefik YAML/TOML/Labels, Caddyfile, and NGINX Lua.
+- **Datacenter & Cloud Hosting IP Classification (`blockCloudHosts`)**:
+  - Added `blockCloudHosts` / `block_cloud_hosts` to schemas, CLI evaluation engine, and all reverse proxy gateways.
+  - Classifies client IPs against major cloud hosting providers and datacenter ASNs (AWS, GCP, Azure, Hetzner, DigitalOcean, OVH, Linode, ByteDance, Oracle Cloud, Tencent Cloud, Alibaba Cloud).
+  - Emits specific verdicts: `datacenter_browser_impersonation` for claimed browsers from cloud infrastructure and `cloud_host_blocked` for non-browser cloud scrapers.
+  - Exempts genuine search engine crawlers verified via FCrDNS (e.g. Googlebot on GCP AS15169), route allow patterns (e.g. non-interactive `/api/webhook` routes), and explicit `allowedIps`.
+  - Added configuration audit rule `RW-A032` (SeverityInfo advisory when `blockCloudHosts` is enabled without `verifySearchEngineBots`) and updated `RW-A018` to enforce `asnDB` availability.
+  - Added multi-gateway code generators and policy diffing support.
+- **Script Client & Headless Automation Blocking (`blockScriptClients`)**:
+  - Added `blockScriptClients` / `block_script_clients` to schemas and CLI evaluation engine.
+  - Added automated HTTP library (requests, Guzzle, reqwest, axios, curl-cffi, mechanize) and headless framework header signature verification (`X-Playwright`, `X-Puppeteer`, `X-Selenium`, `X-Cypress`, `X-Headless-Chrome`, `X-Automation`, `Sec-WebDriver`).
+  - Added generator support across all supported gateway outputs.
+- **Cryptographic Proof-of-Work Challenge Response Mode (`powChallenge`)**:
+  - Implemented client-side Hashcash proof-of-work challenge solver (<2KB inline HTML/JS using Web Crypto API `crypto.subtle`) returning HTTP 429 Too Many Requests.
+  - Server-side challenge generation with HMAC-SHA256 signatures, sliding window timestamps, and normalized client IP address binding.
+  - $O(1)$ stateless solution token verification (`rw_pow` cookie or `X-RouteWarden-PoW` header) unlocking protected routes and bot defenses while strictly preserving dynamic honeypot traps and administrative IP bans.
+  - Added response parameters: `powDifficulty` (default: 16), `powSecret`, and `powTimeoutSeconds` (default: 300).
+  - Added configuration audit rule `RW-A033` (Warning when `powDifficulty` is set outside recommended range 8–24).
+  - Extended multi-gateway generators (`traefik-yaml`, `traefik-toml`, `traefik-labels`, `caddy`, `nginx`) and policy diffing (`diff`).
+
+---
+
+## [v5.4.0] - 2026-10-27
 
 ### Added
 - **Offline ASN-Based Allowlisting (`allowedASNs` / `asnDB`)**:

@@ -285,7 +285,7 @@ export default defineConfig({
         items: [
           { text: 'Architecture & Threat Model', link: '/core/architecture' },
           { text: 'Anti-Evasion Normalization', link: '/core/anti-evasion' },
-          { text: 'Response Modes (13 Actions)', link: '/core/response-modes' },
+          { text: 'Response Modes (15 Actions)', link: '/core/response-modes' },
           { text: 'Custom Regex Patterns', link: '/core/custom-patterns' },
           { text: 'ASN Based Filtering', link: '/core/asn-filtering' },
           { text: 'AI Bot & Crawler Defense', link: '/core/ai-bot-defense' },
@@ -372,7 +372,7 @@ export default defineConfig({
           collapsed: true,
           items: [
             { text: 'Anti-Evasion Normalization', link: '/core/anti-evasion' },
-            { text: 'Response Modes (13 Actions)', link: '/core/response-modes' },
+            { text: 'Response Modes (15 Actions)', link: '/core/response-modes' },
             { text: 'Custom Regex Patterns', link: '/core/custom-patterns' },
             { text: 'ASN Based Filtering', link: '/core/asn-filtering' },
             { text: 'AI Bot & Crawler Defense', link: '/core/ai-bot-defense' },
@@ -415,7 +415,7 @@ export default defineConfig({
           collapsed: true,
           items: [
             { text: 'Anti-Evasion Normalization', link: '/core/anti-evasion' },
-            { text: 'Response Modes (13 Actions)', link: '/core/response-modes' },
+            { text: 'Response Modes (15 Actions)', link: '/core/response-modes' },
             { text: 'Custom Regex Patterns', link: '/core/custom-patterns' },
             { text: 'ASN Based Filtering', link: '/core/asn-filtering' },
             { text: 'AI Bot & Crawler Defense', link: '/core/ai-bot-defense' },
@@ -456,7 +456,7 @@ export default defineConfig({
           collapsed: true,
           items: [
             { text: 'Anti-Evasion Normalization', link: '/core/anti-evasion' },
-            { text: 'Response Modes (13 Actions)', link: '/core/response-modes' },
+            { text: 'Response Modes (15 Actions)', link: '/core/response-modes' },
             { text: 'Custom Regex Patterns', link: '/core/custom-patterns' },
             { text: 'ASN Based Filtering', link: '/core/asn-filtering' },
             { text: 'AI Bot & Crawler Defense', link: '/core/ai-bot-defense' },
@@ -487,7 +487,7 @@ export default defineConfig({
           items: [
             { text: 'System Architecture', link: '/core/architecture' },
             { text: 'Anti-Evasion Normalization', link: '/core/anti-evasion' },
-            { text: 'Response Modes (13 Actions)', link: '/core/response-modes' },
+            { text: 'Response Modes (15 Actions)', link: '/core/response-modes' },
             { text: 'Custom Regex Patterns', link: '/core/custom-patterns' },
             { text: 'ASN Based Filtering', link: '/core/asn-filtering' },
             { text: 'AI Bot & Crawler Defense', link: '/core/ai-bot-defense' },
@@ -635,7 +635,7 @@ export default defineConfig({
           items: [
             { text: 'System Architecture', link: '/core/architecture' },
             { text: 'Anti-Evasion Engine', link: '/core/anti-evasion' },
-            { text: 'Response Modes (13 Actions)', link: '/core/response-modes' },
+            { text: 'Response Modes (15 Actions)', link: '/core/response-modes' },
             { text: 'Custom Regex Patterns', link: '/core/custom-patterns' },
             { text: 'Frequently Asked Questions (FAQ)', link: '/faq' },
             { text: 'Changelog & Version History', link: '/core/changelog' }

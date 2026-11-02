@@ -96,6 +96,9 @@ const proxyUrl = ref('http://honeypot-internal:8080')
 const captchaProvider = ref<'turnstile' | 'hcaptcha' | 'recaptcha'>('turnstile')
 const captchaSiteKey = ref('0x4AAAAAAtestkey123')
 const captchaTitle = ref('Security Verification Required')
+const powDifficulty = ref(16)
+const powSecret = ref('')
+const powTimeoutSeconds = ref(300)
 const gzipBombMB = ref(10)
 const retryAfterSeconds = ref(300)
 const tarpitDelayMs = ref(1000)
@@ -316,6 +319,9 @@ function evaluateForVerb(methodName: string): VerbEvalResult {
   } else if (responseMode.value === 'rateLimitChallenge') {
     finalCode = 429
     finalStatusText = 'Too Many Requests'
+  } else if (responseMode.value === 'powChallenge') {
+    finalCode = 429
+    finalStatusText = 'Too Many Requests (PoW Challenge)'
   } else if (responseMode.value === 'fakeSuccess') {
     finalCode = 200
     finalStatusText = 'OK (Decoy)'
@@ -605,6 +611,18 @@ const simulatedResponse = computed(() => {
     }
   }
 
+  if (responseMode.value === 'powChallenge') {
+    headers['Content-Type'] = 'text/html; charset=utf-8'
+    headers['Retry-After'] = '5'
+    return {
+      statusCode: 429,
+      statusText: 'Too Many Requests (Proof-of-Work Challenge)',
+      headers,
+      body: `<!DOCTYPE html>\n<html>\n<head><title>Security Check - RouteWarden Proof of Work</title></head>\n<body>\n  <!-- Client-side Hashcash Web Crypto solver (<2KB) -->\n  <h1>Computing Proof of Work (Difficulty: ${powDifficulty.value} bits)...</h1>\n  <p>Timeout: ${powTimeoutSeconds.value}s</p>\n</body>\n</html>`,
+      note: `Stateless client-side Proof-of-Work puzzle (difficulty: ${powDifficulty.value} zero-bits). Solved in ~300ms by browsers, stops unattended scrapers.`
+    }
+  }
+
   return { statusCode: code, statusText: 'Forbidden', headers, body: 'Access denied' }
 })
 
@@ -642,6 +660,9 @@ const snippetBaseOptions = computed<Omit<SnippetOptions, 'snippetFormat'>>(() =>
     captchaProvider: captchaProvider.value,
     captchaSiteKey: captchaSiteKey.value,
     captchaTitle: captchaTitle.value,
+    powDifficulty: powDifficulty.value,
+    powSecret: powSecret.value,
+    powTimeoutSeconds: powTimeoutSeconds.value,
     testMethod: testMethod.value,
     testPath: testPath.value,
     testIp: testIp.value
@@ -1016,6 +1037,9 @@ onUnmounted(() => {
           v-model:captchaProvider="captchaProvider"
           v-model:captchaSiteKey="captchaSiteKey"
           v-model:captchaTitle="captchaTitle"
+          v-model:powDifficulty="powDifficulty"
+          v-model:powSecret="powSecret"
+          v-model:powTimeoutSeconds="powTimeoutSeconds"
           v-model:testMethod="testMethod"
           :verbEvaluations="verbEvaluations"
         />

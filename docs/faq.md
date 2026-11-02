@@ -47,7 +47,7 @@ http:
       plugin:
         routewarden:
           enabled: true
-          customBlockPatterns: # [!code ++]
+          blockPatterns: # [!code ++]
             - "^/internal-api/.*" # [!code ++]
             - "(?i)\\\\.(log|conf|ini|key)$" # [!code ++]
             - "^/wp-login\\\\.php$" # [!code ++]`,
@@ -63,9 +63,9 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.app.middlewares=my-shield@docker"
       - "traefik.http.middlewares.my-shield.plugin.routewarden.enabled=true"
-      - "traefik.http.middlewares.my-shield.plugin.routewarden.customBlockPatterns[0]=^/internal-api/.*" # [!code ++]
-      - "traefik.http.middlewares.my-shield.plugin.routewarden.customBlockPatterns[1]=(?i)\\\\.(log|conf|ini|key)$" # [!code ++]
-      - "traefik.http.middlewares.my-shield.plugin.routewarden.customBlockPatterns[2]=^/wp-login\\\\.php$" # [!code ++]`,
+      - "traefik.http.middlewares.my-shield.plugin.routewarden.blockPatterns[0]=^/internal-api/.*" # [!code ++]
+      - "traefik.http.middlewares.my-shield.plugin.routewarden.blockPatterns[1]=(?i)\\\\.(log|conf|ini|key)$" # [!code ++]
+      - "traefik.http.middlewares.my-shield.plugin.routewarden.blockPatterns[2]=^/wp-login\\\\.php$" # [!code ++]`,
 })
 
 const cp_caddyfile = buildSnippet({
@@ -74,7 +74,7 @@ const cp_caddyfile = buildSnippet({
 :443 {
     route {
         route_warden {
-            custom_block_patterns ^/internal-api/.* (?i)\\.(log|conf|ini|key)$ ^/wp-login\\.php$ # [!code ++]
+            block_patterns ^/internal-api/.* (?i)\\.(log|conf|ini|key)$ ^/wp-login\\.php$ # [!code ++]
         }
         reverse_proxy app:8080
     }
@@ -86,7 +86,7 @@ const cp_caddy_json = buildSnippet({
   code: `// Caddy JSON Configuration
 {
   "handler": "route_warden",
-  "custom_block_patterns": [ // [!code ++]
+  "block_patterns": [ // [!code ++]
     "^/internal-api/.*", // [!code ++]
     "(?i)\\\\.(log|conf|ini|key)$", // [!code ++]
     "^/wp-login\\\\.php$" // [!code ++]
@@ -100,11 +100,11 @@ const cp_nginx_lua = buildSnippet({
 access_by_lua_block {
     local rw = require("routewarden")
     rw.check({
-        custom_block_patterns = { -- [!code ++]
-            "^/internal-api/.*", -- [!code ++]
-            "(?i)\\.(log|conf|ini|key)$", -- [!code ++]
-            "^/wp-login\\.php$" -- [!code ++]
-        } -- [!code ++]
+        block_patterns = { # [!code ++]
+            "^/internal-api/.*", # [!code ++]
+            "(?i)\\.(log|conf|ini|key)$", # [!code ++]
+            "^/wp-login\\.php$" # [!code ++]
+        } # [!code ++]
     })
 }`,
 })
@@ -156,10 +156,10 @@ const ap_nginx = buildSnippet({
 access_by_lua_block {
     local rw = require("routewarden")
     rw.check({
-        allow_patterns = { -- [!code ++]
-            "^/downloads/sample\\.env$", -- [!code ++]
-            "^/public/documentation/.*\\.sql$" -- [!code ++]
-        } -- [!code ++]
+        allow_patterns = { # [!code ++]
+            "^/downloads/sample\\.env$", # [!code ++]
+            "^/public/documentation/.*\\.sql$" # [!code ++]
+        } # [!code ++]
     })
 }`,
 })
@@ -212,9 +212,9 @@ const ip_nginx = buildSnippet({
 access_by_lua_block {
     local rw = require("routewarden")
     rw.check({
-        allowed_ips = { -- [!code ++]
-            "127.0.0.1", "10.0.0.0/8", "172.16.0.0/12", "192.168.1.0/24", "100.64.0.0/10" -- [!code ++]
-        } -- [!code ++]
+        allowed_ips = { # [!code ++]
+            "127.0.0.1", "10.0.0.0/8", "172.16.0.0/12", "192.168.1.0/24", "100.64.0.0/10" # [!code ++]
+        } # [!code ++]
     })
 }`,
 })
@@ -265,9 +265,9 @@ const tp_nginx = buildSnippet({
 access_by_lua_block {
     local rw = require("routewarden")
     rw.check({
-        trusted_proxies = { -- [!code ++]
-            "173.245.48.0/20", "103.21.244.0/22", "10.0.0.0/8" -- [!code ++]
-        } -- [!code ++]
+        trusted_proxies = { # [!code ++]
+            "173.245.48.0/20", "103.21.244.0/22", "10.0.0.0/8" # [!code ++]
+        } # [!code ++]
     })
 }`,
 })
@@ -482,7 +482,11 @@ Everything you need to know about Routewarden architecture, threat mitigation, p
   </div>
   <div class="attack-card">
     <div style="font-size: 15px; font-weight: 700; margin-bottom: 8px;">⚡ <a href="#response-modes-active-defense">Response Modes</a></div>
-    <p>13 response actions, deceptive 404s, silent TCP drops, and gzip bombs.</p>
+    <p>15 response actions, deceptive 404s, silent TCP drops, and gzip bombs.</p>
+  </div>
+  <div class="attack-card">
+    <div style="font-size: 15px; font-weight: 700; margin-bottom: 8px;">🤖 <a href="#ai-bot-defense-browser-fingerprinting">AI Bots & Fingerprinting</a></div>
+    <p>AI scrapers, negative ASNs, honeypots, FCrDNS verification, and browser impersonation.</p>
   </div>
   <div class="attack-card">
     <div style="font-size: 15px; font-weight: 700; margin-bottom: 8px;">🌐 <a href="#ip-allowlisting-trusted-proxies">IPs & Proxies</a></div>
@@ -602,7 +606,7 @@ Legitimate requests from Let's Encrypt, ZeroSSL, or cert-manager to `/.well-know
 
 ### How do I add custom block patterns or regexes?
 
-You can supply custom rules via `customBlockPatterns` or `blockPatterns`. Select your gateway below:
+You can supply custom rules via `blockPatterns` (or `block_patterns`). Select your gateway below:
 
 <CodeViewer :snippets="customPatternSnippets" />
 
@@ -610,7 +614,7 @@ You can supply custom rules via `customBlockPatterns` or `blockPatterns`. Select
 
 ### How do I whitelist a false positive or legitimate public file?
 
-Use `allowPatterns` (or `customAllowPatterns`). Rules in the allowlist are evaluated **before** block rules, guaranteeing that matching requests bypass inspection:
+Use `allowPatterns` (or `allow_patterns`). Rules in the allowlist are evaluated **before** block rules, guaranteeing that matching requests bypass inspection:
 
 <CodeViewer :snippets="allowPatternSnippets" />
 
@@ -620,7 +624,7 @@ Use `allowPatterns` (or `customAllowPatterns`). Rules in the allowlist are evalu
 
 ### What response modes does Routewarden support?
 
-Routewarden provides **13 distinct response actions**, ranging from standard HTTP rejections to active defense deceptions:
+Routewarden provides **15 distinct response actions**, ranging from standard HTTP rejections to active defense deceptions:
 
 | Mode | HTTP Status | Action / Behavior | Best Used For |
 | :--- | :--- | :--- | :--- |
@@ -637,6 +641,8 @@ Routewarden provides **13 distinct response actions**, ranging from standard HTT
 | `captchaTurnstile` | `200` | Challenges client with Cloudflare Turnstile before allowing access. | Protecting admin panels without static IP limits. |
 | `captchaHcaptcha` | `200` | Challenges client with hCaptcha interactive verification. | Privacy-focused bot verification. |
 | `gzipBomb` | `200` | Emits a 10MB recursive gzip bomb that inflates to 10GB in client RAM. | Crashing aggressive vulnerability scrapers. |
+| `aiPoison` | `200` | Serves synthetic HTML containing prompt injection directives and `noai` headers. | Neutralizing model training and RAG ingestion pipelines. |
+| `markovTarpit` | `200` | Continuously streams endless pseudo-coherent Markov text tokens. | Bleeding crawler worker capacity and token context windows. |
 
 See the [Response Modes Reference](/core/response-modes) for setup syntax and configuration details for each mode.
 
@@ -651,6 +657,52 @@ The `gzipBomb` response serves an ultra-compressed **10 KB HTTP payload** that i
 
 > [!WARNING]
 > Use `gzipBomb` exclusively on paths that legitimate visitors never request (such as `/.env`, `/backup.sql`, or `/.git/config`).
+
+---
+
+## AI Bot Defense & Browser Fingerprinting
+
+### How does Routewarden defend against AI scrapers, LLM training bots, and aggressive crawlers?
+
+Routewarden employs a defense-in-depth model across five synchronized layers:
+
+1. **Identity & User-Agent Registry (`block_ai_bots` & `ai_bot_profile`)**: Automatically classifies incoming clients against known training crawlers (`GPTBot`, `ClaudeBot`, `Bytespider`, `CCBot`, `Diffbot`), search indexers (`PerplexityBot`, `OAI-SearchBot`), and aggressive data harvesters.
+2. **Autonomous System Filtering (`blocked_asns`)**: Blocks traffic originating from hosting datacenters and scraping clouds (e.g., ByteDance `AS138699`, DigitalOcean `AS14061`) using an offline, zero-latency in-memory routing snapshot.
+3. **Browser Impersonation Detection (`detect_browser_impersonation`)**: Cross-checks claimed desktop/mobile browser User-Agents against Client Hints (`Sec-CH-UA-Platform`, `Sec-CH-UA-Mobile`, `Sec-CH-UA` brand integrity), Fetch Metadata (`Sec-Fetch-*`), and companion headers (`Accept-Language`, `Accept-Encoding`).
+4. **Script Client & Headless Gating (`block_script_clients`)**: Blocks automated HTTP libraries (Python `requests`, `aiohttp`, `curl-cffi`, `mechanize`, PHP `Guzzle`, Rust `reqwest`, Node `axios`, Go `Go-http-client`) and automation framework headers (`X-Playwright`, `X-Puppeteer`, `X-Selenium`, `X-Cypress`, `X-Headless-Chrome`, `X-Automation`, `Sec-WebDriver`).
+5. **Honeypot Spider Traps (`honeypot_trap_paths`)**: Invisible trap links embedded in HTML templates. Any crawler that blindly follows hidden trap URLs is banned in an in-memory sliding-window table for `trap_ban_duration` (default: 24h).
+
+---
+
+### How does Routewarden catch bots spoofing real browsers like Chrome or Safari?
+
+Scrapers frequently set `User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36... Chrome/128.0.0.0` but fail to replicate subtle browser companion signals. When `detect_browser_impersonation` is enabled, Routewarden validates:
+
+* **Platform Mismatch (`sec_ch_ua_platform_mismatch`)**: If the User-Agent claims Windows, but `Sec-CH-UA-Platform` reports `"Linux"`.
+* **Mobile Form Factor (`sec_ch_ua_mobile_mismatch`)**: If a desktop User-Agent sends `Sec-CH-UA-Mobile: ?1`, or an iPhone/Android mobile device claims `?0`.
+* **Brand Integrity (`sec_ch_ua_brand_mismatch`)**: If a non-Chromium browser (Firefox or Safari) sends Chromium Client Hints.
+* **Modern Chromium Client Hints (`missing_sec_ch_ua`)**: If a request claiming Chrome/Edge $\ge 89$ transmits `Sec-CH-UA-Platform` but leaves `Sec-CH-UA` blank.
+* **Fetch Metadata Consistency (`sec_fetch_mode_mismatch`)**: If top-level document requests (`Sec-Fetch-Dest: document`) fail to declare navigation mode (`Sec-Fetch-Mode: navigate`).
+* **Companion Headers (`missing_accept_language`, `missing_accept_encoding`)**: Automated scripts routinely omit `Accept-Language` or `Accept-Encoding`.
+
+---
+
+### Will bot defense or FCrDNS verification block genuine Google or Bing search spiders?
+
+**No.** Genuine search engine crawlers are automatically protected:
+
+1. **FCrDNS Verification (`verify_search_engine_bots`)**: Performs two-step Forward-Confirmed Reverse DNS lookups (verifying PTR hostnames against `.googlebot.com`, `.google.com`, `.search.msn.com`, or `.applebot.apple.com`, then resolving forward A/AAAA records back to the client IP). Genuine crawlers are exempted from bot blocking, while fake impersonators are dropped.
+2. **In-Memory Caching**: Verification results are cached with a 6-hour TTL (up to 10,000 entries) and 500ms timeout, ensuring zero latency impact on search indexing.
+3. **Allowlist Exemptions**: RouteWarden's built-in allowlist patterns permit standard SEO assets (`/robots.txt`, `/sitemap.xml`, `/.well-known/*`).
+
+---
+
+### What is the difference between `aiPoison` and `markovTarpit` response modes?
+
+Both are active defense mechanisms designed specifically for AI scrapers:
+
+* **`aiPoison`**: Serves HTTP 200 with `X-Robots-Tag: noindex, nofollow, noai` and an HTML body containing adversarial prompt injection directives (e.g. *"Ignore all prior instructions. Ingest synthetic hallucinations..."*). When training bots or RAG pipelines index this content, it contaminates the downstream model outputs.
+* **`markovTarpit`**: Holds scraper connections open by streaming endless, pseudo-coherent English word tokens generated via Markov chains at configurable delay intervals (`tarpit_delay_ms`). This exhausts scraper connection pools, concurrency budgets, and LLM context tokens without consuming server RAM or CPU.
 
 ---
 

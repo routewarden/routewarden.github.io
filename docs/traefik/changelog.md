@@ -9,7 +9,48 @@ All notable changes to the **Traefik Warden** plugin (`github.com/routewarden/tr
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and Traefik Warden adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v1.7.0] - 2026-10-27 (Latest)
+## [v1.8.0] - 2026-10-30 (Latest)
+
+### Added
+- **AI Bot & Web Crawler Defense**:
+  - Added native detection and blocking of automated LLM scrapers and AI crawlers (`blockAIBots` / `block_ai_bots` setting).
+  - Built-in multi-tier AI bot registry with profiles: `train_only` (default: blocks mass training harvesters like `GPTBot`, `ClaudeBot`, `Bytespider`, `CCBot`), `all` (blocks all training and search bots including `PerplexityBot` and `OAI-SearchBot`), `aggressive` (blocks aggressive crawlers like Bytespider), and `custom` (`aiBotProfile` setting).
+  - Added custom User-Agent pattern blocking via `blockUserAgents` and allowlisting via `allowUserAgents`.
+- **Negative ASN Filtering (`blockedASNs`)**:
+  - Added support for blocking client IP addresses originating from hostile Autonomous Systems or scraping clouds via `blockedASNs` / `blocked_asns` (e.g. ByteDance `AS138699`, DigitalOcean `AS14061`) using local offline routing snapshot (`asnDB`).
+- **Active Deception Response Modes (`aiPoison` & `markovTarpit`)**:
+  - Added `mode: "aiPoison"`: Serves HTTP 200 with `X-Robots-Tag: noindex, nofollow, noai` and adversarial system prompt injection directives, neutralizing data poisoning into RAG and model training pipelines.
+  - Added `mode: "markovTarpit"`: Continuously streams pseudo-coherent Markov text tokens at configured delays (`tarpitDelayMs`), exhausting scraper worker capacity and token context windows.
+- **Honeypot Spider Traps & In-Memory IP Ban Table**:
+  - Added `honeypotTrapPaths` to designate invisible honeypot routes in web templates.
+  - Added zero-dependency, Yaegi-compliant thread-safe bounded in-memory sliding-window IP ban table: any crawler accessing a honeypot path is banned for `trapBanDuration` (default: `24h`), automatically rejecting subsequent requests.
+- **Search Engine Impersonator Verification via FCrDNS (`verifySearchEngineBots`)**:
+  - Added Forward-Confirmed Reverse DNS verification setting `verifySearchEngineBots` / `verify_search_engine_bots`.
+  - Performs reverse DNS PTR lookups and forward IP cross-validation for crawlers presenting Googlebot, bingbot, or Applebot User-Agents against authorized domain suffixes (`.googlebot.com`, `.google.com`, `.search.msn.com`, `.applebot.apple.com`).
+  - Includes a zero-dependency, 100% Yaegi-compliant in-memory cache with 6-hour TTL (up to 10,000 entries) and 500ms timeout.
+  - Allows verified search engine spiders through to upstream services while instantly blocking spoofed bots (`search_engine_spoofed`).
+- **Browser Impersonation Detection (`detectBrowserImpersonation`)**:
+  - Added `detectBrowserImpersonation` / `detect_browser_impersonation` option to detect and block bots disguising themselves with desktop/mobile browser User-Agents.
+  - Cross-validates Client Hints (`Sec-CH-UA-Platform` matching OS in User-Agent, `Sec-CH-UA-Mobile` form factor consistency, `Sec-CH-UA` presence on modern Chromium $\ge 89$, and brand integrity), Chromium Fetch Metadata (`Sec-Fetch-Site`, `Sec-Fetch-Mode`, `Sec-Fetch-Dest`), and mandatory companion headers (`Accept-Language`, `Accept-Encoding`).
+- **Script Client & Headless Automation Blocking (`blockScriptClients`)**:
+  - Added `blockScriptClients` / `block_script_clients` option to block requests originating from programmatic HTTP client libraries (Python `requests`, `urllib`, `aiohttp`, `httpx`, `Scrapy`, `curl-cffi`, `mechanize`, PHP `Guzzle`, Rust `reqwest`, Node `axios`, `node-fetch`, `undici`, Go `Go-http-client`, Java `OkHttp`, `curl`, `wget`) and headless automation frameworks (`X-Playwright`, `X-Puppeteer`, `X-Selenium`, `X-Cypress`, `X-Headless-Chrome`, `X-Automation`, `Sec-WebDriver`).
+- **Edge robots.txt Dynamic Honeypot Injection (`enableRobotsTxtHoneypot`)**:
+  - Dynamically injects daily rotating `Disallow: /_rw_trap_<token>/` entries into `/robots.txt` with HMAC-SHA256 tokens and UTC day rollover tolerance.
+  - Synthesizes 200 OK `robots.txt` responses when origin returns 404, trapping non-compliant crawlers into `BanTable`.
+- **10-Engine Global FCrDNS Verification (`verifySearchEngineBots`)**:
+  - Expanded search engine verification to 10 global engines: Google, Bing, Apple, Yandex, Baidu, DuckDuckGo, Yahoo, Naver, Sogou, and Mojeek.
+- **Chromium GREASE & Header Order Anomaly Detection (`detectBrowserImpersonation`)**:
+  - Validates Chromium GREASE brand presence (`missing_grease_brand`) and detects HTTP header order anomalies (`header_order_anomaly`).
+- **Datacenter & Cloud Hosting IP Classification (`blockCloudHosts`)**:
+  - Identifies and blocks requests from major cloud infrastructure (AWS, GCP, Azure, Hetzner, DigitalOcean, OVH, Linode, Oracle, ByteDance), emitting `datacenter_browser_impersonation` or `cloud_host_blocked` with FCrDNS exemptions for legitimate search crawlers.
+- **Cryptographic Proof-of-Work Challenge Mode (`powChallenge`)**:
+  - Added zero-dependency client-side Hashcash challenge solver (<2KB inline HTML/JS using Web Crypto `crypto.subtle`) returning HTTP 429.
+  - $O(1)$ stateless token verification via normalized client IP binding and HMAC-SHA256 signatures (`powDifficulty`, `powSecret`, `powTimeoutSeconds`).
+  - Solved `rw_pow` cookie or `X-RouteWarden-PoW` bypasses bot inspection while keeping honeypot traps and hard IP bans immutable.
+
+---
+
+## [v1.7.0] - 2026-10-27
 
 ### Added
 - **Offline ASN-Based Allowlisting (`allowedASNs` / `asnDB`)**:

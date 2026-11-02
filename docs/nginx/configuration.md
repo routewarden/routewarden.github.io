@@ -47,12 +47,12 @@ const full_config = buildSnippet({
   lang: 'lua',
   code: `warden = routewarden.new({
     -- Load base configuration from shared JSON policy file (optional)
-    config_file = "/etc/routewarden/routewarden.json", -- [!code ++]
+    config_file = "/etc/routewarden/routewarden.json", # [!code ++]
 
     -- Master toggle
     enabled = true,                        -- Default: true
     debug = false,                         -- Default: false (outputs trace logs via ngx.log)
-    security_log = true,                   -- Default: false (emits JSON security events for CrowdSec/SIEM)
+    security_log = true,                   -- Default: true (emits JSON security events for CrowdSec/SIEM)
 
     -- Built-in rules
     enable_default_patterns = true,        -- Default: true (blocks .env, .git, .aws, dumps, actuator)
@@ -78,8 +78,21 @@ const full_config = buildSnippet({
 
     -- ASN Allowlist & Offline Routing DB
     allowed_asns = { "AS13335", "64500" },
+    blocked_asns = { "AS138699" },
     asn_db = "/etc/routewarden/asn.json",
     trusted_proxies = { "10.0.0.0/8" },
+
+    -- AI Bot & Crawler Defense
+    bot_defense_level = "standard",
+    block_ai_bots = true,
+    ai_bot_profile = "train_only",
+    block_user_agents = { "(?i)badbot" },
+    allow_user_agents = { "(?i)goodbot" },
+    detect_browser_impersonation = true,
+    block_script_clients = true,
+    verify_search_engine_bots = true,
+    honeypot_trap_paths = { "/hidden-trap" },
+    trap_ban_duration = "24h",
 
     -- Custom regular expressions (PCRE-compatible)
     block_patterns = {
@@ -96,7 +109,8 @@ const full_config = buildSnippet({
     response = {
         mode = "json",                     -- Options: json, html, text, xml, redirect, captcha,
                                            -- silentDrop, gzipBomb, tarpit, fakeSuccess,
-                                           -- rateLimitChallenge, proxy, infiniteStream
+                                           -- rateLimitChallenge, proxy, infiniteStream,
+                                           -- aiPoison, markovTarpit, powChallenge
         status_code = 403,
         body = '{"error":"Access Denied"}',
         headers = {
@@ -109,6 +123,9 @@ const full_config = buildSnippet({
         tarpit_delay_ms = 1000,
         tarpit_max_duration_seconds = 60,
         stream_size_mb = 100,
+        pow_difficulty = 16,
+        pow_secret = "your-cryptographic-pow-secret",
+        pow_timeout_seconds = 300,
         captcha = {
             provider = "turnstile",        -- Options: turnstile, hcaptcha, recaptcha
             site_key = "0x4AAAAAAAxxyyzz",
@@ -217,7 +234,18 @@ Initialize Routewarden using `routewarden.new(config)` within NGINX's `init_by_l
 | `methods` | `table` | `{"GET"}` | Array of HTTP verbs to inspect. Verbs outside this list bypass inspection. |
 | `allowed_ips` | `table` | `{}` | Array of IPv4/IPv6 addresses or CIDR subnets allowed to bypass path inspection. |
 | `allowed_asns` | `table` | `{}` | Array of Autonomous System Numbers (`"AS64500"`, `"64500"`) allowed to bypass inspection. |
+| `blocked_asns` | `table` | `{}` | Array of Autonomous System Numbers whose client IPs are blocked. Requires `asn_db`. |
 | `asn_db` | `string` | `nil` | Path to local JSON ASN routing snapshot file. |
+| `bot_defense_level` | `string` | `nil` | Preset bot defense level (`"off"`, `"light"`, `"standard"`, `"strict"`, `"aggressive"`). Activates pre-tuned bot defenses. |
+| `block_ai_bots` | `boolean` | `false` | Enables automatic blocking of known AI scrapers & LLM training crawlers. |
+| `ai_bot_profile` | `string` | `nil` | AI bot profile: `train_only` (default), `all`, `aggressive`, or `custom`. |
+| `block_user_agents` | `table` | `{}` | Array of custom PCRE regular expressions matching client User-Agents to block. |
+| `allow_user_agents` | `table` | `{}` | Array of custom PCRE regular expressions matching client User-Agents to allow. |
+| `detect_browser_impersonation` | `boolean` | `false` | Cross-validates browser User-Agents against Client Hints (`Sec-CH-UA-Platform`, `Sec-CH-UA-Mobile`, `Sec-CH-UA` brand integrity), Fetch Metadata (`Sec-Fetch-*`), and companion headers (`Accept-Language`, `Accept-Encoding`). |
+| `block_script_clients` | `boolean` | `false` | Blocks automated HTTP client libraries (requests, Guzzle, reqwest, axios, curl) and headless automation framework headers (`X-Playwright`, `X-Puppeteer`, `X-Cypress`, `Sec-WebDriver`). |
+| `verify_search_engine_bots` | `boolean` | `false` | Cryptographically verifies search engine bot authenticity via FCrDNS. |
+| `honeypot_trap_paths` | `table` | `{}` | Array of decoy paths that trigger instant sliding-window IP bans. |
+| `trap_ban_duration` | `string` | `"24h"` | Ban duration for trapped client IPs (e.g. `24h`, `1h`, `30m`). |
 | `trusted_proxies` | `table` | `{}` | Array of trusted upstream proxy CIDRs for real client IP extraction. |
 | `block_patterns` | `table` | `{}` | Array of custom PCRE regular expressions to block. |
 | `allow_patterns` | `table` | `{}` | Array of custom PCRE regular expressions to exempt from blocking. |
@@ -296,6 +324,7 @@ Routewarden for NGINX supports 13 response modes matching the core engine:
 | `rateLimitChallenge` | `retry_after_seconds` (300) | Returns HTTP 429 with standard `Retry-After` header. |
 | `proxy` | `proxy_url` | Transparently proxies request to an internal canary or forensic honeypot container. |
 | `infiniteStream` | `stream_size_mb` (100) | Streams high-speed random characters to exhaust scanner storage and buffers. |
+| `powChallenge` | `pow_difficulty`, `pow_secret`, `pow_timeout_seconds` | Cryptographic Proof-of-Work challenge solver (<2KB inline HTML/JS) returning HTTP 429. |
 
 ---
 
