@@ -555,11 +555,47 @@ const mode15Snippets = computed(() => ({
   nginx: [{ filename: 'nginx.conf', lang: 'lua', code: m15_nginx.cleanCode, html: m15_nginx.html, hasDiff: false }],
   cli: [{ filename: 'routewarden.json', lang: 'json', code: m15_cli.cleanCode, html: m15_cli.html, hasDiff: false }],
 }))
+
+// ─── 16. Cryptographic Proof-of-Work Challenge (powChallenge) ────────────────
+const m16_traefik = buildSnippet({
+  lang: 'yaml',
+  code: `response:\n  mode: powChallenge\n  statusCode: 429\n  powDifficulty: 16\n  powSecret: "your-cryptographic-pow-secret"\n  powTimeoutSeconds: 300`,
+})
+const m16_traefik_toml = buildSnippet({
+  lang: 'toml',
+  code: `[http.middlewares.my-warden.plugin.routewarden.response]\n  mode = "powChallenge"\n  statusCode = 429\n  powDifficulty = 16\n  powSecret = "your-cryptographic-pow-secret"\n  powTimeoutSeconds = 300`,
+})
+const m16_traefik_labels = buildSnippet({
+  lang: 'docker',
+  code: `- "traefik.http.middlewares.my-warden.plugin.routewarden.response.mode=powChallenge"\n- "traefik.http.middlewares.my-warden.plugin.routewarden.response.statusCode=429"\n- "traefik.http.middlewares.my-warden.plugin.routewarden.response.powDifficulty=16"\n- "traefik.http.middlewares.my-warden.plugin.routewarden.response.powSecret=your-cryptographic-pow-secret"\n- "traefik.http.middlewares.my-warden.plugin.routewarden.response.powTimeoutSeconds=300"`,
+})
+const m16_caddy = buildSnippet({
+  lang: 'caddy',
+  code: `response {\n    mode powChallenge\n    status_code 429\n    pow_difficulty 16\n    pow_secret "your-cryptographic-pow-secret"\n    pow_timeout_seconds 300\n}`,
+})
+const m16_nginx = buildSnippet({
+  lang: 'lua',
+  code: `response = {\n    mode = "powChallenge",\n    status_code = 429,\n    pow_difficulty = 16,\n    pow_secret = "your-cryptographic-pow-secret",\n    pow_timeout_seconds = 300\n}`,
+})
+const m16_cli = buildSnippet({
+  lang: 'json',
+  code: `{\n  "response": {\n    "mode": "powChallenge",\n    "statusCode": 429,\n    "powDifficulty": 16,\n    "powSecret": "your-cryptographic-pow-secret",\n    "powTimeoutSeconds": 300\n  }\n}`,
+})
+const mode16Snippets = computed(() => ({
+  traefik: [
+    { filename: 'traefik.yml', lang: 'yaml', code: m16_traefik.cleanCode, html: m16_traefik.html, hasDiff: false },
+    { filename: 'traefik.toml', lang: 'toml', code: m16_traefik_toml.cleanCode, html: m16_traefik_toml.html, hasDiff: false },
+    { filename: 'docker-compose.yaml', lang: 'docker', code: m16_traefik_labels.cleanCode, html: m16_traefik_labels.html, hasDiff: false },
+  ],
+  caddy: [{ filename: 'Caddyfile', lang: 'caddy', code: m16_caddy.cleanCode, html: m16_caddy.html, hasDiff: false }],
+  nginx: [{ filename: 'nginx.conf', lang: 'lua', code: m16_nginx.cleanCode, html: m16_nginx.html, hasDiff: false }],
+  cli: [{ filename: 'routewarden.json', lang: 'json', code: m16_cli.cleanCode, html: m16_cli.html, hasDiff: false }],
+}))
 </script>
 
 # Response Modes Reference
 
-Routewarden features a modular response engine that dictates exactly how reverse proxies (Traefik, Caddy, and NGINX) handle blocked requests. Rather than only offering a generic static 403 error page, Routewarden supports **15 deterministic response modes** ranging from standard REST error bodies to interactive bot challenges and offensive honeypot traps.
+Routewarden features a modular response engine that dictates exactly how reverse proxies (Traefik, Caddy, and NGINX) handle blocked requests. Rather than only offering a generic static 403 error page, Routewarden supports **16 deterministic response modes** ranging from standard REST error bodies to interactive bot challenges and offensive honeypot traps.
 
 ---
 
@@ -582,6 +618,7 @@ Routewarden features a modular response engine that dictates exactly how reverse
 | [`infiniteStream`](#13-infinite-garbage-stream-infinitestream) | Active Defense | Endless pseudo-random characters to fill crawler storage | `200 OK` |
 | [`aiPoison`](#14-prompt-injection-honeypot-aipoison) | Active Deception | Prompt injection contamination & synthetic data honeypot | `200 OK` |
 | [`markovTarpit`](#15-procedural-word-stream-tarpit-markovtarpit) | Active Defense | Pseudo-coherent word stream trickle to exhaust crawler token windows | `200 OK` |
+| [`powChallenge`](#16-cryptographic-proof-of-work-challenge-powchallenge) | Verification | Zero-dependency client-side Hashcash challenge solver | `429 Too Many Requests` |
 
 ---
 
@@ -807,3 +844,27 @@ Unlike standard byte tarpits that send null bytes or whitespace (which modern sc
 ### Attacker Impact
 - **Token Window Exhaustion**: Forces AI scraper worker threads to continuously allocate context windows and buffers for endless words.
 - **Resource Depletion**: Prevents timeout detectors from dropping the connection while tying up scraper concurrency pools, with negligible CPU and memory impact on the reverse proxy.
+
+---
+
+## 16. Cryptographic Proof-of-Work Challenge (`powChallenge` / `pow` / `proofOfWork` / `hashcash`)
+
+Rather than relying on third-party CAPTCHA widgets that leak telemetry or break headless automated testing, `powChallenge` serves a zero-dependency, self-contained client-side Hashcash proof-of-work challenge page (<2KB inline HTML/JS) returning HTTP `429 Too Many Requests`.
+
+Legitimate human browsers solve the cryptographic puzzle using Web Crypto (`crypto.subtle`) in 200–800ms, storing an HMAC-signed token cookie (`rw_pow`) and automatically reloading the page. Unattended crawlers, scrapers, and volumetric botnets without JavaScript execution or willing CPU investment are permanently stopped.
+
+### Example Configuration
+
+<CodeViewer :snippets="mode16Snippets" />
+
+### Configuration Properties
+
+- `powDifficulty` (int, default: `16`): The required number of leading zero bits in the SHA-256 hash output. Recommended range: 8–24 (validated by audit rule `RW-A033`). Each increment doubles solver CPU work.
+- `powSecret` (string, optional): A persistent secret key used to compute HMAC-SHA256 signatures for stateless challenge verification. When omitted, gateways derive an internal process-scoped ephemeral secret.
+- `powTimeoutSeconds` (int, default: `300`): Challenge expiration and solution token validity window in seconds.
+
+### How It Protects Data
+- **Zero Third-Party Dependencies**: No external CDN scripts, cookies, or privacy-invasive telemetry. Operates entirely air-gapped within the reverse proxy.
+- **Asymmetric Computational Cost**: Incurs $O(1)$ server-side verification overhead while forcing scrapers to commit millions of CPU cycles per request.
+- **Stateless IP Binding**: Challenge tokens are cryptographically bound to the client's normalized IP address (`challenge = base64(prefix:difficulty:ip:timestamp:hmac)`), preventing token theft and replay across IP pools.
+- **Bypass Exemption & Hard Ban Safety**: Solving the proof-of-work challenge unlocks protected routes and clears bot suspicion, but honeypot spider traps (`robots.txt` token traps) and active administrative IP bans remain immutable and strictly blocked.

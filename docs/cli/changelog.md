@@ -64,6 +64,13 @@ All notable changes to the Routewarden CLI (`rwarden`) are documented here. The 
   - Added `blockScriptClients` / `block_script_clients` to schemas and CLI evaluation engine.
   - Added automated HTTP library (requests, Guzzle, reqwest, axios, curl-cffi, mechanize) and headless framework header signature verification (`X-Playwright`, `X-Puppeteer`, `X-Selenium`, `X-Cypress`, `X-Headless-Chrome`, `X-Automation`, `Sec-WebDriver`).
   - Added generator support across all supported gateway outputs.
+- **Cryptographic Proof-of-Work Challenge Response Mode (`powChallenge`)**:
+  - Implemented client-side Hashcash proof-of-work challenge solver (<2KB inline HTML/JS using Web Crypto API `crypto.subtle`) returning HTTP 429 Too Many Requests.
+  - Server-side challenge generation with HMAC-SHA256 signatures, sliding window timestamps, and normalized client IP address binding.
+  - $O(1)$ stateless solution token verification (`rw_pow` cookie or `X-RouteWarden-PoW` header) unlocking protected routes and bot defenses while strictly preserving dynamic honeypot traps and administrative IP bans.
+  - Added response parameters: `powDifficulty` (default: 16), `powSecret`, and `powTimeoutSeconds` (default: 300).
+  - Added configuration audit rule `RW-A033` (Warning when `powDifficulty` is set outside recommended range 8–24).
+  - Extended multi-gateway generators (`traefik-yaml`, `traefik-toml`, `traefik-labels`, `caddy`, `nginx`) and policy diffing (`diff`).
 
 ---
 

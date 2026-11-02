@@ -834,6 +834,7 @@ Perform deep static analysis and linting on a Routewarden policy file to catch R
 | `RW-A030` | Info | Missing Search Engine FCrDNS Verification | `blockAIBots` enabled without `verifySearchEngineBots`, risking search crawler blocking or impostor spoofing |
 | `RW-A031` | Warning | Robots Honeypot Trap Shadowed by Allow Pattern | `enableRobotsTxtHoneypot` is active but an `allowPatterns` entry shadows `/_rw_trap_` paths, rendering honeypot defense ineffective |
 | `RW-A032` | Info | Cloud Host Classifier Without Search Engine Verification | `blockCloudHosts` enabled without `verifySearchEngineBots`, risking blocking legitimate crawlers (Googlebot, Bingbot) hosted on cloud IP ranges |
+| `RW-A033` | Warning | Proof-of-Work Difficulty Out of Bounds | `powDifficulty` is set outside recommended range (8–24), risking either ineffective deterrence (<8) or client browser freeze (>24) |
 
 ---
 

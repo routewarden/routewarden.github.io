@@ -909,6 +909,92 @@ test('playground engine & generator: comprehensive test matrix (100+ cases)', as
       assert.equal(res.ruleId, 'block-env')
     })
   })
+
+  // ========================================================
+  // Section 15: Snippet Generation for powChallenge
+  // ========================================================
+  await t.test('Section 15: Snippet Generation for powChallenge Mode', async (st) => {
+    const powOpts = {
+      ...DEFAULT_SNIPPET_OPTS,
+      responseMode: 'powChallenge',
+      powDifficulty: 20,
+      powSecret: 'my-pow-secret-123',
+      powTimeoutSeconds: 600
+    }
+
+    await st.test('Caddyfile formats pow directives properly', () => {
+      const code = generateGatewaySnippet({ ...powOpts, snippetFormat: 'caddy' })
+      assert.ok(code.includes('mode powChallenge'))
+      assert.ok(code.includes('pow_difficulty 20'))
+      assert.ok(code.includes('pow_secret "my-pow-secret-123"'))
+      assert.ok(code.includes('pow_timeout_seconds 600'))
+    })
+
+    await st.test('NGINX Lua formats pow directives properly', () => {
+      const code = generateGatewaySnippet({ ...powOpts, snippetFormat: 'nginx' })
+      assert.ok(code.includes('mode = "powChallenge"'))
+      assert.ok(code.includes('pow_difficulty = 20,'))
+      assert.ok(code.includes('pow_secret = "my-pow-secret-123",'))
+      assert.ok(code.includes('pow_timeout_seconds = 600,'))
+    })
+
+    await st.test('Traefik YAML formats pow directives properly', () => {
+      const code = generateGatewaySnippet({ ...powOpts, snippetFormat: 'traefik_yaml' })
+      assert.ok(code.includes('mode: powChallenge'))
+      assert.ok(code.includes('powDifficulty: 20'))
+      assert.ok(code.includes('powSecret: "my-pow-secret-123"'))
+      assert.ok(code.includes('powTimeoutSeconds: 600'))
+    })
+
+    await st.test('Traefik TOML formats pow directives properly', () => {
+      const code = generateGatewaySnippet({ ...powOpts, snippetFormat: 'traefik_toml' })
+      assert.ok(code.includes('mode = "powChallenge"'))
+      assert.ok(code.includes('powDifficulty = 20'))
+      assert.ok(code.includes('powSecret = "my-pow-secret-123"'))
+      assert.ok(code.includes('powTimeoutSeconds = 600'))
+    })
+
+    await st.test('Docker Compose formats pow labels properly', () => {
+      const code = generateGatewaySnippet({ ...powOpts, snippetFormat: 'docker' })
+      assert.ok(code.includes('response.mode=powChallenge'))
+      assert.ok(code.includes('response.powDifficulty=20'))
+      assert.ok(code.includes('response.powSecret=my-pow-secret-123'))
+      assert.ok(code.includes('response.powTimeoutSeconds=600'))
+    })
+
+    await st.test('Kubernetes Traefik CRD formats pow directives properly', () => {
+      const code = generateGatewaySnippet({ ...powOpts, snippetFormat: 'k8s_traefik' })
+      assert.ok(code.includes('mode: powChallenge'))
+      assert.ok(code.includes('powDifficulty: 20'))
+      assert.ok(code.includes('powSecret: "my-pow-secret-123"'))
+      assert.ok(code.includes('powTimeoutSeconds: 600'))
+    })
+
+    await st.test('Kubernetes Caddy formats pow directives properly', () => {
+      const code = generateGatewaySnippet({ ...powOpts, snippetFormat: 'k8s_caddy' })
+      assert.ok(code.includes('mode powChallenge'))
+      assert.ok(code.includes('pow_difficulty 20'))
+      assert.ok(code.includes('pow_secret "my-pow-secret-123"'))
+      assert.ok(code.includes('pow_timeout_seconds 600'))
+    })
+
+    await st.test('Kubernetes NGINX formats pow directives properly', () => {
+      const code = generateGatewaySnippet({ ...powOpts, snippetFormat: 'k8s_nginx' })
+      assert.ok(code.includes('mode = "powChallenge"'))
+      assert.ok(code.includes('pow_difficulty = 20,'))
+      assert.ok(code.includes('pow_secret = "my-pow-secret-123",'))
+      assert.ok(code.includes('pow_timeout_seconds = 600,'))
+    })
+
+    await st.test('CLI routewarden.json formats pow fields properly', () => {
+      const code = generateGatewaySnippet({ ...powOpts, snippetFormat: 'cli_json' })
+      const parsed = JSON.parse(code)
+      assert.equal(parsed.response.mode, 'powChallenge')
+      assert.equal(parsed.response.powDifficulty, 20)
+      assert.equal(parsed.response.powSecret, 'my-pow-secret-123')
+      assert.equal(parsed.response.powTimeoutSeconds, 600)
+    })
+  })
 })
 
 
